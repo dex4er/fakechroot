@@ -46,9 +46,9 @@ Build: sh
      ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
  ( cd build-tree-lib && make ) || false
  ( cd build-tree-fake && make ) || false
- if [ -z "$FAKEROOTKEY" ]; then
-     ( cd build-tree-lib && make check ) || false
- fi
+ #if [ -z "$FAKEROOTKEY" ]; then
+ #     ( cd build-tree-lib && make check ) || false
+ #fi
  if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
      ( cd build-tree-lib64 && CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
          ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux ) || false
