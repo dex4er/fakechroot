@@ -239,7 +239,7 @@ find . \( -type f -o -type d -o -type l \) \
     | gzip -9 > savemode.dat2
 	
 	
-Restore moves script:
+Restore modes script:
 
 #!/bin/sh
 if [ "find ~ -maxdepth 0 -printf '%U\n'" != 0 ]; then
