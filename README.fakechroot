@@ -7,12 +7,16 @@ and apply further attached patch.
 
 In fake chroot environment there are following limits:
 
+ * /lib/ld-linux.so.2 is always loaded from real environment.
+ * The symlinks are 
  * You have to chdir to directory common for real and faked environment
    before fakechroot is started.
  * Statically linked binaries doesn't work, especially ldconfig,
    so you have to wrap this command and i.e. set the dpkg diversion.
  * ldd also doesn't work. You have to use wrapper.
- * Remove /dev/tty - the full screen apps doesn't work if it exists.
+ * There are no real devices so you have to symlink to the real ones.
+ * Remove /dev/tty or symlink to the real /dev/tty - the full screen apps
+   doesn't work if it exists as faked device.
  * If debconf with dialog is broken - remove /dev/tty or export
    DEBIAN_FRONTEND=readline.
  * ltrace sometimes doesn't work. strace does work pretty well.
@@ -36,19 +40,24 @@ $ fakechroot -s fakeroot.save
 # export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
 # DEBOOTSTRAP_DIR=/tmp/debootstrap /tmp/debootstrap/scripts/debootstrap sid /tmp/sid
 # exit
+$ rm -rf /tmp/sid/proc; ln -s /proc /tmp/sid
+$ for i in null random tty urandom zero; \
+  do rm -f /tmp/sid/dev/$i; ln -s /dev/$i /tmp/sid/dev; done
 
-$ fakechroot -s fakeroot.save -i fakeroot.save
+$ fakechroot -i fakeroot.save
+# cd /
+# export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
 # chroot /tmp/sid /bin/bash
 # rm -f /dev/tty
 # apt-setup
 # adduser --uid 1001 dexter
 # nano /etc/apt/sources.lists
 # apt-get update
-# apt-get install build-essential
+# apt-get install build-essential devscripts
 # cd /tmp
 # apt-get source hello
 # cd hello-*
-# debuild -E
+# debuild --preserve-env
 # exit
 
 
@@ -56,29 +65,5 @@ The patch for debootstrap is available
 at /usr/share/doc/fakechroot/deboostrap.diff.gz
 
 
-Save modes script:
-
-#!/bin/sh
-if [ "find ~ -maxdepth 0 -printf '%U\n'" != 0 ]; then
-    echo "Use in fakeroot environment"
-    exit 1
-fi
-LANG=C find . \( -type b -o -type c -o -type p -o -type s \) \
-    | tar czPf savemode.dat1 -T-
-find . \( -type f -o -type d -o -type l \) \
-    -a \( ! -uid 0 -o ! -gid 0 \) -printf "%U %G %m %p\n" \
-    | gzip -9 > savemode.dat2
-	
-	
-Restore modes script:
-
-#!/bin/sh
-if [ "find ~ -maxdepth 0 -printf '%U\n'" != 0 ]; then
-    echo "Use in fakeroot environment"
-    exit 1
-fi
-tar zxf savemode.dat1 --numeric-owner
-zcat savemode.dat2 | while read uid gid mode file; do
-    chown $uid:$gid $file
-    chmod $mode $file
-done
+The save and restore modes scripts are available
+at /usr/share/doc/fakechroot/examples directory
