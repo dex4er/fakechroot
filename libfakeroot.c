@@ -41,7 +41,7 @@ static char fakechroot_buf[MAXPATH];
 
 #define narrow_chroot_path(path) \
     { \
-	fakechroot_path = getenv("FAKECHROOT"); \
+	fakechroot_path = getenv("FAKECHROOT_BASE"); \
 	if (fakechroot_path != NULL) { \
 	    fakechroot_ptr = strstr((path), fakechroot_path); \
 	    if (fakechroot_ptr != (path)) { \
@@ -55,7 +55,7 @@ static char fakechroot_buf[MAXPATH];
 #define expand_chroot_path(path) \
     { \
 	if (path != NULL && *path == '/') { \
-    	    fakechroot_path = getenv("FAKECHROOT"); \
+    	    fakechroot_path = getenv("FAKECHROOT_BASE"); \
 	    if (fakechroot_path != NULL) { \
 		fakechroot_ptr = strstr((path), fakechroot_path); \
 		if (fakechroot_ptr != (path)) { \
@@ -1104,7 +1104,7 @@ int chroot(const char *path) {
     char *ptr;
     int status;
 
-    fakechroot_path = getenv("FAKECHROOT");
+    fakechroot_path = getenv("FAKECHROOT_BASE");
     if (fakechroot_path != NULL) {
 	return EACCES;
     }
@@ -1121,8 +1121,8 @@ int chroot(const char *path) {
 	}
     }
 
-    setenv("FAKECHROOT", path, 1);
-    fakechroot_path = getenv("FAKECHROOT");
+    setenv("FAKECHROOT_BASE", path, 1);
+    fakechroot_path = getenv("FAKECHROOT_BASE");
     chdir("/");
     return 0;
 }
@@ -1286,7 +1286,7 @@ int readlink(const char *path, char *buf, size_t bufsiz) {
     /* TODO: shouldn't end with \000 */
     tmp[status] = 0;
 
-    fakechroot_path = getenv("FAKECHROOT");
+    fakechroot_path = getenv("FAKECHROOT_BASE");
     if (fakechroot_path != NULL) { 
 	fakechroot_ptr = strstr(tmp, fakechroot_path);
         if (fakechroot_ptr != tmp) {
