@@ -159,36 +159,40 @@ Install: bash
      popd
  done
  .
- yada copy -into /usr/lib build-tree-fake/tmp/usr/lib/*.so.?
  yada install -lib -into /usr/lib build-tree-fake/tmp/usr/lib/*.so.*.*.*
- yada copy -into /usr/lib \
-     -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.? | sed 's/\.so/-tcp&/') \
-     build-tree-fake-tcp/tmp/usr/lib/*.so.?
+ yada symlink -into /usr/lib \
+     -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.?) \
+     $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.*)
  yada install -lib -into /usr/lib \
      -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/') \
      build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.*
+ yada symlink -into /usr/lib \
+     -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.? | sed 's/\.so/-tcp&/') \
+     $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/')
  yada install -script -as fakechroot build-tree-lib/tmp/usr/bin/fakeroot
  yada install -bin -as fakechrootd build-tree-lib/tmp/usr/bin/faked
  yada copy -into /usr/lib/libfakechroot build-tree-lib/tmp/usr/lib/libfakechroot/*.so.?
  yada install -lib -into /usr/lib/libfakechroot build-tree-lib/tmp/usr/lib/libfakechroot/*.so.*.*.*
  yada install -script -as fakechroot-tcp build-tree-lib-tcp/tmp/usr/bin/fakeroot-tcp
  yada install -bin -as fakechrootd-tcp build-tree-lib-tcp/tmp/usr/bin/faked-tcp
- yada copy -into /usr/lib/libfakechroot \
-     -as $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
-     build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.?
  yada install -lib -into /usr/lib/libfakechroot \
      -as $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/') \
      build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.*
+ yada symlink -into /usr/lib/libfakechroot \
+     -as $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
+     $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/')
  .
  if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
-     yada copy -into /usr/lib64/libfakechroot build-tree-lib64/tmp/usr/lib/libfakechroot/*.so.?
      yada install -lib -into /usr/lib64/libfakechroot build-tree-lib64/tmp/usr/lib/libfakechroot/*.so.*.*.*
-     yada copy -into /usr/lib64/libfakechroot \
-         -as $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
-         build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.?
+     yada symlink -into /usr/lib64/libfakechroot \
+         -as $(basename build-tree-lib64/tmp/usr/lib/*.so.?) \
+         $(basename build-tree-lib64/tmp/usr/lib/*.so.*.*.*)
      yada install -lib -into /usr/lib64/libfakechroot \
          -as $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/') \
          build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.*
+     yada symlink -into /usr/lib64/libfakechroot \
+         -as $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
+         $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/')
  fi
  .
  yada install -man -as fakechroot.1 doc/fakeroot.1
@@ -200,7 +204,7 @@ Install: bash
 Shlibs:
  /usr/lib/libfakechroot/libfakechroot 0
 Overrides:
-E: fakechroot: ldconfig-symlink-referencing-wrong-file usr/lib/libfakechroot.so.0 -> libfakechroot.so.0.0.1 instead of libfakechroot-tcp.so.0.0.1
-E: fakechroot: shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot.so.0.0.1
-E: fakechroot: shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot-tcp.so.0.0.1
-W: fakechroot: unused-shlib-entry-in-control-file /usr/lib/libfakechroot/libfakechroot
+ ldconfig-symlink-referencing-wrong-file usr/lib/libfakechroot.so.0 -> libfakechroot.so.0.0.1 instead of libfakechroot-tcp.so.0.0.1
+ shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot.so.0.0.1
+ shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot-tcp.so.0.0.1
+ unused-shlib-entry-in-control-file /usr/lib/libfakechroot/libfakechroot
