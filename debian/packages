@@ -53,7 +53,7 @@ Build: bash
      libtoolize --copy
      automake-%{automake_version} --add-missing --copy
      autoconf
-     pushd fake 
+     pushd fake
          aclocal-%{automake_version}
          automake-%{automake_version} --add-missing --copy
          autoconf
@@ -73,27 +73,27 @@ Build: bash
      popd
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64
- 	 CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+         CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
              ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux
- 	 popd
+         popd
      fi
      install -d build-tree-lib-tcp build-tree-fake-tcp build-tree-lib64-tcp
      pushd build-tree-lib-tcp
          CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
              ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot \
- 	         --with-ipc=tcp --program-suffix=-tcp
+                 --with-ipc=tcp --program-suffix=-tcp
      popd
      pushd build-tree-fake-tcp
      CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
          ../fake/configure --prefix=/usr --mandir=/usr/share/man \
- 	         --with-ipc=tcp --program-suffix=-tcp
+                 --with-ipc=tcp --program-suffix=-tcp
      popd
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64-tcp
- 	 CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+         CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
              ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux \
- 	         --with-ipc=tcp --program-suffix=-tcp
- 	 popd
+                 --with-ipc=tcp --program-suffix=-tcp
+         popd
      fi
      touch configure-stamp
  fi
@@ -107,8 +107,8 @@ Build: bash
      popd
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64
- 	     make
- 	 popd
+             make
+         popd
      fi
      pushd build-tree-lib-tcp
          make
@@ -118,8 +118,8 @@ Build: bash
      popd
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64-tcp
- 	     make
- 	 popd
+             make
+         popd
      fi
      touch build-stamp
  fi
@@ -153,9 +153,9 @@ Install: bash
  for i in build-tree*; do
      pushd $i
          if [ -f Makefile ]; then
- 	     rm -rf tmp || true
+             rm -rf tmp || true
              make install DESTDIR=$(pwd)/tmp
- 	 fi
+         fi
      popd
  done
  .
@@ -199,7 +199,7 @@ Install: bash
  yada install -man -as fakechroot-tcp.1 doc/fakeroot.1
  yada install -man -as fakechrootd.1 doc/faked.1
  yada install -man -as fakechrootd-tcp.1 doc/faked.1
- yada install -doc README.fakechroot doc/debootstrap.diff 
+ yada install -doc README.fakechroot doc/debootstrap.diff
  yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake
 Shlibs:
  /usr/lib/libfakechroot/libfakechroot 0
