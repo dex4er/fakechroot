@@ -159,3 +159,7 @@ Install: sh
  yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake
 Shlibs:
  /usr/lib/libfakechroot/libfakechroot 0
+Overrides:
+ non-dev-pkg-with-shlib-symlink usr/lib/libfakechroot.so.0.0.1 usr/lib/libfakechroot.so
+ shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot.so.0.0.1
+ unused-shlib-entry-in-control-file /usr/lib/libfakechroot/libfakechroot
