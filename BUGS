@@ -1,0 +1,20 @@
+- symlinks aren't `vpath-ed'. that is, if VPATH="chop(/bin)=:/tmp/bin",
+  then opening a symlink ~/home/ls -> /bin/ls will open /bin/ls
+  directly, and not first try to open /tmp/bin/ls.
+
+- dpkg-shlibdeps gets a sig 11 (avoided with neat VPATH trick in fakeroot,
+  but nevertheless, there's a bug in libtricks there somewhere).
+
+- readlink on a ordinary file/dir without VPATHSYMLINK set will still
+  not return an error, if the file is affected by the VPATH. Should,
+  according to readlink(2), return EINVAL.
+
+- in trick-chroot, the output of `pwd' initially isn't correct. After the
+  first cd this is corrected, but anyway. Should use vpath_findpath() in
+  getcwd().
+
+- nice() is called too often. It's called for every vpath
+  component (vpath::vpath::vpath), needs only to be called once.
+
+- nicepath -- is dat echt wel goed als path met een '/' begint???
+  moet nicepath echt wel zoveel doen met 't huidige filesysteem?

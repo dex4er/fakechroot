@@ -1,0 +1,20 @@
+I suppose 'libtricks' will take the quest of finding border-cases for the GPL
+yet one more (small) step forward. Does every dynamically linked executable 
+fall under the GPL once someone said `LD_PRELOAD=libtricks.so.0.0 executable'?
+That seems to be a rather strange interpretation of the GPL. 
+The way I (as author of libtricks) see it:
+  - you're free to link any program with this library and run it.
+  - Only when you give away or sell copies of a program that is
+    _set up_ to use this library (or needs it), that program will be
+    considered a ``work based on the library'', and thus fall under GPL.
+
+
+I've considered using LGPL, but I decided against that because
+  - I still don't quite understand it's terms.
+  - I actually don't want a program that really needs this
+    library to be distributed with any other licence than (L)GPL.
+
+joost witteveen.
+
+
+For the tekst of the GPL, see /usr/doc/copyright/GPL of any debian system.

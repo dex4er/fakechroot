@@ -1,0 +1,70 @@
+The fakeroot environment can be saved for later use if you use the -s
+option to fakeroot. This will not work perfectly, however.
+
+Internally, faked keeps track of all files which have had operations
+done on them that the user would not normally be able to do, in order to
+fake the effect later.
+
+For example, if you create a device node, faked will actually create an
+empty file, but remember that it was a device node (along with the
+relevant details) so that if you subsequently do an "ls -l", you'll see
+it as a device node.
+
+The save option simply saves this list, so later fakeroot invocations
+can restore them.
+
+However, you can manipulate the files saved outside of the fakeroot
+environment (for example, you could delete the zero-length file that was
+the placeholder for the device node) and fakeroot will not know about it
+when it loads up the list again. This will cause the list to leak.
+
+The list cannot easily be verified, either, because it keys things by
+inode number, and there is no mechanism to look up anything from one of
+those alone. Such verification _could_ be done, but would in theory
+require a search through the _entire_ filesystem, every time. This isn't
+really acceptable for regular operation, and I don't need such a feature
+so I haven't written it. The file format is fairly straightforward and
+obvious, however, so if anybody else wants to...  :-)
+
+So, this feature should only be used if you limit everything you do
+inside the fakeroot environment to the fakeroot environment. This is
+still useful - for example (assuming you have the appropriate key):
+
+$ fakeroot -s backup.environ
+# mkdir backup
+# cd backup
+# export RSYNC_RSH=ssh
+# rsync -a root@important.example.com:/ .
+[...]
+# exit
+$
+
+Now, "fakeroot -i backup.environ" will get you exactly what you had
+backed up, user and group information, device nodes and everything. Of
+course, that information is still faked, but you should be able to
+happily rsync it back. This way you only need normal user privileges on
+the backup machine. This is great to back up multiple machines without a
+compromise affecting the backup machine and thereby compromising all the
+other machines you back up as well.
+
+Note that further rsync updates should be done with:
+
+$ fakeroot -i backup.environ -s backup.environ
+# cd backup
+# export RSYNC_RSH=ssh
+# rsync -a root@important.example.com:/ .
+[...]
+# exit
+$
+
+so that further changes are still saved.
+
+In this scenario, the shortcoming will not affect anything, as the only
+modification of files which required root (and consequently were faked)
+is done inside the environment, and can therefore be tracked and saved.
+
+Have fun!
+
+Robie Basak <robie@principle.co.uk>
+Northern Principle Limited
+25/3/2003.

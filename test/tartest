@@ -1,0 +1,89 @@
+#!/bin/sh -x
+set -e
+TMP=./tmp
+SRCDIR=$(cd ${srcdir}; pwd -P)
+PATH=$PATH:/usr/bin/X11
+export PATH
+umask 022
+
+
+if test ! -d $TMP; then
+  mkdir $TMP
+fi
+
+cd $TMP;
+
+
+#test 1: try some silly mkdir, chmod, chown commands
+#        and see if we get the same tar file as I
+#        did when I created the lot as RealRoot:
+
+rm -rf tar
+mkdir tar
+cd tar
+LIST="1 2 3 4 5 6 fjsdk 1289 vn.34.654l."
+for f in $LIST; do
+  mkdir -p $f/$f/$f.hello
+  touch     $f/$f/file
+done
+
+#do some mv/rm stuff. 
+#The "mv" part used to confuse fakeroot_0.0-6 
+#   (inodes weren't removed from cache)
+FILES=$(for f in $LIST; do for c in mv rm ; do echo $c.$f ; done ; done)
+touch $FILES
+chown sys:sys $FILES
+for f in $LIST; do
+  mv mv.$f gone
+  rm rm.$f
+done
+rm gone
+
+for f in $LIST; do
+  mkdir -p hello/$f
+  touch     hello/$f/file
+  touch     $f.file
+done
+
+chown sys:sys -R 2
+chown sys:root -R 3 4 
+chmod u+xs -R 2
+chmod u+s  5
+
+# see bugs (not wraping open()) in manual page: don't `chmod 0'
+# the file hello itself (only the directories in it).
+chmod 0 hello hello/* #tar/hello/vn.34.654l./{,file} 
+echo "0123456789012" > hello/hello
+ 
+
+cd ..
+
+
+rm -f tartest.tar.gz
+uudecode ${SRCDIR}/tartest.tar.gz.uue 
+
+tar -czf faketar.tar.gz tar
+
+${SRCDIR}/compare-tar tartest.tar.gz faketar.tar.gz 
+ 
+#test 2: try to unpack, pack the tar archive, and
+#        see if the result is the same archive
+#        (yes, I've created bugs that would past test1, but
+#        not test2)
+
+rm -rf tar
+
+tar -xzf tartest.tar.gz
+tar -czf tartest.test.tar.gz tar
+
+${SRCDIR}/compare-tar tartest.tar.gz tartest.test.tar.gz 
+
+#Would like to do this, but fakedebug doens't generate stdout (yet), so
+#I cannot do this yet.
+#
+#rm -rf tar tmp-1 tmp-2 *.tar.gz
+#if test "`../../fakedebug`"; then
+#  echo "Outout of fakedebug isn't zero, after cleaning up everything:"
+#  ../../fakedebug
+#  exit 1
+#fi

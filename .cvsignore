@@ -1,0 +1,10 @@
+autom4te.cache
+config.guess
+config.sub
+configure
+depcomp
+install-sh
+missing
+mkinstalldirs
+Makefile.in
+Makefile

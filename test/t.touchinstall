@@ -1,0 +1,8 @@
+#!/bin/sh
+
+mkdir tmp
+${srcdir}/../scripts/fakeroot -f ../faked -l ../.libs/${libfakeroot} -- \
+ sh -c "touch tmp/iamnotuser; ls -al tmp/iamnotuser" | grep root
+TEMP=$?
+rm -r tmp
+exit $TEMP

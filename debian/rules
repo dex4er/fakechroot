@@ -1,0 +1,133 @@
+#!/usr/bin/make -f
+
+CFLAGS = -W -Wall -pedantic -g
+CXXFLAGS = -W -Wall -pedantic -g
+INSTALL = install
+INSTALL_FILE    = $(INSTALL) -p    -o root -g root  -m  644
+INSTALL_PROGRAM = $(INSTALL) -p    -o root -g root  -m  755
+INSTALL_SCRIPT  = $(INSTALL) -p    -o root -g root  -m  755
+INSTALL_DIR     = $(INSTALL) -p -d -o root -g root  -m  755
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+CFLAGS += -O0
+CXXFLAGS += -O0
+else
+CFLAGS += -O2
+CXXFLAGS += -O2
+endif
+
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+INSTALL_PROGRAM += -s
+endif
+
+
+build: build-stamp
+build-stamp:
+	$(checkdir)
+
+	mkdir obj objfake
+	cd obj && CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakeroot
+	cd objfake && CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" ../fake/configure --prefix=/usr --mandir=/usr/share/man
+
+	cd obj && $(MAKE)
+	cd objfake && $(MAKE)
+	cd obj && $(MAKE) check
+
+	touch build-stamp
+
+clean: checkroot
+	$(checkdir)
+	rm -rf obj objfake obj64
+	rm -f build-stamp build-biarch-stamp
+#	 Add here commands to clean up after the build process.
+	-cd obj && $(MAKE) distclean
+	-cd objfake && $(MAKE) distclean
+ifneq (,$(findstring $(DEB_HOST_GNU_TYPE), sparc-linux s390-linux))
+	-cd obj64 && $(MAKE) distclean
+endif
+	rm -rf .deps
+	rm -f debian/substvars
+	rm -rf debian/tmp obj obj64 objfake autom4te.cache
+	find . -type f -a \( -name \#\*\# -o -name .\*\~ -o -name \*\~ -o -name DEADJOE -o -name \*.orig -o -name \*.rej -o -name \*.bak -o -name .\*.orig -o -name .\*.rej -o -name .SUMS -o -name TAGS -o -name core -o \( -path \*/.deps/\* -a -name \*.P \) \) -exec rm -f {} \;
+
+# Build architecture-independent files here.
+binary-indep: build
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build checkroot
+	$(checkdir)
+
+	cd obj && $(MAKE) DESTDIR="$(CURDIR)/debian/tmp" install
+	cd objfake && $(MAKE) DESTDIR="$(CURDIR)/debian/tmp" install
+	$(INSTALL_DIR) debian/tmp/DEBIAN debian/tmp/usr/bin/
+	$(INSTALL_SCRIPT) scripts/fakeroot debian/tmp/usr/bin/
+	$(INSTALL_DIR) debian/tmp/usr/share/doc/fakeroot \
+		           debian/tmp/usr/lib/libfakeroot
+	$(INSTALL_FILE) README.fake doc/README.saving DEBUG debian/tmp/usr/share/doc/fakeroot/
+	( echo "This package was written and put together by me, "; \
+	  echo "joost witteveen <joostje@debian.org>"            ; \
+	  echo "------------------------------------------------"; \
+	  cat COPYING) > debian/tmp/usr/share/doc/fakeroot/copyright
+	cd obj && ./libtool --finish $(CURDIR)/debian/tmp/usr/lib/fakeroot
+	cd objfake && ./libtool --finish $(CURDIR)/debian/tmp/usr/lib
+	rm -f debian/tmp/usr/lib/libfakeroot/libfakeroot.*a*
+	rm -f debian/tmp/usr/bin/simple debian/tmp/usr/lib/libfakeroot.la
+ifneq (,$(findstring $(DEB_HOST_GNU_TYPE), s390-linux)) # sparc-linux
+	debian/rules binary-biarch
+endif
+	$(INSTALL_FILE) debian/copyright debian/tmp/usr/share/doc/fakeroot/copyright
+	$(INSTALL_FILE) debian/changelog debian/tmp/usr/share/doc/fakeroot/changelog
+	gzip -9f debian/tmp/usr/share/man/fr/man1/fakeroot.1 \
+	         debian/tmp/usr/share/man/sv/man1/fakeroot.1 \
+		 debian/tmp/usr/share/man/sv/man1/faked.1 \
+		 debian/tmp/usr/share/man/man1/faked.1 \
+		 debian/tmp/usr/share/man/man1/fakeroot.1 \
+		 debian/tmp/usr/share/doc/fakeroot/changelog
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	strip --remove-section=.comment --remove-section=.note --strip-unneeded debian/tmp/usr/lib/libfakeroot.so.0.0.1
+	strip --remove-section=.comment --remove-section=.note --strip-unneeded debian/tmp/usr/lib/libfakeroot/libfakeroot.so.0.0.1
+	strip --remove-section=.comment --remove-section=.note debian/tmp/usr/bin/faked
+	strip --strip-debug debian/tmp/usr/lib/libfakeroot.a
+endif
+	$(INSTALL_FILE) debian/shlibs debian/tmp/DEBIAN/shlibs
+	# We can just use the deps for faked.
+	dpkg-shlibdeps -Tdebian/substvars debian/tmp/usr/bin/faked
+	dpkg-gencontrol -ldebian/changelog -isp -Tdebian/substvars -Pdebian/tmp
+	chmod 644 debian/tmp/DEBIAN/control
+	chown 0.0 debian/tmp/DEBIAN/control
+	chmod  4644  debian/tmp/usr/lib/libfakeroot.so.0.0.1
+	cd debian/tmp && find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+	dpkg-deb --build debian/tmp ..
+
+binary-biarch:
+	$(checkdir)
+	mkdir obj64
+ifeq (sparc-linux, $(DEB_HOST_GNU_TYPE))
+	cd obj64 && CC="gcc-3.3 -m64" ../configure --prefix=/usr --mandir=/usr/share/man sparc64-linux
+endif
+ifeq (s390-linux, $(DEB_HOST_GNU_TYPE))
+	cd obj64 && CC="gcc-3.3 -m64" ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux
+endif
+
+	cd obj64 && $(MAKE) libfakeroot.la
+	$(INSTALL_DIR) debian/tmp/usr/lib64/libfakeroot
+	cd obj64 && $(SHELL) ./libtool --mode=install install libfakeroot.la \
+		$(CURDIR)/debian/tmp/usr/lib64/libfakeroot/libfakeroot.la
+#	cd obj64 && ./libtool --finish debian/fakeroot-sparc/usr/lib64/fakeroot
+	rm -f debian/tmp/usr/lib64/libfakeroot/libfakeroot.*a*
+
+source diff:
+	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary checkroot
+
+define checkdir
+	test -f debian/rules
+endef
+
+checkroot:
+	$(checkdir)
+	test root = "`whoami`"
+
