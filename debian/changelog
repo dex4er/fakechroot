@@ -1,3 +1,10 @@
+fakechroot (0.2.4+0.7.5) unstable; urgency=low
+
+  * Add man page, closes: #205615.
+  * Add example scripts and patch for debootstrap.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Mon, 18 Aug 2003 17:01:05 +0200
+
 fakechroot (0.2.3+0.7.5) unstable; urgency=low
 
   * Add documentation in /usr/share/doc/fakechroot.

@@ -106,6 +106,7 @@ Install: sh
  done
  yada install -script -as fakechroot scripts/fakeroot
  yada install -man -as fakechroot.1 doc/fakeroot.1
- yada install -doc README.fakechroot
+ yada install -doc README.fakechroot doc/debootstrap.diff 
+ yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake
 Shlibs:
  /usr/lib/libfakechroot/libfakechroot 0
