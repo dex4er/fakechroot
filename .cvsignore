@@ -8,5 +8,6 @@ install-sh
 ltmain.sh
 missing
 mkinstalldirs
+stamp-h.in
 Makefile.in
 Makefile

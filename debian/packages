@@ -19,8 +19,16 @@ Copyright: GPL
 Build-Depends: automake%{automake_version}, autoconf, libtool
 Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc], gcc-3.3 [s390]
 Build: sh
- aclocal-%{automake_version} && autoheader && automake-%{automake_version} --add-missing --copy && autoconf || false
- ( cd fake && aclocal-%{automake_version} && automake-%{automake_version} --add-missing --copy && autoconf ) || false
+ aclocal-%{automake_version}
+ autoheader
+ libtoolize --copy
+ automake-%{automake_version} --add-missing --copy
+ autoconf
+ ( cd fake 
+    aclocal-%{automake_version}
+    automake-%{automake_version} --add-missing --copy
+    autoconf
+ ) || false
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}
  CXXFLAGS=${CFLAGS:--Wall -pedantic -g}
@@ -54,7 +62,9 @@ Build: sh
 Clean: sh
  rm -rf build-tree-*
  rm -rf $(cat .cvsignore)
- ( cd fake && rm -rf $(cat .cvsignore) )
+ for i in $(find -name .cvsignore); do
+     ( cd $(dirname $i) && rm -rf $(cat .cvsignore) )
+ done
 
 Package: fakechroot
 Architecture: any
