@@ -385,7 +385,7 @@ AH_VERBATIM([WRAP_STAT],
 ])
 dnl kludge end
 
-AC_CONFIG_FILES([Makefile scripts/Makefile doc/Makefile doc/es/Makefile doc/fr/Makefile doc/sv/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile scripts/Makefile doc/Makefile test/Makefile])
 AC_OUTPUT
 
 dnl Local variables:

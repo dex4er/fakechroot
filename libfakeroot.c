@@ -287,10 +287,6 @@ static int write_fs_uid() {
   return write_id(FAKEROOTFUID_ENV, faked_fs_uid);
 }
 
-static int write_fs_uid() {
-  return write_id(FAKEROOTFUID_ENV, faked_fs_uid);
-}
-
 static int write_uids() {
   if (write_real_uid() < 0)
     return -1;
@@ -317,10 +313,6 @@ static int write_effective_gid() {
 
 static int write_saved_gid() {
   return write_id(FAKEROOTSGID_ENV, faked_saved_gid);
-}
-
-static int write_fs_gid() {
-  return write_id(FAKEROOTFGID_ENV, faked_fs_gid);
 }
 
 static int write_fs_gid() {
@@ -361,26 +353,6 @@ static uid_t get_faked_euid() {
 static gid_t get_faked_egid() {
   read_effective_gid();
   return faked_effective_gid;
-}
-
-static uid_t get_faked_suid() {
-  read_saved_uid();
-  return faked_saved_uid;
-}
-
-static gid_t get_faked_sgid() {
-  read_saved_gid();
-  return faked_saved_gid;
-}
-
-static uid_t get_faked_fsuid() {
-  read_fs_uid();
-  return faked_fs_uid;
-}
-
-static gid_t get_faked_fsgid() {
-  read_fs_gid();
-  return faked_fs_gid;
 }
 
 static uid_t get_faked_suid() {
@@ -1025,17 +997,6 @@ int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid){
 }
 #endif /* HAVE_GETRESUID */
 
-#ifdef HAVE_GETRESUID
-int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid){
-  if (fakeroot_disabled)
-    return next_getresuid(ruid, euid, suid);
-  *ruid = get_faked_uid();
-  *euid = get_faked_euid();
-  *suid = get_faked_suid();
-  return 0;
-}
-#endif /* HAVE_GETRESUID */
-
 uid_t getgid(void){
   if (fakeroot_disabled)
     return next_getgid();
@@ -1047,17 +1008,6 @@ uid_t getegid(void){
     return next_getegid();
   return get_faked_egid();
 }
-
-#ifdef HAVE_GETRESGID
-int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid){
-  if (fakeroot_disabled)
-    return next_getresgid(rgid, egid, sgid);
-  *rgid = get_faked_gid();
-  *egid = get_faked_egid();
-  *sgid = get_faked_sgid();
-  return 0;
-}
-#endif /* HAVE_GETRESGID */
 
 #ifdef HAVE_GETRESGID
 int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid){
@@ -1121,22 +1071,6 @@ int setresgid(gid_t rgid, gid_t egid, gid_t sgid){
   return set_faked_resgid(rgid, egid, sgid);
 }
 #endif /* HAVE_SETRESGID */
-
-#ifdef HAVE_SETFSUID
-uid_t setfsuid(uid_t fsuid){
-  if (fakeroot_disabled)
-    return next_setfsuid(fsuid);
-  return set_faked_fsuid(fsuid);
-}
-#endif /* HAVE_SETFSUID */
-
-#ifdef HAVE_SETFSGID
-gid_t setfsgid(gid_t fsgid){
-  if (fakeroot_disabled)
-    return next_setfsgid(fsgid);
-  return set_faked_fsgid(fsgid);
-}
-#endif /* HAVE_SETFSGID */
 
 #ifdef HAVE_SETFSUID
 uid_t setfsuid(uid_t fsuid){

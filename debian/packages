@@ -36,17 +36,7 @@ Copyright: GPL
  GNU copyleft joost witteveen, <joostje@debian.org>.
 Build-Depends: automake%{automake_version}, autoconf, libtool
 Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc], gcc-3.3 [s390]
-Build: sh
- aclocal-%{automake_version}
- autoheader
- libtoolize --copy
- automake-%{automake_version} --add-missing --copy
- autoconf
- ( cd fake 
-    aclocal-%{automake_version}
-    automake-%{automake_version} --add-missing --copy
-    autoconf
- ) || false
+Build: bash
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}
  CXXFLAGS=${CFLAGS:--Wall -pedantic -g}
@@ -57,32 +47,75 @@ Build: sh
      CFLAGS="$CFLAGS -O2"
      CXXFLAGS="$CXXFLAGS -O2"
  fi
- install -d mkdir build-tree-lib build-tree-fake build-tree-lib64
- ( cd build-tree-lib && CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-     ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot ) || false
- ( cd build-tree-fake && CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-     ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
- ( cd build-tree-lib && make ) || false
- ( cd build-tree-fake && make ) || false
+ .
+ if ! [ -f autoconf-stamp ]; then
+     rm -f aclocal.m4 configure
+     aclocal-%{automake_version}
+     autoheader
+     libtoolize --copy
+     automake-%{automake_version} --add-missing --copy
+     autoconf
+     pushd fake 
+         aclocal-%{automake_version}
+         automake-%{automake_version} --add-missing --copy
+         autoconf
+     popd
+     touch autoconf-stamp
+ fi
+ .
+ if ! [ -f configure-stamp ]; then
+     install -d mkdir build-tree-lib build-tree-fake build-tree-lib64
+     pushd build-tree-lib
+         CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot
+     popd
+     pushd build-tree-fake
+     CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+         ../fake/configure --prefix=/usr --mandir=/usr/share/man
+     popd
+     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
+         pushd build-tree-lib64
+ 	 CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux
+ 	 popd
+     fi
+     if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
+         pushd build-tree-lib64
+         CC="gcc-3.3 -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux
+ 	 popd
+     fi
+     touch configure-stamp
+ fi
+ .
+ if ! [ -f build-stamp ]; then
+     pushd build-tree-lib
+         make
+     popd
+     pushd build-tree-fake
+         make
+     popd
+     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
+         pushd build-tree-lib64
+ 	     make libfakechroot.la
+ 	 popd
+     fi
+     touch build-stamp
+     if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
+         pushd build-tree-lib64
+ 	     make libfakechroot.la
+ 	 popd
+     fi
+ fi
+ .
 %if %{with_test}
- ( cd build-tree-lib && make check ) || false
+ pushd build-tree-lib
+     make check
+ popd
 %endif
- if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
-     ( cd build-tree-lib64 && CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-         ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux ) || false
-     ( cd build-tree-lib64 && make libfakechroot.la ) || false
- fi
- if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
-     ( cd build-tree-lib64 && CC="gcc-3.3 -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-         ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux ) || false
-     ( cd build-tree-lib64 && make libfakechroot.la ) || false
- fi
 Clean: sh
- rm -rf build-tree-*
- rm -rf $(cat .cvsignore)
- for i in $(find -name .cvsignore); do
-     ( cd $(dirname $i) && rm -rf $(cat .cvsignore) )
- done
+ rm -rf build-tree-* || true
+ rm -f *-stamp || true
 
 Package: fakechroot
 Architecture: any
