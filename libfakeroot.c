@@ -41,7 +41,7 @@ static char fakechroot_buf[MAXPATH];
 
 #define narrow_chroot_path(path) \
     { \
-	fakechroot_path = getenv("FAKECHROOTDIR"); \
+	fakechroot_path = getenv("FAKECHROOT"); \
 	if (fakechroot_path != NULL) { \
 	    fakechroot_ptr = strstr((path), fakechroot_path); \
 	    if (fakechroot_ptr != (path)) { \
@@ -55,7 +55,7 @@ static char fakechroot_buf[MAXPATH];
 #define expand_chroot_path(path) \
     { \
 	if (path != NULL && *path == '/') { \
-    	    fakechroot_path = getenv("FAKECHROOTDIR"); \
+    	    fakechroot_path = getenv("FAKECHROOT"); \
 	    if (fakechroot_path != NULL) { \
 		fakechroot_ptr = strstr((path), fakechroot_path); \
 		if (fakechroot_ptr != (path)) { \
@@ -1104,7 +1104,7 @@ int chroot(const char *path) {
     char *ptr;
     int status;
 
-    fakechroot_path = getenv("FAKECHROOTDIR");
+    fakechroot_path = getenv("FAKECHROOT");
     if (fakechroot_path != NULL) {
 	return EACCES;
     }
@@ -1121,8 +1121,8 @@ int chroot(const char *path) {
 	}
     }
 
-    setenv("FAKECHROOTDIR", path, 1);
-    fakechroot_path = getenv("FAKECHROOTDIR");
+    setenv("FAKECHROOT", path, 1);
+    fakechroot_path = getenv("FAKECHROOT");
     chdir("/");
     return 0;
 }
@@ -1173,6 +1173,7 @@ char *get_current_dir_name(void) {
 }
 
 int open(const char *pathname, int flags, ...) {
+    struct stat st;
     int mode = 0;
     int r;
     int ret = -1;
@@ -1186,10 +1187,9 @@ int open(const char *pathname, int flags, ...) {
     }
 
     ret =  next_open(pathname, flags, mode);
-	struct stat st;
-	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
-	if(!r)
-	    send_stat(&st,chmod_func);
+    r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
     return ret;
 }
 
@@ -1199,6 +1199,7 @@ int creat(const char *pathname, mode_t mode) {
 }
 
 int open64(const char *pathname, int flags, ...) {
+    struct stat st;
     int mode = 0;
     int r;
     int ret = -1;
@@ -1212,21 +1213,20 @@ int open64(const char *pathname, int flags, ...) {
     }
 
     ret =  next_open64(pathname, flags, mode);
-	struct stat st;
-	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
-	if(!r)
-	    send_stat(&st,chmod_func);
+    r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
     return ret;
 }
 
 int creat64(const char *pathname, mode_t mode) {
+    struct stat st;
     int ret,r;
     expand_chroot_path(pathname);
     ret = next_creat64(pathname, mode);
-	struct stat st;
-	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
-	if(!r)
-	    send_stat(&st,chmod_func);
+    r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
     return ret;
 
 }
@@ -1247,30 +1247,30 @@ int utimes(char *filename, struct timeval *tvp) {
 }
 
 int symlink(const char *oldpath, const char *newpath) {
+    struct stat st;
     char tmp[MAXPATH];
     int ret,r;
     expand_chroot_path(oldpath);
     strcpy(tmp, oldpath); oldpath=tmp;
     expand_chroot_path(newpath);
     ret = next_symlink(oldpath, newpath);
-	struct stat st;
-	r=NEXT_LSTAT(_STAT_VER, newpath, &st);
-	if(!r)
-	    send_stat(&st,chmod_func);
+    r=NEXT_LSTAT(_STAT_VER, newpath, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
     return ret;
 }
 
 int link(const char *oldpath, const char *newpath) {
+    struct stat st;
     char tmp[MAXPATH];
     int ret,r;
     expand_chroot_path(oldpath);
     strcpy(tmp, oldpath); oldpath=tmp;
     expand_chroot_path(newpath);
     ret = next_link(oldpath, newpath);
-	struct stat st;
-	r=NEXT_LSTAT(_STAT_VER, newpath, &st);
-	if(!r)
-	    send_stat(&st,chmod_func);
+    r=NEXT_LSTAT(_STAT_VER, newpath, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
     return ret;
 }
 
@@ -1286,7 +1286,7 @@ int readlink(const char *path, char *buf, size_t bufsiz) {
     /* TODO: shouldn't end with \000 */
     tmp[status] = 0;
 
-    fakechroot_path = getenv("FAKECHROOTDIR");
+    fakechroot_path = getenv("FAKECHROOT");
     if (fakechroot_path != NULL) { 
 	fakechroot_ptr = strstr(tmp, fakechroot_path);
         if (fakechroot_ptr != tmp) {
@@ -1317,6 +1317,7 @@ char *mktemp(char *template) {
 }
 
 int mkstemp(char *template) {
+    struct stat st;
     char tmp[MAXPATH], *oldtemplate, *ptr;
     int fd,r;
 
@@ -1326,10 +1327,9 @@ int mkstemp(char *template) {
     if ((fd = next_mkstemp(template)) == -1) {
 	return -1;
     }
-	struct stat st;
-	r=NEXT_FSTAT(_STAT_VER, fd, &st);
-	if(!r)
-	    send_stat(&st,chmod_func);
+    r=NEXT_FSTAT(_STAT_VER, fd, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
     ptr = tmp;
     strcpy(ptr, template);
     narrow_chroot_path(ptr);
@@ -1337,6 +1337,53 @@ int mkstemp(char *template) {
         strcpy(oldtemplate, ptr);
     }
     return fd;
+}
+
+int mkstemp64(char *template) {
+    struct stat st;
+    char tmp[MAXPATH], *oldtemplate, *ptr;
+    int fd,r;
+
+    oldtemplate = template;
+    
+    expand_chroot_path(template);
+    if ((fd = next_mkstemp64(template)) == -1) {
+	return -1;
+    }
+    r=NEXT_FSTAT(_STAT_VER, fd, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
+    ptr = tmp;
+    strcpy(ptr, template);
+    narrow_chroot_path(ptr);
+    if (ptr != NULL) {
+        strcpy(oldtemplate, ptr);
+    }
+    return fd;
+}
+
+char *mkdtemp(char *template) {
+    struct stat st;
+    char tmp[MAXPATH], *oldtemplate, *ptr;
+    int r;
+
+    oldtemplate = template;
+    
+    expand_chroot_path(template);
+    if (next_mkdtemp(template) == NULL) {
+	return NULL;
+    }
+    r=NEXT_STAT(_STAT_VER, template, &st);
+    if(!r)
+        send_stat(&st,chmod_func);
+    ptr = tmp;
+    strcpy(ptr, template);
+    narrow_chroot_path(ptr);
+    if (ptr == NULL) {
+	return NULL;
+    }
+    strcpy(oldtemplate, ptr);
+    return oldtemplate;
 }
 
 char *tempnam(const char *dir, const char *pfx) {
@@ -1653,6 +1700,7 @@ void *dlopen(const char *filename, int flag) {
 }
 
 int __open(const char *pathname, int flags, ...) {
+    struct stat st;
     int mode = 0;
     expand_chroot_path(pathname);
 
@@ -1665,7 +1713,6 @@ return -1;
     }
     if (flags & O_CREAT) {
 	int r;
-	struct stat st;
 	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
 	if(!r)
 	    send_stat(&st,chmod_func);
@@ -1675,6 +1722,7 @@ return -1;
 }
 
 int __open64(const char *pathname, int flags, ...) {
+    struct stat st;
     int mode = 0;
     int ret;
     expand_chroot_path(pathname);
@@ -1688,7 +1736,6 @@ int __open64(const char *pathname, int flags, ...) {
     ret = next___open64(pathname, flags, mode);
     if (flags & O_CREAT) {
 	int r;
-	struct stat st;
 	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
 	if(!r)
 	    send_stat(&st,chmod_func);
@@ -1721,7 +1768,7 @@ ssize_t getxattr(const char *path, const char *name, void *value, size_t size) {
 
 ssize_t lgetxattr(const char *path, const char *name, void *value, size_t size) {
     expand_chroot_path(path);
-    return next_getxattr(path, name, value, size);
+    return next_lgetxattr(path, name, value, size);
 }
 
 ssize_t listxattr(const char *path, char *list, size_t size) {
