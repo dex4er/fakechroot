@@ -20,8 +20,8 @@ Build: sh
  automake --add-missing && aclocal && autoheader && autoconf || false
  ( cd fake && automake --add-missing && aclocal && autoconf ) || false
  CC=${CC:-gcc}
- CFLAGS=${CFLAGS:--Wall -g}
- CXXFLAGS=${CFLAGS:--Wall -g}
+ CFLAGS=${CFLAGS:--Wall -pedantic -g}
+ CXXFLAGS=${CFLAGS:--Wall -pedantic -g}
  if [ "${DEB_BUILD_OPTIONS#*noopt}" != "$DEB_BUILD_OPTIONS" ]; then
      CFLAGS="$CFLAGS -O0"
      CXXFLAGS="$CXXFLAGS -O0"
@@ -29,18 +29,28 @@ Build: sh
      CFLAGS="$CFLAGS -O2"
      CXXFLAGS="$CXXFLAGS -O2"
  fi
- install -d mkdir build-tree-lib build-tree-fake
+ install -d mkdir build-tree-lib build-tree-fake build-tree-lib64
  ( cd build-tree-lib && CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-    ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot ) || false
+     ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot ) || false
  ( cd build-tree-fake && CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-    ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
+     ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
  ( cd build-tree-lib && make ) || false
  ( cd build-tree-fake && make ) || false
  ( cd build-tree-lib && make check ) || false
+ if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
+     ( cd build-tree-lib64 && CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+         ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux ) || false
+     ( cd build-tree-lib64 && make libfakeroot.la ) || false
+ fi
+ if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
+     ( cd build-tree-lib64 && CC="gcc-3.3 -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+         ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux ) || false
+     ( cd build-tree-lib64 && make libfakeroot.la ) || false
+ fi
 Clean: sh
- rm -rf build-tree-* || true
- rm -rf $(cat .cvsignore) || true
- ( cd fake && rm -rf $(cat .cvsignore) ) || true
+ rm -rf build-tree-*
+ rm -rf $(cat .cvsignore)
+ ( cd fake && rm -rf $(cat .cvsignore) )
 
 Package: fakechroot
 Architecture: any
@@ -62,6 +72,14 @@ Install: sh
  done
  yada copy -into /usr/lib build-tree-fake/.libs/*.so.*.*.*
  chmod 4644 $ROOT/usr/lib/*.so.*.*.*
+ if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" -o "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
+     for f in build-tree-lib64/.libs/*.so.*.*.*; do
+         f=$(basename $f)
+         yada symlink -lib -into /usr/lib64/libfakechroot -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*$//') $f
+         yada symlink -lib -into /usr/lib64/libfakechroot -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*\.[0-9]*$//') $f
+     done
+     chmod 4644 $ROOT/usr/lib/*.so.*.*.*
+ fi
  for f in build-tree-fake/.libs/*.so.*.*.*; do
      f=$(basename $f)
      yada symlink -lib -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*$//') $f
