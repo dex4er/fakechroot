@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "find ~ -maxdepth 0 -printf '%U\n'" != 0 ]; then
+if [ "$(find ~ -maxdepth 0 -printf '%U\n')" != 0 ]; then
     echo "Use in fakechroot environment"
     exit 1
 fi
