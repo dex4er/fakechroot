@@ -1,5 +1,10 @@
 # $Id$
 
+# Environment variables:
+#   with_test=%{$with_test}  - build with check test
+
+%define with_test %{?$with_test:1}%{!?$with_test:0}
+
 %define fakeroot_version 0.7.5
 %define automake_version 1.7
 
@@ -46,9 +51,9 @@ Build: sh
      ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
  ( cd build-tree-lib && make ) || false
  ( cd build-tree-fake && make ) || false
- #if [ -z "$FAKEROOTKEY" ]; then
- #     ( cd build-tree-lib && make check ) || false
- #fi
+%if %{with_test}
+ ( cd build-tree-lib && make check ) || false
+%endif
  if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
      ( cd build-tree-lib64 && CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
          ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux ) || false
