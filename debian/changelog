@@ -1,3 +1,11 @@
+fakechroot (0.4+1.2.4) unstable; urgency=low
+
+  * Implement wrappers for <sys/xattr.h>.
+  * Build with faked named as fakechrootd.
+  * fakeroot package is not necessary to run fakechroot.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Fri,  4 Feb 2005 15:35:17 +0100
+
 fakechroot (0.3+1.2.4) unstable; urgency=low
 
   * Merged with fakeroot 1.2.4 and fakechroot 0.2.6.1 (downloaded from
