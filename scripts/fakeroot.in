@@ -5,7 +5,7 @@
 
 usage () {
 cat - >&2 <<EOF
-fakeroot, create a fake root environment.
+fakechroot, create a fake root environment.
    usage: fakechroot [-l|--lib fakechrootlib] [-r|--faked fakedbin]
                    [-i file] [-s file] [-u|--unknown-is-real]
 		   [-b|--fd-base fd] [-h|--help] [-v|--version]
@@ -112,7 +112,7 @@ fi
 
 if test $libfound = no
 then
-    echo >&2 "fakeroot: preload library not found, aborting."
+    echo >&2 "fakechroot: preload library not found, aborting."
     exit 1
 fi
 
