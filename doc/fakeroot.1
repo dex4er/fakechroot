@@ -128,13 +128,13 @@ $ fakechroot \-s fakeroot.save
 # DEBOOTSTRAP_DIR=/tmp/debootstrap /tmp/debootstrap/scripts/debootstrap sid /tmp/sid
 # exit
 $ rm \-rf /tmp/sid/proc; ln \-s /proc /tmp/sid
-$ for i in null random tty urandom zero; \
-  do rm \-f /tmp/sid/dev/$i; ln \-s /dev/$i /tmp/sid/dev; done
+$ mv /tmp/sid/dev /tmp/sid/.dev; ln \-s /dev /tmp/sid
 
 $ fakechroot \-i fakeroot.save
 # cd /
 # export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
 # chroot /tmp/sid /bin/bash
+# sh /usr/share/doc/fakechroot/examples/savemode.sh
 # apt\-setup
 # adduser \-\-uid 1001 dexter
 # nano /etc/apt/sources.lists
@@ -143,7 +143,7 @@ $ fakechroot \-i fakeroot.save
 # cd /tmp
 # apt\-get source hello
 # cd hello\-*
-# debuild \-\-preserve-env
+# debuild \-\-preserve\-env \-B
 # exit
 .CE
 

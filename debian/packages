@@ -183,16 +183,16 @@ Install: bash
      $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/')
  .
  if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
-     yada install -lib -into /usr/lib64/libfakechroot build-tree-lib64/tmp/usr/lib/libfakechroot/*.so.*.*.*
+     yada install -lib -into /usr/lib64/libfakechroot build-tree-lib64/tmp/usr/lib/*.so.*.*.*
      yada symlink -into /usr/lib64/libfakechroot \
          -as $(basename build-tree-lib64/tmp/usr/lib/*.so.?) \
          $(basename build-tree-lib64/tmp/usr/lib/*.so.*.*.*)
      yada install -lib -into /usr/lib64/libfakechroot \
-         -as $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/') \
-         build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.*
+         -as $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/') \
+         build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.*
      yada symlink -into /usr/lib64/libfakechroot \
-         -as $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
-         $(basename build-tree-lib64-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/')
+         -as $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.? | sed 's/\.so/-tcp&/') \
+         $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/')
  fi
  .
  yada install -man -as fakechroot.1 doc/fakeroot.1
