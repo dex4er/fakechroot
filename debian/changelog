@@ -1,3 +1,9 @@
+fakechroot (0.2.5+0.7.5) unstable; urgency=low
+
+  * Updated man page.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 19 Aug 2003 09:52:49 +0200
+
 fakechroot (0.2.4+0.7.5) unstable; urgency=low
 
   * Add man page, closes: #205615.
