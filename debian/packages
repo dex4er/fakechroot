@@ -1,0 +1,71 @@
+%define fakeroot_version 0.6.9
+
+Source: fakechroot
+Section: utils
+Priority: optional
+Maintainer: Piotr Roszatycki <dexter@debian.org>
+Standards-Version: 3.5.9
+Home-Page: <URL:http://fakechroot.alioth.debian.org/>
+Description: Gives a fake chroot environment
+Origin: debian
+Copyright: GPL
+ (c) 2003 Piotr Roszatycki <dexter@debian.org>, GPL
+ .
+ Based on fakeroot package:
+ GNU copyleft joost witteveen, <joostje@debian.org>.
+Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc], gcc-3.3 [s390 sparc]
+Build: sh
+ automake --add-missing && aclocal && autoheader && autoconf || false
+ ( cd fake && automake --add-missing && aclocal && autoconf ) || false
+ CC=${CC:-gcc}
+ CFLAGS=${CFLAGS:--Wall -g}
+ CXXFLAGS=${CFLAGS:--Wall -g}
+ if [ "${DEB_BUILD_OPTIONS#*noopt}" != "$DEB_BUILD_OPTIONS" ]; then
+     CFLAGS="$CFLAGS -O0"
+     CXXFLAGS="$CXXFLAGS -O0"
+ else
+     CFLAGS="$CFLAGS -O2"
+     CXXFLAGS="$CXXFLAGS -O2"
+ fi
+ install -d mkdir build-tree-lib build-tree-fake
+ ( cd build-tree-lib && CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+    ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot ) || false
+ ( cd build-tree-fake && CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+    ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
+ ( cd build-tree-lib && make ) || false
+ ( cd build-tree-fake && make ) || false
+ ( cd build-tree-lib && make check ) || false
+Clean: sh
+ rm -rf build-tree-* || true
+ rm -rf $(cat .cvsignore) || true
+ ( cd fake && rm -rf $(cat .cvsignore) ) || true
+
+Package: fakechroot
+Architecture: any
+Depends: fakeroot (>= %{fakeroot_version}), []
+Description: Gives a fake chroot environment
+ This package provides a library which overrides libc functions, so
+ it is possible to use root-specific tools without root priviliges.
+ .
+ In fake chroot you can install i.e. Debian boostrap, create developer's
+ environment and build packages inside chroot'ed system using standard
+ non-root user account.
+Install: sh
+ yada copy -into /usr/lib/libfakechroot build-tree-lib/.libs/*.so.*.*.* build-tree-lib/.libs/*.a
+ chmod 644 $ROOT/usr/lib/libfakechroot/*.so.*.*.*
+ for f in build-tree-lib/.libs/*.so.*.*.*; do
+     f=$(basename $f)
+     yada symlink -lib -subdir libfakechroot -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*$//') $f
+     yada symlink -lib -subdir libfakechroot -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*\.[0-9]*$//') $f
+ done
+ yada copy -into /usr/lib build-tree-fake/.libs/*.so.*.*.*
+ chmod 4644 $ROOT/usr/lib/*.so.*.*.*
+ for f in build-tree-fake/.libs/*.so.*.*.*; do
+     f=$(basename $f)
+     yada symlink -lib -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*$//') $f
+     yada symlink -lib -as $(echo $f | sed 's/\.[0-9]*\.[0-9]*\.[0-9]*$//') $f
+ done
+ yada install -script -as fakechroot scripts/fakeroot
+ yada install -man -as fakechroot.1 doc/fakeroot.1
+Shlibs:
+ /usr/lib/libfakechroot/libfakechroot 0

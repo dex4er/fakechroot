@@ -4,12 +4,12 @@ SUBDIRS=scripts doc test
 noinst_LTLIBRARIES = libcommunicate.la
 libcommunicate_la_SOURCES = communicate.c
 
-lib_LTLIBRARIES=libfakeroot.la
-libfakeroot_la_SOURCES=libfakeroot.c wrapdef.h  wrapstruct.h communicate.h
-libfakeroot_la_LDFLAGS=-version-info 0:1:0
-#libfakeroot_la_LDFLAGS=-version-info 4:0:4
-libfakeroot_la_DEPENDENCIES=wrapdef.h wrapstruct.h libcommunicate.la
-libfakeroot_la_LIBADD = libcommunicate.la
+lib_LTLIBRARIES=libfakechroot.la
+libfakechroot_la_SOURCES=libfakeroot.c wrapdef.h  wrapstruct.h communicate.h
+libfakechroot_la_LDFLAGS=-version-info 0:1:0
+#libfakechroot_la_LDFLAGS=-version-info 4:0:4
+libfakechroot_la_DEPENDENCIES=wrapdef.h wrapstruct.h libcommunicate.la
+libfakechroot_la_LIBADD = libcommunicate.la
 
 bin_PROGRAMS=faked
 faked_SOURCES = faked.cc

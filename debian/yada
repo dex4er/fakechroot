@@ -1,0 +1,3421 @@
+#!/usr/bin/perl -w
+## yada -- Yet Another Debianisation Aid
+## Copyright 1999 Charles Briscoe-Smith
+## Copyright 1999-2003 Piotr Roszatycki
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##
+## $Id: yada,v 1.90 2003/04/15 18:07:48 dexter Exp $
+
+$modified = "";
+
+## $Format: "$project = \"$Project$\";"$
+$project = "yada";
+
+## $Format: "$projectversion = \"$ProjectVersion$\";"$
+$projectversion = "0.12.1";
+
+## $Format: "$projectdate = \"$ProjectDate$\";"$
+$projectdate = "Wed, 19 Mar 2003 15:31:48 +0100";
+
+## If you modify this file (e.g. for an NMU) please add a version line:
+$modified .=
+  "Modified by Piotr Roszatycki <dexter\@debian.org>, "
+  . "Tue, 15 Apr 2003 13:15:02 +0200\n";
+
+$projectdate =~ s/ ..\:.*//;
+$yadaversion =
+  "Yet Another Debianization Aid ($project v$projectversion, of $projectdate)\n"
+  . "${modified}Copyright 1999 Charles Briscoe-Smith.\n"
+  . "Copyright 1999-2003 Piotr Roszatycki.\n"
+  . "Released as free software under the terms of the GNU General Public License.";
+
+########################################################################
+## Standard ways of printing error messages
+########################################################################
+sub choke
+{
+    print STDERR "@_  (Say `$0 --help' for help)\n";
+    exit 1;
+}
+
+BEGIN {
+    my $errors = 0;
+
+    sub gasp
+    {
+        print STDERR "@_\n";
+        $errors++;
+    }
+
+    sub chokepoint
+    {
+        choke "Stopping after $errors errors." if $errors;
+    }
+}
+
+########################################################################
+## Execute an external program, and bomb out if errors occur
+########################################################################
+sub run
+{
+    print " -> @_\n";
+    if (my $pid = fork) {
+        waitpid $pid, 0;
+        choke "*** YADA error: $_[0] exited with status $?\n" if $? != 0;
+    } elsif (defined $pid) {
+        exec @_ or exit 1;
+    } else {
+        die "Cannot fork a child process";
+    }
+}
+
+########################################################################
+## Pull selected values out of the environment
+########################################################################
+sub getvars
+{
+    $ROOT    = $ENV{"ROOT"};
+    $TMPROOT = $ENV{"TMPROOT"};
+    $CONTROL = $ENV{"CONTROL"};
+    $PACKAGE = $ENV{"PACKAGE"};
+    $SOURCE  = $ENV{"SOURCE"};
+    $VERSION = $ENV{"VERSION"};
+
+    if (not defined $ROOT) {
+        die
+          "I must be called from within a rules file. (ROOT is not defined)\n";
+    }
+    if (not defined $CONTROL) {
+        die
+          "I must be called from within a rules file. (CONTROL is not defined)\n";
+    }
+    if (not defined $PACKAGE and not defined $SOURCE) {
+        die
+          "I must be called from within a rules file. (PACKAGE and SOURCE are not defined)\n";
+    }
+    if (not defined $TMPROOT) {
+        warn
+          "Not called from within a rules file or old yada was used (TMPROOT is not defined)\n";
+    }
+    if (not defined $VERSION) {
+        warn
+          "Not called from within a rules file or old yada was used (VERSION is not defined)\n";
+    }
+}
+
+########################################################################
+## Get version number from changelog
+########################################################################
+sub getversion
+{
+    $VERSION =
+      `LC_ALL=C dpkg-parsechangelog | sed -ne 's/^Version: *\\([^2]*\\)/\\1/p'`;
+    chomp $VERSION;
+}
+
+########################################################################
+## Get source package name from changelog
+########################################################################
+sub getsource
+{
+    $SOURCE =
+      `LC_ALL=C dpkg-parsechangelog | sed -ne 's/^Source: *\\([^2]*\\)/\\1/p'`;
+    chomp $SOURCE;
+}
+
+########################################################################
+## Read paragraphs from debian/packages
+########################################################################
+$fh='fh00';
+$filename="";
+$filelinenb=0;
+$ignore = 0;
+@ignore = ();
+%macros = ();
+@includefiles = ();
+
+sub parainfofile
+{
+    return " in file '$filename' line $filelinenb\n";
+}
+
+################################################################
+## save keywords and there contents
+my(@joinfieldscript)=("\n# New entry Package maintainer's commands follow\n", 1);
+my(@joinfieldkeyword)=(" ", 0);
+my(@joinfieldlist)=(", ", 0);
+my(@joinfieldline)=("\n", 0);
+my(@joinfieldnewline)=("\n\n", 0);
+
+%joinfields = (
+    "alternatives"          => \@joinfieldnewline,
+    "architecture"          => \@joinfieldlist,
+    "build-arch"            => \@joinfieldscript,
+    "build-conflicts-indep" => \@joinfieldlist,
+    "build-conflicts"       => \@joinfieldlist,
+    "build-depends-indep"   => \@joinfieldlist,
+    "build-depends"         => \@joinfieldlist,
+    "build-indep"           => \@joinfieldscript,
+    "build"                 => \@joinfieldscript,
+    "clean"                 => \@joinfieldscript,
+    "config"                => \@joinfieldscript,
+    "conflicts"             => \@joinfieldlist,
+    "contains"              => \@joinfieldkeyword,
+    "depends"               => \@joinfieldlist,
+    "description"           => \@joinfieldnewline,
+    "diversions"            => \@joinfieldline,
+    "doc-base"              => \@joinfieldnewline,
+    "enchances"             => \@joinfieldlist,
+    "finalise"              => \@joinfieldscript,
+    "finalize"              => \@joinfieldscript,
+    "install"               => \@joinfieldscript,
+    "logrotate"             => \@joinfieldline,
+    "major-changes"         => \@joinfieldnewline,
+    "menu"                  => \@joinfieldnewline,
+    "other-maintainers"     => \@joinfieldlist,
+    "overrides"             => \@joinfieldline,
+    "packager"              => \@joinfieldlist,
+    "patches"               => \@joinfieldkeyword,
+    "postinst"              => \@joinfieldscript,
+    "postrm"                => \@joinfieldscript,
+    "pre-depends"           => \@joinfieldlist,
+    "preinst"               => \@joinfieldscript,
+    "prerm"                 => \@joinfieldscript,
+    "provides"              => \@joinfieldlist,
+    "recommends"            => \@joinfieldlist,
+    "replaces"              => \@joinfieldlist,
+    "shlibs"                => \@joinfieldline,
+    "suggests"              => \@joinfieldlist,
+    "templates"             => \@joinfieldnewline,
+    "uploaders"             => \@joinfieldlist,
+);
+
+sub parainfo
+{
+    my($keyword)=shift;
+
+    if ($keyword =~ /^(((before)|(after))[-\s]+)(.*)$/) {
+        if (defined($4)) {
+            return (1, $5, \%afterpar);
+        } else {
+            return (0, $5, \%beforepar);
+        }
+    }
+    return (1, $keyword, \%par);
+}
+
+## Add contents in a para (with merging if needed)
+sub getpara_add
+{
+    my($realkeyword, $contents)=@_;
+    my($order, $keyword, $par)=&parainfo($realkeyword);
+    my($start, $end);
+    if ($contents =~ m/^([^\n]*)\n((.|[\n])*)/m) {
+        $start =$1;
+        $end = $2;
+    } else {
+        $start=$contents;
+        $end = "";
+    }
+    $contents =~ s/^\n//s;
+    if (defined $firstlinepar{$keyword}) {
+        if (defined ($joinfields{$keyword})) {
+            my($join, $first_same)=@{$joinfields{$keyword}};
+            if ($first_same) {
+                $contents=$end;
+                if ($start ne $firstlinepar{$keyword}) {
+                    die "Field $keyword with different shells".&parainfofile();
+                }
+            }
+            if (defined $par->{$keyword}) {
+                if ($order) {
+                    $contents=$par->{$keyword}.$join.$contents;
+                } else {
+                    $contents.=$join.$par->{$keyword};
+                }
+            }
+        } else {
+            die "Duplicate field $keyword".&parainfofile();
+        }
+    } else {
+        $firstlinepar{$keyword}=$start;
+        if (defined ($joinfields{$keyword})) {
+            my($join, $first_same)=@{$joinfields{$keyword}};
+            if ($first_same) {
+                $contents=$end;
+            }
+        }
+    }
+    $par->{$keyword} = $contents;
+}
+
+################################################################
+## read a paragraph
+
+## Read lines from a file into %par
+sub getpara_from
+{
+    my ($IN) = @_;
+    my ($readnextline) = sub {
+        while (<$IN>) {
+            $filelinenb++;
+            next if m/^\s*\#/;
+            s/\s+$//;
+            last unless m/^$/;
+        }
+    };
+    $readnextline->();
+    while (defined) {
+        m/^([-A-Za-z0-9]+)\s*\:\s*(.*)$/ or die "Invalid line '".$_."' found".&parainfofile();
+        $keyword = $1;
+        $keyword =~ tr/A-Z/a-z/;
+        $contents = $2;
+        while (<$IN>) {
+            $filelinenb++;
+            next if m/^\#/;
+            s/\s+$//s;
+            last unless s/^(\s)//;
+            $x = $1;
+            s/^/$x/ if $x ne " ";
+            s/^\.(\.*)$/$1/;
+            $contents .= "\n" . $_;
+        }
+        &getpara_add($keyword, $contents);
+
+        last if not defined;
+        last if not defined or m/^$/;
+    }
+}
+
+## Read a paragraph into %par
+sub getpara
+{
+    %beforepar = ();
+    %afterpar = ();
+    %firstlinepar = ();
+    %par = ();
+    &getpara_from(*PACKAGES{IO});
+
+    my($keyword);
+    foreach $keyword (keys(%beforepar)) {
+        if (defined $par{$keyword}) {
+            my($join, $first_same)=@{$joinfields{$keyword}};
+            $par{$keyword}=$beforepar{$keyword}.$join.$par{$keyword};
+        } else {
+            $par{$keyword}=$beforepar{$keyword};
+        }
+    }
+    foreach $keyword (keys(%afterpar)) {
+        if (defined $par{$keyword}) {
+            my($join, $first_same)=@{$joinfields{$keyword}};
+            $par{$keyword}.=$join.$afterpar{$keyword};
+        } else {
+            $par{$keyword}=$afterpar{$keyword};
+        }
+    }
+    foreach $keyword (keys(%par)) {
+        if (defined ($joinfields{$keyword}) and defined ($par{$keyword})) {
+            my($join, $first_same)=@{$joinfields{$keyword}};
+            if ($first_same) {
+                $par{$keyword}=$firstlinepar{$keyword}."\n".$par{$keyword};
+            }
+        }
+    }
+}
+
+########################################################################
+## Parse source package from debian/packages
+########################################################################
+%sourcefields = (
+    "bugs"                  => 1,
+    "build"                 => 1,
+    "build-arch"            => 1,
+    "build-conflicts"       => 1,
+    "build-conflicts-indep" => 1,
+    "build-depends"         => 1,
+    "build-depends-indep"   => 1,
+    "build-indep"           => 1,
+    "build-sequence"        => 1,
+    "clean"                 => 1,
+    "copyright"             => 1,
+    "description"           => 1,
+    "home-page"             => 1,
+    "maintainer"            => 1,
+    "uploaders"             => 1,
+    "major-changes"         => 1,
+    "origin"                => 1,
+    "other-maintainers"     => 1,
+    "packaged-for"          => 1,
+    "packager"              => 1,
+    "patches"               => 1,
+    "priority"              => 1,
+    "section"               => 1,
+    "source"                => 1,
+    "standards-version"     => 1,
+    "upstream-source"       => 1,
+);
+
+sub parsesourcepara
+{
+    if ($sourceparanum) {
+        gasp "Paragraph $paragraphnum: duplicate source package.\n"
+          . "  Previously got source package from paragraph $sourceparanum.";
+    }
+    $sourceparanum = $paragraphnum;
+    my %srcpar = ();
+    for (keys %par) {
+        if (not defined $sourcefields{$_} and $_ !~ m/^X[BCS]*-/i) {
+            gasp
+              "Paragraph $paragraphnum: field `$_' not recognised for source packages.";
+        }
+        $srcpar{$_} = $par{$_};
+    }
+    %source = %par;
+}
+
+########################################################################
+## Parse binary package from debian/packages
+########################################################################
+%binaryfields = (
+    "alternatives"    => 1,
+    "architecture"    => 1,
+    "config"          => 1,
+    "conflicts"       => 1,
+    "contains"        => 1,
+    "contains-libs"   => 1,
+    "contains-xfonts" => 1,
+    "depends"         => 1,
+    "description"     => 1,
+    "diversions"      => 1,
+    "doc-base"        => 1,
+    "doc-depends"     => 1,
+    "enchances"       => 1,
+    "essential"       => 1,
+    "finalise"        => 1,
+    "finalize"        => 1,
+    "init"            => 1,
+    "install"         => 1,
+    "logrotate"       => 1,
+    "menu"            => 1,
+    "overrides"       => 1,
+    "package"         => 1,
+    "postinst"        => 1,
+    "postrm"          => 1,
+    "pre-depends"     => 1,
+    "preinst"         => 1,
+    "prerm"           => 1,
+    "priority"        => 1,
+    "provides"        => 1,
+    "recommends"      => 1,
+    "replaces"        => 1,
+    "section"         => 1,
+    "shlibs"          => 1,
+    "suggests"        => 1,
+    "templates"       => 1,
+);
+
+sub parsebinarypara
+{
+    my $pkg = $par{"package"};
+    if ($binaryparanum{$pkg}) {
+        gasp "Paragraph $paragraphnum: duplicate binary package."
+          . "\n  Previously got binary package `$pkg' from paragraph $binaryparanum{$pkg}.";
+    }
+    $binaryparanum{$pkg} = $paragraphnum;
+    my %binpar = ();
+    foreach (keys %par) {
+        if (not defined $binaryfields{$_} and $_ !~ m/^X[BCS]*-/i) {
+            gasp
+              "Paragraph $paragraphnum: field `$_' not recognised for binary packages.";
+        }
+        $binpar{$_} = $par{$_};
+    }
+    $binary{$pkg} = \%binpar;
+}
+
+########################################################################
+## Open, read and parse the whole of debian/packages
+########################################################################
+sub readpackages
+{
+    my($stop)=shift;
+
+    if (not -f "debian/packages-tmp") {
+        &find_yada_script();
+        &run("$cmdyada rebuild packages");
+    }
+
+    $filename = "debian/packages-tmp";
+    open PACKAGES, $filename
+        or die "Can't open $filename for reading";
+    local $paragraphnum = 0;
+    my @skipped = ();
+    &getpara;
+    while (1) {
+        $paragraphnum++;
+        last if not %par;
+        if (exists $par{"ignore"}) {
+            push @skipped, $paragraphnum;
+        } else {
+
+            # What sort of paragraph is this?
+            if (defined $par{"source"}) {
+                &parsesourcepara;
+            } elsif (defined $par{"package"}) {
+                &parsebinarypara;
+                if ($stop && $par{"package"} eq $stop) {
+                    last;
+                }
+            } else {
+                gasp
+                  "Paragraph $paragraphnum: contains neither `source' nor `package' field.";
+            }
+        }
+        &getpara;
+    }
+    print "Paragraphs skipped: @skipped\n" if @skipped;
+    &chokepoint;
+}
+
+########################################################################
+## Output control-file fields
+########################################################################
+## Print a key/value pair to the given filehandle.
+sub printkey
+{
+    my ($OUT, $k, $v) = @_;
+    if ($v =~ m/^\./m) {die "Can't escape . at start of line";}
+    $k =~ s/(^|-)(.)/$1\u$2/g;
+    $v =~ s/^$/./gm;
+    $v =~ s/^/ /gm;
+    print $OUT "$k:$v\n" or die "Can't write to output file";
+}
+
+## Print, to the given filehandle, the named keys from the given paragraph
+sub printkeys
+{
+    my ($OUT, $par, @keys) = @_;
+    foreach (@keys) {
+        if (defined $$par{$_}) {printkey $OUT, $_, $$par{$_};}
+    }
+}
+
+########################################################################
+## Output Makefile fragments
+########################################################################
+## Print, on the given handle, make rules to execute the given executable
+## field.
+sub makescript
+{
+    my ($OUT, $fieldname, $pre, $text) = @_;
+    $_ = $text;
+    if (defined) {
+        if (s/^(sh|bash)\n//s) {
+            my $shell = $1;
+
+            # shell script
+            chomp;
+            s=^=set -e; set -v\n=s;
+            s=^=eval "yada () { perl $absyada \\\"\\\$\@\\\"; }"; =s;
+            s/'/'\\''/g;
+            s/\$/\$\$/g;
+            s/\n/';\\\n\techo -E '/gs;
+            print OUT "$pre && (\\\n\techo -E '" or die;
+            print OUT                            or die;
+            print OUT "') | /bin/$shell\n"       or die;
+        } else {
+            gasp "Unknown executable type for `$fieldname'\n";
+        }
+    }
+}
+
+########################################################################
+## Append a line to a file, discarding duplicates
+########################################################################
+sub append
+{
+    my ($file, $line, $upto) = @_;
+    my $sep = $line;
+    $sep =~ s/$upto.*//s if defined $upto;
+    open APPENDOUT, ">$file.new" or die "Cannot open `$file.new' for output";
+    if (-f $file) {
+        open APPENDIN, "<$file" or die "Cannot open `$file' for input";
+        while (<APPENDIN>) {
+            my $tmp = $_;
+            s/$upto.*//s if defined $upto;
+            print APPENDOUT $tmp unless $_ eq $sep;
+        }
+        close APPENDIN or die "Cannot close `$file'";
+    }
+    print APPENDOUT $line or die "Cannot write to `$file.new'";
+    close APPENDOUT       or die "Cannot close `$file.new'";
+    rename "$file.new", "$file" or die "Cannot rename `$file.new' to `$file'";
+}
+
+########################################################################
+## Convert package name into something which can be used for a substvar
+## name -- no dots or pluses, but hyphens are okay
+########################################################################
+sub normalise
+{
+    my ($pkg) = @_;
+    $pkg =~ tr/.+/--/;
+    return $pkg;
+}
+
+########################################################################
+## Modify Architecture field and replace OS macros with real architecture
+## names
+########################################################################
+sub modify_architecture
+{
+    my %systems = (
+        "darwin"  => "darwin-i386 darwin-powerpc",
+        "freebsd" => "freebsd-i386",
+        "hurd"    => "hurd-i386",
+        "linux"   => "alpha arm hppa i386 ia64 m68k mips mipsel powerpc s390 s390x sh3 sh3eb sh4 sh4eb sparc",
+        "openbsd" => "openbsd-i386"
+    );
+
+    foreach $pkg (keys %binary) {
+        my %architectures;
+        $_ = $binary{$pkg}{"architecture"};
+        if (defined) {
+            foreach (split / +/) {
+                if (defined $systems{$_}) {
+                    foreach (split / +/, $systems{$_}) {
+                        $architectures{$_}++;
+                    }
+                } else {
+                    $architectures{$_}++;
+                }
+            }
+        }
+        $binary{$pkg}{"architecture"} = join(' ', sort keys %architectures);
+    }
+}
+
+########################################################################
+## Find yada script
+########################################################################
+sub find_yada_script
+{
+    &getsource();
+    if (-x "debian/yada" or $SOURCE eq "yada") {
+        $yada    = "debian/yada";
+        $absyada = "\$(pwd)/debian/yada";
+        $cmdyada = "debian/yada";
+    } else {
+        $yada    = "\$(shell which yada)";
+        $absyada = "\$(which yada)";
+        $cmdyada = "yada";
+    }
+}
+
+########################################################################
+## Fix build-depends source line so that dependency on yada is added
+## where appropriate. $yada and $absyada are also defined there.
+########################################################################
+sub add_build_depends
+{
+    my ($pkg, $depfield, %depfields);
+    foreach $pkg (keys %binary) {
+        if ($binary{$pkg}{"architecture"} eq "all") {
+            $depfields{"build-depends-indep"} = 1;
+        } else {
+            $depfields{"build-depends"} = 1;
+        }
+    }
+    foreach $depfield (keys %depfields) {
+        my $builddeps = defined $source{$depfield} ? $source{$depfield} : "";
+        &find_yada_script();
+        if ($yada eq "debian/yada") {
+            $builddeps .= ", file"
+                unless ($builddeps =~ m/(^|,|\s)file(,|\s|$)/);
+            $builddeps .= ", patch"
+                unless ($builddeps =~ m/(^|,|\s)patch(,|\s|$)/);
+            $builddeps .= ", perl"
+                unless ($builddeps =~ m/(^|,|\s)perl(,|\s|$)/);
+        } else {
+            $builddeps .= ", yada (>= $projectversion)";
+        }
+        $builddeps =~ s/^,\s*//;
+        $source{$depfield} = $builddeps;
+    }
+}
+
+########################################################################
+## Add new variable to substvars and overwrite the old one
+########################################################################
+sub add_to_substvars
+{
+    my ($substvars) = @_;
+    my %substvars;
+    local $_;
+
+    if (-f "debian/substvars") {
+        open MAINTSUBST, "debian/substvars"
+          or die "Cannot open substvars file for reading";
+        while ($_ = <MAINTSUBST>) {
+            chomp;
+            if (m/^([a-zA-Z0-9:-]+=)(.*)/) {
+                $substvars{$1} = $2;
+            } else {
+                die "Unrecognized substvars variable `$_'";
+            }
+        }
+        close MAINTSUBST or die "Cannot close substvars file";
+    }
+    if ($substvars !~ m/^([a-zA-Z0-9:-]+=)(.*)/) {
+        die "Unrecognized substvars variable `$_'";
+    }
+    $substvars{$1} = $2;
+
+    open MAINTSUBST, ">debian/substvars.new"
+      or die "Cannot open substvars.new file for writing";
+    foreach (keys %substvars) {
+        print MAINTSUBST "$_$substvars{$_}\n"
+          or die "Cannot write to substvars.new file";
+    }
+    close MAINTSUBST or die "Cannot close substvars.new file";
+    rename "debian/substvars.new", "debian/substvars"
+      or die "Cannot rename `substvars' to `substvars'";
+}
+
+
+########################################################################
+## Resolve macro variables
+########################################################################
+
+sub resolvmacro {
+    $_ = shift;
+    if (m/^%{(.*)}$/) {
+        $_ = $1;
+        if (m/^\?\$([a-zA-Z_][a-zA-Z0-9_]+):(.*)$/) {
+            $_ = defined $ENV{$1} && $ENV{$1} ? $2 : "";
+        } elsif (m/^!\?\$([a-zA-Z_][a-zA-Z0-9_]+):(.*)$/) {
+            $_ = ! defined $ENV{$1} || ! $ENV{$1} ? $2 : ""
+        } elsif (m/^\?([a-zA-Z_][a-zA-Z0-9_]+):(.*)$/) {
+            $_ = defined $macros{$1} && $macros{$1} ? $2 : "";
+        } elsif (m/^!\?([a-zA-Z_][a-zA-Z0-9_]+):(.*)$/) {
+            $_ = ! defined $macros{$1} || ! $macros{$1} ? $2 : "";
+        } elsif (defined $macros{$_}) {
+            $_ = $macros{$_};
+        } else {
+            die "Unknown macro variable $_".&parainfofile();
+        }
+    } elsif (m/^%\((.*)\)$/) {
+        $_ = `$1`;
+        chomp;
+        $_;
+    } else {
+        die "Unknown macro variable $_".&parainfofile();
+    }
+}
+
+########################################################################
+## Parse macro commands
+########################################################################
+
+sub parsemacros {
+    my ($IN, $OUT, $s) = @_;
+    while ($s =~ m/^%.*\\$/ and $_ = <$IN>) {
+        $filelinenb++;
+        chomp;
+        $s =~ s/\\\n?$//;
+        $s .= $_;
+    }
+    $_ = $s;
+    while (s/(%{.*?}|%\(.*?\))/&resolvmacro($1)/es) {}
+    if (m/^%include\s+(.*)$/) {
+        my $includefile = $1;
+        my($savefilename)=$filename;
+        my($savefilelinenb)=$filelinenb;
+        open $fh, "debian/".$includefile
+            or die;
+        push @includefiles, "debian/".$includefile;
+        $filename = $includefile;
+        $filelinenb = 0;
+        &preprocessfile($fh, $OUT);
+        $filename = $savefilename;
+        $filelinenb = $savefilelinenb;
+        close $fh;
+    } elsif (m/^%define\s+([a-zA-Z_][a-zA-Z0-9_]+)\s+(.*)$/) {
+        my ($key, $val) = ($1, $2);
+        $macros{$key} = $val;
+    } elsif (m/^%if\s+(.*)$/) {
+        { no warnings; $ignore{++$ignore} = $1 == 0 ? 1 : 0; }
+    } elsif (m/^%else$/) {
+        $ignore{$ignore} = $ignore{$ignore} == 0 ? 1 : 0;
+    } elsif (m/^%endif$/) {
+        $ignore{--$ignore} = 0;
+    } elsif (m/^%(\S*)/) {
+        die "Unknown macro command %$1".&parainfofile();
+    }
+    $_ = undef if defined and m/^%/;
+}
+
+########################################################################
+## Preprocess file
+########################################################################
+
+sub preprocessfile {
+    my ($IN, $OUT) = @_;
+
+    &getversion;
+    &getsource;
+    $macros{"VERSION"} = $VERSION;
+    $macros{"SOURCE"}  = $SOURCE;
+
+    while (<$IN>) {
+        $filelinenb++;
+        &parsemacros($IN, $OUT, $_);
+        next if not defined;
+        next if $ignore > 0 and $ignore{$ignore} == 1;
+        print $OUT $_;
+    }
+
+}
+
+
+########################################################################
+## Main program starts here
+########################################################################
+if (not defined($_ = shift) or m/^(-h|--h(e(lp?)?)?)$/i) {
+    print "$0: $yadaversion
+Usage: yada action [args...]
+Notably:
+  yada rebuild [packages|control|rules]
+  yada install [-bin|-conf|-data|-dir|-doc|-game|-include|-lib|-libexec|-man|
+                -sbin|-script|-src|-sscript]
+               [-x|-non-x] [-stripped|-unstripped] [-exec|-no-exec]
+               [-into <dir>] [-as <name>] [-subdir <subdir>]
+               [-section <mansect>] [-gzip|-bzip2] <file>...
+  yada copy    [-bin|-conf|-data|-doc|-game|-include|-lib|-libexec|-man|
+                -sbin|-script|-src|-sscript]
+               [-x|-non-x]
+               [-into <dir>] [-as <name>] [-subdir <subdir>]
+               [-section <mansect>] <file|dir>...
+  yada symlink [-bin|-conf|-data|-doc|-game|-include|-lib|-libexec|-man|
+                -sbin|-script|-src|-sscript]
+               [-x|-non-x]
+               [-into <dir>] -as <name> [-subdir <subdir>]
+               [-section <mansect>] <file|dir>
+  yada remove  [-bin|-conf|-data|-doc|-game|-include|-lib|-libexec|-man|
+                -sbin|-script|-src|-sscript]
+               [-x|-non-x]
+               [-into <dir>] [-subdir <subdir>]
+               [-section <mansect>] <file|dir>
+  yada undocumented [-x|-non-x] [-section <mansect>] <name>...
+  yada fixup libtool [path/to/libtool]
+  yada shlibdeps [args]
+  yada makeshlibs [-V[<deps>]|--version[=<deps>]] [-X<item>|--exclude=<item>]
+  yada perl [-k|-keep] [-d|-base] [-V|-version] [<dirs>]
+  yada strip [-X<item>|--exclude=<item>]
+  yada patch <filesmatch>
+  yada unpatch
+";
+    if (defined) {exit 0;}
+    else {exit 1;}
+}
+
+if (m/^(-v|--v(e(r(s(i(on?)?)?)?)?)?)$/i) {
+    print "$0: $yadaversion\n";
+    exit 0;
+}
+
+if (m/^rebuild$/i) {
+    if (not defined($_ = shift)) {
+        &find_yada_script();
+        &run("$cmdyada rebuild packages");
+        &run("$cmdyada rebuild control");
+        &run("$cmdyada rebuild rules");
+        exit 0;
+    }
+
+    ######################################################################
+    ## Preprocess debian/packages
+    ######################################################################
+    if (m/^packages$/i) {
+
+        $filename = "debian/packages";
+
+        unlink "debian/packages-tmp";
+
+        open IN, $filename
+            or die "Can't open $filename for reading";
+        open OUT, ">debian/packages-tmp-new"
+            or die "Can't open debian/packages-tmp-new for writing";
+
+        $filelinenb = 0;
+        &preprocessfile(\*IN, \*OUT);
+
+        close OUT;
+        close IN;
+
+        rename "debian/packages-tmp-new", "debian/packages-tmp"
+            or die "Can't rename debian/packages-tmp-new to debian/packages-tmp";
+
+        open OUT, ">debian/packages-tmp-include"
+            or die "Can't open debian/packages-tmp-include for writing";
+        print OUT join(" ", @includefiles)
+            or die "Can't write to debian/packages-tmp-include";
+        close OUT;
+
+        exit 0;
+    }
+
+    ######################################################################
+    ## Rebuild debian/control
+    ######################################################################
+    if (m/^control$/i) {
+        %architectures = ();
+
+        &readpackages;
+        open OUT, ">debian/control.new"
+          or die "Can't open debian/control.new for writing";
+        @skipped = ();
+        &add_build_depends;
+        &modify_architecture;
+        foreach (
+            "source", "maintainer", "uploaders", "section", "priority",
+            "standards-version", "build-depends", "build-depends-indep",
+            "build-conflicts", "build-conflicts-indep", "origin", "bugs"
+          )
+        {
+            if (defined $source{$_}) {
+                &printkey(*OUT{IO}, $_, $source{$_});
+            }
+        }
+        foreach (grep m/^X[BCS]*-/i, keys %source) {
+            &printkey(*OUT{IO}, $_, $source{$_});
+        }
+        for (sort {$binaryparanum{$a} <=> $binaryparanum{$b}} keys %binary) {
+            $par = $binary{$_};
+            if ($$par{"architecture"} =~ m/none/i) {
+                push @skipped, $$par{"package"};
+            } else {
+                $npkg = &normalise($$par{"package"});
+
+                my %substvars = ();
+                if (-f "debian/substvars") {
+                    open MAINT, "debian/substvars"
+                      or die "Cannot open substvars file for reading";
+                    while ($_ = <MAINT>) {
+                        if (m/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)=/) {
+                            $substvars{$2} = 1 if ($1 eq $npkg);
+                        }
+                    }
+                    close MAINT or die "Cannot close substvars file";
+                }
+
+                if (defined $$par{"pre-depends"}) {
+                    $$par{"pre-depends"} =~
+                      s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Pre-Depends}$2/;
+                    $$par{"pre-depends"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+                } elsif (defined $substvars{"Pre-Depends"}) {
+                    $$par{"pre-depends"} = "\${$npkg:Pre-Depends}";
+                }
+                if (defined $$par{"depends"}) {
+                    $$par{"depends"} =~
+                      s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Depends}$2/;
+                    $$par{"depends"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+                } elsif (defined $substvars{"Depends"}) {
+                    $$par{"depends"} = "\${$npkg:Depends}";
+                }
+                if (defined $$par{"recommends"}) {
+                    $$par{"recommends"} =~
+                      s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Recommends}$2/;
+                    $$par{"recommends"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+                } elsif (defined $substvars{"Recommends"}) {
+                    $$par{"recommends"} = "\${$npkg:Recommends}";
+                }
+                if (defined $$par{"suggests"}) {
+                    $$par{"suggests"} =~
+                      s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Suggests}$2/;
+                    $$par{"suggests"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+                } elsif (defined $substvars{"Suggests"}) {
+                    $$par{"suggests"} = "\${$npkg:Suggests}";
+                }
+                if (defined $$par{"enhances"}) {
+                    $$par{"enhances"} =~
+                      s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Enhances}$2/;
+                    $$par{"enhances"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+                } elsif (defined $substvars{"Enhances"}) {
+                    $$par{"enhances"} = "\${$npkg:Enhances}";
+                }
+                if (defined $$par{"conflicts"}) {
+                    $$par{"conflicts"} =~
+                      s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Conflicts}$2/;
+                    $$par{"conflicts"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+                } elsif (defined $substvars{"Conflicts"}) {
+                    $$par{"conflicts"} = "\${$npkg:Conflicts}";
+                }
+                print OUT "\n" or die "Can't write to debian/control.new";
+                &printkeys(
+                    *OUT{IO}, $par,
+                    "package", "architecture", "section", "priority",
+                    "essential", "pre-depends", "depends", "recommends",
+                    "suggests", "provides", "conflicts", "replaces",
+                    "enchances"
+                );
+                if (defined $$par{"description"}) {
+                    $_ = "$source{\"description\"}\n";
+                    s/^.*\n//;
+                    s/(.)$/$1\n/s;
+                    $$par{"description"} =~ m/^([^\n]*)\n(.*)/s;
+                    &printkey(*OUT{IO}, "description", "$1\n$_$2");
+                }
+                foreach (grep m/^X[BCS]*-/i, keys %$par) {
+                    &printkey(*OUT{IO}, $_, $$par{$_});
+                }
+            }
+        }
+        print "Skipped binary packages: @skipped\n" if @skipped;
+        close OUT or die "Can't close debian/control.new";
+        rename "debian/control.new", "debian/control"
+          or die "Can't rename debian/control.new to debian/control";
+        exit 0;
+    }
+
+    ######################################################################
+    ## Rebuild debian/rules
+    ######################################################################
+    if (m/^rules$/i) {
+        open OUT, ">debian/rules.new"
+          or die "Cannot open debian/rules.new for writing";
+        &readpackages;
+
+        &add_build_depends;
+        &modify_architecture;
+
+        %packages      = ();
+        %architectures = ();
+        %contains      = ();
+
+        %install      = ();
+        %architecture = ();
+        %finalise     = ();
+        %docdep       = ();
+        %preinst      = ();
+        %postinst     = ();
+        %prerm        = ();
+        %postrm       = ();
+        %predepends   = ();
+        %depends      = ();
+        %recommends   = ();
+        %suggests     = ();
+
+        for (sort {$binaryparanum{$a} <=> $binaryparanum{$b}} keys %binary) {
+            $par = $binary{$_};
+            $pkg = $$par{"package"};
+            $packages{$pkg}++;
+            $architecture{$pkg} = $$par{"architecture"};
+            $finalise{$pkg}     = $$par{"finalise"};
+            if (defined $$par{"finalize"}) {
+                if (defined $finalise{$pkg}) {
+                    gasp
+                      "Package `$pkg' has both `Finalise' and `Finalize'.\n";
+                } else {
+                    $finalise{$pkg} = $$par{"finalize"};
+                }
+            }
+            $architecture{$pkg} = $$par{"architecture"};
+            $install{$pkg}      = $$par{"install"};
+            $docdep{$pkg}       = $$par{"doc-depends"};
+            $preinst{$pkg}      = $$par{"preinst"};
+            $postinst{$pkg}     = $$par{"postinst"};
+            $prerm{$pkg}        = $$par{"prerm"};
+            $postrm{$pkg}       = $$par{"postrm"};
+            $_                  = $$par{"pre-depends"};
+
+            if (defined) {
+                $_ = join " ", grep s/^\[\s*(.+?)\s*\]$/$1/, split /\s*,\s*/;
+                s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+                $predepends{$pkg} = $_ if $_ ne "";
+            }
+            $_ = $$par{"depends"};
+            if (defined) {
+                $_ = join " ", grep s/^\[\s*(.+?)\s*\]$/$1/, split /\s*,\s*/;
+                s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+                $depends{$pkg} = $_ if $_ ne "";
+            }
+            $_ = $$par{"recommends"};
+            if (defined) {
+                $_ = join " ", grep s/^\s*\[(.+?)\s*\]$/$1/, split /\s*,\s*/;
+                s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+                $recommends{$pkg} = $_ if $_ ne "";
+            }
+            $_ = $$par{"suggests"};
+            if (defined) {
+                $_ = join " ", grep s/^\s*\[(.+?)\s*\]$/$1/, split /\s*,\s*/;
+                s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+                $suggests{$pkg} = $_ if $_ ne "";
+            }
+            $_ = $architecture{$pkg};
+            if (defined) {
+                foreach (split / +/) {
+                    $architectures{$_}++;
+                }
+            }
+
+            %{$contains{$pkg}} =
+              defined $$par{'contains'}
+              ? map { $_ => 1 } split(/ /, $$par{'contains'})
+              : ();
+        }
+
+        delete $architectures{"all"};
+        delete $architectures{"any"};
+
+        ############################################################################
+        print OUT "#!/usr/bin/make -f
+# Generated automatically from debian/packages
+# by $project v$projectversion, of $projectdate
+" or die;
+        $_ = $modified;
+        s/^(.)/# $1/g;
+        print OUT or die;
+        $usearches = 0;
+        if (%architectures) {
+            $usearches = 1;
+            print OUT "\nbuildarch := \$(shell dpkg-architecture -qDEB_BUILD_ARCH)\n\n"
+              or die;
+            foreach (keys %architectures) {
+                print OUT "ifneq \"\$(buildarch)\" \"$_\"\n" or die;
+            }
+            print OUT "buildarch := any\n" or die;
+            foreach (keys %architectures) {
+                print OUT "endif\n" or die;
+            }
+        }
+
+        if (defined $source{"patches"}) {
+            @patches = map "debian/$_", split(/\s/, $source{"patches"});
+        }
+
+        ############################################################################
+        print OUT <<END or die;
+
+DEB_HOST_ARCH        := \$(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_GNU_CPU     := \$(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
+DEB_HOST_GNU_TYPE    := \$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_HOST_GNU_SYSTEM  := \$(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM)
+
+DEB_BUILD_ARCH       := \$(shell dpkg-architecture -qDEB_BUILD_ARCH)
+DEB_BUILD_GNU_CPU    := \$(shell dpkg-architecture -qDEB_BUILD_GNU_CPU)
+DEB_BUILD_GNU_TYPE   := \$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_BUILD_GNU_SYSTEM := \$(shell dpkg-architecture -qDEB_BUILD_GNU_SYSTEM)
+
+VERSION:=\$(shell LC_ALL=C dpkg-parsechangelog | sed -ne 's/^Version: *\\([^2]*\\)/\\1/p')
+
+SHELL=/bin/bash
+
+.PHONY: default
+default:
+\t\@echo \"Specify a target:\"; \\
+\techo \" build              compile the package\"; \\
+\techo \" build-arch         compile the architecture-dependent package\"; \\
+\techo \" build-indep        compile the architecture-independent package\"; \\
+\techo \" binary             make all binary packages\"; \\
+\techo \" binary-arch        make all architecture-dependent binary packages\"; \\
+\techo \" binary-indep       make all architecture-independent binary packages\"; \\
+\techo \" clean              clean up the source package\"; \\
+\techo; \\
+END
+        print OUT <<END or die;
+\techo \" clean-install-tree clean up only under debian/\"; \\
+\techo
+
+END
+
+        ############################################################################
+
+        print OUT <<END or die;
+# Build the package and prepare the install tree
+
+.PHONY: build-only build
+build-only: debian/build-stamp
+build: chmod-yada build-only
+
+.PHONY: build-arch-only build-arch
+build-arch-only: debian/build-arch-stamp
+build-arch: chmod-yada build-arch-only
+
+.PHONY: build-indep-only build-indep
+build-indep-only: debian/build-indep-stamp
+build-indep: chmod-yada build-indep-only
+END
+
+        ############################################################################
+
+        print OUT <<END or die;
+
+# Make sure these rules and the control file are up-to-date
+
+.PHONY: rules control
+rules: debian/rules
+debian/rules: $yada debian/packages-tmp
+\t$yada rebuild rules
+
+control: debian/control
+debian/control: $yada debian/packages-tmp
+\t$yada rebuild control
+
+END
+        print OUT "debian/build-stamp: debian/build-arch-stamp debian/build-indep-stamp" or die;
+        print OUT "\n\t\@[ -f $yada -a -f debian/rules ]\n" or die;
+
+        foreach $patch (@patches) {
+            print OUT "\t$yada patch \"$patch\"\n";
+        }
+
+        &makescript(
+            *OUT{IO}, "Build", "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" \\
+\t  && export DEB_HOST_GNU_CPU=\"\$(DEB_HOST_GNU_CPU)\" \\
+\t  && export DEB_HOST_GNU_TYPE=\"\$(DEB_HOST_GNU_TYPE)\" \\
+\t  && export DEB_HOST_GNU_SYSTEM=\"\$(DEB_HOST_GNU_SYSTEM)\" \\
+\t  && export DEB_BUILD_GNU_CPU=\"\$(DEB_BUILD_GNU_CPU)\" \\
+\t  && export DEB_BUILD_GNU_TYPE=\"\$(DEB_BUILD_GNU_TYPE)\" \\
+\t  && export DEB_BUILD_GNU_SYSTEM=\"\$(DEB_BUILD_GNU_SYSTEM)\"",
+            $source{"build"}
+        );
+
+        ############################################################################
+        print OUT <<END or die;
+\ttouch debian/build-stamp
+
+END
+        print OUT "debian/build-arch-stamp:" or die;
+        print OUT "\n\t\@[ -f $yada -a -f debian/rules ]\n" or die;
+
+        foreach $patch (@patches) {
+            print OUT "\t$yada patch \"$patch\"\n";
+        }
+
+        &makescript(
+            *OUT{IO}, "Build-Arch", "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" \\
+\t  && export DEB_HOST_GNU_CPU=\"\$(DEB_HOST_GNU_CPU)\" \\
+\t  && export DEB_HOST_GNU_TYPE=\"\$(DEB_HOST_GNU_TYPE)\" \\
+\t  && export DEB_HOST_GNU_SYSTEM=\"\$(DEB_HOST_GNU_SYSTEM)\" \\
+\t  && export DEB_BUILD_GNU_CPU=\"\$(DEB_BUILD_GNU_CPU)\" \\
+\t  && export DEB_BUILD_GNU_TYPE=\"\$(DEB_BUILD_GNU_TYPE)\" \\
+\t  && export DEB_BUILD_GNU_SYSTEM=\"\$(DEB_BUILD_GNU_SYSTEM)\"",
+            $source{"build-arch"}
+        );
+
+        ############################################################################
+        print OUT <<END or die;
+\ttouch debian/build-arch-stamp
+
+END
+        print OUT "debian/build-indep-stamp:" or die;
+        print OUT "\n\t\@[ -f $yada -a -f debian/rules ]\n" or die;
+
+        foreach $patch (@patches) {
+            print OUT "\t$yada patch \"$patch\"\n";
+        }
+
+        &makescript(
+            *OUT{IO}, "Build-Indep", "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" \\
+\t  && export DEB_HOST_GNU_CPU=\"\$(DEB_HOST_GNU_CPU)\" \\
+\t  && export DEB_HOST_GNU_TYPE=\"\$(DEB_HOST_GNU_TYPE)\" \\
+\t  && export DEB_HOST_GNU_SYSTEM=\"\$(DEB_HOST_GNU_SYSTEM)\" \\
+\t  && export DEB_BUILD_GNU_CPU=\"\$(DEB_BUILD_GNU_CPU)\" \\
+\t  && export DEB_BUILD_GNU_TYPE=\"\$(DEB_BUILD_GNU_TYPE)\" \\
+\t  && export DEB_BUILD_GNU_SYSTEM=\"\$(DEB_BUILD_GNU_SYSTEM)\"",
+            $source{"build-indep"}
+        );
+
+        ############################################################################
+        print OUT <<END or die;
+\ttouch debian/build-indep-stamp
+
+.PHONY: install-tree
+END
+        if ($usearches) {
+            print OUT "install-tree: chmod-yada install-tree-\$(buildarch)\n"
+              or die;
+        } else {
+            print OUT "install-tree: chmod-yada install-tree-any\n" or die;
+        }
+
+        foreach $arch (keys %architectures) {
+            print OUT "install-tree-$arch:" or die;
+            foreach (keys %packages) {
+                if (   $architecture{$_} eq "all"
+                    or $architecture{$_} eq "any"
+                    or $architecture{$_} =~ m/(^| )$arch( |$)/)
+                {
+                    print OUT " \\\n\tdebian/tmp-$_/DEBIAN/control" or die;
+                }
+            }
+            print OUT "\n" or die;
+        }
+
+        print OUT "install-tree-any:" or die;
+        foreach (keys %packages) {
+            if ($architecture{$_} eq "all" or $architecture{$_} eq "any") {
+                print OUT " \\\n\tdebian/tmp-$_/DEBIAN/control" or die;
+            }
+        }
+
+        foreach $pkg (keys %packages) {
+            if (defined $source{"build"}) {
+                $_ = "debian/build-stamp";
+            } elsif ($architecture{$pkg} eq "all") {
+                $_ = "debian/build-indep-stamp";
+            } else {
+                $_ = "debian/build-arch-stamp";
+            }
+            print OUT
+              "\n\ndebian/tmp-$pkg/DEBIAN/control: $_ debian/control
+\trm -rf debian/tmp-$pkg
+\tumask 022 && install -d debian/tmp-$pkg/DEBIAN
+" or die;
+            if (defined $docdep{$pkg}) {
+                print OUT
+                  "\tumask 022 && install -d debian/tmp-$pkg/usr/share/doc/$docdep{$pkg}
+\tumask 022 && ln -s $docdep{$pkg} debian/tmp-$pkg/usr/share/doc/$pkg
+" or die;
+            } else {
+                if (defined $source{"upstream-source"}) {
+                    $_ = ".Debian";
+                } else {
+                    $_ = "";
+                }
+                print OUT <<EOM or die;
+\tinstall -d debian/tmp-$pkg/usr/share/doc/$pkg
+\tumask 022; $yada generate copyright \\
+\t  > debian/tmp-$pkg/usr/share/doc/$pkg/copyright
+\tinstall -m 644 -p debian/changelog \\
+\t  debian/tmp-$pkg/usr/share/doc/$pkg/changelog$_
+EOM
+            }
+            &makescript(
+                *OUT{IO}, "Install", "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export ROOT=\"\$\$(pwd)/debian/tmp-$pkg\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export CONTROL=\"\$\$(pwd)/debian/tmp-$pkg/DEBIAN\" \\
+\t  && export PACKAGE=\"$pkg\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" \\
+\t  && export DEB_HOST_GNU_CPU=\"\$(DEB_HOST_GNU_CPU)\" \\
+\t  && export DEB_HOST_GNU_TYPE=\"\$(DEB_HOST_GNU_TYPE)\" \\
+\t  && export DEB_HOST_GNU_SYSTEM=\"\$(DEB_HOST_GNU_SYSTEM)\" \\
+\t  && export DEB_BUILD_GNU_CPU=\"\$(DEB_BUILD_GNU_CPU)\" \\
+\t  && export DEB_BUILD_GNU_TYPE=\"\$(DEB_BUILD_GNU_TYPE)\" \\
+\t  && export DEB_BUILD_GNU_SYSTEM=\"\$(DEB_BUILD_GNU_SYSTEM)\"",
+                $install{$pkg});
+            $_ = "";
+            if (not defined $contains{$pkg}{'unstripped'}
+                and (not defined $ENV{DEB_BUILD_OPTIONS} or
+                     $ENV{DEB_BUILD_OPTIONS} !~ /nostrip/))
+            {
+                $_ .= "yada strip\n";
+            };
+            $_ .= "yada shlibdeps";
+            s=^=set -e; set -v\n=s;
+            s=^=eval "yada () { perl $absyada \\\"\\\$\@\\\"; }"; =s;
+            s/'/'\\''/g;
+            s/\$/\$\$/g;
+            s/\n/';\\\n\techo -E '/gs;
+
+            print OUT "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export ROOT=\"\$\$(pwd)/debian/tmp-$pkg\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export CONTROL=\"\$\$(pwd)/debian/tmp-$pkg/DEBIAN\" \\
+\t  && export PACKAGE=\"$pkg\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" && (\\\n\techo -E '" or die;
+            print OUT or die;
+            print OUT "') | /bin/sh\n" or die;
+
+            if (   defined $predepends{$pkg}
+                or defined $depends{$pkg}
+                or defined $recommends{$pkg}
+                or defined $suggests{$pkg})
+            {
+                print OUT "\trm -f debian/shlibs.local || true\n" or die;
+                $ldlp =
+                  "\$\$LD_LIBRARY_PATH:debian/tmp-$pkg/lib:debian/tmp-$pkg/usr/lib";
+                for (sort {$binaryparanum{$a} <=> $binaryparanum{$b}}
+                    keys %binary)
+                {
+                    next if $_ eq $pkg;
+                    print OUT
+                      "\ttest -f debian/tmp-$_/DEBIAN/shlibs && cat debian/tmp-$_/DEBIAN/shlibs >> debian/shlibs.local\n"
+                      or die;
+                    $ldlp .= ":debian/tmp-$_/lib:debian/tmp-$_/usr/lib";
+                }
+                print OUT
+                  "\tLD_LIBRARY_PATH=\"$ldlp\" dpkg-shlibdeps -pshlibs:"
+                  . &normalise($pkg)
+                  or die;
+                if (defined $predepends{$pkg}) {
+                    print OUT " -dPre-Depends $predepends{$pkg}" or die;
+                }
+                if (defined $depends{$pkg}) {
+                    print OUT " -dDepends $depends{$pkg}" or die;
+                }
+                if (defined $recommends{$pkg}) {
+                    print OUT " -dRecommends $recommends{$pkg}" or die;
+                }
+                if (defined $suggests{$pkg}) {
+                    print OUT " -dSuggests $suggests{$pkg}" or die;
+                }
+                print OUT "\n" or die;
+            }
+            print OUT "\t$yada compress $pkg
+\t$yada generate maintscripts $pkg
+\tfind debian/tmp-$pkg -type f -print \\
+\t  | sed -n 's/^debian\\/tmp-$pkg\\(\\/etc\\/.*\\)\$\$/\\1/p' \\
+\t  > debian/tmp-$pkg/DEBIAN/conffiles
+\tif test ! -s debian/tmp-$pkg/DEBIAN/conffiles; then rm -f debian/tmp-$pkg/DEBIAN/conffiles; fi
+\t$yada rebuild control
+\t$yada generate substvars $pkg
+" or die;
+            if (defined $docdep{$pkg}) {
+                print OUT
+                  "\t-rmdir debian/tmp-$pkg/usr/share/doc/$docdep{$pkg}\n"
+                  or die;
+            }
+            print OUT
+              "\tumask 022 && dpkg-gencontrol -isp -p$pkg -Pdebian/tmp-$pkg"
+              or die;
+        }
+
+        ############################################################################
+        print OUT <<END or die;
+
+
+# Build package files
+
+.PHONY: binary binary-arch binary-indep
+binary: binary-arch binary-indep
+END
+        print OUT <<END or die if $usearches;
+binary-arch: chmod-yada binary-arch-\$(buildarch)
+
+END
+        print OUT <<END or die unless $usearches;
+binary-arch: chmod-yada binary-arch-any
+
+END
+
+        ############################################################################
+
+        foreach $arch (keys %architectures) {
+            print OUT ".PHONY: binary-arch-$arch\nbinary-arch-$arch:" or die;
+            foreach (keys %packages) {
+                if (   $architecture{$_} eq "any"
+                    or $architecture{$_} =~ m/(^| )$arch( |$)/)
+                {
+                    print OUT " \\\n\tbinary-package-$_" or die;
+                }
+            }
+            print OUT "\n" or die;
+        }
+
+        print OUT ".PHONY: binary-arch-any\nbinary-arch-any:" or die;
+        foreach (keys %packages) {
+            if ($architecture{$_} eq "any") {
+                print OUT " \\\n\tbinary-package-$_" or die;
+            }
+        }
+        print OUT "\n" or die;
+
+        print OUT "binary-indep: chmod-yada" or die;
+        foreach (keys %packages) {
+            if ($architecture{$_} eq "all") {
+                print OUT " \\\n\tbinary-package-$_" or die;
+            }
+        }
+
+        foreach $pkg (keys %packages) {
+            print OUT "\n\n.PHONY: binary-package-$pkg
+binary-package-$pkg: check-root debian/tmp-$pkg/DEBIAN/control
+\t\@[ -f $yada -a -f debian/rules ]
+\tchown -R 0.0 debian/tmp-$pkg
+\tchmod -R u=rwX,go=rX debian/tmp-$pkg\n" or die;
+            &makescript(
+                *OUT{IO}, "Finalise", "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export ROOT=\"\$\$(pwd)/debian/tmp-$pkg\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export CONTROL=\"\$\$(pwd)/debian/tmp-$pkg/DEBIAN\" \\
+\t  && export PACKAGE=\"$pkg\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" \\
+\t  && export DEB_HOST_GNU_CPU=\"\$(DEB_HOST_GNU_CPU)\" \\
+\t  && export DEB_HOST_GNU_TYPE=\"\$(DEB_HOST_GNU_TYPE)\" \\
+\t  && export DEB_HOST_GNU_SYSTEM=\"\$(DEB_HOST_GNU_SYSTEM)\" \\
+\t  && export DEB_BUILD_GNU_CPU=\"\$(DEB_BUILD_GNU_CPU)\" \\
+\t  && export DEB_BUILD_GNU_TYPE=\"\$(DEB_BUILD_GNU_TYPE)\" \\
+\t  && export DEB_BUILD_GNU_SYSTEM=\"\$(DEB_BUILD_GNU_SYSTEM)\"",
+                $finalise{$pkg}
+            );
+            print OUT "\t\@if [ -d debian/tmp-$pkg/usr/doc/$pkg ]; then \\\n"
+              . "\t  echo \"*** Yada warning: /usr/doc/$pkg should be "
+              . "/usr/share/doc/$pkg\";\\\n"
+              . "\tfi\n";
+            print OUT "\tdpkg-deb --build debian/tmp-$pkg .." or die;
+        }
+
+        open IN, "debian/packages-tmp-include"
+            or die "Can't open debian/packages-tmp-include for reading";
+        $_ = <IN>;
+        $packages_include = defined $_ ? $_ : "";
+        close IN;
+
+        print OUT <<EOM or die;
+
+
+.PHONY: check-root
+check-root:
+\t\@[ `id -u` = 0 ] || (echo \"You must be root to do this!\"; false)
+
+.PHONY: chmod-yada
+chmod-yada:
+\t\@if [ -f debian/yada -a ! -x debian/yada ]; then \\
+\t  chmod +x debian/yada; \\
+\tfi
+
+debian/packages-tmp: debian/packages $packages_include
+\t$yada rebuild packages
+
+## Clean up afterwards
+
+.PHONY: clean clean-install-tree clean-build
+
+clean: chmod-yada clean-install-tree clean-build debian/control debian/rules
+\trm -f debian/packages-tmp debian/packages-tmp-new debian/packages-tmp-include
+
+clean-build:
+\t\@[ -f $yada -a -f debian/rules ]
+\trm -f debian/build-stamp debian/build-arch-stamp debian/build-indep-stamp
+EOM
+
+        ############################################################################
+
+        &makescript(
+            *OUT{IO}, "Clean", "\t\@umask 022 \\
+\t  && export pwd=\"\$\$(pwd)\" \\
+\t  && export TMPROOT=\"\$\$(pwd)/debian/tmp\" \\
+\t  && export SOURCE=\"$source{source}\" \\
+\t  && export VERSION=\"\$(VERSION)\" \\
+\t  && export DEB_HOST_GNU_CPU=\"\$(DEB_HOST_GNU_CPU)\" \\
+\t  && export DEB_HOST_GNU_TYPE=\"\$(DEB_HOST_GNU_TYPE)\" \\
+\t  && export DEB_HOST_GNU_SYSTEM=\"\$(DEB_HOST_GNU_SYSTEM)\" \\
+\t  && export DEB_BUILD_GNU_CPU=\"\$(DEB_BUILD_GNU_CPU)\" \\
+\t  && export DEB_BUILD_GNU_TYPE=\"\$(DEB_BUILD_GNU_TYPE)\" \\
+\t  && export DEB_BUILD_GNU_SYSTEM=\"\$(DEB_BUILD_GNU_SYSTEM)\"",
+            $source{"clean"}
+        );
+
+        print OUT "\t$yada unpatch\n";
+
+        ############################################################################
+        print OUT "\trm -rf debian/tmp
+
+clean-install-tree: chmod-yada debian/rules
+\t\@[ -f $yada -a -f debian/rules ]
+\trm -f debian/install-tree-stamp
+\trm -rf debian/tmp-* debian/files* debian/substvars debian/shlibs.local
+" or die "Cannot write header to debian/rules.new";
+
+        ############################################################################
+
+        close OUT or die "Cannot close debian/rules.new";
+        chmod 0755, "debian/rules.new"
+          or die "Cannot make debian/rules.new executable";
+
+        &chokepoint;    # "leaving output in debian/rules.new\n";
+        rename "debian/rules.new", "debian/rules"
+          or die "Cannot rename debian/rules.new to debian/rules";
+        exit 0;
+    }
+}
+
+if (m/^install$/i) {
+    &getvars;
+    @files    = ();
+    $type     = "data";
+    $tree     = "/usr";
+    $dest     = undef;
+    $destadd  = undef;
+    $as       = undef;
+    $strip    = undef;
+    $exec     = undef;
+    $sect     = undef;
+    $compress = undef;
+    while (defined($_ = shift)) {
+        if ($_ eq "-bin")        {$type     = "bin";        next;}
+        if ($_ eq "-conf")       {$type     = "etc";        next;}
+        if ($_ eq "-conffile")   {$type     = "etc";        next;}
+        if ($_ eq "-data")       {$type     = "share";      next;}
+        if ($_ eq "-dir")        {$type     = "dir";        next;}
+        if ($_ eq "-doc")        {$type     = "doc";        next;}
+        if ($_ eq "-game")       {$type     = "games";      next;}
+        if ($_ eq "-include")    {$type     = "include";    next;}
+        if ($_ eq "-lib")        {$type     = "lib";        next;}
+        if ($_ eq "-libexec")    {$type     = "lib";        $exec = 1; next;}
+        if ($_ eq "-man")        {$type     = "man";        next;}
+        if ($_ eq "-sbin")       {$type     = "sbin";       next;}
+        if ($_ eq "-script")     {$type     = "bin";        $strip = 0; next;}
+        if ($_ eq "-src")        {$type     = "src";        next;}
+        if ($_ eq "-sscript")    {$type     = "sbin";       $strip = 0; next;}
+        if ($_ eq "-x")          {$tree     = "/usr/X11R6"; next;}
+        if ($_ eq "-non-x")      {$tree     = "/usr";       next;}
+        if ($_ eq "-stripped")   {$strip    = 1;            next;}
+        if ($_ eq "-unstripped") {$strip    = 0;            next;}
+        if ($_ eq "-exec")       {$exec     = 1;            next;}
+        if ($_ eq "-no-exec")    {$exec     = 0;            next;}
+        if ($_ eq "-into")       {$dest     = shift;        next;}
+        if ($_ eq "-as")         {$as       = shift;        next;}
+        if ($_ eq "-subdir")     {$destadd  = shift;        next;}
+        if ($_ eq "-section")    {$sect     = shift;        next;}
+        if ($_ eq "-gzip")       {$compress = "gzip";       next;}
+        if ($_ eq "-bzip2")      {$compress = "bzip2";      next;}
+
+        if ($_ =~ m/^-/) {
+            print "I don't understand this option: `$_'\n";
+            exit 1;
+        }
+        push @files, $_;
+    }
+    if (scalar @files == 0) {choke "Install what?";}
+    if (defined $as and scalar @files != 1) {
+        choke "You can only install one file `-as' something at a time.\n";
+    }
+    if ($type eq "dir") {
+        map s|^/?|$ROOT/|, @files;
+        &run('install', '-d', '-m', '755', @files);
+        exit 0;
+    }
+    if (not defined $dest) {
+        if ($type =~ /doc|man|info/ and $tree eq "/usr") {
+            $tree .= "/share";
+        }
+        if ($type eq "etc") {$tree = "";}
+        if ($type =~ /etc|bin|lib|games|man|include|share|src/) {
+            $dest = "$tree/$type";
+        }
+        if ($type eq "doc") {$dest = "$tree/$type/$PACKAGE";}
+    }
+    if (not defined $dest) {choke "Where should I install to?";}
+    if (defined $destadd)  {
+        $dest .= "/$destadd";
+    }
+    if (
+           !defined $strip
+        && $type =~ /bin|games|lib/
+        && (!defined $ENV{DEB_BUILD_OPTIONS}
+            || $ENV{DEB_BUILD_OPTIONS} !~ /nostrip/)
+      )
+    {
+        $strip = 1;
+    } else {
+        $strip = 0;
+    }
+    $dest =~ s|^/?|$ROOT/|;
+    stat $dest;
+    if (!-e _) {
+        &run('install', '-d', '-m', '755', "$dest");
+        stat $dest;
+    }
+    if (!-d _)             {die "`$dest' is not a directory";}
+    if (not defined $exec) {
+        if ($type =~ m/bin|games/) {$exec = 1;}
+        else {$exec = 0;}
+    }
+    if ($exec) {$mode = '755';}
+    else {$mode = '644';}
+    foreach (@files) {
+        $asname = $as;
+        if (not defined $asname) {$asname = $_; $asname =~ s|.*/||;}
+        if ($type eq "man") {
+            $assect = $sect;
+            if (not defined $assect) {
+                $assect = $asname;
+                $assect =~ s/.*\.//;
+            }
+            $assect =~ s/^(.).*/$1/;
+            $asname =~ s|^|man$assect/|;
+            stat "$dest/man$assect";
+            if (!-e _) {
+                &run('install', '-d', '-m', '755', "$dest/man$assect");
+                stat "$dest/man$assect";
+            }
+            if (!-d _) {
+                die "`$dest/man$assect' is not a directory";
+            }
+        }
+        &run('install', '-p', '-m', $mode, $_, "$dest/$asname");
+        if ($strip) {
+            &run(
+                'strip', '--remove-section=.comment', '--remove-section=.note',
+                "$dest/$asname"
+            );
+        }
+        if (defined $compress) {
+            if ($compress eq "gzip") {
+                &run('gzip', '-9', "$dest/$asname");
+            } elsif ($compress eq "bzip2") {
+                &run('bzip2', "$dest/$asname");
+            }
+        }
+    }
+    exit 0;
+}
+
+if (m/^copy$/i) {
+    &getvars;
+    @files   = ();
+    $type    = "data";
+    $tree    = "/usr";
+    $dest    = undef;
+    $destadd = undef;
+    $as      = undef;
+    $sect    = undef;
+    while (defined($_ = shift)) {
+        if ($_ eq "-bin")      {$type    = "bin";        next;}
+        if ($_ eq "-conf")     {$type    = "etc";        next;}
+        if ($_ eq "-conffile") {$type    = "etc";        next;}
+        if ($_ eq "-data")     {$type    = "share";      next;}
+        if ($_ eq "-doc")      {$type    = "doc";        next;}
+        if ($_ eq "-game")     {$type    = "games";      next;}
+        if ($_ eq "-include")  {$type    = "include";    next;}
+        if ($_ eq "-lib")      {$type    = "lib";        next;}
+        if ($_ eq "-libexec")  {$type    = "lib";        next;}
+        if ($_ eq "-man")      {$type    = "man";        next;}
+        if ($_ eq "-sbin")     {$type    = "sbin";       next;}
+        if ($_ eq "-script")   {$type    = "bin";        next;}
+        if ($_ eq "-sscript")  {$type    = "sbin";       next;}
+        if ($_ eq "-x")        {$tree    = "/usr/X11R6"; next;}
+        if ($_ eq "-non-x")    {$tree    = "/usr";       next;}
+        if ($_ eq "-into")     {$dest    = shift;        next;}
+        if ($_ eq "-as")       {$as      = shift;        next;}
+        if ($_ eq "-subdir")   {$destadd = shift;        next;}
+        if ($_ eq "-section")  {$sect    = shift;        next;}
+
+        if ($_ =~ m/^-/) {
+            print "I don't understand this option: `$_'\n";
+            exit 1;
+        }
+        push @files, $_;
+    }
+    if (scalar @files == 0) {choke "Copy what?";}
+    if (defined $as and scalar @files != 1) {
+        choke "You can only copy one file `-as' something at a time.\n";
+    }
+    if (not defined $dest) {
+        if ($type =~ /doc|man|info/ and $tree eq "/usr") {
+            $tree .= "/share";
+        }
+        if ($type eq "etc") {$tree = "";}
+        if ($type =~ /etc|bin|lib|games|man|include|share|src/) {
+            $dest = "$tree/$type";
+        }
+        if ($type eq "doc") {$dest = "$tree/$type/$PACKAGE";}
+    }
+    if (not defined $dest) {choke "Where should I copy to?";}
+    if (defined $destadd)  {
+        $dest .= "/$destadd";
+    }
+    $dest =~ s|^/?|$ROOT/|;
+    stat $dest;
+    if (!-e _) {
+        &run('install', '-d', '-m', '755', "$dest");
+        stat $dest;
+    }
+    if (!-d _) {die "`$dest' is not a directory";}
+    foreach (@files) {
+        $asname = $as;
+        if (not defined $asname) {$asname = $_; $asname =~ s|.*/||;}
+        if ($type eq "man") {
+            $assect = $sect;
+            if (not defined $assect) {
+                $assect = $asname;
+                $assect =~ s/.*\.//;
+            }
+            $assect =~ s/^(.).*/$1/;
+            $asname =~ s|^|man$assect/|;
+            stat "$dest/man$assect";
+            if (!-e _) {
+                &run('install', '-d', '-m', '755', "$dest/man$assect");
+                stat "$dest/man$assect";
+            }
+            if (!-d _) {
+                die "`$dest/man$assect' is not a directory";
+            }
+        }
+        &run('cp', '-f', '-a', $_, "$dest/$asname");
+    }
+    exit 0;
+}
+
+if (m/^symlink$/i) {
+    &getvars;
+    @files   = ();
+    $type    = "data";
+    $tree    = "/usr";
+    $dest    = undef;
+    $destadd = undef;
+    $as      = undef;
+    $sect    = undef;
+    while (defined($_ = shift)) {
+        if ($_ eq "-bin")      {$type    = "bin";        next;}
+        if ($_ eq "-conf")     {$type    = "etc";        next;}
+        if ($_ eq "-conffile") {$type    = "etc";        next;}
+        if ($_ eq "-data")     {$type    = "share";      next;}
+        if ($_ eq "-doc")      {$type    = "doc";        next;}
+        if ($_ eq "-game")     {$type    = "games";      next;}
+        if ($_ eq "-include")  {$type    = "include";    next;}
+        if ($_ eq "-lib")      {$type    = "lib";        next;}
+        if ($_ eq "-libexec")  {$type    = "lib";        next;}
+        if ($_ eq "-man")      {$type    = "man";        next;}
+        if ($_ eq "-sbin")     {$type    = "sbin";       next;}
+        if ($_ eq "-script")   {$type    = "bin";        next;}
+        if ($_ eq "-sscript")  {$type    = "sbin";       next;}
+        if ($_ eq "-x")        {$tree    = "/usr/X11R6"; next;}
+        if ($_ eq "-non-x")    {$tree    = "/usr";       next;}
+        if ($_ eq "-into")     {$dest    = shift;        next;}
+        if ($_ eq "-as")       {$as      = shift;        next;}
+        if ($_ eq "-subdir")   {$destadd = shift;        next;}
+        if ($_ eq "-section")  {$sect    = shift;        next;}
+
+        if ($_ =~ m/^-/) {
+            print "I don't understand this option: `$_'\n";
+            exit 1;
+        }
+        push @files, $_;
+    }
+    if (scalar @files == 0) {choke "Symlink what?";}
+    if (scalar @files > 1) {choke "You can do only one symlink.";}
+    if (not defined $as)    {
+        choke "You have to symlink with `-as' name.\n";
+    }
+    if (not defined $dest) {
+        if ($type =~ /doc|man|info/ and $tree eq "/usr") {
+            $tree .= "/share";
+        }
+        if ($type eq "etc") {$tree = "";}
+        if ($type =~ /etc|bin|lib|games|man|include|share/) {
+            $dest = "$tree/$type";
+        }
+        if ($type eq "doc") {$dest = "$tree/$type/$PACKAGE";}
+    }
+    if (not defined $dest) {choke "Where should I symlink to?";}
+    if (defined $destadd)  {
+        $dest .= "/$destadd";
+    }
+    $dest =~ s|^/?|$ROOT/|;
+    stat $dest;
+    if (!-e _) {
+        &run('install', '-d', '-m', '755', "$dest");
+        stat $dest;
+    }
+    if (!-d _) {die "`$dest' is not a directory";}
+    foreach (@files) {
+        $asname = $as;
+        if (not defined $asname) {$asname = $_; $asname =~ s|.*/||;}
+        if ($type eq "man") {
+            $assect = $sect;
+            if (not defined $assect) {
+                $assect = $asname;
+                $assect =~ s/.*\.//;
+            }
+            $assect =~ s/^(.).*/$1/;
+            $asname =~ s|^|man$assect/|;
+            stat "$dest/man$assect";
+            if (!-e _) {
+                &run('install', '-d', '-m', '755', "$dest/man$assect");
+                stat "$dest/man$assect";
+            }
+            if (!-d _) {
+                die "`$dest/man$assect' is not a directory";
+            }
+            $srcsect = $_;
+            $srcsect =~ s/.*\.//;
+            s|^|../man$srcsect/|;
+        }
+        $src      = $_;
+        $src_path = $src;
+        $src_path =~ s:^/?::;
+        $dest_path = "$dest/$asname";
+        $dest_path =~ s/^\Q$ROOT\E//;
+        $dest_path =~ s:^/?::;
+        @src_dirs  = split (m:/+:, $src_path);
+        @dest_dirs = split (m:/+:, $dest_path);
+
+        if ($src !~ m:^/:) {
+            unshift @src_dirs, @dest_dirs;
+        }
+        if (   defined $src_dirs[0]
+            && defined $src_dirs[0]
+            && $src_dirs[0] ne $dest_dirs[0])
+        {
+            $src = "/$src_path";
+        } else {
+            $src = "";
+            for (
+                $i = 0;
+                defined $src_dirs[$i]
+                && defined $dest_dirs[$i]
+                && $src_dirs[$i] eq $dest_dirs[$i];
+                $i++
+              )
+            {
+            }
+            for ($j = $#dest_dirs - 1; $j >= $i; $j--) {$src .= "../";}
+            for ($j = $i; $j <= $#src_dirs - 1; $j++)  {
+                $src .= $src_dirs[$j] . "/";
+            }
+            $src .= $src_dirs[$j];
+        }
+        $dest = "$ROOT/$dest_path";
+        &run('ln', '-f', '-s', $src, $dest);
+    }
+    exit 0;
+}
+
+if (m/^remove$/i) {
+    &getvars;
+    @files   = ();
+    $type    = "data";
+    $tree    = "/usr";
+    $dest    = undef;
+    $destadd = undef;
+    $as      = undef;
+    $sect    = undef;
+    while (defined($_ = shift)) {
+        if ($_ eq "-bin")      {$type    = "bin";        next;}
+        if ($_ eq "-conf")     {$type    = "etc";        next;}
+        if ($_ eq "-conffile") {$type    = "etc";        next;}
+        if ($_ eq "-data")     {$type    = "share";      next;}
+        if ($_ eq "-dir")      {$type    = "dir";        next;}
+        if ($_ eq "-doc")      {$type    = "doc";        next;}
+        if ($_ eq "-game")     {$type    = "games";      next;}
+        if ($_ eq "-include")  {$type    = "include";    next;}
+        if ($_ eq "-lib")      {$type    = "lib";        next;}
+        if ($_ eq "-libexec")  {$type    = "lib";        next;}
+        if ($_ eq "-man")      {$type    = "man";        next;}
+        if ($_ eq "-sbin")     {$type    = "sbin";       next;}
+        if ($_ eq "-script")   {$type    = "bin";        next;}
+        if ($_ eq "-sscript")  {$type    = "sbin";       next;}
+        if ($_ eq "-x")        {$tree    = "/usr/X11R6"; next;}
+        if ($_ eq "-non-x")    {$tree    = "/usr";       next;}
+        if ($_ eq "-into")     {$dest    = shift;        next;}
+        if ($_ eq "-subdir")   {$destadd = shift;        next;}
+        if ($_ eq "-section")  {$sect    = shift;        next;}
+
+        if ($_ =~ m/^-/) {
+            print "I don't understand this option: `$_'\n";
+            exit 1;
+        }
+        push @files, $_;
+    }
+    if (scalar @files == 0) {choke "Remove what?";}
+    if ($type eq "dir") {
+        map s|^/?|$ROOT/|, @files;
+        foreach (@files) {
+            &run('sh', '-c',
+                "rm -rf $_ && rmdir --ignore-fail-on-non-empty -p \$(dirname $_) || true"
+            );
+        }
+        exit 0;
+    }
+    if (not defined $dest) {
+        if ($type =~ /doc|man|info/ and $tree eq "/usr") {
+            $tree .= "/share";
+        }
+        if ($type eq "etc") {$tree = "";}
+        if ($type =~ /etc|bin|lib|games|man|include|share/) {
+            $dest = "$tree/$type";
+        }
+        if ($type eq "doc") {$dest = "$tree/$type/$PACKAGE";}
+    }
+    if (not defined $dest) {choke "What should I remove?";}
+    if (defined $destadd)  {
+        $dest .= "/$destadd";
+    }
+    $dest =~ s|^/?|$ROOT/|;
+    foreach (@files) {
+        $asname = $_; $asname =~ s|.*/||;
+        if ($type eq "man") {
+            $assect = $sect;
+            if (not defined $assect) {
+                $assect = $asname;
+                $assect =~ s/.*\.//;
+            }
+            $assect =~ s/^(.).*/$1/;
+            $asname =~ s|^|man$assect/|;
+        }
+        $_ = "$dest/$asname";
+        &run('sh', '-c',
+            "rm -f $_ $_.gz $_.bz2 && rmdir --ignore-fail-on-non-empty -p \$(dirname $_) || true"
+        );
+    }
+    exit 0;
+}
+
+if (m/^undocumented$/i) {
+    &getvars;
+    @files = ();
+    $x11   = 0;
+    $sect  = undef;
+    while (defined($_ = shift)) {
+        if ($_ eq "-x")       {$x11  = 1;     next;}
+        if ($_ eq "-non-x")   {$x11  = 0;     next;}
+        if ($_ eq "-section") {$sect = shift; next;}
+        if ($_ =~ m/^-/) {
+            print "I don't understand this option: `$_'\n";
+            exit 1;
+        }
+        push @files, $_;
+    }
+    if (scalar @files == 0) {choke "What is undocumented?";}
+    foreach (@files) {
+        if (defined $sect) {
+            $secnum = $sect;
+            s/$/.$sect/;
+        } else {
+            $secnum = $_;
+            $secnum =~ s/.*\.//;
+        }
+        $secnum =~ s/^(.).*/$1/;
+        $pre = '';
+        if ($secnum ne '7') {
+            $pre = '../man7/';
+        }
+        if ($x11) {
+            $pre  = "../../../share/man/man7/";
+            $dest = "$ROOT/usr/X11R6/man/man$secnum";
+        } else {
+            $dest = "$ROOT/usr/share/man/man$secnum";
+        }
+        stat "$dest";
+        if (!-e _) {
+            &run('install', '-d', '-m', '755', "$dest");
+            stat "$dest";
+        }
+        if (!-d _) {
+            die "`$dest' is not a directory";
+        }
+        $target = "${pre}undocumented.7.gz";
+        &run('ln', '-s', $target, "$dest/$_.gz");
+    }
+    exit 0;
+}
+
+if (m/^(dpkg-)?shlibdeps$/i) {
+    &getvars;
+    $ldlp =
+      $ENV{"LD_LIBRARY_PATH"}
+      . ":debian/tmp-$PACKAGE/lib:debian/tmp-$PACKAGE/usr/lib";
+    for (sort {$binaryparanum{$a} <=> $binaryparanum{$b}} keys %binary) {
+        next if $_ eq $PACKAGE;
+        $ldlp .= ":debian/tmp-$_/lib:debian/tmp-$_/usr/lib";
+    }
+    $ENV{"LD_LIBRARY_PATH"} = $ldlp;
+
+    my @filelist;
+    my $ff;
+
+    foreach $file (
+        split (/\n/,
+            `find $ROOT -type f \\( -perm +111 -or -name "*.so*" \\)`))
+    {
+        $ff = `file "$file"`;
+        if ($ff =~ m/ELF/ && $ff !~ /statically linked/) {
+            push @filelist, $file;
+        }
+    }
+    if (@filelist) {
+        &run('rm', '-f', 'debian/shlibs.local');
+        for (sort {$binaryparanum{$a} <=> $binaryparanum{$b}} keys %binary) {
+            next if $_ eq $PACKAGE;
+            &run('sh', '-c',
+                "test -f debian/tmp-$_/DEBIAN/shlibs && cat debian/tmp-$_/DEBIAN/shlibs >> debian/shlibs.local"
+            );
+        }
+        &run("dpkg-shlibdeps", "-pshlibs:" . &normalise($PACKAGE),
+            @ARGV, @filelist);
+    }
+    exit 0;
+}
+
+if (m/^makeshlibs$/i) {
+    &getvars;
+
+    my @shared_libs = ();
+    my %seen        = ();
+    my $deps        = "$PACKAGE";
+
+    my $arg;
+
+    foreach $arg (@ARGV) {
+        if ($arg =~ m/^(-V|--version=)(.+)?/) {
+            if ($2) {
+                $deps = $2;
+            } else {
+                $deps = "$PACKAGE (>= $VERSION)";
+            }
+        }
+    }
+
+    find(\&makeshlib_testfile, $ROOT);
+
+    foreach (@shared_libs) {
+        my ($library, $major);
+        my $objdump = `objdump -p $_`;
+        if ($objdump =~ m/\s+SONAME\s+(.+)\.so\.(.+)/) {
+
+            ## proper soname format
+            $library = $1;
+            $major   = $2;
+        } elsif ($objdump =~ m/\s+SONAME\s+(.+)-(.+)\.so/) {
+
+            ## idiotic crap soname format
+            $library = $1;
+            $major   = $2;
+        }
+
+        if (   defined($library)
+            && defined($major)
+            && $library ne ''
+            && $major   ne ''
+            && $deps    ne '')
+        {
+            my $line = "$library $major $deps";
+            if (!$seen{$line}) {
+                $seen{$line} = 1;
+                open MAINT, ">>debian/tmp-$PACKAGE/DEBIAN/shlibs"
+                  or die "Cannot open shlibs file for writing";
+                print MAINT "$line\n" or die "Cannot write to shlibs file";
+                close MAINT           or die "Cannot close shlibs file";
+            }
+        }
+    }
+
+    exit 0;
+
+    sub makeshlib_testfile
+    {
+        return if -l $_ or -d $_;
+        my $fn = "$File::Find::dir/$_";
+        foreach $arg (@ARGV) {
+            if ($arg =~ m/^(-X|--exclude=)(.+)/) {
+                my $f = $2;
+                return if ($fn =~ m/\Q$f\E/);
+            }
+        }
+        if (m/.*\.so.*?/) {
+            my $type = `file $_`;
+            if ($type =~ m/.*ELF.*shared.*/) {
+                push @shared_libs, $fn;
+                return;
+            }
+        }
+    }
+}
+
+if (m/^perl$/i) {
+    &getvars;
+
+    &run('sh', '-c',
+        "find $ROOT/usr/lib/perl* $ROOT/usr/share/perl* -type d -empty -print0 | "
+        . "xargs --null -r rmdir --ignore-fail-on-non-empty --parents"
+    );
+
+    &run('sh', '-c',
+        "find $ROOT/usr -type f -print0 | xargs --null -r "
+        . "perl -i -pe '\$_ = \"#!/usr/bin/perl\$1\\n\" if m|^#!.*/perl(.*)\$|;'"
+    );
+
+    my $keep = 0;
+    my $base = 0;
+    my $ext  = "";
+
+    my $lib_dir = 'usr/lib/perl5';
+    my $version = sprintf("%.3f", $]);
+    if (defined $ENV{PERL}) {
+        $version = `$ENV{PERL} -e 'printf "%.3f", \$]'`;
+    }
+
+    while (defined($ARGV[0]) && $ARGV[0] =~ /^-\w/) {
+        $_ = shift;
+        if ($_ eq "-k" || $_ eq "--keep")    {$keep = 1; next;}
+        if ($_ eq "-d" || $_ eq "--base")    {$base = 1; next;}
+        if ($_ eq "-V" || $_ eq "--version") {$vers = 1; next;}
+    }
+    $ext = '-base' if ($base);
+
+    foreach (@ARGV) {
+        s#/$##;
+        s#^/##;
+    }
+
+    my ($file, $v, $arch);
+    my $dep_arch = '';
+    my $dep      = '';
+    my $found    = 0;
+    my $dirs     = '';
+
+    if ($version < 5.006) {
+
+        foreach ($lib_dir, @ARGV) {
+            $dirs .= "$ROOT/$_ " if (-d "$ROOT/$_");
+        }
+        my $re = '(?:' . join ('|', ($lib_dir, @ARGV)) . ')';
+
+        if ($dirs) {
+            foreach $file (
+                split (
+                    /\n/,
+                    `find $dirs -type f \\( -name "*.pm" -or -name "*.so" \\)`
+                )
+              )
+            {
+                $found++;
+                if ($file =~ m<^$ROOT/$re/(\d\.\d{3})/([^/]+)/>) {
+                    $v    = $1;
+                    $arch = $2;
+                    &perl_check_module_version($v, $version);
+                    $v .= '-thread' if ($arch =~ /-thread/);
+                    $dep_arch = &perl_add_deps($dep_arch, "perl-$v");
+                } elsif ($file =~ m<^$ROOT/$re/(\d.\d{3})/>) {
+                    $v = $1;
+                    &perl_check_module_version($v, $version);
+                    $dep_arch = &perl_add_deps($dep_arch, "perl-$v");
+                }
+            }
+        }
+
+        if ($found and not $dep_arch) {
+            $dep = "perl5$ext";
+        } elsif ($dep_arch) {
+            $dep = $dep_arch;
+        }
+
+        my ($ff, $newdep);
+        foreach $file (
+            split (/\n/,
+                `find $ROOT -type f \\( -name "*.pl" -or -perm +111 \\)`))
+        {
+            $ff = `file -b $file`;
+            if ($ff =~ /perl/) {
+                $newdep = &perl_dep_from_script($file);
+                $dep = &perl_add_deps($dep, $newdep) if $newdep;
+            }
+        }
+    } else {
+
+        use Config;
+        use File::Find;
+
+        my $vendorlib  = substr $Config{vendorlib},  1;
+        my $vendorarch = substr $Config{vendorarch}, 1;
+        my $perl       = 'perl' . $ext;
+
+        use constant PROGRAM   => 1;
+        use constant PM_MODULE => 2;
+        use constant XS_MODULE => 4;
+
+        my $tmp = "$ROOT";
+
+        my @dirs = grep -d, map "$tmp/$_", $vendorlib, $vendorarch, @ARGV;
+
+        my $deps = 0;
+
+        find sub {
+            return unless -f;
+            $deps |= PM_MODULE if /\.pm$/;
+            $deps |= XS_MODULE if /\.so$/;
+        }, @dirs if @dirs;
+
+        find sub {
+            return unless -f and (-x or /\.pl$/);
+            local *F;
+            return unless open F, $_;
+            if (read F, local $_, 32 and m%^#!\s*/usr/bin/perl\s%) {
+                $deps |= PROGRAM;
+            }
+            close F;
+        }, $tmp;
+
+        next unless $deps;
+
+        my $perl_depends = $perl;
+        if ($deps & XS_MODULE or $vers) {
+            ($version) = `dpkg -s $perl` =~ /^Version:\s*(\S+)/m;
+            $perl_depends .= " (>= $version)";
+        }
+
+        $perl_depends .= ", perlapi-$Config{version}" if $deps & XS_MODULE;
+
+        next if $perl_depends eq 'perl-base';
+
+        $dep = $perl_depends;
+    }
+
+    if (not $keep) {
+        foreach $file (split (/\n/, `find $ROOT -type f -name .packlist`)) {
+            unlink($file);
+            while ($file =~ s#/[^/]+$##) {
+                last if (not -d $file);
+                last if (not rmdir $file);
+            }
+        }
+    }
+
+    &add_to_substvars("perl:" . &normalise($PACKAGE) . ":Depends=$dep")
+      if $dep;
+    exit 0;
+
+    sub perl_check_module_version
+    {
+        my ($v1, $v2) = @_;
+        unless ($v1 eq $v2) {
+            gasp(
+                "A module has been found in perl-$v1 arch directory. But perl-$v2 is the perl currently used ...\n"
+            );
+        }
+    }
+
+    sub perl_add_deps
+    {
+        my ($dep, $new) = @_;
+        $new = "$new$ext" if ($new =~ m/^(?:perl5|perl-\d\.\d{3})$/);
+        if ($new eq "perl5") {
+            return $dep if ($dep =~ m/(^|\s)perl-5\.\d{3}(\s|,|$)/);
+        } elsif ($new eq "perl5-thread") {
+            return $dep if ($dep =~ m/(^|\s)perl-5\.\d{3}-thread(\s|,|$)/);
+        }
+        if (not $dep) {
+            $dep = $new;
+        } else {
+            $dep .= ", $new" unless ($dep =~ m/(^|\s)$new(\s|,|$)/);
+        }
+        return $dep;
+    }
+
+    sub perl_dep_from_script
+    {
+        my $file = shift;
+        my ($line, $perl, $dep);
+        open(SCRIPT, "<$file") || die "Can't open $file: $!\n";
+        $line = <SCRIPT>;
+        close(SCRIPT);
+        if ($line =~ m<^#!\s*/usr/bin/(perl\S*)(?:\s+|$)>) {
+            $perl = $1;
+            if ($perl eq "perl") {
+                $dep = "perl5";
+            } elsif ($perl eq "perl-thread") {
+                $dep = "perl5-thread";
+            } elsif ($perl =~ m/^perl-\d\.\d{3}(?:-thread)?$/) {
+                $dep = $perl;
+            } elsif ($perl =~ m/^perl(\d\.\d{3})(\d\d)$/) {
+                $dep = "perl-$1 (=$1.$2)";
+            }
+        }
+        return $dep;
+    }
+}
+
+if (m/^strip$/i) {
+    &getvars;
+    use File::Find;
+
+    my (@shared_libs, @executables, @static_libs);
+
+    sub strip_testfile
+    {
+        return if -l $_ or -d $_;
+        $fn = "$File::Find::dir/$_";
+        foreach $arg (@ARGV) {
+            if ($arg =~ m/^(-X|--exclude=)(.+)/) {
+                my $f = $2;
+                return if ($fn =~ m/\Q$f\E/);
+            }
+        }
+        if (m/.*\.so.*?/) {
+            my $type = `file $_`;
+            if ($type =~ m/.*ELF.*shared.*/) {
+                push @shared_libs, $fn;
+                return;
+            }
+        }
+        (undef, undef, $mode, undef) = stat(_);
+        if ($mode & 0111) {
+            my $type = `file $_`;
+            if ($type =~ m/.*ELF.*executable.*/) {
+                push @executables, $fn;
+                return;
+            }
+        }
+        if (m/lib.*\.a/ && !m/.*_g\.a/) {
+            push @static_libs, $fn;
+            return;
+        }
+    }
+
+    @shared_libs = @executables = @static_libs = ();
+    find(\&strip_testfile, $ROOT);
+    foreach (@shared_libs) {
+        &run("strip", "--remove-section=.comment", "--remove-section=.note",
+            "--strip-unneeded", $_);
+    }
+    foreach (@executables) {
+        &run("strip", "--remove-section=.comment", "--remove-section=.note",
+            $_);
+    }
+    foreach (@static_libs) {
+        &run("strip", "--strip-debug", $_);
+    }
+    exit 0;
+}
+
+if (m/^generate$/i) {
+    $_ = shift;
+    choke "Generate what?" if not defined;
+    if (m/^copyright$/i) {
+        &readpackages;
+        $dist = $source{"origin"}       if $source{"origin"};
+        $dist = $source{"packaged-for"} if $source{"packaged-for"};
+        if (defined $dist) {
+            $dist = "This is the $dist prepackaged version of ";
+        } else {
+            $dist = "This is a prepackaged version of ";
+        }
+        $title = $source{"description"};
+        if (defined $title) {
+            $title =~ s/\n.*//s;
+        } else {
+            $title = $source{"source"};
+            gasp "No Source field!" unless defined $title;
+        }
+        $packager    = $source{"packager"};
+        $othermaints = $source{"other-maintainers"};
+        $maintainer  = $source{"maintainer"};
+        $uploaders   = $source{"uploaders"};
+        if (defined $othermaints and not defined $packager) {
+            gasp "Other-Maintainers but no Packager?";
+        } elsif (defined $othermaints) {
+            $packager =
+              "$packager, then was subsequently maintained by $othermaints";
+        }
+        if (defined $packager) {
+            $maintainer =
+              "It was originally Debianised by $packager, and is currently maintained by $maintainer";
+        } else {
+            $maintainer = "It was Debianised by $maintainer";
+        }
+        if (defined $uploaders) {
+            $uploaders = ", and uploaded by $uploaders";
+        } else {
+            $uploaders = "";
+        }
+        $upstreamuri = $source{"upstream-source"};
+        if (defined $upstreamuri) {
+            $upstreamuri = ", using files obtained from $upstreamuri";
+            $native      = 0;
+        } else {
+            $upstreamuri = "";
+            $native      = 1;
+        }
+        $homeuri = $source{"home-page"};
+        if (defined $homeuri) {
+            $homeuri =
+              "\nMore information about $title is available from $homeuri.\n";
+        } else {
+            $homeuri = "";
+        }
+        $changes = $source{"major-changes"};
+        if (defined $changes) {
+            if ($changes eq "") {
+                $changes = "\nNo major changes were made.\n";
+            } else {
+                $changes =~ s/^/  /gm;
+                $changes = "\nChanges were made as follows:\n$changes\n";
+            }
+        } else {
+            $changes = "";
+        }
+        $copyright = $source{"copyright"};
+        gasp "No Copyright field!" unless defined $copyright;
+        $licence = $copyright;
+        $copyright =~ s/^/  /gm;
+        $copyright =~ s/^[^\n]*\n//s;
+        $licence   =~ s/\n.*//s;
+        if ($licence ne ".") {
+
+            for ($licence) {
+                m/^GPL$/
+                  && do {$licname = "GNU GPL (GNU General Public License)";}
+                  or m/^LGPL$/ && do {
+                    $licname =
+                      "GNU LGPL (GNU Library (or Lesser) General"
+                      . " Public License)";
+                  }
+                  or m/^Artistic$/ && do {$licname = "Artistic license";}
+                  or m/^BSD$/ && do {$licname = "the standard BSD license";}
+                  or gasp "Unknown licence `$_'";
+            }
+            $licence =
+              "On any Debian system, you can find the complete text of the "
+              . "$licname in the file  /usr/share/common-licenses/$licence\n";
+        }
+        $| = 1;    ## Ensure the output from fmt comes out in the right place.
+        if (not $copyright =~ m/copyright|\(c\)/i) {
+            warn
+              "***** Are you sure you've included a proper copyright notice?\n";
+        }
+        $copyright = "\nCopyright and licence notice:\n\n$copyright";
+        open FMT, "|fmt" or die "Cannot spawn fmt";
+        print FMT "$dist$title.\n$maintainer$uploaders$upstreamuri.\n$homeuri"
+          or die "Cannot write data to fmt";
+        close FMT
+          or die "Cannot close pipe to fmt or fmt returned error status";
+        print "$changes$copyright\n\n" or die "Cannot write output";
+        open FMT, "|fmt" or die "Cannot spawn fmt";
+        print FMT "$licence" or die "Cannot write data to fmt";
+        close FMT
+          or die "Cannot close pipe to fmt or fmt returned error status";
+        &chokepoint;
+        exit 0;
+    } elsif (m/^maintscripts$/i) {
+        $pkg = shift;
+        &getversion;
+        choke "Which package's maintainer scripts to generate?"
+          unless defined $pkg;
+        &readpackages;
+        $par = $binary{$pkg};
+        choke "Cannot find package `$pkg' in debian/packages" unless %$par;
+        if (defined $$par{'doc-base'}) {
+            foreach (split /\n\n+(?=document\:)/i, $$par{'doc-base'}) {
+                m/^document\s*\:\s*(.*?)\s*$/mi;
+                $docbase{$1} = $_;
+            }
+        }
+        %contains =
+          defined $$par{'contains'}
+          ? map { $_ => 1 } split(/ /, $$par{'contains'})
+          : ();
+        $contains{'libs'} = 1 if defined $$par{'contains-libs'};
+        $contains{'xfonts'} = 1 if defined $$par{'contains-xfonts'};
+        for ('preinst', 'postinst', 'prerm', 'postrm') {
+            if (
+                   defined $$par{$_}
+                or ($_ eq 'preinst' and (defined $$par{'diversions'}))
+                or (
+                    $_ eq 'postinst'
+                    and (  defined $$par{'menu'}
+                        or defined $$par{'init'}
+                        or defined $$par{'doc-base'}
+                        or defined $contains{'libs'}
+                        or defined $$par{'alternatives'})
+                )
+                or (
+                    $_ eq 'prerm'
+                    and (  defined $$par{'alternatives'}
+                        or defined $$par{'doc-base'}
+                        or defined $$par{'init'})
+                )
+                or (
+                    $_ eq 'postrm'
+                    and (  defined $$par{'menu'}
+                        or defined $$par{'init'}
+                        or defined $contains{'xfonts'}
+                        or defined $$par{'diversions'})
+                )
+              )
+            {
+                open MAINT, ">debian/tmp-$pkg/DEBIAN/$_"
+                  or die "Cannot open $_ for output";
+                $script = $$par{$_};
+                if (not defined $script or $script =~ s/^(sh|bash)\n//s) {
+
+                    ## shell script
+                    my $shell = (not defined $script) ? "sh" : $1;
+                    print MAINT "#!/bin/$shell\n"
+                      . "# This maintainer script was generated by yada\n"
+                      . "\n"
+                      . "set -e\n\n"
+                      or die;
+                    print MAINT "PACKAGE=\"$pkg\"\n"
+                      . "SOURCE=\"$source{source}\"\n"
+                      . "VERSION=\"$VERSION\"\n"
+                      or die;
+                    if (($_ eq 'postinst' or $_ eq 'postrm')
+                        and defined $$par{'config'})
+                    {
+                        print MAINT "\n. /usr/share/debconf/confmodule\n"
+                          . "db_version 2.0 || [ \$? -lt 30 ]\n\n"
+                          or die;
+                    }
+                    if ($_ eq 'preinst' and defined $$par{'diversions'}) {
+                        $alt = $$par{'diversions'};
+                        $alt =~ s/^\n|\n$//sg;
+                        $alt =~ s/\n\n+/\n/sg;
+                        $alt =~ s/$/\n/s;
+                        gasp "Malformed `Diversions' field."
+                          unless $alt =~ m/^(\S+\s*->\s*\S+\n)+$/s;
+                        print MAINT
+                          "\nif test \"\$1\" = install -o \"\$1\" = upgrade; then"
+                          or die;
+                        while ($alt ne "") {
+                            if ($alt =~ s/^(\S+)\s*->\s*(\S+)\n//s) {
+                                print MAINT "\n    dpkg-divert \\\n"
+                                  . "        --add --rename \\\n"
+                                  . "        --package \"$pkg\" \\\n"
+                                  . "        --divert \"$2\" \\\n"
+                                  . "        \"$1\""
+                                  or die;
+                            } else {
+                                die "Internal error";
+                            }
+                        }
+                        print MAINT "\nfi\n\n" or die;
+                    }
+                    if ($_ eq 'postrm' and defined $$par{'diversions'}) {
+                        $alt = $$par{'diversions'};
+                        $alt =~ s/^\n|\n$//sg;
+                        $alt =~ s/\n\n+/\n/sg;
+                        $alt =~ s/$/\n/s;
+                        gasp "Malformed `Diversions' field."
+                          unless $alt =~ m/^(\S+\s*->\s*\S+\n)+$/s;
+                        print MAINT "\nif test \"\$1\" = remove; then" or die;
+                        while ($alt ne "") {
+                            if ($alt =~ s/^(\S+)\s*->\s*(\S+)\n//s) {
+                                print MAINT "\n    dpkg-divert \\\n"
+                                  . "        --remove --rename \\\n"
+                                  . "        --package \"$pkg\" \\\n"
+                                  . "        --divert \"$2\" \\\n"
+                                  . "        \"$1\""
+                                  or die;
+                            } else {
+                                die "Internal error";
+                            }
+                        }
+                        print MAINT "\nfi\n\n" or die;
+                    }
+                    if ($_ eq 'prerm' and defined $$par{'init'}) {
+                        $alt = $$par{'init'};
+                        $alt =~ /^\w*\n(.+)\n/;
+                        $alt = $1;
+                        if ($alt =~ /^(defaults|start|stop)(\s|$)/) {
+                            $alt = $pkg;
+                        } else {
+                            $alt =~ s/\s.*//;
+                        }
+                        print MAINT "\n/etc/init.d/$alt stop || true\n\n"
+                          or die;
+                    }
+                    if (($_ eq 'postinst' or $_ eq 'postrm')
+                        and defined $$par{'menu'})
+                    {
+                        print MAINT
+                          "\nif test -x /usr/bin/update-menus; then update-menus; fi\n"
+                          or die;
+                    }
+                    if ($_ eq 'postinst' and defined $contains{'libs'}) {
+                        print MAINT
+                          "\nif [ \"\$1\" = \"configure\" ]; then ldconfig; fi\n"
+                          or die;
+                    }
+                    if ($_ eq 'postinst' and defined $$par{'doc-base'}) {
+                        print MAINT
+                          "\nif command -v \"install-docs\" >/dev/null 2>&1; then\n";
+                        foreach (keys %docbase) {
+                            print MAINT
+                              "  install-docs -i /usr/share/doc-base/$_;\n";
+                        }
+                        print MAINT "fi\n";
+                    }
+                    if ($_ eq 'prerm' and defined $$par{'doc-base'}) {
+                        print MAINT
+                          "\nif command -v \"install-docs\" >/dev/null 2>&1; then\n";
+                        foreach (keys %docbase) {
+                            print MAINT "  install-docs -r $_;\n";
+                        }
+                        print MAINT "fi\n";
+                    }
+                    if ($_ eq 'postinst' and defined $$par{'alternatives'}) {
+                        $alt = $$par{'alternatives'};
+                        $alt =~ s/^\n|\n$//sg;
+                        $alt =~ s/\n\n+/\n/sg;
+                        $alt =~ s/$/\n/s;
+                        gasp "Malformed `Alternatives' field."
+                          unless $alt =~
+                          m/^((\S+\s*->\s*\S+\s*->\s*\S+\s*\(\d+\)|>>\s*\S+\s*->\s*\S+\s*->\s*\S+)\n)+$/s;
+                        while ($alt ne "") {
+                            if ($alt =~
+                                s/^(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\s*\((\d+)\)\n//s
+                              )
+                            {
+                                print MAINT
+                                  "\nupdate-alternatives --install $1 $2 $3 $4"
+                                  or die;
+                            } elsif ($alt =~
+                                s/^>>\s*(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\n//s)
+                            {
+                                print MAINT
+                                  " \\\n                      --slave $1 $2 $3"
+                                  or die;
+                            } else {
+                                die "Internal error";
+                            }
+                        }
+                        print MAINT "\n" or die;
+                    }
+                    if ($_ eq 'prerm' and defined $$par{'alternatives'}) {
+                        $alt = $$par{'alternatives'};
+                        $alt =~ s/^\n|\n$//sg;
+                        $alt =~ s/\n\n+/\n/sg;
+                        $alt =~ s/$/\n/s;
+                        gasp "Malformed `Alternatives' field."
+                          unless $alt =~
+                          m/^((\S+\s*->\s*\S+\s*->\s*\S+\s*\(\d+\)|>>\s*\S+\s*->\s*\S+\s*->\s*\S+)\n)+$/s;
+                        while ($alt ne "") {
+                            if ($alt =~
+                                s/^(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\s*\((\d+)\)\n//s
+                              )
+                            {
+                                print MAINT
+                                  "update-alternatives --remove $2 $3\n"
+                                  or die;
+                            } elsif ($alt =~
+                                s/^>>\s*(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\n//s)
+                            {
+                                1;
+                            } else {
+                                die "Internal error";
+                            }
+                        }
+                    }
+                    if (($_ eq 'postinst' or $_ eq 'postrm')
+                        and defined $contains{'xfonts'})
+                    {
+                        my $XFONTDIR =
+                          "debian/tmp-$pkg/usr/X11R6/lib/X11/fonts/";
+                        opendir DIR, $XFONTDIR || next;
+                        my @fontdirs =
+                          grep {-d "$XFONTDIR/$_" && !/^\./} (readdir DIR);
+                        closedir DIR;
+                        if (@fontdirs) {
+                            my @updatecmds = ('/usr/bin/X11/mkfontdir');
+                            foreach my $f (@fontdirs) {
+                                push @updatecmds,
+                                  '/usr/sbin/update-fonts-alias'
+                                  if
+                                  -f "debian/tmp-$pkg/etc/X11/fonts/$f/$pkg.alias";
+                                unshift @updatecmds,
+                                  '/usr/sbin/update-fonts-scale'
+                                  if
+                                  -f "debian/tmp-$pkg/etc/X11/fonts/$f/$pkg.scale";
+                            }
+                            print MAINT "\nfontdirs=\""
+                              . join (' ', @fontdirs) . "\""
+                              . "\nupdatecmds=\""
+                              . join (' ', @updatecmds) . "\"\n"
+                              or die;
+                            if ($_ eq 'postinst') {
+                                print MAINT "\nfor dir in \$fontdirs; do\n"
+                                  . "    for currentcmd in \$updatecmds; do\n"
+                                  . "        \$currentcmd /usr/lib/X11/fonts/\$dir\n"
+                                  . "    done\n"
+                                  . "done\n\n"
+                                  or die;
+                            }
+                            if ($_ eq 'postrm') {
+                                print MAINT
+                                  "\nfor currentdir in \$fontdirs; do\n"
+                                  . "    longdir=/usr/lib/X11/fonts/\$currentdir\n"
+                                  . "    if [ -d \$longdir ]; then\n"
+                                  . "        for file in fonts.dir fonts.alias; do\n"
+                                  . "            rm -f \$file\n"
+                                  . "        done\n"
+                                  . "        if [ \$(find \$longdir| wc -l) -eq 1 ]; then\n"
+                                  . "            rmdir -p \$longdir\n"
+                                  . "        else\n"
+                                  . "            for currentcmd in \$updatecmds; do\n"
+                                  . "                \$currentcmd \$longdir\n"
+                                  . "            done\n"
+                                  . "        fi\n"
+                                  . "    fi\n"
+                                  . "done\n\n"
+                                  or die;
+                            }
+                            &add_to_substvars("xfonts:"
+                                  . &normalise($pkg)
+                                  . ":Depends=xutils (>= 4.0.2)");
+                            &add_to_substvars("xfonts:"
+                                  . &normalise($pkg)
+                                  . ":Conflicts=xbase-clients (<< 4.0)");
+                        }
+                    }
+                    if (defined $script) {
+                        print MAINT
+                          "\n# Package maintainer's commands follow:\n"
+                          . "$script\n"
+                          . "# End of package maintainer's commands\n"
+                          or die;
+                    }
+                    if ($_ eq 'postrm' and defined $$par{'init'}) {
+                        $alt = $$par{'init'};
+                        $alt =~ /^\w*\n(.+)\n/;
+                        $alt = $1;
+                        if ($alt =~ /^(defaults|start|stop)(\s|$)/) {
+                            $alt = $pkg;
+                        } else {
+                            $alt =~ s/\s.*//;
+                        }
+                        print MAINT "\nif test \"\$1\" = purge; then\n"
+                          . "    update-rc.d $alt remove >/dev/null\n"
+                          . "fi\n\n"
+                          or die;
+                    }
+                    if ($_ eq 'postrm' and defined $$par{'config'}) {
+                        print MAINT
+                          "\nif [ \"\$1\" = purge -a -e /usr/share/debconf/confmodule ]; then\n"
+                          . "    db_purge\n"
+                          . "fi\n\n"
+                          or die;
+                    }
+                    if (($_ eq 'postinst' or $_ eq 'postrm')
+                        and defined $$par{'config'})
+                    {
+                        print MAINT "\ndb_stop\n\n" or die;
+                    }
+                    if ($_ eq 'postinst' and defined $$par{'init'}) {
+                        $alt = $$par{'init'};
+                        $alt =~ /^\w*\n(.+)\n/;
+                        $alt = $1;
+                        if ($alt =~ /^(defaults|start|stop)(\s|$)/) {
+                            $alt   = "$pkg $alt";
+                            $scrpt = "$pkg";
+                        } else {
+                            $alt =~ /^(\w+)/;
+                            $scrpt = $1;
+                        }
+                        print MAINT "\nupdate-rc.d $alt >/dev/null\n"
+                          . "/etc/init.d/$scrpt start\n\n"
+                          or die;
+                    }
+                    print MAINT "\nexit 0\n" or die;
+                } else {
+                    gasp "Unknown executable type for `$_'\n";
+                }
+                close MAINT or die "Cannot close `$_'";
+                chmod 0755, "debian/tmp-$pkg/DEBIAN/$_"
+                  or die "Cannot make `$_' executable";
+            }
+        }
+        if (defined $$par{'menu'}) {
+            $_ = $$par{'menu'};
+            s/$/\n/s;
+            system("install -d debian/tmp-$pkg/usr/lib/menu") == 0
+              or die "Cannot create menu directory";
+            open MAINT, ">debian/tmp-$pkg/usr/lib/menu/$pkg"
+              or die "Cannot open menu file for writing";
+            print MAINT or die "Cannot write to menu file";
+            close MAINT or die "Cannot close menu file";
+            &add_to_substvars("menu:" . &normalise($pkg) . ":Suggests=menu");
+        }
+        if (defined $$par{'shlibs'}) {
+            $_ = $$par{'shlibs'};
+            s/$/\n/s;
+            open MAINT, ">>debian/tmp-$pkg/DEBIAN/shlibs"
+              or die "Cannot open shlibs file for writing";
+            print MAINT or die "Cannot write to shlibs file";
+            close MAINT or die "Cannot close shlibs file";
+        }
+        if (defined $$par{'doc-base'}) {
+            system("install -d debian/tmp-$pkg/usr/share/doc-base") == 0
+              or die "Cannot create doc-base directory";
+            foreach (keys %docbase) {
+                $tmp = $docbase{$_};
+                $tmp =~ s/$/\n/s;
+                open MAINT, ">debian/tmp-$pkg/usr/share/doc-base/$_"
+                  or die "Cannot open doc-base file `$_' for writing";
+                print MAINT $tmp or die "Cannot write to doc-base file `$_'";
+                close MAINT      or die "Cannot close doc-base file `$_'";
+            }
+            &add_to_substvars(
+                "doc-base:" . &normalise($pkg) . ":Suggests=doc-base");
+        }
+        if (defined $$par{'templates'}) {
+            $_ = $$par{'templates'};
+            s/$/\n/s;
+            open MAINT, ">debian/tmp-$pkg/DEBIAN/templates"
+              or die "Cannot open templates file for writing";
+            print MAINT or die "Cannot write to templates file";
+            close MAINT or die "Cannot close templates file";
+        }
+        if (defined $$par{'config'}) {
+            $_ = $$par{'config'};
+            if (s/^(sh|bash)\s//s) {
+                my $shell = $1;
+                chomp;
+                &getversion;
+                open MAINT, ">debian/tmp-$pkg/DEBIAN/config"
+                  or die "Cannot open config file for writing";
+                print MAINT "#!/bin/$shell\n\n"
+                  . "PACKAGE=\"$pkg\"\n"
+                  . "SOURCE=\"$source{source}\"\n"
+                  . "VERSION=\"$VERSION\"\n\n"
+                  . ". /usr/share/debconf/confmodule\ndb_version 2.0 || [ $? -lt 30 ]\n\n"
+                  . "# Package maintainer's commands follow:\n"
+                  or die "Cannot write to config file";
+                print MAINT or die "Cannot write to config file";
+                print MAINT
+                  "\n# End of package maintainer's commands\n\nexit 0\n"
+                  or die "Cannot write to config file";
+                close MAINT or die "Cannot close config file";
+                chmod 0755, "debian/tmp-$pkg/DEBIAN/config"
+                  or die "Cannot make config executable";
+                &add_to_substvars(
+                    "debconf:" . &normalise($pkg) . ":Depends=debconf");
+            } else {
+                gasp "Unknown executable type for config\n";
+            }
+        }
+        if (defined $$par{'init'}) {
+            $_ = $$par{'init'};
+            $_ =~ /^\w*\n(.+)\n/;
+            $alt = $1;
+            if ($alt =~ /^(defaults|start|stop)(\s|$)/) {
+                $scrpt = $pkg;
+                $alt   = "$pkg $alt";
+            } else {
+                $scrpt = $alt;
+                $scrpt =~ s/\s.*//;
+            }
+            if (s/^(sh|bash)\s//s) {
+                my $shell = $1;
+                chomp;
+                $_ =~ s/^(.+)\n//;
+                system("install -d debian/tmp-$pkg/etc/init.d") == 0
+                  or die "Cannot create init directory";
+                open MAINT, ">debian/tmp-$pkg/etc/init.d/$scrpt"
+                  or die "Cannot open init file for writing";
+                print MAINT
+                  "#!/bin/$shell\n#\n# /etc/init.d/$scrpt\n# update-rc.d $alt\n\n"
+                  . "PACKAGE=\"$pkg\"\n"
+                  . "SOURCE=\"$source{source}\"\n"
+                  . "VERSION=\"$VERSION\"\n\n"
+                  or die "Cannot write to init file";
+                print MAINT "\n\nset -e\n" or die "Cannot write to init file";
+                print MAINT                or die "Cannot write to init file";
+                print MAINT "\n\nexit 0\n" or die "Cannot write to init file";
+                close MAINT                or die "Cannot close init file";
+                chmod 0755, "debian/tmp-$pkg/etc/init.d/$scrpt";
+                system(
+                    "echo /etc/init.d/$scrpt >> debian/tmp-$pkg/DEBIAN/conffiles"
+                  ) == 0
+                  or die "Cannot mark init script as conffile";
+            } else {
+                gasp "Unknown executable type for init\n";
+            }
+        }
+        if (defined $$par{'logrotate'}) {
+            $_ = $$par{'logrotate'};
+            s/$/\n/s;
+            system("install -d debian/tmp-$pkg/etc/logrotate.d") == 0
+              or die "Cannot create logrotate directory";
+            open MAINT, ">debian/tmp-$pkg/etc/logrotate.d/$pkg"
+              or die "Cannot open logrotate file for writing";
+            print MAINT or die "Cannot write to logrotate file";
+            close MAINT or die "Cannot close logrotate file";
+            &add_to_substvars(
+                "logrotate:" . &normalise($pkg) . ":Suggests=logrotate");
+        }
+        if (defined $$par{'overrides'}) {
+            $_ = $$par{'overrides'};
+            s/^\n|\n$//sg;
+            s/\n\n+/\n/sg;
+            s/$/\n/s;
+            s/(^|\n)/$1$pkg: /sg;
+            system("install -d debian/tmp-$pkg/usr/share/lintian/overrides")
+              == 0
+              or die "Cannot create overrides directory";
+            open MAINT, ">debian/tmp-$pkg/usr/share/lintian/overrides/$pkg"
+              or die "Cannot open overrides file for writing";
+            print MAINT or die "Cannot write to overrides file";
+            close MAINT or die "Cannot close overrides file";
+        }
+
+        system(
+            "find debian/tmp-$pkg -type f | xargs md5sum | sed -e 's,debian/tmp-$pkg/,,' | grep -v '  DEBIAN/' > debian/tmp-$pkg/DEBIAN/md5sums"
+          ) == 0
+          or die "Cannot create MD5 sums file";
+        exit 0;
+
+    } elsif (m/^substvars$/i) {
+        $pkg = shift;
+        choke "Which package's substvars to generate?" unless defined $pkg;
+        if (-f "debian/substvars") {
+            open MAINT, "debian/substvars"
+              or die "Cannot open substvars file for reading";
+            my %substvars;
+            while ($_ = <MAINT>) {
+                if (m/^[a-zA-Z0-9-]+:([a-zA-Z0-9:-]+:[a-zA-Z0-9-]+=)(.*)/) {
+                    $substvars{$1} .= ", " if $substvars{$1};
+                    $substvars{$1} .= $2;
+                }
+            }
+            close MAINT or die "Cannot close init file";
+            foreach (keys %substvars) {
+                &add_to_substvars("$_$substvars{$_}");
+            }
+        }
+        exit 0;
+    }
+
+    choke "Generate what?  (`$_' not understood.)";
+}
+
+if (m/^compress$/i) {
+    $pkg = shift;
+    choke "What package should I compress?" unless defined $pkg;
+    system(
+        "set -e; set -v; find debian/tmp-$pkg/usr/info debian/tmp-$pkg/usr/share/info debian/tmp-$pkg/usr/man debian/tmp-$pkg/usr/share/man debian/tmp-$pkg/usr/X11*/man -type f ! -name \\*.gz -a ! -name \\*.htm* -a ! -name \\*.gif -a ! -name \\*.png -a ! -name \\*.jp*g -a ! -name \\*.pdf -print0 2>/dev/null | xargs -0r gzip -9n"
+      ) == 0
+      or die "Problem compressing files (stage 1)";
+    system(
+        "set -e; find debian/tmp-$pkg/usr/share/doc -type f \\( -size +2k -or -name changelog\\* \\) ! -name \\*.htm\\* ! -name \\*.gif ! -name copyright ! -name \\*.gz -a ! -name \\*.htm* -a ! -name \\*.gif -a ! -name \\*.png -a ! -name \\*.jp*g -a ! -name \\*.pdf -print0 2>/dev/null | xargs -0r gzip -9n"
+      ) == 0
+      or die "Problem compressing files (stage 2)";
+    open FILES, "find debian/tmp-$pkg -type l -print0 |"
+      or die "Cannot find symlinks";
+    $/ = "\0";
+    while (<FILES>) {
+        chomp;
+        m=(.*)/([^/]*)$=;
+        $dir     = $1;
+        $name    = $2;
+        $_       = readlink or die "Cannot read symlink `$_'";
+        $changes = s=//+=/=g;
+        $changes += s=(^|/)\./=$1=g;
+        do {
+            $matches = s=(^|/)(?!\.\./)[^/]+/\.\./=$1=g;
+            $changes += $matches;
+        } while ($matches);
+        if (m=^/=) {
+            $dest = "debian/tmp-$pkg";
+        } else {
+            $dest = $dir;
+        }
+        if (!-e "$dest/$_" && -f "$dest/$_.gz" && !-e "$dir/$name.gz") {
+            unlink "$dir/$name" or die "Cannot unlink `$dir/$name'";
+            symlink "$_.gz", "$dir/$name.gz"
+              or die "Cannot create symlink `$dir/$name.gz'";
+        } elsif ($changes) {
+            unlink "$dir/$name" or die "Cannot unlink `$dir/$name'";
+            symlink "$_", "$dir/$name"
+              or die "Cannot create symlink `$dir/$name'";
+        }
+    }
+    close FILES or die "Problem closing pipe";
+    exit 0;
+}
+
+if (m/^fixup$/i) {
+    $_ = shift;
+    if (m/^libtool$/i) {
+        $script = shift;
+        $script = "libtool" if not defined $script;
+
+        ## The following adapted from Lintian's libtool-workarounds.txt
+        ## Patch the generated libtool to avoid passing -rpath when linking,
+        ## and to explicitly link libraries against the libraries they
+        ## depend on.
+        open APPENDIN, "<$script" or die "Cannot open `$script' for reading";
+        open APPENDOUT, ">$script.new"
+          or die "Cannot open `$script.new' for writing";
+        while (<APPENDIN>) {
+            s/^hardcode_libdir_flag_spec.*$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/;
+            s/"$/ \\\$deplibs"/ if /^archive_cmds="/;
+            print APPENDOUT or die;
+        }
+        close APPENDIN  or die "Cannot close $script";
+        close APPENDOUT or die "Cannot close $script.new";
+        chmod 0755, "$script.new"
+          or die "Cannot change mode of `$script.new'";
+        rename "$script.new", $script
+          or die "Cannot move `$script.new' to `$script'";
+        exit 0;
+    }
+
+    choke "Fixup what?  (`$_' not understood.)";
+}
+
+if (m/^patch$/i) {
+    @backuplist = `ls -d debian/patch-*-backup 2>/dev/null`;
+    map chomp, @backuplist;
+    if ($#backuplist > 0) {
+        choke "Cannot clean up. There are multiple debian/patch-*-backup directories.";
+    }
+    if ($#backuplist == 0) {
+        $backupdir = $backuplist[0];
+        print "*** Cleaning up after interrupted patching run from $backupdir\n";
+        $stampfile = $backupdir;
+        $stampfile =~ s!^debian/patch-(.*)-backup$!debian/patch-$1-applied!;
+        if (-f $stampfile) {
+            system("rm -rf '$backupdir'") == 0
+                or die "Cannot remove directory `$backupdir'";
+        } else {
+            system("(cd '$backupdir'; find . -type f -print0) | xargs -0ri mv -f -- $backupdir/{} {}") == 0
+                or die "Cannot recover cleanly from an interrupted patch.";
+            system("find '$backupdir' -depth -type d -exec rmdir '{}' \\;") == 0
+                or die "Cannot clean backup directory `$backupdir'";
+        }
+    }
+
+    @backdownlist = `ls -d debian/patch-*-backdown 2>/dev/null`;
+    map chomp, @backdownlist;
+    if ($#backdownlist > 0) {
+        choke "Cannot clean up. There are multiple debian/patch-*-backdown directories.";
+    }
+    if ($#backdownlist == 0) {
+        $backdowndir = $backdownlist[0];
+        print "*** Cleaning up after interrupted patching run from $backdowndir\n";
+        $stampfile = $backdowndir;
+        $stampfile =~ s!^debian/patch-(.*)-backdown$!debian/patch-$1-applied!;
+        if (-f $stampfile) {
+            system("rm -rf '$backdowndir'") == 0
+                or die "Cannot remove directory `$backdowndir'";
+        } else {
+            system("(cd '$backdowndir'; find . -type f -print0) | xargs -0ri mv -f -- $backdowndir/{} {}") == 0
+                or die "Cannot recover cleanly from an interrupted patch.";
+            system("find '$backdowndir' -depth -type d -exec rmdir '{}' \\;") == 0
+                or die "Cannot clean backdown directory `$backupdir'";
+        }
+    }
+
+    if (-f "debian/patch-list") {
+        @patchlist = `tac debian/patch-list`;
+        map chomp, @patchlist;
+        PATCH:
+        {
+            $line = 0;
+            foreach $patchfile (@patchlist) {
+                $patchname = $patchfile;
+                $patchname =~ tr!/!-!;
+                $stampfile = "debian/patch-$patchname-applied";
+
+                @patchstat = stat $patchfile;
+                @stampstat = stat $stampfile;
+                if ((-f $stampfile and not -f $patchfile)
+                    or (defined @patchstat and defined @stampstat
+                        and $patchstat[9] > $stampstat[9]))
+                {
+                    last PATCH;
+                }
+                $line ++;
+            }
+            $line = -1;
+        }
+        foreach $patchfile (@patchlist) {
+            if ($line >= 0) {
+                $patchname = $patchfile;
+                $patchname =~ tr!/!-!;
+                $stampfile = "debian/patch-$patchname-applied";
+
+                @patchstat = stat $patchfile;
+                @stampstat = stat $stampfile;
+
+                if (-f $stampfile and not -f $patchfile) {
+                    print "*** Removing disabled patch for $patchfile\n";
+                } elsif (defined @patchstat and defined @stampstat
+                         and $patchstat[9] > $stampstat[9])
+                {
+                    print "*** Removing outdated patch for $patchfile\n";
+                } else {
+                    print "*** Removing patch for $patchfile\n";
+                }
+                $patchoptions = `sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <"$stampfile"`;
+                chop $patchoptions;
+                $patchoptions =~ s/^\s*//;
+                $patchoptions = $patchoptions ? $patchoptions : "-p1";
+                system("patch -R -f -i '$stampfile' -b -V simple -B 'debian/patch-$patchname-backdown/' $patchoptions") == 0
+                    or die "Cannot patch from `$stampfile'";
+                system("rm -rf 'debian/patch-$patchname-backdown'") == 0
+                    or die "Cannot remove directory `debian/patch-$patchname-backdown'";
+
+                open LISTOUT, ">debian/patch-list.new"
+                    or die "Cannot open `debian/patch-list.new' for output";
+                open LISTIN, "<debian/patch-list"
+                    or die "Cannot open `debian/patch-list' for input";
+                while (<LISTIN>) {
+                    if ($_ ne "$patchfile\n") {
+                        print LISTOUT or die "Cannot write to `debian/patch-list.new'";
+                    }
+                }
+                close LISTIN or die "Cannot close `debian/patch-list' after reading";
+                close LISTOUT or die "Cannot close `debian/patch-list.new' after writing";
+                rename "debian/patch-list.new", "debian/patch-list"
+                    or die "Cannot rename `debian/patch-list.new' to `debian/patch-list'";
+
+                unlink $stampfile;
+            }
+            $line --;
+        }
+    }
+
+    if ($#ARGV >= 0) {
+        foreach $patches (@ARGV) {
+            @patchlist = glob $patches;
+            foreach $patchfile (@patchlist) {
+                next unless -f $patchfile;
+                $patchname = $patchfile;
+                $patchname =~ tr!/!-!;
+                $stampfile = "debian/patch-$patchname-applied";
+
+                if (!-f $stampfile) {
+                    print "*** Applying patch from $patchfile\n";
+
+                    $patchoptions = `sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <"$patchfile"`;
+                    chop $patchoptions;
+                    $patchoptions =~ s/^\s*//;
+                    $patchoptions = $patchoptions ? $patchoptions : "-p1";
+                    system("patch -N -f -i '$patchfile' -b -V simple -B 'debian/patch-$patchname-backup/' $patchoptions") == 0
+                        or die "Cannot patch from `$patchfile'";
+                    open STAMP, ">$stampfile"
+                        or die "Cannot open `$stampfile' for output";
+                    open PATCH, "<$patchfile"
+                        or die "Cannot open `$patchfile' for input";
+                    while (<PATCH>) {
+                        print STAMP or die "Cannot write to `$stampfile'";
+                    }
+                    close PATCH or die "Cannot close `$patchfile' after reading";
+                    close STAMP or die "Cannot close `$stampfile' after writing";
+
+                    open LIST, ">>debian/patch-list"
+                        or die "Cannot open `debian/patch-list' for writing";
+                    print LIST "$patchfile\n" or die "Cannot write to `debian/patch-list'";
+                    close LIST or die "Cannot close `debian/patch-list' after writing";
+
+                    system("rm -rf 'debian/patch-$patchname-backup'") == 0
+                        or die "Cannot remove directory `debian/patch-$patchname-backup'";
+                }
+
+            }
+        }
+        exit 0;
+    }
+
+    choke "Patch what?";
+}
+
+if (m/^unpatch$/i) {
+    @backuplist = `ls -d debian/patch-*-backup 2>/dev/null`;
+    map chomp, @backuplist;
+    if ($#backuplist > 0) {
+        choke "Cannot clean up. There are multiple debian/patch-*-backup directories.";
+    }
+    if ($#backuplist == 0) {
+        $backupdir = $backuplist[0];
+        print "*** Cleaning up after interrupted patching run from $backupdir\n";
+        $stampfile = $backupdir;
+        $stampfile =~ s!^debian/patch-(.*)-backup$!debian/patch-$1-applied!;
+        if (-f $stampfile) {
+            system("rm -rf '$backupdir'") == 0
+                or die "Cannot remove directory `$backupdir'";
+        } else {
+            system("(cd '$backupdir'; find . -type f -print0) | xargs -0ri mv -f -- $backupdir/{} {}") == 0
+                or die "Cannot recover cleanly from an interrupted patch.";
+            system("find '$backupdir' -depth -type d -exec rmdir '{}' \\;") == 0
+                or die "Cannot clean backup directory `$backupdir'";
+        }
+    }
+
+    @backdownlist = `ls -d debian/patch-*-backdown 2>/dev/null`;
+    map chomp, @backdownlist;
+    if ($#backdownlist > 0) {
+        choke "Cannot clean up. There are multiple debian/patch-*-backdown directories.";
+    }
+    if ($#backdownlist == 0) {
+        $backdowndir = $backdownlist[0];
+        print "*** Cleaning up after interrupted patching run from $backdowndir\n";
+        $stampfile = $backdowndir;
+        $stampfile =~ s!^debian/patch-(.*)-backdown$!debian/patch-$1-applied!;
+        if (-f $stampfile) {
+            system("rm -rf '$backdowndir'") == 0
+                or die "Cannot remove directory `$backdowndir'";
+        } else {
+            system("(cd '$backdowndir'; find . -type f -print0) | xargs -0ri mv -f -- $backdowndir/{} {}") == 0
+                or die "Cannot recover cleanly from an interrupted patch.";
+            system("find '$backdowndir' -depth -type d -exec rmdir '{}' \\;") == 0
+                or die "Cannot clean backdown directory `$backupdir'";
+        }
+    }
+
+    if (-f "debian/patch-list") {
+        @patchlist = `tac debian/patch-list`;
+        map chomp, @patchlist;
+        foreach $patchfile (@patchlist) {
+            $patchname = $patchfile;
+            $patchname =~ tr!/!-!;
+            $stampfile = "debian/patch-$patchname-applied";
+
+            if (-f $stampfile) {
+                print "*** Removing patch for $patchfile\n";
+                $patchoptions = `sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <"$stampfile"`;
+                chop $patchoptions;
+                $patchoptions =~ s/^\s*//;
+                $patchoptions = $patchoptions ? $patchoptions : "-p1";
+                system("patch -R -f -i '$stampfile' -b -V simple -B 'debian/patch-$patchname-backdown/' $patchoptions") == 0
+                    or die "Cannot patch from `$stampfile'";
+                system("rm -rf 'debian/patch-$patchname-backdown'") == 0
+                    or die "Cannot remove directory `debian/patch-$patchname-backdown'";
+
+                open LISTOUT, ">debian/patch-list.new"
+                    or die "Cannot open `debian/patch-list.new' for output";
+                open LISTIN, "<debian/patch-list"
+                    or die "Cannot open `debian/patch-list' for input";
+                while (<LISTIN>) {
+                    if ($_ ne "$patchfile\n") {
+                        print LISTOUT or die "Cannot write to `debian/patch-list.new'";
+                    }
+                }
+                close LISTIN or die "Cannot close `debian/patch-list' after reading";
+                close LISTOUT or die "Cannot close `debian/patch-list.new' after writing";
+                rename "debian/patch-list.new", "debian/patch-list"
+                    or die "Cannot rename `debian/patch-list.new' to `debian/patch-list'";
+
+                unlink $stampfile;
+            }
+        }
+        if (-s "debian/patch-list") {
+            die "Upatch failed, `debian/patch-list' is not empty";
+        }
+        unlink "debian/patch-list" or die "Cannot unlink `debian/patch-list'";
+    }
+    exit 0;
+}
+
+if (m/^yada$/i) {
+    if (!-d "debian") {
+        mkdir "debian", 0775 or die "Cannot create directory `debian'";
+        print "Creating directory `debian'\n";
+    }
+    $pkg = `pwd`;
+    chomp $pkg;
+    $pkgver = $pkg;
+    $pkgver =~ s|.*?-(\d)?|$1|;
+    $pkg    =~ s|.*/||;
+    $pkg    =~ s|-\d.*$||;
+    $debfullname = ($ENV{DEBFULLNAME} || "Mr. Nobody");
+    $debemail    = ($ENV{DEBEMAIL}    || "nobody\@root.org");
+    $today       = `822-date`;
+
+    if (-e "debian/changelog") {
+        print
+          "You already have a `debian/changelog'; I won't overwrite it.\n";
+    } else {
+        open CHANGELOG, ">debian/changelog"
+          or die "Cannot open debian/changelog for writing";
+        print "Creating initial `debian/changelog'\n";
+        print CHANGELOG <<EOM or die "Cannot write to `debian/changelog'";
+$pkg ($pkgver-1) unstable; urgency=low
+
+  * Initial Debian version.
+
+ -- $debfullname <$debemail>  $today
+EOM
+        close CHANGELOG
+          or die "Cannot close `debian/changelog' after writing";
+    }
+    if (-e "debian/packages") {
+        print "You already have a `debian/packages'; I won't overwrite it.\n";
+        exit 0;
+    }
+    open PACKAGES, ">debian/packages"
+      or die "Cannot open `debian/packages' for writing";
+    print "Creating example `debian/packages'\n";
+    print PACKAGES <<EOM or die "Cannot write to `debian/packages'";
+## debian/packages for $pkg
+## Written by Charles Briscoe-Smith, May 1999.  Public Domain.
+## Customised for $pkg by $debfullname
+
+## This is an -example- packages file; read /usr/share/doc/yada/yada.txt.gz to
+## find out how to customise it to your needs.
+
+Source: $pkg
+Section: unknown
+Priority: extra
+Maintainer: $debfullname <$debemail>
+Standards-Version: 3.5.9
+Upstream-Source: <URL:ftp://some.where/over/the/rainbow.tar.gz>
+Home-Page: <URL:http://some.thing/nasty/in/the/woodshed.html>
+Description: Some package
+Origin: debian
+Copyright: GPL
+ Copyright 2002 A. Snide Badger
+Major-Changes:
+ Introduced many bugs by not editing debian/packages appropriately.
+Build: sh
+ CC=\${CC:-gcc}
+ CFLAGS=\${CFLAGS:--Wall -g}
+ CXXFLAGS=\${CXXFLAGS:--Wall -g}
+ LDFLAGS=\${LDFLAGS:-}
+ if [ "\${DEB_BUILD_OPTIONS#*noopt}" != "\$DEB_BUILD_OPTIONS" ]; then
+     CFLAGS="\$CFLAGS -O0"
+     CXXFLAGS="\$CXXFLAGS -O0"
+ else
+     CFLAGS="\$CFLAGS -O2"
+     CXXFLAGS="\$CXXFLAGS -O2"
+ fi
+ CC="\$CC" CFLAGS="\$CFLAGS" CXXFLAGS="\$CXXFLAGS" LDFLAGS="\$LDFLAGS" \\
+     ./configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man
+ make
+Clean: sh
+ make distclean || make clean || true
+
+Package: $pkg
+Architecture: any
+Depends: []
+Description: Some binary package
+ This is a generic binary package.  If you see this text, it hasn't been
+ built properly; the packager should have replaced this with something
+ appropriate.
+Install: sh
+ make install DESTDIR=\$ROOT
+EOM
+    close PACKAGES or die "Cannot close `debian/packages' after writing";
+    exit 0;
+}
+
+choke "I don't understand you.";
+
+exit 1;

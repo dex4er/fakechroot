@@ -4,17 +4,17 @@
 # the requested program with fake root privileges.
 
 usage () {
-  echo >&2 "fakeroot, create a fake root environment."
-  echo >&2 "   usage: fakeroot [-l|--lib fakerootlib] [-r|--faked fakedbin] [-i file] [-s file] [command]"
+  echo >&2 "fakechroot, create a fake chroot environment."
+  echo >&2 "   usage: fakechroot [-l|--lib fakechrootlib] [-r|--faked fakedbin] [-i file] [-s file] [command]"
   exit 1
 }
 
-# strip /bin/fakeroot to find install prefix
+# strip /bin/fakechroot to find install prefix
 BINDIR=`dirname $0`
 PREFIX=`dirname ${BINDIR}`
     
-LIB=libfakeroot.so.0
-PATHS=${PREFIX}/lib/libfakeroot:${PREFIX}/lib64/libfakeroot
+LIB=libfakechroot.so.0
+PATHS=${PREFIX}/lib/libfakechroot:${PREFIX}/lib64/libfakechroot
 FAKED=${BINDIR}/faked
 
 libfound=no
@@ -85,7 +85,7 @@ fi
 
 if test $libfound = no
 then
-    echo >&2 "fakeroot: preload library not found, aborting."
+    echo >&2 "fakechroot: preload library not found, aborting."
     exit 1
 fi
 
@@ -97,7 +97,7 @@ PID=`echo $KEY_PID|cut -d: -f2`
 trap "kill -s TERM $PID" EXIT INT
 
 if test -z "$FAKEROOTKEY" || test -z "$PID"; then
-  echo >&2 "fakeroot: error while starting the \`faked' daemon."
+  echo >&2 "fakechroot: error while starting the \`faked' daemon."
   exit 1
 fi
 
