@@ -1,8 +1,9 @@
 fakechroot (0.2+0.7.5) unstable; urgency=low
 
   * Merge with fakeroot-0.7.5.
+  * Support for lib64.
 
- -- Piotr Roszatycki <dexter@debian.org>  Thu, 24 Jul 2003 13:43:21 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Fri, 25 Jul 2003 13:04:32 +0200
 
 fakechroot (0.1+0.6.9) unstable; urgency=low
 
