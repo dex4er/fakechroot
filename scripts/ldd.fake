@@ -1,0 +1,102 @@
+#!/usr/bin/perl
+
+# fakeldd
+#
+# Replacement for ldd with usage of objdump
+#
+# (c) 2003 Piotr Roszatycki <dexter@debian.org>, GPL
+
+
+my %libs = ();
+my @ld_library_path = qw(/usr/lib /lib);
+my $status = 0;
+my $dynamic = 0;
+
+sub ldso($) {
+    my ($lib) = @_;
+    my @files = ();
+    
+    foreach my $ld_path (@ld_library_path) {
+	-f "$ld_path/$lib" or next;
+	$libs{$lib} = "$ld_path/$lib";
+	push @files, "$ld_path/$lib";
+    }
+
+    objdump(@files);
+}
+
+sub objdump(@) {
+    my (@files) = @_;
+    my @libs = ();
+
+    foreach my $file (@files) {
+	open OBJDUMP, "objdump -p $file 2>/dev/null |";
+	while (my $line = <OBJDUMP>) {
+	    $line =~ s/^\s+//;
+	    my @f = split (/\s+/, $line);
+	    if ($f[0] eq "Dynamic") {
+		$dynamic = 1;
+	    }
+	    $f[0] eq "NEEDED" or next;
+	    if (! defined $libs{$f[1]}) {
+	        $libs{$f[1]} = undef;
+		push @libs, $f[1];
+	    }
+	}
+	close OBJDUMP;
+    }
+
+    foreach my $lib (@libs) {
+	ldso($lib);
+    }
+}
+
+
+if ($#ARGV < 0) {
+    print STDERR "fakeldd: missing file arguments\n";
+    exit 1;
+}
+
+open LD_SO_CONF, "/etc/ld.so.conf";
+while ($line = <LD_SO_CONF>) {
+    chomp $line;
+    unshift @ld_library_path, $line;
+}
+close LD_SO_CONF;
+
+unshift @ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
+
+foreach my $file (@ARGV) {
+    %libs = ();
+    $dynamic = 0;
+
+    if ($#ARGV > 0) {
+	print "$file:\n";
+    }
+
+    if (! -f $file) {
+	print STDERR "ldd: $file: No such file or directory\n";
+	$status = 1;
+	next;
+    }
+
+    objdump($file);
+    
+    if ($dynamic == 0) {
+	print "\tnot a dynamic executable\n";
+	$status = 1;
+    } elsif (scalar %libs eq "0") {
+	print "\tstatically linked\n";
+    }
+
+    foreach $lib (keys %libs) {
+	if ($libs{$lib}) {
+    	    printf "\t%s => %s (0x00000000)\n", $lib, $libs{$lib};
+	} else {
+	    printf "\t%s => not found\n", $lib;
+	}
+    }
+    
+}
+
+exit $status;
