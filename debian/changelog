@@ -1,3 +1,12 @@
+fakechroot (0.6+1.2.4) unstable; urgency=low
+
+  * Implement wrappers for mkstemp64 and mkdtemp functions.
+  * Clean up the code.
+  * Fix ldd.fake script.
+  * Modified path for debootstrap.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Sat,  5 Feb 2005 20:36:56 +0100
+
 fakechroot (0.5+1.2.4) unstable; urgency=low
 
   * Fix mkstemp(2) function. Some other cleanups to the code.

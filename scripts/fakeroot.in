@@ -22,6 +22,9 @@ LIB=lib@fakeroot_transformed@.so.0
 PATHS=${PREFIX}/lib/libfakechroot:${PREFIX}/lib64/libfakechroot
 FAKED=${BINDIR}/@faked_transformed@
 
+FAKECHROOT=true
+export FAKECHROOT
+
 FAKED_MODE="unknown-is-root"
 export FAKED_MODE
 
