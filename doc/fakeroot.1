@@ -33,14 +33,22 @@ fakechroot \- gives a fake chroot environment
 .SH DESCRIPTION
 .B fakechroot
 runs a command in an environment were it appears to have root privileges for
-file manipulation.  This is almost the same as fakeroot(1) command with
-additional possibility to use chroot(8) command in such environment.
+file manipulation.  This is almost the same as 
+.BR fakeroot (1)
+command with
+additional possibility to use
+.BR chroot (8)
+command in such environment.
 This is useful for allowing users to create own chrooted environment with
 possibility to install another packages without need for root privileges.
 
 .B fakechroot
-is heavily based on fakeroot(1) and replaces more library functions (chroot(2),
-open(2) etc.) by ones that simulate the effect the real library
+is heavily based on
+.BR fakeroot (1)
+and replaces more library functions (
+.BR chroot (2),
+.BR open (2),
+etc.) by ones that simulate the effect the real library
 functions would have had, had the user really been in chroot. These wrapper
 functions are in a shared library
 .B /usr/lib/libfakechroot.so*
@@ -50,7 +58,9 @@ mechanism of the dynamic loader. (See
 .BR ld.so (8))
 
 In fake chroot you can install Debian bootstrap with `debootstrap --fakechroot' command.
-In this environment you can use i.e. apt-get(8) command to install another packages from
+In this environment you can use i.e.
+.BR apt-get (8)
+command to install another packages from
 common user's account.
 
 .SH OPTIONS
@@ -70,7 +80,9 @@ Save the fakechroot environment to save-file on exit. This file can be
 used to restore the environment later using \-i. However, this file will
 leak and fakechroot will behave in odd ways unless you leave the files
 touched inside the fakechroot alone when outside the environment. Still,
-this can be useful. For example, it can be used with rsync(1) to back up
+this can be useful. For example, it can be used with
+.BR rsync (1)
+to back up
 and restore whole directory trees complete with user, group and device
 information without needing to be root. See
 .I /usr/share/doc/fakeroot/README.saving
@@ -142,35 +154,33 @@ needs to be linked to the same version of the C library as
 itself. Because the Potato version of Debian now uses libc6 only
 (glibc2.1), this isn't that much of a problem any more. 
 .IP "\(bu" 4
-Statically linked binaries doesn't work, especially ldconfig(8),
+Statically linked binaries doesn't work, especially
+.BR ldconfig (8),
 so you have to wrap this command and i.e. set the dpkg diversion.
 .IP "\(bu" 4
-ldd(1) also doesn't work. You have to use wrapper.
+.BR ldd (1)
+also doesn't work. You have to use wrapper.
 .IP "\(bu" 4
 Remove /dev/tty - the full screen apps doesn't work if it exists.
 .IP "\(bu" 4
-ltrace(1) sometimes doesn't work. strace(1) does work pretty well.
+.BR ltrace (1)
+sometimes doesn't work.
+.BR strace (1)
+does work pretty well.
 .IP "\(bu" 4
-lckpwdf() and ulckpwdf() are ignored so update-passwd(8) should work
+lckpwdf() and ulckpwdf() are ignored so
+.BR update-passwd (8)
+should work
 .IP "\(bu" 4
 Your real uid have to exist in /etc/passwd. Create it with 
 `adduser --uid realuid realuser'.
 .IP "\(bu" 4
-debuild(1) cleans environment. Use -E option to prevent this behaviour.
+.BR debuild (1)
+cleans environment. Use -E option to prevent this behaviour.
 .IP "\(bu" 4
 fakeroot's -s option doesn't work well. You can use simple shell
 scripts to save and restore faked modes.
 
-.SH BUGS
-It doesn't wrap open(). This isn't bad by itself, but if a program
-does open("file", O_WRONLY, 000), writes to file "file", closes it,
-and then again tries to open to read the file, then that open fails, as
-the mode of the file will be 000. The bug is that if root does the
-same, open() will succeed, as the file permissions aren't checked at
-all for root. I choose not to wrap open(), as open() is used by many
-other functions in libc (also those that are already wrapped), thus
-creating loops (or possible future loops, when the implementation of
-various libc functions slightly change).
 .SH COPYING
 .B fakechroot
 is distributed under the GNU General Public License.
@@ -188,8 +198,9 @@ Adapted to
 by Piotr Roszatycki
 .RI <dexter@debian.org>
 .SH "SEE ALSO"
-.BR fakeroot (1)
-.BR faked (1)
+.BR fakeroot (1),
+.BR faked (1),
 .BR dpkg\-buildpackage (1),
-.BR debuild (1)
+.BR debuild (1),
+.BR debootstrap (1),
 .BR /usr/share/doc/fakeroot/DEBUG
