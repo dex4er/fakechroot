@@ -1,6 +1,7 @@
 # $Id$
 
 %define fakeroot_version 0.7.5
+%define automake_version 1.7
 
 Source: fakechroot
 Section: utils
@@ -15,11 +16,11 @@ Copyright: GPL
  .
  Based on fakeroot package:
  GNU copyleft joost witteveen, <joostje@debian.org>.
-Build-Depends: automake1.7, autoconf, libtool
+Build-Depends: automake%{automake_version}, autoconf, libtool
 Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc], gcc-3.3 [s390]
 Build: sh
- automake --add-missing && aclocal && autoheader && autoconf || false
- ( cd fake && automake --add-missing && aclocal && autoconf ) || false
+ aclocal-%{automake_version} && autoheader && automake-%{automake_version} --add-missing --copy && autoconf || false
+ ( cd fake && aclocal-%{automake_version} && automake-%{automake_version} --add-missing --copy && autoconf ) || false
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}
  CXXFLAGS=${CFLAGS:--Wall -pedantic -g}
@@ -37,16 +38,18 @@ Build: sh
      ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false
  ( cd build-tree-lib && make ) || false
  ( cd build-tree-fake && make ) || false
- ( cd build-tree-lib && make check ) || false
+ if [ -z "$FAKEROOTKEY" ]; then
+     ( cd build-tree-lib && make check ) || false
+ fi
  if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
      ( cd build-tree-lib64 && CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
          ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux ) || false
-     ( cd build-tree-lib64 && make libfakeroot.la ) || false
+     ( cd build-tree-lib64 && make libfakechroot.la ) || false
  fi
  if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
      ( cd build-tree-lib64 && CC="gcc-3.3 -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
          ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux ) || false
-     ( cd build-tree-lib64 && make libfakeroot.la ) || false
+     ( cd build-tree-lib64 && make libfakechroot.la ) || false
  fi
 Clean: sh
  rm -rf build-tree-*
