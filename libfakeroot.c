@@ -39,18 +39,16 @@ static char *fakechroot_ptr;
 static char *fakechroot_path;
 static char fakechroot_buf[MAXPATH];
 
-#define narrow_chroot_path(path, retval, errval) \
+#define narrow_chroot_path(path) \
     { \
 	fakechroot_path = getenv("FAKECHROOT"); \
 	if (fakechroot_path != NULL) { \
 	    fakechroot_ptr = strstr((path), fakechroot_path); \
 	    if (fakechroot_ptr != (path)) { \
-		if (errval != 0) { \
-		    errno = errval; \
-		} \
-		return (retval); \
+		(path) = NULL; \
+	    } else { \
+	        (path) = ((path) + strlen(fakechroot_path)); \
 	    } \
-	    (path) = ((path) + strlen(fakechroot_path)); \
 	} \
     }
 
@@ -1140,7 +1138,7 @@ char *getcwd(char *buf, size_t size) {
     if ((cwd = next_getcwd(buf, size)) == NULL) {
 	return NULL;
     }
-    narrow_chroot_path(cwd, NULL, 0);
+    narrow_chroot_path(cwd);
     return cwd;
 }
 
@@ -1150,7 +1148,7 @@ char *getwd(char *buf) {
     if ((cwd = next_getwd(buf)) == NULL) {
 	return NULL;
     }
-    narrow_chroot_path(cwd, NULL, 0);
+    narrow_chroot_path(cwd);
     return cwd;
 }
 
@@ -1161,7 +1159,10 @@ char *get_current_dir_name(void) {
 	return NULL;
     }
     oldptr = cwd;
-    narrow_chroot_path(cwd, NULL, 0);
+    narrow_chroot_path(cwd);
+    if (cwd == NULL) {
+        return NULL;
+    }
     if ((newptr = malloc(strlen(cwd)+1)) == NULL) {
 	free(oldptr);
 	return NULL;
@@ -1331,8 +1332,10 @@ int mkstemp(char *template) {
 	    send_stat(&st,chmod_func);
     ptr = tmp;
     strcpy(ptr, template);
-    narrow_chroot_path(ptr, -1, EEXIST);
-    strcpy(oldtemplate, ptr);
+    narrow_chroot_path(ptr);
+    if (ptr != NULL) {
+        strcpy(oldtemplate, ptr);
+    }
     return fd;
 }
 
