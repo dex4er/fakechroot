@@ -1,0 +1,80 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.\" "verbatim" environment (from strace.1)
+.de CW
+.sp
+.nf
+.ft CW
+..
+.de CE
+.ft
+.fi
+.sp
+..
+.\"
+.TH faked 1 "10 November 2002" "Debian Project" "Debian GNU/Linux manual"
+.\" Manpage by J.H.M. Dassen <jdassen@wi.LeidenUniv.nl>
+.SH NAMN
+faked \- daemon som kommer ihåg fejkad ägarskaps- och
+rättighetsinformation för filer som manipulerats av fakeroot-processer.
+.SH SYNOPSIS
+.B faked
+.B [\-\-debug] [\-\-foreground] [\-\-cleanup] [\-\-key
+.IB meddelande-nyckel ] 
+.SH BESKRIVNING
+Om en fakeroot-process vill ändra ägarskap för en fil, kommer
+.B faked
+att komma ihåg den nya ägaren. Om samma fakeroot-process senare
+utför ett stat()-anrop för den filen, kommer libfakeroots
+ersättningsfunktion för stat() först att anropa faked för att
+få den fejkade ägarinformationen för den filen, och sedan
+rapportera denna.
+
+.SH FLAGGOR
+.TP
+.B \-\-debug
+Skriv ut avlusningsinformation via stderr.
+.TP
+.BI \-\-foreground
+Förbli en förgrundsprocess.
+.TP
+.B \-\-cleanup \ number
+Rensa upp semaforerna.
+.TP
+.B \-\-key \ nyckelvärde
+Allokera ingen ny kommunikationskanal; använd istället kanalen
+som angivits via nyckeln (om den angivna kanalen inte existerar
+så skapas den).
+
+.SH BUGGAR
+Inga kända. Tag dock i beaktande, att även om jag skrivit ett
+flertal större (och mindre) program, så har jag aldrig skrivit
+något så litet som
+.BR fakeroot ,
+som har så många buggar som
+.BR fakeroot ,
+och ändå varit så användbart som, låt säga,
+.BR fakeroot
+version 0.0_3, den första versionen av programmet som kunde
+användas för att bygga sig själv.
+.SH LICENS
+.B fakeroot
+distribueras under GNU General Public License.
+(GPL 2.0 eller senare).
+.SH FÖRFATTARE
+joost witteveen
+.RI < joostje@debian.org >
+.SH MANUALSIDA
+till större delen skriven av
+J.H.M. Dassen 
+.RI < jdassen@wi.LeidenUniv.nl >
+ändringar/tillägg av joost.
+.SH "SE ÄVEN"
+.BR fakeroot (1),
+.BR dpkg-buildpackage (1),
+.BR debuild (1)
+.BR /usr/share/doc/fakeroot/DEBUG
+.SH ÖVERSÄTTNING
+David Weinehall
+.RI < tao@kernel.org >

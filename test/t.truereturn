@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if ${srcdir}/../scripts/fakeroot -f ../faked -l ../.libs/${libfakeroot} -- \
+ true
+then
+ true
+else
+ false
+fi

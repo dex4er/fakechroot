@@ -1,0 +1,51 @@
+fakechroot (0.2.6+0.7.8) unstable; urgency=low
+
+  * Merged with fakeroot 0.7.8.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 30 Sep 2003 17:53:35 +0200
+
+fakechroot (0.2.5+0.7.5) unstable; urgency=low
+
+  * Updated man page.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 19 Aug 2003 09:52:49 +0200
+
+fakechroot (0.2.4+0.7.5) unstable; urgency=low
+
+  * Add man page, closes: #205615.
+  * Add example scripts and patch for debootstrap.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Mon, 18 Aug 2003 17:01:05 +0200
+
+fakechroot (0.2.3+0.7.5) unstable; urgency=low
+
+  * Add documentation in /usr/share/doc/fakechroot.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Sat,  9 Aug 2003 01:43:31 +0200
+
+fakechroot (0.2.2+0.7.5) unstable; urgency=low
+
+  * The schema of version package is "fakechroot_ver+fakeroot_ver". Fix that.
+  * "make check" is optional.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 29 Jul 2003 10:39:28 +0200
+
+fakechroot (0.2.1+0.7.6) unstable; urgency=low
+
+  * Compile without check target.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 29 Jul 2003 10:19:35 +0200
+
+fakechroot (0.2+0.7.5) unstable; urgency=low
+
+  * Merge with fakeroot-0.7.5.
+  * Support for lib64.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Fri, 25 Jul 2003 13:04:32 +0200
+
+fakechroot (0.1+0.6.9) unstable; urgency=low
+
+  * Initial release.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 15 Apr 2003 17:13:31 +0200
+

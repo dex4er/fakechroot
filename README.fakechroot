@@ -1,0 +1,253 @@
+fakechroot
+----------
+
+In fake chroot you can install Debian boostrap with modified debootstrap.
+I suggest to copy out original deboostrap directory to /tmp/deboostrap
+and apply further attached patch.
+
+In fake chroot environment there are following limits:
+
+ * Statically linked binaries doesn't work, especially ldconfig,
+   so you have to wrap this command and i.e. set the dpkg diversion.
+ * ldd also doesn't work. You have to use wrapper, see below.
+ * Remove /dev/tty - the full screen apps doesn't work if it exists.
+ * ltrace sometimes doesn't work. strace does work pretty well.
+ * lckpwdf() and ulckpwdf() are ignored so update-passwd should work
+ * Your real uid have to exist in /etc/passwd. Create it with 
+   adduser --uid realuid realuser.
+ * debuild cleans environment. Use -E option to prevent this behaviour.
+ * fakeroot's -s option doesn't work well. You can use simple shell
+   scripts to save and restore faked modes.
+
+
+Example session:
+
+$ fakeroot -s fakeroot.save
+# export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
+# DEBOOTSTRAP_DIR=/tmp/debootstrap debootstrap woody /tmp/fakeroot
+# exit
+$ fakeroot -s fakeroot.save -i fakeroot.save
+# chroot /tmp/fakeroot /bin/bash
+# rm -f /dev/tty
+# adduser --uid 1001 dexter
+# nano /etc/apt/sources.lists
+# apt-get update
+# apt-get install build-essential
+# cd /tmp
+# apt-get source hello
+# cd hello-*
+# debuild -E
+# exit
+
+
+The patch for debootstrap:
+
+diff -Nru debootstrap.orig/functions debootstrap/functions
+--- debootstrap.orig/functions	2003-03-19 06:57:45.000000000 +0100
++++ debootstrap/functions	2003-04-09 13:04:33.000000000 +0200
+@@ -493,9 +493,13 @@
+ }
+ 
+ setup_proc () {
+-  on_exit "umount $TARGET/proc"
+-  umount $TARGET/proc 2>/dev/null || true
+-  in_target mount -t proc proc /proc
++#  on_exit "umount $TARGET/proc"
++#  umount $TARGET/proc 2>/dev/null || true
++#  in_target mount -t proc proc /proc
++   for i in cmdline cpuinfo devices filesystems loadavg meminfo misc modules partitions stat swaps uptime version; do
++       cat /proc/$i > $TARGET/proc/$i
++   done
++   mkdir $TARGET/proc/1
+ }
+ 
+ setup_devices () {
+@@ -503,7 +507,7 @@
+     (cd "$TARGET"; zcat $DEVICES_TARGZ | tar -xf -)
+   else
+     if [ -e /dev/.devfsd ]; then
+-      in_target mount -t devfs devfs /dev
++      :#in_target mount -t devfs devfs /dev
+     else
+       error 1 "no $DEVICES_TARGZ. can't create devices"
+     fi
+diff -Nru debootstrap.orig/scripts/woody debootstrap/scripts/woody
+--- debootstrap.orig/scripts/woody	2003-03-19 06:57:45.000000000 +0100
++++ debootstrap/scripts/woody	2003-04-09 13:39:09.000000000 +0200
+@@ -100,7 +100,7 @@
+     setup_proc
+     setup_devices
+ 
+-    in_target /sbin/ldconfig
++#    in_target /sbin/ldconfig
+ 
+     p () {
+ 	baseprog="$(($baseprog + ${1:-1}))"
+@@ -150,6 +150,130 @@
+         ln -sf /usr/share/zoneinfo/UTC "$TARGET/etc/localtime"
+     fi
+ 
++    mv "$TARGET/sbin/ldconfig" "$TARGET/sbin/ldconfig.REAL"
++    echo \
++"#!/bin/sh
++echo
++echo \"Warning: Fake ldconfig called, doing nothing\"" > "$TARGET/sbin/ldconfig"
++    chmod 755 "$TARGET/sbin/ldconfig"
++
++    echo \
++"/sbin/ldconfig
++/sbin/ldconfig.REAL
++fakeroot" > "$TARGET/var/lib/dpkg/diversions"
++
++    mv "$TARGET/usr/bin/ldd" "$TARGET/usr/bin/ldd.REAL"
++    cat << 'END' > "$TARGET/usr/bin/ldd"
++#!/usr/bin/perl
++
++# fakeldd
++#
++# Replacement for ldd with usage of objdump
++#
++# (c) 2003 Piotr Roszatycki <dexter@debian.org>, GPL
++
++
++my %libs = ();
++my @ld_library_path = qw(/usr/lib /lib);
++my $status = 0;
++my $dynamic = 0;
++
++sub ldso($) {
++    my ($lib) = @_;
++    my @files = ();
++    
++    foreach my $ld_path (@ld_library_path) {
++	-f "$ld_path/$lib" or next;
++	$libs{$lib} = "$ld_path/$lib";
++	push @files, "$ld_path/$lib";
++    }
++
++    objdump(@files);
++}
++
++sub objdump(@) {
++    my (@files) = @_;
++    my @libs = ();
++
++    foreach my $file (@files) {
++	open OBJDUMP, "objdump -p $file 2>/dev/null |";
++	while (my $line = <OBJDUMP>) {
++	    $line =~ s/^\s+//;
++	    my @f = split (/\s+/, $line);
++	    if ($f[0] eq "Dynamic") {
++		$dynamic = 1;
++	    }
++	    $f[0] eq "NEEDED" or next;
++	    if (! defined $libs{$f[1]}) {
++	        $libs{$f[1]} = undef;
++		push @libs, $f[1];
++	    }
++	}
++	close OBJDUMP;
++    }
++
++    foreach my $lib (@libs) {
++	ldso($lib);
++    }
++}
++
++
++if ($#ARGV < 0) {
++    print STDERR "fakeldd: missing file arguments\n";
++    exit 1;
++}
++
++open LD_SO_CONF, "/etc/ld.so.conf";
++while ($line = <LD_SO_CONF>) {
++    chomp $line;
++    unshift @ld_library_path, $line;
++}
++close LD_SO_CONF;
++
++unshift @ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
++
++foreach my $file (@ARGV) {
++    %libs = ();
++    $dynamic = 0;
++
++    if ($#ARGV > 0) {
++	print "$file:\n";
++    }
++
++    if (! -f $file) {
++	print STDERR "ldd: $file: No such file or directory\n";
++	$status = 1;
++	next;
++    }
++
++    objdump($file);
++    
++    if ($dynamic == 0) {
++	print "\tnot a dynamic executable\n";
++	$status = 1;
++    } elsif (scalar %libs eq "0") {
++	print "\tstatically linked\n";
++    }
++
++    foreach $lib (keys %libs) {
++	if ($libs{$lib}) {
++    	    printf "\t%s => %s (0x00000000)\n", $lib, $libs{$lib};
++	} else {
++	    printf "\t%s => not found\n", $lib;
++	}
++    }
++    
++}
++
++exit $status;
++END
++    chmod 755 "$TARGET/usr/bin/ldd"
++
++    echo \
++"/usr/bin/ldd
++/usr/bin/ldd.REAL
++fakeroot" > "$TARGET/var/lib/dpkg/diversions"
++
+     p; progress $baseprog $bases #4
+     x_core_install $LIBC6
+ 
+@@ -177,7 +301,7 @@
+     chmod 755 "$TARGET/sbin/start-stop-daemon"
+ 
+     setup_dselect_method apt
+-    on_exit "in_target_nofail umount /dev/pts"
++    #on_exit "in_target_nofail umount /dev/pts"
+ 
+     p; progress $baseprog $bases #19
+     smallyes '' | in_target_failmsg "Failure while configuring required packages." dpkg --configure --pending --force-configure-any --force-depends
+
+
+Save modes script:
+
+#!/bin/sh
+if [ "find ~ -maxdepth 0 -printf '%U\n'" != 0 ]; then
+    echo "Use in fakeroot environment"
+    exit 1
+fi
+LANG=C find . \( -type b -o -type c -o -type p -o -type s \) \
+    | tar czPf savemode.dat1 -T-
+find . \( -type f -o -type d -o -type l \) \
+    -a \( ! -uid 0 -o ! -gid 0 \) -printf "%U %G %m %p\n" \
+    | gzip -9 > savemode.dat2
+	
+	
+Restore modes script:
+
+#!/bin/sh
+if [ "find ~ -maxdepth 0 -printf '%U\n'" != 0 ]; then
+    echo "Use in fakeroot environment"
+    exit 1
+fi
+tar zxf savemode.dat1 --numeric-owner
+zcat savemode.dat2 | while read uid gid mode file; do
+    chown $uid:$gid $file
+    chmod $mode $file
+done

@@ -1,0 +1,85 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.\" "verbatim" environment (from strace.1)
+.de CW
+.sp
+.nf
+.ft CW
+..
+.de CE
+.ft
+.fi
+.sp
+..
+.\"
+.TH faked 1 "9 May 2003" "Debian Project" "Debian GNU/Linux manual"
+.\" Manpage by J.H.M. Dassen <jdassen@wi.LeidenUniv.nl>
+.SH NAME
+faked \- daemon that remembers fake ownership/permissions of files
+manipulated by fakeroot processes.
+.SH SYNOPSIS
+.B faked
+.B [\-\-debug] [\-\-foreground] [\-\-cleanup] [\-\-key
+.IB msg-key ] 
+.B [\-\-load] [\-\-save-file
+.IB save-file ]
+.SH DESCRIPTION
+If a fakeroot process wants to change the ownership of a file, then
+.B faked
+is the process that remembers that new owner. If later the same
+fakeroot process does a stat() for that filename, then the libfakeroot
+wrapped stat() call will first ask faked for the fake ownership etc
+of that file, and then report it.
+
+.SH OPTIONS
+.TP
+.B \-\-debug
+Print debugging information on stderr.
+.TP
+.BI \-\-foreground
+Don't fork into the background.
+.TP
+.B \-\-cleanup \ number
+Cleanup the semaphores.
+.TP
+.B \-\-key \ key-number
+Don't allocate a new communication channel, but use channel specified
+by key. (If the specified channel doesn't exist, it's created).
+.TP
+.B \-\-save\-file \ save-file
+Save the environment to save-file on exit.
+.TP
+.B \-\-load
+Load a previously saved environment from the standard input.
+.TP
+.B \-\-unknown\-is\-real
+Use real ownership of previously-unknown files instead of setting them to
+root:root.
+
+.SH BUGS
+None so far. Be warned, though: although I've written quite a few much
+larger (and smaller) programs, I've never written anything that was
+as tiny as
+.BR fakeroot ,
+had as many bugs as
+.BR fakeroot ,
+and still was as usable as, say, 
+.BR fakeroot
+version 0.0_3, the first version that could be used to build itself.
+.SH COPYING
+.B fakeroot
+is distributed under the GNU General Public License.
+(GPL 2.0 or greater).
+.SH AUTHOR
+joost witteveen
+.RI < joostje@debian.org >
+.SH MANUAL PAGE
+mostly by J.H.M. Dassen 
+.RI <jdassen@wi.LeidenUniv.nl> 
+mods/additions by joost.
+.SH "SEE ALSO"
+.BR fakeroot (1),
+.BR dpkg-buildpackage (1),
+.BR debuild (1)
+.BR /usr/share/doc/fakeroot/DEBUG

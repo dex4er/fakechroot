@@ -1,0 +1,93 @@
+/* This file lists the functions that are wrapped by libtricks, their     */ 
+/* arguments, and the way to call them. This is then used to generate	  */ 
+/* the wrapper functions declarations in wrapped.h, the wrapper functions */ 
+/* definitions wrapdef.h (actually, only assignments of the function 	  */ 
+/* variables), the structure of wraped functions in wrapstruct.h,	  */ 
+/* and the temporary definitions (that hold until one of them is executed)*/ 
+/* in wraptmpf.h                                                          */ 
+/**/                                                                      */
+/**/									  */
+/* each line of this file lists 4 fields, seperated by a ";".		  */
+/* The first field is the name of the wrapped function, then it's return  */
+/* value. After that come the function arguments with types, and the last */
+/* field contains the function arguments without types.                   */
+/**/
+open;int;(const char *pathname, int flags, mode_t mode);(pathname, flags, mode)
+fopen;FILE *;(const char *pathname, const char *mode);(pathname, mode)
+freopen;FILE *;(const char *pathname, const char *mode, FILE *stream);(pathname, mode, stream)
+
+/* __*xstat are used on glibc systems instead of just *xstat. */
+/**/
+
+WRAP_LSTAT;int;LSTAT_ARG(int ver, const char *file_name, struct stat *buf);LSTAT_ARG(ver, file_name, buf);LSTAT
+WRAP_STAT;int;STAT_ARG(int ver, const char *file_name, struct stat *buf);STAT_ARG(ver, file_name, buf);STAT
+WRAP_FSTAT;int;FSTAT_ARG(int ver, int fd, struct stat *buf);FSTAT_ARG(ver, fd, buf);FSTAT
+
+#ifdef STAT64_SUPPORT
+WRAP_LSTAT64;int;LSTAT64_ARG(int ver, const char *file_name, struct stat64 *buf);LSTAT64_ARG(ver, file_name, buf);LSTAT64
+WRAP_STAT64;int;STAT64_ARG(int ver, const char *file_name, struct stat64 *buf);STAT64_ARG(ver, file_name, buf);STAT64
+WRAP_FSTAT64;int;FSTAT_ARG(int ver, int fd, struct stat64 *buf);FSTAT_ARG(ver, fd, buf);FSTAT64
+#endif
+
+WRAP_MKNOD;int;MKNOD_ARG(int ver, const char *pathname, mode_t mode, dev_t XMKNOD_FRTH_ARG dev);MKNOD_ARG(ver, pathname, mode, dev);MKNOD
+
+opendir;DIR *;(const char *name);(name)
+/*closedir;int;(DIR *dir);(dir)*/
+/*readdir;struct dirent *;(DIR *dir);(dir)*/
+readlink;int;(const char *path, READLINK_BUF_TYPE *buf, READLINK_BUFSIZE_TYPE bufsize);(path, buf, bufsize)
+/*telldir;off_t;(DIR *dir);(dir)*/
+
+chown;int;(const char *path, uid_t owner, gid_t group);(path, owner, group)
+lchown;int;(const char *path, uid_t owner, gid_t group);(path, owner, group)
+fchown;int;(int fd, uid_t owner, gid_t group);(fd, owner, group)
+chmod;int;(const char *path, mode_t mode);(path, mode)
+fchmod;int;(int fd, mode_t mode);(fd, mode)
+mkdir;int;(const char *path, mode_t mode);(path, mode)
+unlink;int;(const char *pathname);(pathname)
+rmdir;int;(const char *pathname);(pathname)
+remove;int;(const char *pathname);(pathname)
+rename;int;(const char *oldpath, const char *newpath);(oldpath, newpath)
+/*__execve;int;(const char *path, char *const argv[], char *const envp[]);(path,argv,envp)*/
+/*execve;int;(const char *path, char *const argv[], char *const envp[]);(path,argv,envp)*/
+
+
+/* for fakeroot */
+
+getuid;uid_t;(void);()
+getgid;gid_t;(void);()
+geteuid;uid_t;(void);()
+getegid;gid_t;(void);()
+
+
+/* for chroot */
+chroot;int;(const char *path);(path)
+chdir;int;(const char *path);(path)
+getcwd;char *;(char *buf, size_t size);(buf, size)
+getwd;char *;(char *buf);(buf)
+get_current_dir_name;char *;(void);()
+creat;int;(const char *pathname, mode_t mode);(pathname, mode)
+open64;int;(const char *pathname, int flags, mode_t mode);(pathname, flags, mode)
+creat64;int;(const char *pathname, mode_t mode);(pathname, mode)
+utime;int;(const char *filename, const struct utimbuf *buf);(filename, buf)
+utimes;int;(char *filename, struct timeval *tvp);(filename, tvp)
+symlink;int;(const char *oldpath, const char *newpath);(oldpath, newpath)
+link;int;(const char *oldpath, const char *newpath);(oldpath, newpath)
+mktemp;char *;(char *template);(template)
+mkstemp;int;(char *template);(template)
+tempnam;char *;(const char *dir, const char *pfx);(dir, pfx)
+tmpnam;char *;(char *s);(s)
+mkfifo;int;(const char *pathname, mode_t mode);(pathname, mode)
+execv;int;(const char *path, char *const argv []);(path, argv)
+execvp;int;(const char *file, char *const argv []);(file, argv)
+execve;int;(const char *filename, char *const argv [], char *const envp[]);(filename, argv, envp)
+execl;int;(const char *path, const char *arg, ...);(path, arg)
+execlp;int;(const char *file, const char *arg, ...);(file, arg)
+execle;int;(const char *path, const char *arg, ...);(path, arg)
+access;int;(const char *pathname, int mode);(pathname, mode)
+fopen64;FILE *;(const char *pathname, const char *mode);(pathname, mode)
+freopen64;FILE *;(const char *pathname, const char *mode, FILE *stream);(pathname, mode, stream)
+truncate;int;(const char *path, off_t length);(path, length)
+truncate64;int;(const char *path, off64_t length);(path, length)
+dlopen;void *;(const char *filename, int flag);(filename, flag)
+__open;int;(const char *pathname, int flags, mode_t mode);(pathname, flags, mode)
+__open64;int;(const char *pathname, int flags, mode_t mode);(pathname, flags, mode)
