@@ -211,8 +211,10 @@ int save_database(std::set <struct fakestat,std::less<struct fakestat> > &data){
     return 0;
 
   for(i=data.begin();i!=data.end();i++) {
-    fprintf(f,"dev=%llx,ino=%llu,mode=%lo,uid=%lu,gid=%lu,nlink=%lu,rdev=%lu\n",
-	i->dev,i->ino,i->mode,i->uid,i->gid,i->nlink,i->rdev);
+    fprintf(f,"dev=%llx,ino=%llu,mode=%llo,uid=%llu,gid=%llu,nlink=%llu,rdev=%llu\n",
+	    (uint64_t) i->dev,(uint64_t) i->ino,(uint64_t) i->mode,
+	    (uint64_t) i->uid,(uint64_t) i->gid,(uint64_t) i->nlink,
+	    (uint64_t) i->rdev);
   }
 
   return fclose(f);
@@ -220,13 +222,23 @@ int save_database(std::set <struct fakestat,std::less<struct fakestat> > &data){
 
 int load_database(std::set <struct fakestat,std::less<struct fakestat> > &data){
   int r;
+
+  uint64_t stdev, stino, stmode, stuid, stgid, stnlink, strdev;
   struct fakestat st;
   while(1){
-    r=scanf("dev=%llx,ino=%llu,mode=%lo,uid=%lu,gid=%lu,nlink=%lu,rdev=%lu\n",
-	&(st.dev), &(st.ino), &(st.mode), &(st.uid), &(st.gid), &(st.nlink),
-	&(st.rdev));
-    if(r==7)
+    r=scanf("dev=%llx,ino=%llu,mode=%llo,uid=%llu,gid=%llu,nlink=%llu,rdev=%llu\n",
+	    &stdev, &stino, &stmode, &stuid, &stgid, &stnlink, &strdev);
+
+    if(r==7) {
+      st.dev = stdev;
+      st.ino = stino;
+      st.mode = stmode;
+      st.uid = stuid;
+      st.gid = stgid;
+      st.nlink = stnlink;
+      st.rdev = strdev;
       data.insert(st);
+    }
     else
       break;
   }

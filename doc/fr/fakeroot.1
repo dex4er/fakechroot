@@ -13,7 +13,7 @@
 .sp
 ..
 .\"
-.TH fakeroot 1 "10 Novembre 2002" "Projet Debian" "Manuel de Debian GNU/Linux"
+.TH fakeroot 1 "9 mai 2003" "Projet Debian" "Manuel de Debian"
 .\" Page d'aide par J.H.M. Dassen <jdassen@wi.LeidenUniv.nl>
 .SH NOM
 fakeroot \- lance une commande dans un environnement simulant les privilèges du
@@ -22,8 +22,13 @@ super-utilisateur pour la manipulation des fichiers.
 .B fakeroot 
 .B [\-l|\-\-lib
 .IB bibliothèque] 
-.B [-\-faked
-.IB binaire-simulé] 
+.B [\-\-faked
+.IB binaire de simulation] 
+.B [\-i
+.IB fichier-lu ]
+.B [\-s
+.IB fichier-écrit ]
+.B [\-u|\-\-unknown\-is\-real ]
 .BI [\-\-]
 .BI [commande]
 .SH DESCRIPTION
@@ -33,16 +38,16 @@ les droits de l'administrateur pour manipuler des fichiers. C'est
 pratique pour permettre aux utilisateurs de créer des archives (tar, ar, .deb,
 etc.) qui contiennent des fichiers appartenant à root.
 Sans
-.B fakeroot
+.B fakeroot,
 on serait obligé d'avoir les droits du super-utilisateur pour donner le bon
 système de droits aux fichiers constituant l'archive, puis de
 les assembler\ ; ou bien, on serait obligé de construire directement l'archive,
 sans utiliser le programme d'archivage.
 
 .B fakeroot
-fonctionne en remplaçant la bibliothèque de fonctions de manipulation de
-fichier (chmod(2), stat(2), etc.) par une autre qui simule les fonctions
-que la vraie bibliothèque aurait offertes si l'utilisateur avait été le 
+fonctionne en remplaçant les fonctions de la bibliothèque manipulant les
+fichier (chmod(2), stat(2), etc.) par d'autres qui simulent les résultats que
+la vraie bibliothèque aurait donnés si l'utilisateur avait été réellement le 
 super-utilisateur.
 Ces fonctions simulées sont dans la bibliothèque partagée 
 .B /usr/lib/libfakeroot.so*
@@ -67,7 +72,7 @@ aléatoirement des variables d'environnement dont fakeroot a besoin).
 
 .SH OPTIONS
 .TP
-.BI \-\-lib \ bibliothèque
+\fB\-l\fR \fIbibliothèque\fR, \fB\-\-lib\fR \fIbibliothèque\fR
 Spécifie une autre bibliothèque de substitution (wrapper library).
 .TP
 .BI \-\-faked \ binaire
@@ -77,9 +82,33 @@ Spécifie l'utilisation d'un autre démon que faked.
 La commande à lancer sous fakeroot. Invoquez '\-\-' si des options de la
 commande risque d'être confondues avec des options de fakeroot.
 .TP
+.BI \-s \ fichier-écrit
+Enregistre l'environnement de fakeroot dans fichier-écrit lors son arrêt. Ce
+fichier pourra servir plus tard à restaurer cette configuration grâce à l'option
+\-i. Toutefois, cette option échouera et fakeroot se comportera par défaut
+sauf si vous n'accédez pas aux fichiers manipulés par fakeroot en dehors de cet
+environnement sauvegardé. Malgré cette restriction, cela peut être utile. Par
+exemple, cela peut servir avec rsync(1) pour sauvegarder et restaurer toute une
+arborescence de répertoires avec les informations de propriétaire, de groupe 
+et de périphérique  sans avoir à être le super-utilisateur. Voir 
+.I /usr/share/doc/fakeroot/README.saving
+pour plus d'informations.
+.TP
+.BI \-i \ fichier-lu
+recharge à partir de fichier-lu un environnement fakeroot préalablement
+sauvegardé par \-s. Notez que cela ne sauvegardera pas automatiquement la 
+configuration, vous devez repréciser -s dans ce but. L'utilisation du même nom
+de fichier pour \-i et \-s dans une seule commande 
+.BR fakeroot
+\  ne pose pas de problème.
+.TP
+\fB\-u\fR, \fB\-\-unknown\-is\-real\fR
+Utilise le véritable propriétaire des fichiers anciennement ignoré par fakeroot,
+plutôt que de considérer qu'ils appartiennent à root:root.
+
 .SH EXEMPLES
 Voici un exemple d'utilisation de 
-.BR fakeroot . 
+.BR fakeroot. 
 Notez bien qu'à l'intérieur de l'environnement fakeroot, les manipulations de
 fichiers qui requièrent les privilèges de l'administrateur ont lieu,
 mais uniquement virtuellement. 
@@ -109,7 +138,7 @@ $ ls -ld hda3
 .CE
 Seule l'opération que l'utilisateur 
 .B joost
-avait le droit de réaliser a réellement abouti. 
+avait le droit de réaliser a réellement aboutie. 
 
 .B fakeroot
 a été écrit spécifiquement pour permettre aux utilisateurs de créer des
@@ -117,10 +146,10 @@ paquets pour Debian GNU/Linux (au format
 .BR deb(5)
 ) sans avoir à leur donner les privilèges du super-utilisateur.
 Ceci peut être fait par des commandes telles que
-.B dpkg-buildpackage -rfakeroot
+.B dpkg-buildpackage \-rfakeroot
 ou
-.B debuild -rfakeroot
-(-rfakeroot est maintenant utilisé par défaut pour debuild,
+.B debuild \-rfakeroot
+(\-rfakeroot est maintenant utilisé par défaut pour debuild,
 donc vous n'aurez pas besoin de cet argument).
 .SH ASPECTS DE SÉCURITÉ 
 .B fakeroot
@@ -142,7 +171,7 @@ d'un serveur actif se connectera automatiquement à ce démon, et aura la même
 programme connecté ont bien été lancés par le même utilisateur).
 .SH LIMITES
 .B
-.IP "Versions des libs"
+.IP Versions des bibliothèques (libs)
 Toute commande exécutée sous
 .B fakeroot 
 devra être liée à la même version de la bibliothèque C que 
@@ -157,13 +186,13 @@ tape soit
 .CW
 touch foo
 fakeroot 
-ls -al foo
+ls \-al foo
 .CE
 ou soit
 .CW
 fakeroot
 touch foo
-ls -al foo
+ls \-al foo
 .CE
 fakeroot n'aura aucun moyen de savoir que dans le premier cas, le
 propriétaire de foo est réellement
@@ -179,8 +208,8 @@ mais cela soulève d'autres problèmes, comme démontré par le paquet
 libtricks. Ce paquet simule beaucoup d'autres fonctions, et tente d'aller
 plus loin que
 .B fakeroot .
-Il appert qu'une mise à jour minime de la libc (d'une version dans laquelle
-la fonction 
+On peut s'apercevoir qu'une mise à jour minime de la libc (d'une version dans
+laquelle la fonction 
 .BR stat()
 n'utilise pas 
 .BR open()
@@ -203,15 +232,15 @@ par fakeroot, afin de limiter l'éventualité de ces «\ collisions\ ».
 .B
 .IP "GNU configure (et autres programmes du même genre)"
 fakeroot, en fait, modifie le comportement du système. Les programmes qui
-testent le système (tel que GNU configure) peuvent être troublés par cela (ou,
-s'ils ne le sont pas, ils risquent de solliciter fakeroot à un point tel que
-celui-ci risque lui-même de s'y perdre). Il est donc préférable de ne pas
+testent le système (tel que configure du GNU) peuvent être troublés par cela
+(ou, s'ils ne le sont pas, ils risquent de solliciter fakeroot à un point tel
+que celui-ci risque lui-même de s'y perdre). Il est donc préférable de ne pas
 lancer «\ configure\ » dans un environnement fakeroot. Comme configure doit
 être lancé par la cible build de debian/rules, l'utilisation de
 «\ dpkg-buildpackage -rfakeroot\ » gère correctement ce problème.
 .SH BOGUES
 open() n'est pas simulé. Ce n'est pas si grave que cela, mais si un programme
-invoque open("file", O_WRONLY, 000), écrit dans le fichier «\ file\ », le ferme,
+invoque open("file", O_WRONLY, 000), écrit dans ce fichier «\ file\ », le ferme,
 puis réessaye ensuite de l'ouvrir en lecture, alors cette tentative échouera,
 car les droits du fichier seront 000. Le bogue, c'est que si root fait cette
 opération, alors open() fonctionne, puisque les droits des fichiers ne 
@@ -233,7 +262,7 @@ en majeure partie écrite par  J.H.M. Dassen
 La plupart des ajouts et des modifications, par joost.
 .SH "VOIR AUSSI"
 .BR faked (1)
-.BR dpkg-buildpackage (1),
+.BR dpkg\-buildpackage (1),
 .BR debuild (1)
 .BR /usr/share/doc/fakeroot/DEBUG
 .SH TRADUCTION

@@ -120,14 +120,14 @@ struct fakestat{
   fake_mode_t mode;
   fake_nlink_t nlink;
   
-};
+} FAKEROOT_ATTR(packed);
 struct fake_msg{
   long mtype;   /* message type in SYSV message sending */
   func_id id;   /* the requested function */
   pid_t pid;
   int   serial;
   struct fakestat st;
-};
+} FAKEROOT_ATTR(packed);
 
 #ifdef __cplusplus
 extern "C" {

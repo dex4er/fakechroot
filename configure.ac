@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([fakeroot],[0.7.5],[schizo@debian.org],[fakeroot])
+AC_INIT([fakeroot],[0.7.8],[schizo@debian.org],[fakeroot])
 AC_PREREQ(2.57)
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
@@ -26,6 +26,12 @@ AC_C_CONST
 AC_CHECK_TYPE(mode_t, int)
 AC_CHECK_TYPE(off_t, long)
 AC_CHECK_TYPE(size_t, unsigned)
+
+AH_TEMPLATE([FAKEROOT_ATTR], [for packed])
+if test -n "$GCC";
+then
+AC_DEFINE_UNQUOTED(FAKEROOT_ATTR(x), [__attribute__ ((x))])
+fi
 
 dnl The parameters to the wrapped functions have to match
 dnl those in the system header files. I don't know how to
@@ -328,7 +334,7 @@ AH_VERBATIM([WRAP_STAT],
 ])
 dnl kludge end
 
-AC_CONFIG_FILES([Makefile scripts/Makefile doc/Makefile doc/fr/Makefile doc/sv/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile scripts/Makefile doc/Makefile doc/es/Makefile doc/fr/Makefile doc/sv/Makefile test/Makefile])
 AC_OUTPUT
 
 dnl Local variables:
