@@ -1,54 +1,46 @@
-Index: debootstrap
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/debootstrap,v
-retrieving revision 1.1.1.1
-retrieving revision 1.2
-diff -u -2 -r1.1.1.1 -r1.2
---- debootstrap	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ debootstrap	9 Aug 2003 00:15:28 -0000	1.2
-@@ -48,4 +48,5 @@
+diff -ru debootstrap-0.2.45/debootstrap debootstrap-0.2.45.fakechroot/debootstrap
+--- debootstrap-0.2.45/debootstrap	2004-09-13 22:15:59 +0200
++++ debootstrap-0.2.45.fakechroot/debootstrap	2005-02-03 15:23:12 +0100
+@@ -47,6 +47,7 @@
+       --exclude=A,B,C        removes specified packages from the list
+       --verbose              don't turn off the output of wget
        --components=A,B,C     use packages from the listed components of the 
-                              archive
 +      --fakechroot           build in fakechroot environment
- EOF
- }
-@@ -121,4 +122,9 @@
-     USE_COMPONENTS="$(echo "$1" | cut -f2 -d"="|tr , "|")"
+                              archive
+       --variant=X            use variant X of the bootstrap scripts
+                              (currently supported variants: buildd)
+@@ -125,6 +126,11 @@
      export USE_COMPONENTS
-+    shift 1
-+    ;;
+     shift 1
+     ;;
 +  --fakechroot)
 +    fakechroot=true
 +    export fakechroot
++    shift 1
++    ;;
+   --variant*)
+     VARIANT="$(echo "$1" | cut -f2 -d"=")"
      shift 1
-     ;;
-Index: debootstrap.8
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/debootstrap.8,v
-retrieving revision 1.1.1.1
-retrieving revision 1.2
-diff -u -2 -r1.1.1.1 -r1.2
---- debootstrap.8	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ debootstrap.8	9 Aug 2003 01:12:14 -0000	1.2
-@@ -52,4 +52,7 @@
- .IP "\fB--debian-installer\fP"
+diff -ru debootstrap-0.2.45/debootstrap.8 debootstrap-0.2.45.fakechroot/debootstrap.8
+--- debootstrap-0.2.45/debootstrap.8	2004-09-13 22:15:59 +0200
++++ debootstrap-0.2.45.fakechroot/debootstrap.8	2005-02-03 15:10:48 +0100
+@@ -68,6 +68,9 @@
+ .IP
+ .IP "\fB\-\-debian\-installer\fP"
  Used for internal purposes by the debian-installer
 +.IP
 +.IP "\fB--fakechroot\fP"
 +Used if build in fakechroot environment
  .IP 
  .SH "EXAMPLE"
-Index: functions
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/functions,v
-retrieving revision 1.1.1.1
-retrieving revision 1.3
-diff -u -2 -r1.1.1.1 -r1.3
---- functions	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ functions	9 Aug 2003 01:09:26 -0000	1.3
-@@ -543,7 +543,14 @@
- 
- setup_proc () {
+ .
+diff -ru debootstrap-0.2.45/functions debootstrap-0.2.45.fakechroot/functions
+--- debootstrap-0.2.45/functions	2004-09-13 22:15:59 +0200
++++ debootstrap-0.2.45.fakechroot/functions	2005-02-03 17:34:06 +0100
+@@ -564,9 +564,16 @@
+   on_exit "umount $TARGET/dev/pts || true"
+   on_exit "umount $TARGET/dev/shm || true"
+   on_exit "umount $TARGET/proc/bus/usb || true"
 -  on_exit "umount $TARGET/proc"
 -  umount $TARGET/proc 2>/dev/null || true
 -  in_target mount -t proc proc /proc
@@ -64,7 +56,9 @@ diff -u -2 -r1.1.1.1 -r1.3
 +  fi
  }
  
-@@ -553,5 +560,7 @@
+ setup_devices () {
+@@ -574,7 +581,9 @@
+     (cd "$TARGET"; zcat $DEVICES_TARGZ | tar -xf -)
    else
      if [ -e /dev/.devfsd ]; then
 -      in_target mount -t devfs devfs /dev
@@ -73,10 +67,11 @@ diff -u -2 -r1.1.1.1 -r1.3
 +      fi
      else
        error 1 NODEVTGZ "no %s. cannot create devices" "$DEVICES_TARGZ"
-@@ -609,3 +618,132 @@
+     fi
+@@ -631,3 +640,132 @@
    eval `echo EXIT_THING_${N_EXIT_THINGS}=\"$1\"`
    N_EXIT_THINGS="$(( $N_EXIT_THINGS + 1 ))"
-+}
+ }
 +
 +################################################################### fake tools
 +
@@ -205,16 +200,12 @@ diff -u -2 -r1.1.1.1 -r1.3
 +/usr/bin/ldd.REAL
 +fakechroot" >> "$TARGET/var/lib/dpkg/diversions"
 +
- }
-Index: potato
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/potato,v
-retrieving revision 1.1.1.1
-retrieving revision 1.2
-diff -u -2 -r1.1.1.1 -r1.2
---- potato	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ potato	9 Aug 2003 00:15:28 -0000	1.2
-@@ -43,6 +43,8 @@
++}
+diff -ru debootstrap-0.2.45/potato debootstrap-0.2.45.fakechroot/potato
+--- debootstrap-0.2.45/potato	2004-09-13 22:15:59 +0200
++++ debootstrap-0.2.45.fakechroot/potato	2005-02-03 15:10:48 +0100
+@@ -42,8 +42,10 @@
+     setup_proc
      setup_devices
  
 -    ln "$TARGET/sbin/ldconfig.new" "$TARGET/sbin/ldconfig"
@@ -225,7 +216,9 @@ diff -u -2 -r1.1.1.1 -r1.2
 +    fi
  
      x_feign_install () {
-@@ -80,4 +82,8 @@
+         local pkg=$1
+@@ -79,6 +81,10 @@
+         ln -sf perl-5.005 "$TARGET/usr/bin/perl"
      fi
  
 +    if [ "$fakechroot" = "true" ]; then
@@ -234,7 +227,9 @@ diff -u -2 -r1.1.1.1 -r1.2
 +
      x_core_install base-files base-passwd ldso
      x_core_install dpkg
-@@ -98,5 +104,7 @@
+ 
+@@ -97,7 +103,9 @@
+     cp "$TARGET/bin/true" "$TARGET/sbin/start-stop-daemon"
  
      setup_dselect_method apt
 -    on_exit "in_target umount /dev/pts"
@@ -243,15 +238,19 @@ diff -u -2 -r1.1.1.1 -r1.2
 +    fi
  
      in_target dpkg --configure --pending --force-configure-any --force-depends
-Index: sarge
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/sarge,v
-retrieving revision 1.1.1.1
-retrieving revision 1.2
-diff -u -2 -r1.1.1.1 -r1.2
---- sarge	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ sarge	9 Aug 2003 00:15:28 -0000	1.2
-@@ -112,5 +112,7 @@
+ 
+diff -ru debootstrap-0.2.45/sarge debootstrap-0.2.45.fakechroot/sarge
+--- debootstrap-0.2.45/sarge	2005-01-21 06:21:54 +0100
++++ debootstrap-0.2.45.fakechroot/sarge	2005-02-03 19:04:49 +0100
+@@ -118,10 +118,15 @@
+         chown 0.0 "$TARGET/etc/fstab"; chmod 644 "$TARGET/etc/fstab"
+     fi
+ 
+-    setup_proc
++    if [ "$fakechroot" != "true" ]; then
++        setup_proc
++    fi
++
      setup_devices
  
 -    in_target /sbin/ldconfig
@@ -260,7 +259,9 @@ diff -u -2 -r1.1.1.1 -r1.2
 +    fi
  
      p () {
-@@ -164,4 +166,8 @@
+ 	baseprog="$(($baseprog + ${1:-1}))"
+@@ -173,6 +178,10 @@
+         ln -sf /usr/share/zoneinfo/UTC "$TARGET/etc/localtime"
      fi
  
 +    if [ "$fakechroot" = "true" ]; then
@@ -269,25 +270,13 @@ diff -u -2 -r1.1.1.1 -r1.2
 +
      p; progress $baseprog $bases INSTBASE "Installing base system" #4
      x_core_install $LIBC6
-@@ -191,5 +197,7 @@
  
-     setup_dselect_method apt
--    on_exit "in_target_nofail umount /dev/pts"
-+    if [ "$fakechroot" != "true" ]; then
-+        on_exit "in_target_nofail umount /dev/pts"
-+    fi
+diff -ru debootstrap-0.2.45/sid debootstrap-0.2.45.fakechroot/sid
+--- debootstrap-0.2.45/sid	2005-01-21 06:21:40 +0100
++++ debootstrap-0.2.45.fakechroot/sid	2005-02-03 17:28:01 +0100
+@@ -7,6 +7,10 @@
  
-     p; progress $baseprog $bases INSTBASE "Installing base system" #19
-Index: sid
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/sid,v
-retrieving revision 1.1.1.1
-retrieving revision 1.3
-diff -u -2 -r1.1.1.1 -r1.3
---- sid	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ sid	9 Aug 2003 01:09:26 -0000	1.3
-@@ -8,4 +8,8 @@
-     base="adduser apt apt-utils at base-config bsdmainutils console-common console-tools libconsole console-data cpio cron dhcp-client ed exim fdutils gettext-base groff-base ifupdown info klogd libdb1-compat libident libldap2 libgnutls7 libssl0.9.7 libgcrypt1 liblzo1 libopencdk4 libtasn1-0 zlib1g liblockfile1 libpcre3 libsasl2 libtext-iconv-perl libwrap0 logrotate mailx man-db manpages modconf nano net-tools netbase netkit-inetd iputils-ping nvi ppp pppconfig pppoe pppoeconf libpcap0.7 sysklogd tasksel tcpd telnet wget $additional"
+     base="adduser apt apt-utils libdb4.2 at base-config aptitude libsigc++-1.2-5c102 bsdmainutils console-common console-tools libconsole console-data cpio cron dhcp-client ed exim4 exim4-base exim4-config exim4-daemon-light libgnutls11 libgcrypt11 libgpg-error0 libopencdk8 libtasn1-2 fdutils gettext-base groff-base ifupdown info klogd libssl0.9.7 liblzo1 zlib1g liblockfile1 libpcre3 libwrap0 logrotate mailx man-db libgdbm3 manpages nano net-tools netbase netkit-inetd iputils-ping nvi ppp pppconfig pppoe pppoeconf libpcap0.7 sysklogd tasksel libtextwrap1 tcpd telnet libtext-iconv-perl wget $additional" 
  
 +    if [ "$fakechroot" = "true" ]; then
 +        required="$required fakeroot fakechroot"
@@ -295,7 +284,17 @@ diff -u -2 -r1.1.1.1 -r1.3
 +
      without_package () {
          echo "$2" | tr ' ' '\n' | grep -v "^$1$" | tr '\n' ' '
-@@ -112,5 +116,7 @@
+     }
+@@ -118,10 +122,16 @@
+         chown 0.0 "$TARGET/etc/fstab"; chmod 644 "$TARGET/etc/fstab"
+     fi
+ 
+-    setup_proc
++
++    if [ "$fakechroot" != "true" ]; then
++        setup_proc
++    fi
++
      setup_devices
  
 -    in_target /sbin/ldconfig
@@ -304,7 +303,9 @@ diff -u -2 -r1.1.1.1 -r1.3
 +    fi
  
      p () {
-@@ -164,4 +170,8 @@
+ 	baseprog="$(($baseprog + ${1:-1}))"
+@@ -173,6 +183,10 @@
+         ln -sf /usr/share/zoneinfo/UTC "$TARGET/etc/localtime"
      fi
  
 +    if [ "$fakechroot" = "true" ]; then
@@ -313,24 +314,12 @@ diff -u -2 -r1.1.1.1 -r1.3
 +
      p; progress $baseprog $bases INSTBASE "Installing base system" #4
      x_core_install $LIBC6
-@@ -191,5 +201,7 @@
  
-     setup_dselect_method apt
--    on_exit "in_target_nofail umount /dev/pts"
-+    if [ "$fakechroot" != "true" ]; then
-+        on_exit "in_target_nofail umount /dev/pts"
-+    fi
+diff -ru debootstrap-0.2.45/slink debootstrap-0.2.45.fakechroot/slink
+--- debootstrap-0.2.45/slink	2004-09-13 22:15:58 +0200
++++ debootstrap-0.2.45.fakechroot/slink	2005-02-03 15:10:48 +0100
+@@ -34,8 +34,10 @@
  
-     p; progress $baseprog $bases INSTBASE "Installing base system" #19
-Index: slink
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/slink,v
-retrieving revision 1.1.1.1
-retrieving revision 1.2
-diff -u -2 -r1.1.1.1 -r1.2
---- slink	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ slink	9 Aug 2003 00:15:28 -0000	1.2
-@@ -35,6 +35,8 @@
      mv "$TARGET/usr/bin/perl.dist" "$TARGET/usr/bin/perl"
  
 -    ln "$TARGET/sbin/ldconfig.new" "$TARGET/sbin/ldconfig"
@@ -341,24 +330,30 @@ diff -u -2 -r1.1.1.1 -r1.2
 +    fi
  
      x_feign_install () {
-@@ -65,4 +67,8 @@
+         local pkg=$1
+@@ -65,6 +67,10 @@
      x_core_install base-files base-passwd ldso
      x_core_install dpkg
-+
+ 
 +    if [ "$fakechroot" = "true" ]; then
 +        install_fake_tools
 +    fi
- 
++
      ln -sf /usr/share/zoneinfo/UTC "$TARGET/etc/localtime"
-Index: woody
-===================================================================
-RCS file: /cvsroot/cvsdebuild/debian/upstream/debootstrap/woody,v
-retrieving revision 1.1.1.1
-retrieving revision 1.2
-diff -u -2 -r1.1.1.1 -r1.2
---- woody	8 Aug 2003 23:22:59 -0000	1.1.1.1
-+++ woody	9 Aug 2003 00:15:28 -0000	1.2
-@@ -101,5 +101,7 @@
+     x_core_install libc6
+ 
+diff -ru debootstrap-0.2.45/woody debootstrap-0.2.45.fakechroot/woody
+--- debootstrap-0.2.45/woody	2004-09-13 22:15:58 +0200
++++ debootstrap-0.2.45.fakechroot/woody	2005-02-03 19:05:02 +0100
+@@ -97,10 +97,15 @@
+         chown 0.0 "$TARGET/etc/fstab"; chmod 644 "$TARGET/etc/fstab"
+     fi
+ 
+-    setup_proc
++    if [ "$fakechroot" != "true" ]; then
++        setup_proc
++    fi
++
      setup_devices
  
 -    in_target /sbin/ldconfig
@@ -367,7 +362,9 @@ diff -u -2 -r1.1.1.1 -r1.2
 +    fi
  
      p () {
-@@ -151,4 +153,8 @@
+ 	baseprog="$(($baseprog + ${1:-1}))"
+@@ -150,6 +155,10 @@
+         ln -sf /usr/share/zoneinfo/UTC "$TARGET/etc/localtime"
      fi
  
 +    if [ "$fakechroot" = "true" ]; then
@@ -376,12 +373,4 @@ diff -u -2 -r1.1.1.1 -r1.2
 +
      p; progress $baseprog $bases INSTBASE "Installing base system" #4
      x_core_install $LIBC6
-@@ -178,5 +184,7 @@
  
-     setup_dselect_method apt
--    on_exit "in_target_nofail umount /dev/pts"
-+    if [ "$fakechroot" != "true" ]; then
-+        on_exit "in_target_nofail umount /dev/pts"
-+    fi
- 
-     p; progress $baseprog $bases INSTBASE "Installing base system" #19

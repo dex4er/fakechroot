@@ -116,6 +116,10 @@ Build: bash
 Clean: sh
  rm -rf build-tree-* || true
  rm -f *-stamp || true
+ rm -rf $(cat .cvsignore)
+ for i in $(find -name .cvsignore); do
+     ( cd $(dirname $i) && rm -rf $(cat .cvsignore) )
+ done
 
 Package: fakechroot
 Architecture: any
