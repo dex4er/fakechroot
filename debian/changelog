@@ -1,6 +1,7 @@
 fakechroot (0.2.2+0.7.5) unstable; urgency=low
 
   * The schema of version package is "fakechroot_ver+fakeroot_ver". Fix that.
+  * "make check" is optional.
 
  -- Piotr Roszatycki <dexter@debian.org>  Tue, 29 Jul 2003 10:39:28 +0200
 
