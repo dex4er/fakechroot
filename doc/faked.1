@@ -13,8 +13,9 @@
 .sp
 ..
 .\"
-.TH faked 1 "9 May 2003" "Debian Project" "Debian GNU/Linux manual"
-.\" Manpage by J.H.M. Dassen <jdassen@wi.LeidenUniv.nl>
+.TH faked 1 "17 June 2004" "Debian Project" "Debian GNU/Linux manual"
+.\" Manpage by J.H.M. Dassen <jdassen@debian.org>
+.\" and Clint Adams
 .SH NAME
 faked \- daemon that remembers fake ownership/permissions of files
 manipulated by fakeroot processes.
@@ -24,6 +25,8 @@ manipulated by fakeroot processes.
 .IB msg-key ] 
 .B [\-\-load] [\-\-save-file
 .IB save-file ]
+.B [\-\-port
+.IB TCP-port ]
 .SH DESCRIPTION
 If a fakeroot process wants to change the ownership of a file, then
 .B faked
@@ -56,6 +59,9 @@ Load a previously saved environment from the standard input.
 .B \-\-unknown\-is\-real
 Use real ownership of previously-unknown files instead of setting them to
 root:root.
+.TP
+.B \-\-port \ tcp-port
+Use TCP port tcp-port.
 
 .SH BUGS
 None so far. Be warned, though: although I've written quite a few much
@@ -71,13 +77,19 @@ version 0.0_3, the first version that could be used to build itself.
 .B fakeroot
 is distributed under the GNU General Public License.
 (GPL 2.0 or greater).
-.SH AUTHOR
+.SH AUTHORS
+.TP
 joost witteveen
 .RI < joostje@debian.org >
+.TP
+Clint Adams
+.RI < schizo@debian.org >
+.TP
+Timo Savola
 .SH MANUAL PAGE
 mostly by J.H.M. Dassen 
-.RI <jdassen@wi.LeidenUniv.nl> 
-mods/additions by joost.
+.RI <jdassen@debian.org> 
+mods/additions by joost and Clint.
 .SH "SEE ALSO"
 .BR fakeroot (1),
 .BR dpkg-buildpackage (1),

@@ -69,6 +69,7 @@ static char fakechroot_buf[MAXPATH];
 	} \
     }
 
+
 /* 
    Where are those shared libraries? 
    If I knew of a configure/libtool way to find that out, I'd use it. Or
@@ -125,6 +126,8 @@ void *get_libc(){
 }
 void load_library_symbols(void);
 
+int fakeroot_disabled = 0;
+
 #include "wrapped.h"
 #include "wraptmpf.h"
 #include "wrapdef.h"
@@ -160,67 +163,366 @@ void load_library_symbols(void){
 }
 
 
-/* a few functions that probe environment variables once, and remember
-   the results
-*/
+/*
+ * Fake implementations for the setuid family of functions.
+ * The fake IDs are inherited by child processes via environment variables.
+ *
+ * Issues:
+ *   o Privileges are not checked, which results in incorrect behaviour.
+ *     Example: process changes its (real, effective and saved) uid to 1000
+ *     and then tries to regain root privileges.  This should normally result
+ *     in an EPERM, but our implementation doesn't care...
+ *   o If one of the setenv calls fails, the state may get corrupted.
+ *   o Not thread-safe.
+ */
 
-static uid_t faked_uid(){
-  static int inited=0;
-  static int uid;
-  const char *s; 
 
-  if(!inited){
-    if((s=env_var_set(FAKEROOTUID_ENV)))
-      uid=atoi(s);
-    else
-      uid=0;
-    inited=1;
-  }
-  return uid;    
-}
-static uid_t faked_gid(){
-  static int inited=0;
-  static int gid;
-  const char *s;
+/* Generic set/get ID functions */
 
-  if(!inited){
-    if((s=env_var_set(FAKEROOTGID_ENV)))
-      gid=atoi(s);
-    else
-      gid=0;
-    inited=1;
-  }
-  return gid;    
+static int env_get_id(const char *key) {
+  char *str = getenv(key);
+  if (str)
+    return atoi(str);
+  return 0;
 }
 
-static uid_t faked_euid(){
-  static int inited=0;
-  static int uid;
-  const char *s; 
-
-  if(!inited){
-    if((s=env_var_set(FAKEROOTEUID_ENV)))
-      uid=atoi(s);
-    else
-      uid=0;
-    inited=1;
+static int env_set_id(const char *key, int id) {
+  if (id == 0) {
+    unsetenv(key);
+    return 0;
+  } else {
+    char str[12];
+    snprintf(str, sizeof (str), "%d", id);
+    return setenv(key, str, 1);
   }
-  return uid;    
 }
-static uid_t faked_egid(){
-  static int inited=0;
-  static int gid;
-  const char *s;
 
-  if(!inited){
-    if((s=env_var_set(FAKEROOTEGID_ENV)))
-      gid=atoi(s);
-    else
-      gid=0;
-    inited=1;
-  }
-  return gid;    
+static void read_id(unsigned int *id, const char *key) {
+  if (*id == (unsigned int)-1)
+    *id = env_get_id(key);
 }
+
+static int write_id(const char *key, int id) {
+  if (env_get_id(key) != id)
+    return env_set_id(key, id);
+  return 0;
+}
+
+/* Fake ID storage */
+
+static uid_t faked_real_uid = -1;
+static gid_t faked_real_gid = -1;
+static uid_t faked_effective_uid = -1;
+static gid_t faked_effective_gid = -1;
+static uid_t faked_saved_uid = -1;
+static gid_t faked_saved_gid = -1;
+static uid_t faked_fs_uid = -1;
+static gid_t faked_fs_gid = -1;
+
+/* Read user ID */
+
+static void read_real_uid() {
+  read_id(&faked_real_uid, FAKEROOTUID_ENV);
+}
+
+static void read_effective_uid() {
+  read_id(&faked_effective_uid, FAKEROOTEUID_ENV);
+}
+
+static void read_saved_uid() {
+  read_id(&faked_saved_uid, FAKEROOTSUID_ENV);
+}
+
+static void read_fs_uid() {
+  read_id(&faked_fs_uid, FAKEROOTFUID_ENV);
+}
+
+static void read_uids() {
+  read_real_uid();
+  read_effective_uid();
+  read_saved_uid();
+  read_fs_uid();
+}
+
+/* Read group ID */
+
+static void read_real_gid() {
+  read_id(&faked_real_gid, FAKEROOTGID_ENV);
+}
+
+static void read_effective_gid() {
+  read_id(&faked_effective_gid, FAKEROOTEGID_ENV);
+}
+
+static void read_saved_gid() {
+  read_id(&faked_saved_gid, FAKEROOTSGID_ENV);
+}
+
+static void read_fs_gid() {
+  read_id(&faked_fs_gid, FAKEROOTFGID_ENV);
+}
+
+static void read_gids() {
+  read_real_gid();
+  read_effective_gid();
+  read_saved_gid();
+  read_fs_gid();
+}
+
+/* Write user ID */
+
+static int write_real_uid() {
+  return write_id(FAKEROOTUID_ENV, faked_real_uid);
+}
+
+static int write_effective_uid() {
+  return write_id(FAKEROOTEUID_ENV, faked_effective_uid);
+}
+
+static int write_saved_uid() {
+  return write_id(FAKEROOTSUID_ENV, faked_saved_uid);
+}
+
+static int write_fs_uid() {
+  return write_id(FAKEROOTFUID_ENV, faked_fs_uid);
+}
+
+static int write_fs_uid() {
+  return write_id(FAKEROOTFUID_ENV, faked_fs_uid);
+}
+
+static int write_uids() {
+  if (write_real_uid() < 0)
+    return -1;
+  if (write_effective_uid() < 0)
+    return -1;
+  if (write_saved_uid() < 0)
+    return -1;
+  if (write_fs_uid() < 0)
+    return -1;
+  if (write_fs_uid() < 0)
+    return -1;
+  return 0;
+}
+
+/* Write group ID */
+
+static int write_real_gid() {
+  return write_id(FAKEROOTGID_ENV, faked_real_gid);
+}
+
+static int write_effective_gid() {
+  return write_id(FAKEROOTEGID_ENV, faked_effective_gid);
+}
+
+static int write_saved_gid() {
+  return write_id(FAKEROOTSGID_ENV, faked_saved_gid);
+}
+
+static int write_fs_gid() {
+  return write_id(FAKEROOTFGID_ENV, faked_fs_gid);
+}
+
+static int write_fs_gid() {
+  return write_id(FAKEROOTFGID_ENV, faked_fs_gid);
+}
+
+static int write_gids() {
+  if (write_real_gid() < 0)
+    return -1;
+  if (write_effective_gid() < 0)
+    return -1;
+  if (write_saved_gid() < 0)
+    return -1;
+  if (write_fs_gid() < 0)
+    return -1;
+  if (write_fs_gid() < 0)
+    return -1;
+  return 0;
+}
+
+/* Faked get functions */
+
+static uid_t get_faked_uid() {
+  read_real_uid();
+  return faked_real_uid;
+}
+
+static gid_t get_faked_gid() {
+  read_real_gid();
+  return faked_real_gid;
+}
+
+static uid_t get_faked_euid() {
+  read_effective_uid();
+  return faked_effective_uid;
+}
+
+static gid_t get_faked_egid() {
+  read_effective_gid();
+  return faked_effective_gid;
+}
+
+static uid_t get_faked_suid() {
+  read_saved_uid();
+  return faked_saved_uid;
+}
+
+static gid_t get_faked_sgid() {
+  read_saved_gid();
+  return faked_saved_gid;
+}
+
+static uid_t get_faked_fsuid() {
+  read_fs_uid();
+  return faked_fs_uid;
+}
+
+static gid_t get_faked_fsgid() {
+  read_fs_gid();
+  return faked_fs_gid;
+}
+
+static uid_t get_faked_suid() {
+  read_saved_uid();
+  return faked_saved_uid;
+}
+
+static gid_t get_faked_sgid() {
+  read_saved_gid();
+  return faked_saved_gid;
+}
+
+static uid_t get_faked_fsuid() {
+  read_fs_uid();
+  return faked_fs_uid;
+}
+
+static gid_t get_faked_fsgid() {
+  read_fs_gid();
+  return faked_fs_gid;
+}
+
+/* Faked set functions */
+
+static int set_faked_uid(uid_t uid) {
+  read_uids();
+  if (faked_effective_uid == 0) {
+    faked_real_uid = uid;
+    faked_effective_uid = uid;
+    faked_saved_uid = uid;
+  } else {
+    faked_effective_uid = uid;
+  }
+  faked_fs_uid = uid;
+  return write_uids();
+}
+
+static int set_faked_gid(gid_t gid) {
+  read_gids();
+  if (faked_effective_gid == 0) {
+    faked_real_gid = gid;
+    faked_effective_gid = gid;
+    faked_saved_gid = gid;
+  } else {
+    faked_effective_gid = gid;
+  }
+  faked_fs_gid = gid;
+  return write_gids();
+}
+
+static int set_faked_euid(uid_t euid) {
+  read_effective_uid();
+  faked_effective_uid = euid;
+  read_fs_uid();
+  faked_fs_uid = euid;
+  if (write_effective_uid() < 0)
+    return -1;
+  if (write_fs_uid() < 0)
+    return -1;
+  return 0;
+}
+
+static int set_faked_egid(gid_t egid) {
+  read_effective_gid();
+  faked_effective_gid = egid;
+  read_fs_gid();
+  faked_fs_gid = egid;
+  if (write_effective_gid() < 0)
+    return -1;
+  if (write_fs_gid() < 0)
+    return -1;
+  return 0;
+}
+
+static int set_faked_reuid(uid_t ruid, uid_t euid) {
+  read_uids();
+  if (ruid != (uid_t)-1 || euid != (uid_t)-1)
+    faked_saved_uid = faked_effective_uid;
+  if (ruid != (uid_t)-1)
+    faked_real_uid = ruid;
+  if (euid != (uid_t)-1)
+    faked_effective_uid = euid;
+  faked_fs_uid = faked_effective_uid;
+  return write_uids();
+}
+
+static int set_faked_regid(gid_t rgid, gid_t egid) {
+  read_gids();
+  if (rgid != (gid_t)-1 || egid != (gid_t)-1)
+    faked_saved_gid = faked_effective_gid;
+  if (rgid != (gid_t)-1)
+    faked_real_gid = rgid;
+  if (egid != (gid_t)-1)
+    faked_effective_gid = egid;
+  faked_fs_gid = faked_effective_gid;
+  return write_gids();
+}
+
+#ifdef HAVE_SETRESUID
+static int set_faked_resuid(uid_t ruid, uid_t euid, uid_t suid) {
+  read_uids();
+  if (ruid != (uid_t)-1)
+    faked_real_uid = ruid;
+  if (euid != (uid_t)-1)
+    faked_effective_uid = euid;
+  if (suid != (uid_t)-1)
+    faked_saved_uid = suid;
+  faked_fs_uid = faked_effective_uid;
+  return write_uids();
+}
+#endif
+
+#ifdef HAVE_SETRESGID
+static int set_faked_resgid(gid_t rgid, gid_t egid, gid_t sgid) {
+  read_gids();
+  if (rgid != (gid_t)-1)
+    faked_real_gid = rgid;
+  if (egid != (gid_t)-1)
+    faked_effective_gid = egid;
+  if (sgid != (gid_t)-1)
+    faked_saved_gid = sgid;
+  faked_fs_gid = faked_effective_gid;
+  return write_gids();
+}
+#endif
+
+#ifdef HAVE_SETFSUID
+static uid_t set_faked_fsuid(uid_t fsuid) {
+  uid_t prev_fsuid = get_faked_fsuid();
+  faked_fs_uid = fsuid;
+  return prev_fsuid;
+}
+#endif
+
+#ifdef HAVE_SETFSGID
+static gid_t set_faked_fsgid(gid_t fsgid) {
+  gid_t prev_fsgid = get_faked_fsgid();
+  faked_fs_gid = fsgid;
+  return prev_fsgid;
+}
+#endif
+
 
 static int dont_try_chown(){
   static int inited=0;
@@ -230,7 +532,7 @@ static int dont_try_chown(){
     donttry=(env_var_set(FAKEROOTDONTTRYCHOWN_ENV)!=NULL);
     inited=1;
   }
-  return donttry;
+  return 1;
 }
 
 
@@ -256,7 +558,6 @@ int WRAP_STAT STAT_ARG(int ver,
 		       const char *file_name, 
 		       struct stat *st){
   int r;
-
   expand_chroot_path(file_name);
   r=NEXT_STAT(ver, file_name, st);
   if(r)
@@ -288,17 +589,14 @@ int WRAP_LSTAT64 LSTAT64_ARG (int ver,
 			   struct stat64 *st){
 
   int r;
-  struct stat st32;
-
   expand_chroot_path(file_name);
+
   r=NEXT_LSTAT64(ver, file_name, st);
 
   if(r)
     return -1;
 
-  stat32from64(&st32,st);
-  send_get_stat(&st32);
-  stat64from32(st,&st32);
+  send_get_stat64(st);
 
   return 0;
 }
@@ -308,15 +606,12 @@ int WRAP_STAT64 STAT64_ARG(int ver,
 			   const char *file_name, 
 			   struct stat64 *st){
   int r;
-  struct stat st32;
-
   expand_chroot_path(file_name);
+
   r=NEXT_STAT64(ver,file_name,st);
   if(r)
     return -1;
-  stat32from64(&st32,st);
-  send_get_stat(&st32);
-  stat64from32(st,&st32);
+  send_get_stat64(st);
   return 0;
 }
 
@@ -325,14 +620,11 @@ int WRAP_FSTAT64 FSTAT64_ARG(int ver,
 			     int fd, 
 			     struct stat64 *st){
   int r;
-  struct stat st32;
 
   r=NEXT_FSTAT64(ver, fd, st);
   if(r)
     return -1;
-  stat32from64(&st32,st);
-  send_get_stat(&st32);
-  stat64from32(st,&st32);
+  send_get_stat64(st);
 
   return 0;
 }
@@ -373,8 +665,8 @@ int chown(const char *path, uid_t owner, gid_t group){
   struct stat st;
   int r=0;
 
-
   expand_chroot_path(path);
+
 #ifdef LCHOWN_SUPPORT
   /*chown(sym-link) works on the target of the symlink if lchown is
     present and enabled.*/
@@ -404,8 +696,8 @@ int chown(const char *path, uid_t owner, gid_t group){
 int lchown(const char *path, uid_t owner, gid_t group){
   struct stat st;
   int r=0;
-
   expand_chroot_path(path);
+
   r=NEXT_LSTAT(_STAT_VER, path, &st);
   if(r)
     return r;
@@ -451,6 +743,7 @@ int chmod(const char *path, mode_t mode){
   int r;
 
   expand_chroot_path(path);
+
   r=NEXT_STAT(_STAT_VER, path, &st);
   if(r)
     return r;
@@ -514,9 +807,9 @@ int WRAP_MKNOD MKNOD_ARG(int ver UNUSED,
   /*Don't bother to mknod the file, that probably doesn't work.
     just create it as normal file, and leave the premissions
     to the fakemode.*/
-  
   expand_chroot_path(pathname);
-  fd=next_open(pathname, O_WRONLY|O_CREAT|O_TRUNC, 00644);
+  
+  fd=open(pathname, O_WRONLY|O_CREAT|O_TRUNC, 00644);
 
   if(fd==-1)
     return -1;
@@ -548,8 +841,8 @@ int mkdir(const char *path, mode_t mode){
   /* we need to tell the fake deamon the real mode. In order
      to communicate with faked we need a struct stat, so we now
      do a stat of the new directory (just for the inode/dev) */
-
   expand_chroot_path(path);
+
   r=next_mkdir(path, mode|0700); 
   /* mode|0700: see comment in the chown() function above */
   if(r)
@@ -583,10 +876,17 @@ int mkdir(const char *path, mode_t mode){
 
 int unlink(const char *pathname){
   int r;
-  struct stat st;
-
+#ifdef STAT64_SUPPORT
+  struct stat64 st;
   expand_chroot_path(pathname);
+
+  r=NEXT_LSTAT64(_STAT_VER, pathname, &st);
+#else
+  struct stat st;
+  expand_chroot_path(pathname);
+
   r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+#endif
   if(r)
     return -1;
 
@@ -595,7 +895,11 @@ int unlink(const char *pathname){
   if(r)
     return -1;
   
+#ifdef STAT64_SUPPORT
+  send_stat64(&st, unlink_func);
+#else
   send_stat(&st, unlink_func);
+#endif
   
   return 0;
 }
@@ -607,8 +911,8 @@ int unlink(const char *pathname){
 int rmdir(const char *pathname){
   int r;
   struct stat st;
-
   expand_chroot_path(pathname);
+
   r=NEXT_LSTAT(_STAT_VER, pathname, &st);
   if(r)
     return -1;
@@ -628,8 +932,8 @@ int rmdir(const char *pathname){
 int remove(const char *pathname){
   int r;
   struct stat st;
-
   expand_chroot_path(pathname);
+
   r=NEXT_LSTAT(_STAT_VER, pathname, &st);
   if(r)
     return -1;
@@ -661,73 +965,208 @@ int rename(const char *oldpath, const char *newpath){
   /* we need the st_new struct in order to inform faked about the
      (possible) unlink of the file */
 
+
   expand_chroot_path(oldpath);
   strcpy(tmp, oldpath); oldpath=tmp;
   expand_chroot_path(newpath);
+
   r=NEXT_LSTAT(_STAT_VER, newpath, &st);
+
 
   s=next_rename(oldpath, newpath);
   if(s)
-    return -1;
+    return s;
   if(!r)
     send_stat(&st,unlink_func);
 
   return 0;
 }
 
+#ifdef FAKEROOT_FAKENET
+pid_t fork(void)
+{
+  pid_t pid;
+
+  pid = next_fork();
+
+  if (pid == 0)
+    close_comm_sd();
+
+  return pid;
+}
+
+pid_t vfork(void)
+{
+  /* We can't wrap vfork(2) without breaking everything... */
+  return fork();
+}
+
+#endif /* FAKEROOT_FAKENET */
 uid_t getuid(void){
-  return faked_uid();
+  if (fakeroot_disabled)
+    return next_getuid();
+  return get_faked_uid();
 }
 
 uid_t geteuid(void){
-  return faked_euid();
+  if (fakeroot_disabled)
+    return next_geteuid();
+  return get_faked_euid();
 }
 
+#ifdef HAVE_GETRESUID
+int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid){
+  if (fakeroot_disabled)
+    return next_getresuid(ruid, euid, suid);
+  *ruid = get_faked_uid();
+  *euid = get_faked_euid();
+  *suid = get_faked_suid();
+  return 0;
+}
+#endif /* HAVE_GETRESUID */
+
+#ifdef HAVE_GETRESUID
+int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid){
+  if (fakeroot_disabled)
+    return next_getresuid(ruid, euid, suid);
+  *ruid = get_faked_uid();
+  *euid = get_faked_euid();
+  *suid = get_faked_suid();
+  return 0;
+}
+#endif /* HAVE_GETRESUID */
+
 uid_t getgid(void){
-  return faked_gid();
+  if (fakeroot_disabled)
+    return next_getgid();
+  return get_faked_gid();
 }
 
 uid_t getegid(void){
-  return faked_egid();
+  if (fakeroot_disabled)
+    return next_getegid();
+  return get_faked_egid();
 }
 
-int setuid(uid_t id){
+#ifdef HAVE_GETRESGID
+int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid){
+  if (fakeroot_disabled)
+    return next_getresgid(rgid, egid, sgid);
+  *rgid = get_faked_gid();
+  *egid = get_faked_egid();
+  *sgid = get_faked_sgid();
   return 0;
+}
+#endif /* HAVE_GETRESGID */
+
+#ifdef HAVE_GETRESGID
+int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid){
+  if (fakeroot_disabled)
+    return next_getresgid(rgid, egid, sgid);
+  *rgid = get_faked_gid();
+  *egid = get_faked_egid();
+  *sgid = get_faked_sgid();
+  return 0;
+}
+#endif /* HAVE_GETRESGID */
+
+int setuid(uid_t id){
+  if (fakeroot_disabled)
+    return next_setuid(id);
+  return set_faked_uid(id);
 }
 
 int setgid(uid_t id){
-  return 0;
+  if (fakeroot_disabled)
+    return next_setgid(id);
+  return set_faked_gid(id);
 }
 
 int seteuid(uid_t id){
-  return 0;
+  if (fakeroot_disabled)
+    return next_seteuid(id);
+  return set_faked_euid(id);
 }
 
 int setegid(uid_t id){
-  return 0;
+  if (fakeroot_disabled)
+    return next_setegid(id);
+  return set_faked_egid(id);
 }
 
 int setreuid(SETREUID_ARG ruid, SETREUID_ARG euid){
-  return 0;
+  if (fakeroot_disabled)
+    return next_setreuid(ruid, euid);
+  return set_faked_reuid(ruid, euid);
 }
 
 int setregid(SETREGID_ARG rgid, SETREGID_ARG egid){
-  return 0;
+  if (fakeroot_disabled)
+    return next_setregid(rgid, egid);
+  return set_faked_regid(rgid, egid);
 }
 
+#ifdef HAVE_SETRESUID
 int setresuid(uid_t ruid, uid_t euid, uid_t suid){
-  return 0;
+  if (fakeroot_disabled)
+    return next_setresuid(ruid, euid, suid);
+  return set_faked_resuid(ruid, euid, suid);
 }
+#endif /* HAVE_SETRESUID */
 
+#ifdef HAVE_SETRESGID
 int setresgid(gid_t rgid, gid_t egid, gid_t sgid){
-  return 0;
+  if (fakeroot_disabled)
+    return next_setresgid(rgid, egid, sgid);
+  return set_faked_resgid(rgid, egid, sgid);
 }
+#endif /* HAVE_SETRESGID */
+
+#ifdef HAVE_SETFSUID
+uid_t setfsuid(uid_t fsuid){
+  if (fakeroot_disabled)
+    return next_setfsuid(fsuid);
+  return set_faked_fsuid(fsuid);
+}
+#endif /* HAVE_SETFSUID */
+
+#ifdef HAVE_SETFSGID
+gid_t setfsgid(gid_t fsgid){
+  if (fakeroot_disabled)
+    return next_setfsgid(fsgid);
+  return set_faked_fsgid(fsgid);
+}
+#endif /* HAVE_SETFSGID */
+
+#ifdef HAVE_SETFSUID
+uid_t setfsuid(uid_t fsuid){
+  if (fakeroot_disabled)
+    return next_setfsuid(fsuid);
+  return set_faked_fsuid(fsuid);
+}
+#endif /* HAVE_SETFSUID */
+
+#ifdef HAVE_SETFSGID
+gid_t setfsgid(gid_t fsgid){
+  if (fakeroot_disabled)
+    return next_setfsgid(fsgid);
+  return set_faked_fsgid(fsgid);
+}
+#endif /* HAVE_SETFSGID */
 
 int initgroups(const char* user, INITGROUPS_SECOND_ARG group){
-  return 0;
+  if (fakeroot_disabled)
+    return next_initgroups(user, group);
+  else
+    return 0;
 }
 
-
+int setgroups(SETGROUPS_SIZE_TYPE size, const gid_t *list){
+  if (fakeroot_disabled)
+    return next_setgroups(size, list);
+  else
+    return 0;
+}
 
 int chroot(const char *path) {
     char *ptr;
@@ -752,7 +1191,7 @@ int chroot(const char *path) {
 
     setenv("FAKECHROOT", path, 1);
     fakechroot_path = getenv("FAKECHROOT");
-    
+    chdir("/");
     return 0;
 }
 
@@ -800,6 +1239,8 @@ char *get_current_dir_name(void) {
 
 int open(const char *pathname, int flags, ...) {
     int mode = 0;
+    int r;
+    int ret = -1;
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
@@ -809,7 +1250,12 @@ int open(const char *pathname, int flags, ...) {
         va_end (arg);
     }
 
-    return next_open(pathname, flags, mode);
+    ret =  next_open(pathname, flags, mode);
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    return ret;
 }
 
 int creat(const char *pathname, mode_t mode) {
@@ -819,6 +1265,8 @@ int creat(const char *pathname, mode_t mode) {
 
 int open64(const char *pathname, int flags, ...) {
     int mode = 0;
+    int r;
+    int ret = -1;
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
@@ -828,12 +1276,24 @@ int open64(const char *pathname, int flags, ...) {
         va_end (arg);
     }
 
-    return next_open64(pathname, flags, mode);
+    ret =  next_open64(pathname, flags, mode);
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    return ret;
 }
 
 int creat64(const char *pathname, mode_t mode) {
+    int ret,r;
     expand_chroot_path(pathname);
-    return next_creat64(pathname, mode);
+    ret = next_creat64(pathname, mode);
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    return ret;
+
 }
 
 DIR *opendir(const char *name) {
@@ -853,18 +1313,30 @@ int utimes(char *filename, struct timeval *tvp) {
 
 int symlink(const char *oldpath, const char *newpath) {
     char tmp[MAXPATH];
+    int ret,r;
     expand_chroot_path(oldpath);
     strcpy(tmp, oldpath); oldpath=tmp;
     expand_chroot_path(newpath);
-    return next_symlink(oldpath, newpath);
+    ret = next_symlink(oldpath, newpath);
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, newpath, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    return ret;
 }
 
 int link(const char *oldpath, const char *newpath) {
     char tmp[MAXPATH];
+    int ret,r;
     expand_chroot_path(oldpath);
     strcpy(tmp, oldpath); oldpath=tmp;
     expand_chroot_path(newpath);
-    return next_link(oldpath, newpath);
+    ret = next_link(oldpath, newpath);
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, newpath, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    return ret;
 }
 
 int readlink(const char *path, char *buf, size_t bufsiz) {
@@ -911,7 +1383,7 @@ char *mktemp(char *template) {
 
 int mkstemp(char *template) {
     char tmp[MAXPATH], *oldtemplate, *ptr;
-    int fd;
+    int fd,r;
 
     oldtemplate = template;
     
@@ -919,7 +1391,10 @@ int mkstemp(char *template) {
     if ((fd = next_mkstemp(template)) == -1) {
 	return -1;
     }
-
+	struct stat st;
+	r=NEXT_FSTAT(_STAT_VER, fd, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
     ptr = tmp;
     strcpy(ptr, template);
     narrow_chroot_path(ptr, -1, EEXIST);
@@ -1251,12 +1726,20 @@ return -1;
         mode = va_arg (arg, int);
         va_end (arg);
     }
+    if (flags & O_CREAT) {
+	int r;
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    }
 
     return next___open(pathname, flags, mode);
 }
 
 int __open64(const char *pathname, int flags, ...) {
     int mode = 0;
+    int ret;
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
@@ -1265,8 +1748,15 @@ int __open64(const char *pathname, int flags, ...) {
         mode = va_arg (arg, int);
         va_end (arg);
     }
-
-    return next___open64(pathname, flags, mode);
+    ret = next___open64(pathname, flags, mode);
+    if (flags & O_CREAT) {
+	int r;
+	struct stat st;
+	r=NEXT_LSTAT(_STAT_VER, pathname, &st);
+	if(!r)
+	    send_stat(&st,chmod_func);
+    }
+    return ret; 
 }
 
 int lckpwdf() {
@@ -1277,6 +1767,14 @@ int ulckpwdf() {
     return 0;
 }
 
-int setgroups(size_t size, const gid_t *list) {
-    return 0;
+int fakeroot_disable(int new)
+{
+  int old = fakeroot_disabled;
+  fakeroot_disabled = new ? 1 : 0;
+  return old;
+}
+
+int fakeroot_isdisabled(void)
+{
+  return fakeroot_disabled;
 }

@@ -13,9 +13,19 @@
 #include "communicate.h"
 #include <dlfcn.h>
 #include <stdio.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <sys/sem.h>
+#ifndef FAKEROOT_FAKENET
+# include <sys/ipc.h>
+# include <sys/msg.h>
+# include <sys/sem.h>
+#else /* FAKEROOT_FAKENET */
+# include <netinet/in.h>
+# include <netinet/tcp.h>
+# include <netdb.h>
+# include <pthread.h>
+# ifdef HAVE_ENDIAN_H
+#  include <endian.h>
+# endif
+#endif /* FAKEROOT_FAKENET */
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -23,19 +33,38 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
-
-
-
-int msg_snd=-1;
-int msg_get=-1;
-int sem_id=-1;
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
 
 
 #ifndef _UTSNAME_LENGTH
 /* for LINUX libc5 */
-  #define _UTSNAME_LENGTH _SYS_NMLN
+#  define _UTSNAME_LENGTH _SYS_NMLN
 #endif
 
+
+#ifndef FAKEROOT_FAKENET
+int msg_snd=-1;
+int msg_get=-1;
+int sem_id=-1;
+#else /* FAKEROOT_FAKENET */
+static int comm_sd = -1;
+static pthread_mutex_t comm_sd_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif /* FAKEROOT_FAKENET */
+
+
+#ifdef FAKEROOT_FAKENET
+static void fail(const char *msg)
+{
+  if (errno > 0)
+    fprintf(stderr, "libfakeroot: %s: %s\n", msg, strerror(errno));
+  else
+    fprintf(stderr, "libfakeroot: %s\n", msg);
+
+  exit(1);
+}
+#endif /* FAKEROOT_FAKENET */
 
 const char *env_var_set(const char *env){
   const char *s;
@@ -68,6 +97,7 @@ void cpyfakemstat(struct fake_msg *f,
 
   f->st.nlink=st->st_nlink;
 }
+
 void cpystatfakem(struct     stat *st,
                  const struct fake_msg *f){
   st->st_mode =f->st.mode;
@@ -80,6 +110,44 @@ void cpystatfakem(struct     stat *st,
      this one better! */
   /*  st->st_nlink=f->st.nlink;*/
 }
+
+#ifdef STAT64_SUPPORT
+
+void cpyfakemstat64(struct fake_msg *f,
+                 const struct stat64 *st){
+  
+  f->st.mode =st->st_mode;
+  f->st.ino  =st->st_ino ;
+  f->st.uid  =st->st_uid ;
+  f->st.gid  =st->st_gid ;
+  f->st.dev  =st->st_dev ;
+  f->st.rdev =st->st_rdev;
+
+  /* DO copy the nlink count. Although the system knows this
+     one better, we need it for unlink().
+     This actually opens up a race condition, if another command
+     makes a hardlink on a file, while we try to unlink it. This
+     may cause the record to be deleted, while the link continues
+     to live on the disk. But the chance is small, and unlikely
+     to occur in practical fakeroot conditions. */
+
+  f->st.nlink=st->st_nlink;
+}
+void cpystat64fakem(struct stat64 *st,
+                 const struct fake_msg *f){
+  st->st_mode =f->st.mode;
+  st->st_ino  =f->st.ino ;
+  st->st_uid  =f->st.uid ;
+  st->st_gid  =f->st.gid ;
+  st->st_dev  =f->st.dev ;
+  st->st_rdev =f->st.rdev;
+  /* DON'T copy the nlink count! The system always knows
+     this one better! */
+  /*  st->st_nlink=f->st.nlink;*/
+}
+
+#endif /* STAT64_SUPPORT */
+
 void cpyfakefake(struct fakestat *dest,
                  const struct fakestat *source){
   dest->mode =source->mode;
@@ -136,6 +204,7 @@ void stat32from64(struct stat *s32, const struct stat64 *s64)
 
 #endif
 
+#ifndef FAKEROOT_FAKENET
 
 void semaphore_up(){
   struct sembuf op;
@@ -156,6 +225,7 @@ void semaphore_up(){
     }
   }
 }
+
 void semaphore_down(){
   struct sembuf op;
   if(sem_id==-1)
@@ -166,7 +236,7 @@ void semaphore_down(){
   while (1) {
     if (semop(sem_id,&op,1)) {
       if (errno != EINTR) {
-	perror("semop(2): encountered an error");
+        perror("semop(2): encountered an error");
         exit(1);
       }
     } else {
@@ -175,100 +245,344 @@ void semaphore_down(){
   }
 }
 
-void  send_fakem(const struct fake_msg *buf){
+#else /* FAKEROOT_FAKENET */
+
+static struct sockaddr *get_addr(void)
+{
+  static struct sockaddr_in addr = { 0, 0, { 0 } };
+
+  if (!addr.sin_port) {
+    char *str;
+    int port;
+
+    str = (char *) env_var_set(FAKEROOTKEY_ENV);
+    if (!str) {
+      errno = 0;
+      fail("FAKEROOTKEY not defined in environment");
+    }
+
+    port = atoi(str);
+    if (port <= 0 || port >= 65536) {
+      errno = 0;
+      fail("invalid port number in FAKEROOTKEY");
+    }
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(port);
+  }
+
+  return (struct sockaddr *) &addr;
+}
+
+static void open_comm_sd(void)
+{
+  char *str;
+  int base, val;
+
+  if (comm_sd >= 0) {
+    int rc;
+    socklen_t len;
+
+    val = 0;
+    len = sizeof (val);
+    rc = getsockopt(comm_sd, SOL_SOCKET, SO_TYPE, &val, &len);
+
+    if (rc >= 0 && val == SOCK_STREAM) {
+      val = 0;
+      len = sizeof (val);
+      rc = getsockopt(comm_sd, SOL_SOCKET, SO_REUSEADDR, &val, &len);
+
+      if (rc >= 0 && val)
+        return;
+    }
+
+    fprintf(stderr, "libfakeroot: file descriptor %d was hijacked ", comm_sd);
+    if (rc < 0)
+      fprintf(stderr, "(getsockopt said \"%s\")\n", strerror(errno));
+    else
+      fprintf(stderr, "(socket options changed)\n");
+
+    comm_sd = -1;
+  }
+
+  base = getdtablesize() - 100;
+  if (base < 3)
+    base = 3;
+
+  if ((str = getenv(FD_BASE_ENV))) {
+    int fd = atoi(str);
+    if (fd >= 3)
+      base = fd;
+  }
+
+  comm_sd = socket(PF_INET, SOCK_STREAM, 0);
+  if (comm_sd < 0)
+    fail("socket");
+
+  if (comm_sd < base) {
+    int fd;
+
+    do {
+      fd = fcntl(comm_sd, F_DUPFD, base);
+      if (fd < 0) {
+	if (errno == EINTR)
+	  continue;
+	fail("fcntl(F_DUPFD)");
+      }
+    } while (0);
+
+    close(comm_sd);
+    comm_sd = fd;
+  }
+
+  val = 1;
+  if (setsockopt(comm_sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof (val)) < 0)
+    fail("setsockopt(SO_REUSEADDR)");
+
+  if (connect(comm_sd, get_addr(), sizeof (struct sockaddr_in)) < 0)
+    fail("connect");
+}
+
+void close_comm_sd(void)
+{
+  /* We must synchronize since the vfork calls us in the parent process. */
+  pthread_mutex_lock(&comm_sd_mutex);
+
+  if (comm_sd >= 0) {
+    close(comm_sd);
+    comm_sd = -1;
+  }
+
+  pthread_mutex_unlock(&comm_sd_mutex);
+}
+
+#endif /* FAKEROOT_FAKENET */
+
+#ifndef FAKEROOT_FAKENET
+
+void send_fakem(const struct fake_msg *buf)
+{
   int r;
-  
+
   if(init_get_msg()!=-1){
     ((struct fake_msg *)buf)->mtype=1;
-    r=msgsnd(msg_snd, (struct fake_msg *)buf, 
+    r=msgsnd(msg_snd, (struct fake_msg *)buf,
 	     sizeof(*buf)-sizeof(buf->mtype), 0);
     if(r==-1)
-      perror("libtricks, when sending message");         
+      perror("libfakeroot, when sending message");
   }
 }
 
-void send_get_fakem(struct fake_msg *buf){
-  /* 
-     send and get a struct fakestat from the daemon. 
-     We have to use serial/pid numbers in addidtion to 
+void send_get_fakem(struct fake_msg *buf)
+{
+  /*
+  send and get a struct fakestat from the daemon.
+  We have to use serial/pid numbers in addidtion to
      the semaphore locking, to prevent the following:
 
-     Client 1 locks and sends a stat() request to deamon.
-     meantime, client 2 tries to up the semaphore too, but blocks.
-     While client 1 is waiting, it recieves a KILL signal, and dies.
-     SysV semaphores can eighter be automatically cleaned up when
-     a client dies, or they can stay in place. We have to use the
-     cleanup version, as otherwise client 2 will block forever.
-     So, the semaphore is cleaned up when client 1 recieves the KILL signal.
-     Now, client 1 falls through the semaphore_up, and
-     sends a stat() request to the daemon --  it will now recieve 
-     the answer intended for client 1, and hell breaks lose (yes,
-     this has actually happened, and yes, it was hell (to debug)).
-     
-     I realise that I may well do away with the semaphore stuff,
-     if I put the serial/pid numbers in the mtype field. But I cannot
-     store both PID and serial in mtype (just 32 bits on Linux). So 
-     there will always be some (small) chance it will go wrong.
+  Client 1 locks and sends a stat() request to deamon.
+  meantime, client 2 tries to up the semaphore too, but blocks.
+  While client 1 is waiting, it recieves a KILL signal, and dies.
+  SysV semaphores can eighter be automatically cleaned up when
+  a client dies, or they can stay in place. We have to use the
+  cleanup version, as otherwise client 2 will block forever.
+  So, the semaphore is cleaned up when client 1 recieves the KILL signal.
+  Now, client 1 falls through the semaphore_up, and
+  sends a stat() request to the daemon --  it will now recieve
+  the answer intended for client 1, and hell breaks lose (yes,
+  this has actually happened, and yes, it was hell (to debug)).
+
+  I realise that I may well do away with the semaphore stuff,
+  if I put the serial/pid numbers in the mtype field. But I cannot
+  store both PID and serial in mtype (just 32 bits on Linux). So
+  there will always be some (small) chance it will go wrong.
   */
 
   int l;
   pid_t pid;
   static int serial=0;
-  
 
   if(init_get_msg()!=-1){
-
     pid=getpid();
     serial++;
     buf->serial=serial;
-
     semaphore_up();
-
     buf->pid=pid;
     send_fakem(buf);
-    
+
     do
       l=msgrcv(msg_get,
-	       (struct my_msgbuf*)buf, 
-	       sizeof(*buf)-sizeof(buf->mtype),0,0);
+               (struct my_msgbuf*)buf,
+               sizeof(*buf)-sizeof(buf->mtype),0,0);
     while((buf->serial!=serial)||buf->pid!=pid);
-  
+
     semaphore_down();
-  
+
     /*
-      (nah, may be wrong, due to allignment)
-      
-      if(l!=sizeof(*buf)-sizeof(buf->mtype))
-      printf("libfakeroot/fakeroot, internal bug!! get_fake: length=%i != l=%i",
-      sizeof(*buf)-sizeof(buf->mtype),l);
+    (nah, may be wrong, due to allignment)
+
+    if(l!=sizeof(*buf)-sizeof(buf->mtype))
+    printf("libfakeroot/fakeroot, internal bug!! get_fake: length=%i != l=%i",
+    sizeof(*buf)-sizeof(buf->mtype),l);
     */
+
   }
 }
+
+#else /* FAKEROOT_FAKENET */
+
+static void send_fakem_nr(const struct fake_msg *buf)
+{
+  struct fake_msg fm;
+
+  fm.id = htonl(buf->id);
+  fm.st.uid = htonl(buf->st.uid);
+  fm.st.gid = htonl(buf->st.gid);
+  fm.st.ino = htonll(buf->st.ino);
+  fm.st.dev = htonll(buf->st.dev);
+  fm.st.rdev = htonll(buf->st.rdev);
+  fm.st.mode = htonl(buf->st.mode);
+  fm.st.nlink = htonl(buf->st.nlink);
+  fm.remote = htonl(0);
+
+  while (1) {
+    ssize_t len;
+
+    len = write(comm_sd, &fm, sizeof (fm));
+    if (len > 0)
+      break;
+
+    if (len == 0) {
+      errno = 0;
+      fail("write: socket is closed");
+    }
+
+    if (errno == EINTR)
+      continue;
+
+    fail("write");
+  }
+}
+
+void send_fakem(const struct fake_msg *buf)
+{
+  pthread_mutex_lock(&comm_sd_mutex);
+
+  open_comm_sd();
+  send_fakem_nr(buf);
+
+  pthread_mutex_unlock(&comm_sd_mutex);
+}
+
+static void get_fakem_nr(struct fake_msg *buf)
+{
+  while (1) {
+    ssize_t len;
+
+    len = read(comm_sd, buf, sizeof (struct fake_msg));
+    if (len > 0)
+      break;
+    if (len == 0) {
+      errno = 0;
+      fail("read: socket is closed");
+    }
+    if (errno == EINTR)
+      continue;
+   fail("read");
+  }
+ 
+  buf->id = ntohl(buf->id);
+  buf->st.uid = ntohl(buf->st.uid);
+  buf->st.gid = ntohl(buf->st.gid);
+  buf->st.ino = ntohll(buf->st.ino);
+  buf->st.dev = ntohll(buf->st.dev);
+  buf->st.rdev = ntohll(buf->st.rdev);
+  buf->st.mode = ntohl(buf->st.mode);
+  buf->st.nlink = ntohl(buf->st.nlink);
+  buf->remote = ntohl(buf->remote);
+}
+
+void send_get_fakem(struct fake_msg *buf)
+{
+  pthread_mutex_lock(&comm_sd_mutex);
+
+  open_comm_sd();
+  send_fakem_nr(buf);
+  get_fakem_nr(buf);
+
+  pthread_mutex_unlock(&comm_sd_mutex);
+}
+
+#endif /* FAKEROOT_FAKENET */
+
 void send_stat(const struct stat *st,
-	       func_id f){
+	       func_id_t f){
   struct fake_msg buf;
-  
-  if(init_get_msg()!=-1){
+
+#ifndef FAKEROOT_FAKENET
+  if(init_get_msg()!=-1)
+#endif /* ! FAKEROOT_FAKENET */
+  {
     cpyfakemstat(&buf,st);
     buf.id=f;
     send_fakem(&buf);
   }
 }
 
+#ifdef STAT64_SUPPORT
+void send_stat64(const struct stat64 *st,
+                 func_id_t f){
+  struct fake_msg buf;
+
+#ifndef FAKEROOT_FAKENET
+  if(init_get_msg()!=-1)
+#endif /* ! FAKEROOT_FAKENET */
+  {
+    cpyfakemstat64(&buf,st);
+    buf.id=f;
+    send_fakem(&buf);
+  }
+}
+#endif /* STAT64_SUPPORT */
+
 void send_get_stat(struct stat *st){
   struct fake_msg buf;
 
-  if(init_get_msg()!=-1){
+#ifndef FAKEROOT_FAKENET
+  if(init_get_msg()!=-1)
+#endif /* ! FAKEROOT_FAKENET */
+  {
     cpyfakemstat(&buf,st);
-    
+
     buf.id=stat_func;
     send_get_fakem(&buf);
     cpystatfakem(st,&buf);
   }
 }
 
+#ifdef STAT64_SUPPORT
+void send_get_stat64(struct stat64 *st)
+{
+  struct fake_msg buf;
 
-key_t get_ipc_key(){
+#ifndef FAKEROOT_FAKENET
+  if(init_get_msg()!=-1)
+#endif /* ! FAKEROOT_FAKENET */
+  {
+    cpyfakemstat64(&buf,st);
+
+    buf.id=stat_func;
+    send_get_fakem(&buf);
+    cpystat64fakem(st,&buf);
+  }
+}
+#endif /* STAT64_SUPPORT */
+
+#ifndef FAKEROOT_FAKENET
+
+key_t get_ipc_key()
+{
   const char *s;
   static key_t key=-1;
 
@@ -306,9 +620,4 @@ int init_get_msg(){
   return msg_snd;
 }
 
-
-
-
-
-
-
+#endif /* ! FAKEROOT_FAKENET */

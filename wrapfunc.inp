@@ -12,7 +12,7 @@
 /* value. After that come the function arguments with types, and the last */
 /* field contains the function arguments without types.                   */
 /**/
-open;int;(const char *pathname, int flags, mode_t mode);(pathname, flags, mode)
+open;int;(const char *pathname, int flags, int mode);(pathname, flags, mode)
 fopen;FILE *;(const char *pathname, const char *mode);(pathname, mode)
 freopen;FILE *;(const char *pathname, const char *mode, FILE *stream);(pathname, mode, stream)
 
@@ -31,10 +31,10 @@ WRAP_FSTAT64;int;FSTAT_ARG(int ver, int fd, struct stat64 *buf);FSTAT_ARG(ver, f
 
 WRAP_MKNOD;int;MKNOD_ARG(int ver, const char *pathname, mode_t mode, dev_t XMKNOD_FRTH_ARG dev);MKNOD_ARG(ver, pathname, mode, dev);MKNOD
 
-opendir;DIR *;(const char *name);(name)
+/* opendir;DIR *;(const char *name);(name) */
 /*closedir;int;(DIR *dir);(dir)*/
 /*readdir;struct dirent *;(DIR *dir);(dir)*/
-readlink;int;(const char *path, READLINK_BUF_TYPE *buf, READLINK_BUFSIZE_TYPE bufsize);(path, buf, bufsize)
+/*readlink;int;(const char *path, READLINK_BUF_TYPE *buf, READLINK_BUFSIZE_TYPE bufsize);(path, buf, bufsize)*/
 /*telldir;off_t;(DIR *dir);(dir)*/
 
 chown;int;(const char *path, uid_t owner, gid_t group);(path, owner, group)
@@ -50,6 +50,10 @@ rename;int;(const char *oldpath, const char *newpath);(oldpath, newpath)
 /*__execve;int;(const char *path, char *const argv[], char *const envp[]);(path,argv,envp)*/
 /*execve;int;(const char *path, char *const argv[], char *const envp[]);(path,argv,envp)*/
 
+#ifdef FAKEROOT_FAKENET
+fork;pid_t;(void);()
+vfork;pid_t;(void);()
+#endif /* FAKEROOT_FAKENET */
 
 /* for fakeroot */
 
@@ -57,9 +61,36 @@ getuid;uid_t;(void);()
 getgid;gid_t;(void);()
 geteuid;uid_t;(void);()
 getegid;gid_t;(void);()
-
+setuid;int;(uid_t id);(id)
+setgid;int;(gid_t id);(id)
+seteuid;int;(uid_t id);(id)
+setegid;int;(gid_t id);(id)
+setreuid;int;(SETREUID_ARG ruid, SETREUID_ARG euid);(ruid, euid)
+setregid;int;(SETREGID_ARG rgid, SETREGID_ARG egid);(rgid, egid)
+#ifdef HAVE_GETRESUID
+getresuid;int;(uid_t *ruid, uid_t *euid, uid_t *suid);(ruid, euid, suid)
+#endif /* HAVE_GETRESUID */
+#ifdef HAVE_GETRESGID
+getresgid;int;(gid_t *rgid, gid_t *egid, gid_t *sgid);(rgid, egid, sgid)
+#endif /* HAVE_GETRESGID */
+#ifdef HAVE_SETRESUID
+setresuid;int;(uid_t ruid, uid_t euid, uid_t suid);(ruid, euid, suid)
+#endif /* HAVE_SETRESUID */
+#ifdef HAVE_SETRESGID
+setresgid;int;(gid_t rgid, gid_t egid, gid_t sgid);(rgid, egid, sgid)
+#endif /* HAVE_SETRESGID */
+#ifdef HAVE_SETFSUID
+setfsuid;uid_t;(uid_t fsuid);(fsuid)
+#endif /* HAVE_SETFSUID */
+#ifdef HAVE_SETFSGID
+setfsgid;gid_t;(gid_t fsgid);(fsgid)
+#endif /* HAVE_SETFSGID */
+initgroups;int;(const char *user, INITGROUPS_SECOND_ARG group);(user, group)
+setgroups;int;(SETGROUPS_SIZE_TYPE size, const gid_t *list);(size, list)
 
 /* for chroot */
+readlink;int;(const char *path, READLINK_BUF_TYPE *buf, READLINK_BUFSIZE_TYPE bufsize);(path, buf, bufsize)
+opendir;DIR *;(const char *name);(name)
 chroot;int;(const char *path);(path)
 chdir;int;(const char *path);(path)
 getcwd;char *;(char *buf, size_t size);(buf, size)

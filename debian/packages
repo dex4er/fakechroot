@@ -1,12 +1,25 @@
 # $Id$
 
+# If the debian/rules or debian/control file is missing, rebuild the file:
+#
+#   $ yada rebuild control
+#   $ yada rebuild rules
+
 # Environment variables:
 #   with_test=%{$with_test}  - build with check test
 
 %define with_test %{?$with_test:1}%{!?$with_test:0}
+%define without_test %{!?with_test:1}%{?with_test:0}
 
-%define fakeroot_version 0.7.8
+# Macro switches:
+#   with_test=%{with_test} without_test=%{without_test}
+
+%define fakeroot_version 1.2.4
 %define automake_version 1.7
+
+# Other macros:
+#   fakeroot_version=%{fakeroot_version}
+#   automake_version=%{automake_version}
 
 Source: fakechroot
 Section: utils
@@ -14,7 +27,7 @@ Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
 Standards-Version: 3.6.1
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
-Description: Gives a fake chroot environment
+Description: gives a fake chroot environment
 Origin: debian
 Copyright: GPL
  (c) 2003 Piotr Roszatycki <dexter@debian.org>, GPL
@@ -74,7 +87,7 @@ Clean: sh
 Package: fakechroot
 Architecture: any
 Depends: fakeroot (>= %{fakeroot_version}), []
-Description: Gives a fake chroot environment
+Description: gives a fake chroot environment
  This package provides a library which overrides libc functions, so
  it is possible to use root-specific tools without root priviliges.
  .

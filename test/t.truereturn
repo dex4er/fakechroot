@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if ${srcdir}/../scripts/fakeroot -f ../faked -l ../.libs/${libfakeroot} -- \
+if ../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
  true
 then
  true

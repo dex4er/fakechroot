@@ -1,5 +1,6 @@
-#!/bin/bash 
+#!/bin/sh
 set -e
+echo compare-tar:
 
 tar -tvzf $1 |perl -p -e 's/^((.*?)(\t+|\s\s+)\d+).*\s(\S+)$/$1 $4/' |sort > tmp-1
 tar -tvzf $2 |perl -p -e 's/^((.*?)(\t+|\s\s+)\d+).*\s(\S+)$/$1 $4/' |sort > tmp-2
@@ -9,16 +10,13 @@ diff -u tmp-1 tmp-2 > tmp-diff
 if test -s tmp-diff; then
   echo tar files differ:
   cat tmp-diff
-  #The following is because I suspect that non-developpers of fakeroot
-  #don't want this (confusing) prompt here, but I do, usually (my system is
-  #called "rulcmc").
-  if test `hostname` = "rulcmc"; then
+  if test -n "$FAKEROOT_INTERACTIVE_TARTEST"; then
     echo
-    echo Youre now inside the "fakeroot" shell, so that you can examine
+    echo 'You are now inside the "fakeroot" shell, so that you can examine'
     echo the problem more closely. Just type exit to get away from here.
     echo tmp-1 comes from ../tartest.gz.uue, tmp-2 is the just-built
     echo faketar.tar.gz, with the current fakeroot.
-    bash
+    sh
   fi
   exit 1
 fi  
