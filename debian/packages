@@ -106,5 +106,6 @@ Install: sh
  done
  yada install -script -as fakechroot scripts/fakeroot
  yada install -man -as fakechroot.1 doc/fakeroot.1
+ yada install -doc README.fakechroot
 Shlibs:
  /usr/lib/libfakechroot/libfakechroot 0

@@ -1,3 +1,9 @@
+fakechroot (0.2.3+0.7.5) unstable; urgency=low
+
+  * Add documentation in /usr/share/doc/fakechroot.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Sat,  9 Aug 2003 01:43:31 +0200
+
 fakechroot (0.2.2+0.7.5) unstable; urgency=low
 
   * The schema of version package is "fakechroot_ver+fakeroot_ver". Fix that.
