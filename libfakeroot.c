@@ -1701,6 +1701,46 @@ int ulckpwdf() {
     return 0;
 }
 
+int setxattr(const char *path, const char *name, const void *value, size_t size, int flags) {
+    expand_chroot_path(path);
+    return next_setxattr(path, name, value, size, flags);
+}
+
+int lsetxattr(const char *path, const char *name, const void *value, size_t size, int flags) {
+    expand_chroot_path(path);
+    return next_lsetxattr(path, name, value, size, flags);
+}
+
+ssize_t getxattr(const char *path, const char *name, void *value, size_t size) {
+    expand_chroot_path(path);
+    return next_getxattr(path, name, value, size);
+}
+
+ssize_t lgetxattr(const char *path, const char *name, void *value, size_t size) {
+    expand_chroot_path(path);
+    return next_getxattr(path, name, value, size);
+}
+
+ssize_t listxattr(const char *path, char *list, size_t size) {
+    expand_chroot_path(path);
+    return next_listxattr(path, list, size);
+}
+
+ssize_t llistxattr(const char *path, char *list, size_t size) {
+    expand_chroot_path(path);
+    return next_llistxattr(path, list, size);
+}
+
+int removexattr(const char *path, const char *name) {
+    expand_chroot_path(path);
+    return next_removexattr(path, name);
+}
+
+int lremovexattr(const char *path, const char *name) {
+    expand_chroot_path(path);
+    return next_lremovexattr(path, name);
+}
+
 int fakeroot_disable(int new)
 {
   int old = fakeroot_disabled;
