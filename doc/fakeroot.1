@@ -13,7 +13,7 @@
 .sp
 ..
 .\"
-.TH fakeroot 1 "26 March 2003" "Debian Project" "Debian manual"
+.TH fakeroot 1 "9 May 2003" "Debian Project" "Debian manual"
 .\" Manpage by J.H.M. Dassen <jdassen@wi.LeidenUniv.nl>
 .SH NAME
 fakeroot \- run a command in an environment faking root privileges for file
@@ -28,6 +28,7 @@ manipulation
 .IB load-file ]
 .B [\-s
 .IB save-file ]
+.B [\-u|\-\-unknown\-is\-real ]
 .BI [\-\-]
 .BI [command]
 .SH DESCRIPTION
@@ -71,7 +72,7 @@ which fakeroot needs).
 
 .SH OPTIONS
 .TP
-.BI \-\-lib \ library
+\fB\-l\fR \fIlibrary\fR, \fB\-\-lib\fR \fIlibrary\fR
 Specify an alternative wrapper library.
 .TP
 .BI \-\-faked \ binary
@@ -98,6 +99,10 @@ Note that this does not implicitly save the file, use \-s as well for
 that behaviour. Using the same file for both \-i and \-s in a single
 .BR fakeroot
 invocation is safe.
+.TP
+\fB\-u\fR, \fB\-\-unknown\-is\-real\fR
+Use the real ownership of files previously unknown to fakeroot instead of
+pretending they are owned by root:root.
 
 .SH EXAMPLES
 Here is an example session with 
@@ -138,10 +143,10 @@ packages (in the
 .BR deb(5)
 format) without giving them root privileges.
 This can be done by commands like
-.B dpkg-buildpackage -rfakeroot
+.B dpkg-buildpackage \-rfakeroot
 or
-.B debuild -rfakeroot
-(actually, -rfakeroot is default in debuild nowadays, so you don't
+.B debuild \-rfakeroot
+(actually, \-rfakeroot is default in debuild nowadays, so you don't
 need that argument).
 .SH SECURITY ASPECTS
 .B fakeroot
@@ -179,13 +184,13 @@ does either
 .CW
 touch foo
 fakeroot 
-ls -al foo
+ls \-al foo
 .CE
 or the other way around,
 .CW
 fakeroot
 touch foo
-ls -al foo
+ls \-al foo
 .CE
 fakeroot has no way of knowing that in the first case, the owner of
 foo really should be

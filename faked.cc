@@ -121,7 +121,7 @@ int highest_funcid = sizeof(func_arr)/sizeof(func_arr[0]);
 
 key_t msg_key=0;
 //static int msg_get,msg_send, sem_id;
-bool debug=false;
+bool debug=false, unknown_is_real=false;
 char *save_file=0;
 
 
@@ -339,8 +339,10 @@ void process_stat(struct fake_msg *buf){
   if(i==data.end()){
     if (debug)
       fprintf(stderr,"FAKEROOT:    (previously unknown)\n");
-    buf->st.uid=0;
-    buf->st.gid=0;
+    if (!unknown_is_real) {
+      buf->st.uid=0;
+      buf->st.gid=0;
+    }
   }
   else{
     cpyfakefake(&buf->st,&(*i));
@@ -488,10 +490,12 @@ int main(int /*argc*/, char **argv){
       save_file=*(++argv);
     else if(!strcmp(*argv,"--load"))
       load=true;
+    else if(!strcmp(*argv,"--unknown-is-real"))
+      unknown_is_real=true;
     else {
       fprintf(stderr,"faked, daemon for fake root enfironment\n");
       fprintf(stderr,"Best used from the shell script `fakeroot'\n");
-      fprintf(stderr,"options for fakeroot: --key, --cleanup, --foreground, --debug, --save-file, --load\n");
+      fprintf(stderr,"options for fakeroot: --key, --cleanup, --foreground, --debug, --save-file, --load, --unknown-is-real\n");
       exit(1);
     }
   }

@@ -13,7 +13,7 @@
 .sp
 ..
 .\"
-.TH faked 1 "8 March 2003" "Debian Project" "Debian GNU/Linux manual"
+.TH faked 1 "9 May 2003" "Debian Project" "Debian GNU/Linux manual"
 .\" Manpage by J.H.M. Dassen <jdassen@wi.LeidenUniv.nl>
 .SH NAME
 faked \- daemon that remembers fake ownership/permissions of files
@@ -52,6 +52,10 @@ Save the environment to save-file on exit.
 .TP
 .B \-\-load
 Load a previously saved environment from the standard input.
+.TP
+.B \-\-unknown\-is\-real
+Use real ownership of previously-unknown files instead of setting them to
+root:root.
 
 .SH BUGS
 None so far. Be warned, though: although I've written quite a few much

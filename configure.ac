@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([fakeroot],[0.5.9],[schizo@debian.org],[fakeroot])
+AC_INIT([fakeroot],[0.7.5],[schizo@debian.org],[fakeroot])
 AC_PREREQ(2.57)
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
@@ -48,7 +48,7 @@ AC_DEFINE_UNQUOTED(READLINK_BUF_TYPE, $readlink_buf_arg)
 AC_DEFINE_UNQUOTED(READLINK_BUFSIZE_TYPE, $readlink_bufsize_arg)
 
 AH_TEMPLATE([HAVE_SEMUN_DEF], [have the semun union])
-AC_MSG_CHECKING([checking for union semun])
+AC_MSG_CHECKING([for union semun])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        # include <sys/types.h>
        # include <sys/ipc.h>
@@ -65,7 +65,7 @@ dnl glibc uses `* dev' as fourth argument of __xmknod.
 dnl Although the test below should probably be more general
 dnl (not just __xmknod, but also mknod etc), at the moment this
 dnl seems enough, as probably glibc is the only that does this.
-AC_MSG_CHECKING([checking for type of arg of __xmknod])
+AC_MSG_CHECKING([for type of arg of __xmknod])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        #include <sys/types.h>
        #include <sys/stat.h>
@@ -86,7 +86,7 @@ AC_MSG_CHECKING([checking for type of arg of __xmknod])
 
 AH_TEMPLATE([INITGROUPS_SECOND_ARG], [second argument of initgroups])
 dnl FreeBSD 4.7 uses int instead of gid_t
-AC_MSG_CHECKING([checking for type of arg of initgroups])
+AC_MSG_CHECKING([for type of arg of initgroups])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        #include <sys/types.h>
        #include <unistd.h>
@@ -102,7 +102,7 @@ AC_MSG_CHECKING([checking for type of arg of initgroups])
 
 AH_TEMPLATE([SETREUID_ARG], [argument of setreuid])
 dnl OpenBSD 2.8 uses int instead of uid_t
-AC_MSG_CHECKING([checking for type of arg of setreuid])
+AC_MSG_CHECKING([for type of arg of setreuid])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        #include <sys/types.h>
        #include <unistd.h>
@@ -118,7 +118,7 @@ AC_MSG_CHECKING([checking for type of arg of setreuid])
 
 AH_TEMPLATE([SETREGID_ARG], [argument of setregid])
 dnl OpenBSD 2.8 uses int instead of gid_t
-AC_MSG_CHECKING([checking for type of arg of setregid])
+AC_MSG_CHECKING([for type of arg of setregid])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        #include <sys/types.h>
        #include <unistd.h>
@@ -134,7 +134,7 @@ AC_MSG_CHECKING([checking for type of arg of setregid])
 
 AH_TEMPLATE([STAT_SECOND_ARG], [second argument of stat])
 dnl Tru64 or something uses stat * instead of struct stat *
-AC_MSG_CHECKING([checking for type of second arg to stat])
+AC_MSG_CHECKING([for type of second arg to stat])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        #include <sys/stat.h>
        #include <sys/types.h>
@@ -160,7 +160,7 @@ AC_MSG_CHECKING([checking for type of second arg to stat])
 ])
 
 for field in d_off d_type; do
-AC_MSG_CHECKING([checking for ${field} in struct dirent])
+AC_MSG_CHECKING([for ${field} in struct dirent])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
        #include <sys/types.h>
        #include <dirent.h>
@@ -257,6 +257,9 @@ case $target_cpu:$target_os in
 		;;
 	(*:linux*)
 	        libcpath="/lib/libc.so.6"
+		;;
+	(*:kfreebsd*gnu)
+	        libcpath="/lib/libc.so.1"
 		;;
 	(*:freebsd*)
 		libcpath="/usr/lib/libc.so.4"
