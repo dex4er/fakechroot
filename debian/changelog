@@ -1,3 +1,9 @@
+fakechroot (0.4.1+1.2.4) unstable; urgency=low
+
+  * Relative paths to the fakechroot script.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Fri,  4 Feb 2005 17:20:26 +0100
+
 fakechroot (0.4+1.2.4) unstable; urgency=low
 
   * Implement wrappers for <sys/xattr.h>.
