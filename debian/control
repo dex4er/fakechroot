@@ -1,7 +1,7 @@
 Source: fakeroot
 Section: utils
 Priority: optional
-Build-Depends: sharutils, file, libc6-dev-s390x [s390], gcc-3.3 [s390]
+Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc] gcc-3.3 [s390 sparc]
 Maintainer: Clint Adams <schizo@debian.org>
 Standards-Version: 3.5.9
 

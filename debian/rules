@@ -73,7 +73,7 @@ binary-arch: build checkroot
 	cd objfake && ./libtool --finish $(CURDIR)/debian/tmp/usr/lib
 	rm -f debian/tmp/usr/lib/libfakeroot/libfakeroot.*a*
 	rm -f debian/tmp/usr/bin/simple debian/tmp/usr/lib/libfakeroot.la
-ifneq (,$(findstring $(DEB_HOST_GNU_TYPE), s390-linux)) # sparc-linux
+ifneq (,$(findstring $(DEB_HOST_GNU_TYPE), sparc64 s390-linux)) # sparc-linux
 	debian/rules binary-biarch
 endif
 	$(INSTALL_FILE) debian/copyright debian/tmp/usr/share/doc/fakeroot/copyright

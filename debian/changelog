@@ -1,3 +1,9 @@
+fakeroot (0.6.9) unstable; urgency=low
+
+  * Re-enable sparc64 build. 
+
+ -- Clint Adams <schizo@debian.org>  Thu, 10 Apr 2003 19:24:57 -0400
+
 fakeroot (0.6.8) unstable; urgency=low
 
   * Build-dep on file, since libtool wants it. 
