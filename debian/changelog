@@ -1,3 +1,9 @@
+fakechroot (0.2.6+0.7.8) unstable; urgency=low
+
+  * Merged with fakeroot 0.7.8.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 30 Sep 2003 17:53:35 +0200
+
 fakechroot (0.2.5+0.7.5) unstable; urgency=low
 
   * Updated man page.

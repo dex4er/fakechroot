@@ -5,14 +5,14 @@
 
 %define with_test %{?$with_test:1}%{!?$with_test:0}
 
-%define fakeroot_version 0.7.5
+%define fakeroot_version 0.7.8
 %define automake_version 1.7
 
 Source: fakechroot
 Section: utils
 Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
-Standards-Version: 3.6.0
+Standards-Version: 3.6.1
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: Gives a fake chroot environment
 Origin: debian
