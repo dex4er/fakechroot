@@ -5,7 +5,9 @@
 
 usage () {
   echo >&2 "fakechroot, create a fake chroot environment."
-  echo >&2 "   usage: fakechroot [-l|--lib fakechrootlib] [-r|--faked fakedbin] [-i file] [-s file] [command]"
+  echo >&2 "   usage: fakeroot [-l|--lib fakerootlib] [-r|--faked fakedbin]"
+  echo >&2 "                   [-i file] [-s file] [-u|--unknown-is-real]"
+  echo >&2 "                   [--] [command]"
   exit 1
 }
 
@@ -17,15 +19,18 @@ LIB=libfakechroot.so.0
 PATHS=${PREFIX}/lib/libfakechroot:${PREFIX}/lib64/libfakechroot
 FAKED=${BINDIR}/faked
 
+FAKED_MODE="unknown-is-root"
+export FAKED_MODE
+
 libfound=no
 
 GETOPTEST=`getopt --version`
 case $GETOPTEST in
 getopt*) # GNU getopt
-    TEMP=`getopt -l lib: -l faked: -- +l:f:i:s: "$@"`
+    TEMP=`getopt -l lib: -l faked: -l unknown-is-real -- +l:f:i:s:u "$@"`
     ;;
 *) # POSIX getopt ?
-    TEMP=`getopt l:f:i:s: "$@"`
+    TEMP=`getopt l:f:i:s:u "$@"`
     ;;
 esac
 
@@ -56,6 +61,10 @@ while test "X$1" != "X--"; do
     -s)
        shift
        FAKEDOPTS=$FAKEDOPTS" --save-file $1"
+       ;;
+    -u|--unknown-is-real)
+       FAKEDOPTS=$FAKEDOPTS" --unknown-is-real"
+       FAKED_MODE="unknown-is-real"
        ;;
     -h|--help)
        usage

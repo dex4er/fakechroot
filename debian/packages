@@ -1,10 +1,12 @@
-%define fakeroot_version 0.6.9
+# $Id$
+
+%define fakeroot_version 0.7.5
 
 Source: fakechroot
 Section: utils
 Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
-Standards-Version: 3.5.9
+Standards-Version: 3.6.0
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: Gives a fake chroot environment
 Origin: debian
@@ -13,7 +15,7 @@ Copyright: GPL
  .
  Based on fakeroot package:
  GNU copyleft joost witteveen, <joostje@debian.org>.
-Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc], gcc-3.3 [s390 sparc]
+Build-Depends: sharutils, file, libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc], gcc-3.3 [s390]
 Build: sh
  automake --add-missing && aclocal && autoheader && autoconf || false
  ( cd fake && automake --add-missing && aclocal && autoconf ) || false
