@@ -8,7 +8,8 @@ and apply further attached patch.
 In fake chroot environment there are following limits:
 
  * /lib/ld-linux.so.2 is always loaded from real environment.
- * The symlinks are 
+ * You can override fake chroot with symlinks to the outside. It can
+   be useful for accessing /proc or /dev directory.
  * You have to chdir to directory common for real and faked environment
    before fakechroot is started.
  * Statically linked binaries doesn't work, especially ldconfig,
@@ -23,7 +24,8 @@ In fake chroot environment there are following limits:
  * lckpwdf() and ulckpwdf() are ignored so update-passwd should work
  * Your real uid have to exist in /etc/passwd. Create it with 
    adduser --uid realuid realuser.
- * debuild cleans environment. Use -E option to prevent this behaviour.
+ * debuild cleans environment. Use --preserve-env option to prevent this
+   behaviour.
  * fakeroot's -s option doesn't work well. You can use simple shell
    scripts to save and restore faked modes.
 
@@ -48,7 +50,6 @@ $ fakechroot -i fakeroot.save
 # cd /
 # export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
 # chroot /tmp/sid /bin/bash
-# rm -f /dev/tty
 # apt-setup
 # adduser --uid 1001 dexter
 # nano /etc/apt/sources.lists
