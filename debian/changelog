@@ -1,8 +1,11 @@
-fakechroot (0.2.7+1.2.4) unstable; urgency=low
+fakechroot (0.3+1.2.4) unstable; urgency=low
 
   * Merged with fakeroot 1.2.4 and fakechroot 0.2.6.1 (downloaded from
     http://www.altlinux.org/). Thanks to ALT Linux guys for maintaining
     the code.
+  * Patch updated to the latest debootstrap. Closes: #247199.
+  * Fixed typo in package description. Closes: #252503.
+  * The new version builds with gcc-3.4. Closes: #258855.
 
  -- Piotr Roszatycki <dexter@debian.org>  Thu,  3 Feb 2005 12:38:54 +0100
 

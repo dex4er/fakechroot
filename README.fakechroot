@@ -1,8 +1,8 @@
 fakechroot
 ----------
 
-In fake chroot you can install Debian boostrap with modified debootstrap.
-I suggest to copy out original deboostrap directory to /tmp/deboostrap
+In fake chroot you can install Debian bootstrap with modified debootstrap.
+I suggest to copy out original deboostrap directory to /tmp/debootstrap
 and apply further attached patch.
 
 In fake chroot environment there are following limits:
@@ -66,4 +66,4 @@ at /usr/share/doc/fakechroot/deboostrap.diff.gz
 
 
 The save and restore modes scripts are available
-at /usr/share/doc/fakechroot/examples directory
+at /usr/share/doc/fakechroot/examples directory.

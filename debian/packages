@@ -28,7 +28,6 @@ Maintainer: Piotr Roszatycki <dexter@debian.org>
 Standards-Version: 3.6.1
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: gives a fake chroot environment
-Origin: debian
 Copyright: GPL
  (c) 2003 Piotr Roszatycki <dexter@debian.org>, GPL
  .
@@ -128,7 +127,7 @@ Description: gives a fake chroot environment
  This package provides a library which overrides libc functions, so
  it is possible to use root-specific tools without root priviliges.
  .
- In fake chroot you can install i.e. Debian boostrap, create developer's
+ In fake chroot you can install i.e. Debian bootstrap, create developer's
  environment and build packages inside chroot'ed system using standard
  non-root user account.
 Install: sh
