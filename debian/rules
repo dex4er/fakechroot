@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 # Generated automatically from debian/packages
-# by yada v0.21, of Sun,  7 Sep 2003
+# by yada v0.30, of Fri,  6 Aug 2004
 
 DEB_HOST_ARCH        := $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_GNU_CPU     := $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
@@ -34,30 +34,30 @@ default:
 
 .PHONY: build-only build
 build-only: debian/build-stamp
-build: chmod-yada build-only
+build: build-only
 
 .PHONY: build-arch-only build-arch
 build-arch-only: debian/build-arch-stamp
-build-arch: chmod-yada build-arch-only
+build-arch: build-arch-only
 
 .PHONY: build-indep-only build-indep
 build-indep-only: debian/build-indep-stamp
-build-indep: chmod-yada build-indep-only
+build-indep: build-indep-only
 
 # Make sure these rules and the control file are up-to-date
 
 .PHONY: rules control templates
 rules: debian/rules
 debian/rules: $(shell which yada) debian/packages-tmp
-	$(shell which yada) rebuild rules
+	yada rebuild rules
 
 control: debian/control
 debian/control: $(shell which yada) debian/packages-tmp
-	$(shell which yada) rebuild control
+	yada rebuild control
 
 templates: debian/templates
 debian/templates: $(shell which yada) debian/packages-tmp
-	$(shell which yada) rebuild templates
+	yada rebuild templates
 
 debian/build-stamp: debian/build-arch-stamp debian/build-indep-stamp
 	@[ -f $(shell which yada) -a -f debian/rules ]
@@ -73,16 +73,6 @@ debian/build-stamp: debian/build-arch-stamp debian/build-indep-stamp
 	  && export DEB_BUILD_GNU_TYPE="$(DEB_BUILD_GNU_TYPE)" \
 	  && export DEB_BUILD_GNU_SYSTEM="$(DEB_BUILD_GNU_SYSTEM)" && (\
 	echo -E 'eval "yada () { perl $$(which yada) \"\$$@\"; }"; set -e; set -v';\
-	echo -E 'aclocal-1.7';\
-	echo -E 'autoheader';\
-	echo -E 'libtoolize --copy';\
-	echo -E 'automake-1.7 --add-missing --copy';\
-	echo -E 'autoconf';\
-	echo -E '( cd fake';\
-	echo -E '   aclocal-1.7';\
-	echo -E '   automake-1.7 --add-missing --copy';\
-	echo -E '   autoconf';\
-	echo -E ') || false';\
 	echo -E 'CC=$${CC:-gcc}';\
 	echo -E 'CFLAGS=$${CFLAGS:--Wall -pedantic -g}';\
 	echo -E 'CXXFLAGS=$${CFLAGS:--Wall -pedantic -g}';\
@@ -93,23 +83,84 @@ debian/build-stamp: debian/build-arch-stamp debian/build-indep-stamp
 	echo -E '    CFLAGS="$$CFLAGS -O2"';\
 	echo -E '    CXXFLAGS="$$CXXFLAGS -O2"';\
 	echo -E 'fi';\
-	echo -E 'install -d mkdir build-tree-lib build-tree-fake build-tree-lib64';\
-	echo -E '( cd build-tree-lib && CC="$$CC" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
-	echo -E '    ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot ) || false';\
-	echo -E '( cd build-tree-fake && CC="$$CC" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
-	echo -E '    ../fake/configure --prefix=/usr --mandir=/usr/share/man ) || false';\
-	echo -E '( cd build-tree-lib && make ) || false';\
-	echo -E '( cd build-tree-fake && make ) || false';\
-	echo -E 'if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then';\
-	echo -E '    ( cd build-tree-lib64 && CC="gcc -m64" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
-	echo -E '        ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux ) || false';\
-	echo -E '    ( cd build-tree-lib64 && make libfakechroot.la ) || false';\
+	echo -E '';\
+	echo -E 'if ! [ -f autoconf-stamp ]; then';\
+	echo -E '    rm -f aclocal.m4 configure';\
+	echo -E '    aclocal-1.7';\
+	echo -E '    autoheader';\
+	echo -E '    libtoolize --copy';\
+	echo -E '    automake-1.7 --add-missing --copy';\
+	echo -E '    autoconf';\
+	echo -E '    pushd fake';\
+	echo -E '        aclocal-1.7';\
+	echo -E '        automake-1.7 --add-missing --copy';\
+	echo -E '        autoconf';\
+	echo -E '    popd';\
+	echo -E '    touch autoconf-stamp';\
 	echo -E 'fi';\
-	echo -E 'if [ "$$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then';\
-	echo -E '    ( cd build-tree-lib64 && CC="gcc-3.3 -m64" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
-	echo -E '        ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux ) || false';\
-	echo -E '    ( cd build-tree-lib64 && make libfakechroot.la ) || false';\
-	echo -E 'fi') | /bin/sh
+	echo -E '';\
+	echo -E 'if ! [ -f configure-stamp ]; then';\
+	echo -E '    install -d build-tree-lib build-tree-fake build-tree-lib64';\
+	echo -E '    pushd build-tree-lib';\
+	echo -E '        CC="$$CC" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
+	echo -E '            ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot';\
+	echo -E '    popd';\
+	echo -E '    pushd build-tree-fake';\
+	echo -E '    CC="$$CC" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
+	echo -E '        ../fake/configure --prefix=/usr --mandir=/usr/share/man';\
+	echo -E '    popd';\
+	echo -E '    if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then';\
+	echo -E '        pushd build-tree-lib64';\
+	echo -E '        CC="gcc -m64" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
+	echo -E '            ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux';\
+	echo -E '        popd';\
+	echo -E '    fi';\
+	echo -E '    install -d build-tree-lib-tcp build-tree-fake-tcp build-tree-lib64-tcp';\
+	echo -E '    pushd build-tree-lib-tcp';\
+	echo -E '        CC="$$CC" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
+	echo -E '            ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot \';\
+	echo -E '                --with-ipc=tcp --program-suffix=-tcp';\
+	echo -E '    popd';\
+	echo -E '    pushd build-tree-fake-tcp';\
+	echo -E '    CC="$$CC" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
+	echo -E '        ../fake/configure --prefix=/usr --mandir=/usr/share/man \';\
+	echo -E '                --with-ipc=tcp --program-suffix=-tcp';\
+	echo -E '    popd';\
+	echo -E '    if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then';\
+	echo -E '        pushd build-tree-lib64-tcp';\
+	echo -E '        CC="gcc -m64" CFLAGS="$$CFLAGS" CXXFLAGS="$$CXXFLAGS" \';\
+	echo -E '            ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux \';\
+	echo -E '                --with-ipc=tcp --program-suffix=-tcp';\
+	echo -E '        popd';\
+	echo -E '    fi';\
+	echo -E '    touch configure-stamp';\
+	echo -E 'fi';\
+	echo -E '';\
+	echo -E 'if ! [ -f build-stamp ]; then';\
+	echo -E '    pushd build-tree-lib';\
+	echo -E '        make';\
+	echo -E '    popd';\
+	echo -E '    pushd build-tree-fake';\
+	echo -E '        make';\
+	echo -E '    popd';\
+	echo -E '    if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then';\
+	echo -E '        pushd build-tree-lib64';\
+	echo -E '            make';\
+	echo -E '        popd';\
+	echo -E '    fi';\
+	echo -E '    pushd build-tree-lib-tcp';\
+	echo -E '        make';\
+	echo -E '    popd';\
+	echo -E '    pushd build-tree-fake-tcp';\
+	echo -E '        make';\
+	echo -E '    popd';\
+	echo -E '    if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then';\
+	echo -E '        pushd build-tree-lib64-tcp';\
+	echo -E '            make';\
+	echo -E '        popd';\
+	echo -E '    fi';\
+	echo -E '    touch build-stamp';\
+	echo -E 'fi') | /bin/bash
 	touch debian/build-stamp
 
 debian/build-arch-stamp:
@@ -121,7 +172,7 @@ debian/build-indep-stamp:
 	touch debian/build-indep-stamp
 
 .PHONY: install-tree
-install-tree: chmod-yada install-tree-any
+install-tree: install-tree-any
 install-tree-any: \
 	debian/tmp-fakechroot/DEBIAN/control
 
@@ -129,7 +180,7 @@ debian/tmp-fakechroot/DEBIAN/control: debian/build-stamp debian/control
 	rm -rf debian/tmp-fakechroot
 	umask 022 && install -d debian/tmp-fakechroot/DEBIAN
 	install -d debian/tmp-fakechroot/usr/share/doc/fakechroot
-	umask 022; $(shell which yada) generate copyright \
+	umask 022; yada generate copyright \
 	  > debian/tmp-fakechroot/usr/share/doc/fakechroot/copyright
 	install -m 644 -p debian/changelog \
 	  debian/tmp-fakechroot/usr/share/doc/fakechroot/changelog
@@ -148,32 +199,57 @@ debian/tmp-fakechroot/DEBIAN/control: debian/build-stamp debian/control
 	  && export DEB_BUILD_GNU_TYPE="$(DEB_BUILD_GNU_TYPE)" \
 	  && export DEB_BUILD_GNU_SYSTEM="$(DEB_BUILD_GNU_SYSTEM)" && (\
 	echo -E 'eval "yada () { perl $$(which yada) \"\$$@\"; }"; set -e; set -v';\
-	echo -E 'yada copy -into /usr/lib/libfakechroot build-tree-lib/.libs/*.so.*.*.* build-tree-lib/.libs/*.a';\
-	echo -E 'chmod 644 $$ROOT/usr/lib/libfakechroot/*.so.*.*.*';\
-	echo -E 'for f in build-tree-lib/.libs/*.so.*.*.*; do';\
-	echo -E '    f=$$(basename $$f)';\
-	echo -E '    yada symlink -lib -subdir libfakechroot -as $$(echo $$f | sed '\''s/\.[0-9]*\.[0-9]*$$//'\'') $$f';\
-	echo -E '    yada symlink -lib -subdir libfakechroot -as $$(echo $$f | sed '\''s/\.[0-9]*\.[0-9]*\.[0-9]*$$//'\'') $$f';\
+	echo -E 'for i in build-tree*; do';\
+	echo -E '    pushd $$i';\
+	echo -E '        if [ -f Makefile ]; then';\
+	echo -E '            rm -rf tmp || true';\
+	echo -E '            make install DESTDIR=$$(pwd)/tmp';\
+	echo -E '        fi';\
+	echo -E '    popd';\
 	echo -E 'done';\
-	echo -E 'yada copy -into /usr/lib build-tree-fake/.libs/*.so.*.*.*';\
-	echo -E 'chmod 4644 $$ROOT/usr/lib/*.so.*.*.*';\
-	echo -E 'if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" -o "$$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then';\
-	echo -E '    for f in build-tree-lib64/.libs/*.so.*.*.*; do';\
-	echo -E '        f=$$(basename $$f)';\
-	echo -E '        yada symlink -lib -into /usr/lib64/libfakechroot -as $$(echo $$f | sed '\''s/\.[0-9]*\.[0-9]*$$//'\'') $$f';\
-	echo -E '        yada symlink -lib -into /usr/lib64/libfakechroot -as $$(echo $$f | sed '\''s/\.[0-9]*\.[0-9]*\.[0-9]*$$//'\'') $$f';\
-	echo -E '    done';\
-	echo -E '    chmod 4644 $$ROOT/usr/lib/*.so.*.*.*';\
+	echo -E '';\
+	echo -E 'yada install -lib -into /usr/lib build-tree-fake/tmp/usr/lib/*.so.*.*.*';\
+	echo -E 'yada symlink -into /usr/lib \';\
+	echo -E '    -as $$(basename build-tree-fake-tcp/tmp/usr/lib/*.so.?) \';\
+	echo -E '    $$(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.*)';\
+	echo -E 'yada install -lib -into /usr/lib \';\
+	echo -E '    -as $$(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.* | sed '\''s/\.so/-tcp&/'\'') \';\
+	echo -E '    build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.*';\
+	echo -E 'yada symlink -into /usr/lib \';\
+	echo -E '    -as $$(basename build-tree-fake-tcp/tmp/usr/lib/*.so.? | sed '\''s/\.so/-tcp&/'\'') \';\
+	echo -E '    $$(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.* | sed '\''s/\.so/-tcp&/'\'')';\
+	echo -E 'yada install -script -as fakechroot build-tree-lib/tmp/usr/bin/fakeroot';\
+	echo -E 'yada install -bin -as fakechrootd build-tree-lib/tmp/usr/bin/faked';\
+	echo -E 'yada copy -into /usr/lib/libfakechroot build-tree-lib/tmp/usr/lib/libfakechroot/*.so.?';\
+	echo -E 'yada install -lib -into /usr/lib/libfakechroot build-tree-lib/tmp/usr/lib/libfakechroot/*.so.*.*.*';\
+	echo -E 'yada install -script -as fakechroot-tcp build-tree-lib-tcp/tmp/usr/bin/fakeroot-tcp';\
+	echo -E 'yada install -bin -as fakechrootd-tcp build-tree-lib-tcp/tmp/usr/bin/faked-tcp';\
+	echo -E 'yada install -lib -into /usr/lib/libfakechroot \';\
+	echo -E '    -as $$(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed '\''s/\.so/-tcp&/'\'') \';\
+	echo -E '    build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.*';\
+	echo -E 'yada symlink -into /usr/lib/libfakechroot \';\
+	echo -E '    -as $$(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed '\''s/\.so/-tcp&/'\'') \';\
+	echo -E '    $$(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed '\''s/\.so/-tcp&/'\'')';\
+	echo -E '';\
+	echo -E 'if [ "$$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then';\
+	echo -E '    yada install -lib -into /usr/lib64/libfakechroot build-tree-lib64/tmp/usr/lib/*.so.*.*.*';\
+	echo -E '    yada symlink -into /usr/lib64/libfakechroot \';\
+	echo -E '        -as $$(basename build-tree-lib64/tmp/usr/lib/*.so.?) \';\
+	echo -E '        $$(basename build-tree-lib64/tmp/usr/lib/*.so.*.*.*)';\
+	echo -E '    yada install -lib -into /usr/lib64/libfakechroot \';\
+	echo -E '        -as $$(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed '\''s/\.so/-tcp&/'\'') \';\
+	echo -E '        build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.*';\
+	echo -E '    yada symlink -into /usr/lib64/libfakechroot \';\
+	echo -E '        -as $$(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.? | sed '\''s/\.so/-tcp&/'\'') \';\
+	echo -E '        $$(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed '\''s/\.so/-tcp&/'\'')';\
 	echo -E 'fi';\
-	echo -E 'for f in build-tree-fake/.libs/*.so.*.*.*; do';\
-	echo -E '    f=$$(basename $$f)';\
-	echo -E '    yada symlink -lib -as $$(echo $$f | sed '\''s/\.[0-9]*\.[0-9]*$$//'\'') $$f';\
-	echo -E '    yada symlink -lib -as $$(echo $$f | sed '\''s/\.[0-9]*\.[0-9]*\.[0-9]*$$//'\'') $$f';\
-	echo -E 'done';\
-	echo -E 'yada install -script -as fakechroot scripts/fakeroot';\
+	echo -E '';\
 	echo -E 'yada install -man -as fakechroot.1 doc/fakeroot.1';\
+	echo -E 'yada install -man -as fakechroot-tcp.1 doc/fakeroot.1';\
+	echo -E 'yada install -man -as fakechrootd.1 doc/faked.1';\
+	echo -E 'yada install -man -as fakechrootd-tcp.1 doc/faked.1';\
 	echo -E 'yada install -doc README.fakechroot doc/debootstrap.diff';\
-	echo -E 'yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake') | /bin/sh
+	echo -E 'yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake') | /bin/bash
 	@umask 022 \
 	  && export pwd="$$(pwd)" \
 	  && export ROOT="$$(pwd)/debian/tmp-fakechroot" \
@@ -187,26 +263,26 @@ debian/tmp-fakechroot/DEBIAN/control: debian/build-stamp debian/control
 	echo -E 'yada python';\
 	echo -E 'yada strip';\
 	echo -E 'yada shlibdeps') | /bin/sh
-	$(shell which yada) compress fakechroot
-	$(shell which yada) generate maintscripts fakechroot
+	yada compress fakechroot
+	yada generate maintscripts fakechroot
 	find debian/tmp-fakechroot -type f -print \
 	  | sed -n 's/^debian\/tmp-fakechroot\(\/etc\/.*\)$$/\1/p' \
 	  > debian/tmp-fakechroot/DEBIAN/conffiles
 	if test ! -s debian/tmp-fakechroot/DEBIAN/conffiles; then rm -f debian/tmp-fakechroot/DEBIAN/conffiles; fi
-	$(shell which yada) rebuild control
-	$(shell which yada) generate substvars fakechroot
+	yada rebuild control
+	yada generate substvars fakechroot
 	umask 022 && dpkg-gencontrol -isp -pfakechroot -Pdebian/tmp-fakechroot
 
 # Build package files
 
 .PHONY: binary binary-arch binary-indep
 binary: binary-arch binary-indep
-binary-arch: chmod-yada binary-arch-any
+binary-arch: binary-arch-any
 
 .PHONY: binary-arch-any
 binary-arch-any: \
 	binary-package-fakechroot
-binary-indep: chmod-yada
+binary-indep:
 
 .PHONY: binary-package-fakechroot
 binary-package-fakechroot: check-root debian/tmp-fakechroot/DEBIAN/control
@@ -222,20 +298,14 @@ binary-package-fakechroot: check-root debian/tmp-fakechroot/DEBIAN/control
 check-root:
 	@[ `id -u` = 0 ] || (echo "You must be root to do this!"; false)
 
-.PHONY: chmod-yada
-chmod-yada:
-	@if [ -f debian/yada -a ! -x debian/yada ]; then \
-	  chmod +x debian/yada; \
-	fi
-
 debian/packages-tmp: debian/packages 
-	$(shell which yada) rebuild packages
+	yada rebuild packages
 
 ## Clean up afterwards
 
 .PHONY: clean clean-install-tree clean-build
 
-clean: chmod-yada clean-install-tree clean-build debian/control debian/rules
+clean: clean-install-tree clean-build debian/control debian/rules
 	rm -f debian/packages-tmp debian/packages-tmp-new debian/packages-tmp-include
 
 clean-build:
@@ -253,15 +323,16 @@ clean-build:
 	  && export DEB_BUILD_GNU_TYPE="$(DEB_BUILD_GNU_TYPE)" \
 	  && export DEB_BUILD_GNU_SYSTEM="$(DEB_BUILD_GNU_SYSTEM)" && (\
 	echo -E 'eval "yada () { perl $$(which yada) \"\$$@\"; }"; set -e; set -v';\
-	echo -E 'rm -rf build-tree-*';\
+	echo -E 'rm -rf build-tree-* || true';\
+	echo -E 'rm -f *-stamp || true';\
 	echo -E 'rm -rf $$(cat .cvsignore)';\
 	echo -E 'for i in $$(find -name .cvsignore); do';\
 	echo -E '    ( cd $$(dirname $$i) && rm -rf $$(cat .cvsignore) )';\
 	echo -E 'done') | /bin/sh
-	$(shell which yada) unpatch
+	yada unpatch
 	rm -rf debian/tmp
 
-clean-install-tree: chmod-yada debian/rules
+clean-install-tree: debian/rules
 	@[ -f $(shell which yada) -a -f debian/rules ]
 	rm -f debian/install-tree-stamp
-	rm -rf debian/tmp-* debian/files* debian/substvars debian/shlibs.local
+	rm -rf debian/tmp-* debian/files* debian/substvars debian/shlibs.local debian/ucf

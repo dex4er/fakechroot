@@ -1,3 +1,23 @@
+fakeroot can now be compiled to use either System V semaphores and
+message queues or TCP for inter-process communication.
+
+SysV IPC is the default; to build for TCP, run configure with
+--with-ipc=tcp (case-sensitive).
+
+Platform-specific notes:
+
+FreeBSD:
+
+  To compile --with-ipc=tcp and gcc, make sure the -pthread flag
+  is used.
+
+Solaris:
+
+  Replace all "#!/bin/sh" lines with "#!/usr/xpg4/bin/sh"
+
+###################################################################
+(old stuff)
+
 Well, just do a
 
 ./configure

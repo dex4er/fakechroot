@@ -98,6 +98,18 @@ invocation is safe.
 \fB\-u\fR, \fB\-\-unknown\-is\-real\fR
 Use the real ownership of files previously unknown to fakechroot instead of
 pretending they are owned by root:root.
+.TP
+.BI \-b \ fd
+Specify fd base (TCP mode only). fd is the minimum file descriptor
+number to use for TCP connections; this may be important to avoid
+conflicts with the file descriptors used by the programs being run
+under fakeroot.
+.TP
+.BI \-h
+Display help.
+.TP
+.BI \-v
+Display version.
 
 .SH EXAMPLES
 Here is an example session with 
@@ -105,21 +117,33 @@ Here is an example session with
 Notice that inside the fake root environment file manipulation that
 requires root privileges succeeds, but is not really happening.
 .CW
-$ fakeroot \-s fakeroot.save
+$ cp \-a /usr/lib/debootstrap /tmp
+$ cp \-a /usr/sbin/debootstrap /tmp/debootstrap/scripts
+$ ( cd /tmp/debootstrap; patch \-f \-p1 ) < debootstrap.diff
+$ ( cd /tmp/debootstrap/scripts; patch \-f \-p1 ) < debootstrap.diff
+
+$ fakechroot \-s fakeroot.save
+# cd /
 # export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
-# debootstrap --fakechroot woody /tmp/fakeroot
+# DEBOOTSTRAP_DIR=/tmp/debootstrap /tmp/debootstrap/scripts/debootstrap sid /tmp/sid
 # exit
-$ fakeroot \-s fakeroot.save \-i fakeroot.save
-# chroot /tmp/fakeroot /bin/bash
-# rm \-f /dev/tty
+$ rm \-rf /tmp/sid/proc; ln \-s /proc /tmp/sid
+$ mv /tmp/sid/dev /tmp/sid/.dev; ln \-s /dev /tmp/sid
+
+$ fakechroot \-i fakeroot.save
+# cd /
+# export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
+# chroot /tmp/sid /bin/bash
+# sh /usr/share/doc/fakechroot/examples/savemode.sh
+# apt\-setup
 # adduser \-\-uid 1001 dexter
 # nano /etc/apt/sources.lists
 # apt\-get update
-# apt\-get install build\-essential
+# apt\-get install build\-essential devscripts
 # cd /tmp
 # apt\-get source hello
 # cd hello\-*
-# debuild \-E
+# debuild \-\-preserve\-env \-B
 # exit
 .CE
 
@@ -144,6 +168,9 @@ have the same "fake" view of the file system's permissions/ownerships.
 user). 
 .B 
 .IP FAKECHROOT
+The value is true for fake chroot environment.
+.B 
+.IP FAKECHROOTDIR
 The root directory for fake chroot environment.
 .SH LIMITATIONS
 .IP "\(bu" 4
@@ -161,7 +188,8 @@ so you have to wrap this command and i.e. set the dpkg diversion.
 .BR ldd (1)
 also doesn't work. You have to use wrapper.
 .IP "\(bu" 4
-Remove /dev/tty - the full screen apps doesn't work if it exists.
+You can override fake chroot with symlinks to the outside. It can
+be useful for accessing /proc or /dev directory.
 .IP "\(bu" 4
 .BR ltrace (1)
 sometimes doesn't work.
@@ -176,7 +204,7 @@ Your real uid have to exist in /etc/passwd. Create it with
 `adduser --uid realuid realuser'.
 .IP "\(bu" 4
 .BR debuild (1)
-cleans environment. Use -E option to prevent this behaviour.
+cleans environment. Use \-\-preserve-env option to prevent this behaviour.
 .IP "\(bu" 4
 fakeroot's -s option doesn't work well. You can use simple shell
 scripts to save and restore faked modes.

@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([fakeroot],[0.7.8],[schizo@debian.org],[fakeroot])
-AC_PREREQ(2.57)
+AC_INIT([fakeroot],[FAKEROOT_VERSION],[schizo@debian.org],[fakeroot])
+AC_PREREQ(2.59)
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -8,18 +8,48 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_PROG_CC
-AC_PROG_CXX
+
+AC_ARG_WITH([ipc],
+	    AS_HELP_STRING([--with-ipc@<:@=IPCTYPE@:>@],
+			   [method of IPC to use: either sysv (default) or tcp]),
+	    [ac_cv_use_ipc=$withval],
+	    [ac_cv_use_ipc=sysv])
+
+AC_CACHE_CHECK([which IPC method to use],
+	       [ac_cv_use_ipc],
+	       [ac_cv_use_ipc=sysv])
+
+AC_ARG_WITH([dbformat],
+	    AS_HELP_STRING([--with-dbformat@<:@=DBFORMAT@:>@],
+			   [database format to use: either inode (default) or path]),
+	    [ac_cv_dbformat=$withval],
+	    [ac_cv_dbformat=inode])
+
+AC_CACHE_CHECK([which database format to use],
+	       [ac_cv_dbformat],
+	       [ac_cv_dbformat=inode])
+
+AH_TEMPLATE([FAKEROOT_DB_PATH], [store path in the database instead of inode and device])
+if test $ac_cv_dbformat = "path"; then
+AC_DEFINE_UNQUOTED(FAKEROOT_DB_PATH, [1])
+fi
 
 dnl Checks for programs.
 
 dnl Checks for libraries.
 dnl Replace `main' with a function in -ldl:
 AC_CHECK_LIB(dl, dlopen)
+AH_TEMPLATE([FAKEROOT_FAKENET], [use TCP instead of SysV IPC])
+if test $ac_cv_use_ipc = "tcp"; then
+AC_DEFINE_UNQUOTED(FAKEROOT_FAKENET, [TCP])
+AC_CHECK_LIB(pthread, pthread_self)
+AC_CHECK_LIB(socket, connect)
+fi
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h unistd.h features.h sys/feature_tests.h)
+AC_CHECK_HEADERS(fcntl.h unistd.h features.h sys/feature_tests.h pthread.h stdint.h inttypes.h grp.h endian.h sys/sysmacros.h sys/socket.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -52,6 +82,24 @@ AH_TEMPLATE([READLINK_BUF_TYPE], [type of readlink buf])
 AH_TEMPLATE([READLINK_BUFSIZE_TYPE], [type of readlink bufsize])
 AC_DEFINE_UNQUOTED(READLINK_BUF_TYPE, $readlink_buf_arg)
 AC_DEFINE_UNQUOTED(READLINK_BUFSIZE_TYPE, $readlink_bufsize_arg)
+
+AC_MSG_CHECKING([for first argument of setgroups])
+setgroups_size_arg=unknown
+for first in size_t int; do
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#define _BSD_SOURCE
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <unistd.h>
+#ifdef HAVE_GRP_H
+#include <grp.h>
+#endif
+  int setgroups($first size, const gid_t *list);]], [[puts("hello, world");]])],[setgroups_size_arg=$first],[])
+done
+AC_MSG_RESULT([$setgroups_size_arg])
+AH_TEMPLATE([SETGROUPS_SIZE_TYPE], [type of setgroups size])
+AC_DEFINE_UNQUOTED(SETGROUPS_SIZE_TYPE, $setgroups_size_arg)
+
 
 AH_TEMPLATE([HAVE_SEMUN_DEF], [have the semun union])
 AC_MSG_CHECKING([for union semun])
@@ -264,8 +312,8 @@ case $target_cpu:$target_os in
 	(*:linux*)
 	        libcpath="/lib/libc.so.6"
 		;;
-	(*:kfreebsd*gnu)
-	        libcpath="/lib/libc.so.1"
+	(*:k*bsd*-gnu)
+	        libcpath="/lib/libc.so.0.1"
 		;;
 	(*:freebsd*)
 		libcpath="/usr/lib/libc.so.4"
@@ -282,6 +330,9 @@ case $target_cpu:$target_os in
 	(*:osf*)
 		libcpath="/shlib/libc.so"
 		;;
+	(*:solaris*)
+		libcpath="/lib/libc.so.1"
+		;;
 	(*)
 		AC_MSG_WARN([don't know where libc is for $target_os on
 			     $target_cpu, setting to /lib/libc.so])
@@ -292,7 +343,7 @@ esac
 AC_DEFINE_UNQUOTED([LIBCPATH], "$libcpath", [path to libc shared object])
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(strdup strstr)
+AC_CHECK_FUNCS(strdup strstr getresuid setresuid getresgid setresgid setfsuid setfsgid)
 
 dnl kludge
 AH_VERBATIM([WRAP_STAT],
@@ -334,7 +385,7 @@ AH_VERBATIM([WRAP_STAT],
 ])
 dnl kludge end
 
-AC_CONFIG_FILES([Makefile scripts/Makefile doc/Makefile doc/es/Makefile doc/fr/Makefile doc/sv/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile scripts/Makefile doc/Makefile test/Makefile])
 AC_OUTPUT
 
 dnl Local variables:

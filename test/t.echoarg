@@ -1,4 +1,4 @@
 #!/bin/sh
 
-${srcdir}/../scripts/fakeroot -f ../faked -l ../.libs/${libfakeroot} -- \
+../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
  sh -c 'RET="$('"${srcdir}"'/echo_arg 3 a b c d e)"; echo RET=$RET; test "$RET" = "b"'
