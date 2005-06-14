@@ -1,3 +1,12 @@
+fakechroot (0.7+1.2.4) unstable; urgency=low
+
+  * Implement wrapper for scandir(3) function. Now, the run-parts(8) works
+    correctly. Closes: #312409.
+  * Implement wrapper for glob(3) functions. Thanks to ALT Linux guys.
+  * Implement wrapper for glob_pattern_p(3) functions.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 14 Jun 2005 11:56:47 +0200
+
 fakechroot (0.6+1.2.4) unstable; urgency=low
 
   * Implement wrappers for mkstemp64 and mkdtemp functions.

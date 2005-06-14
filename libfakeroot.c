@@ -33,6 +33,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <utime.h>
+#include <glob.h>
 
 #define MAXPATH 2048
 static char *fakechroot_ptr;
@@ -1789,6 +1790,76 @@ int removexattr(const char *path, const char *name) {
 int lremovexattr(const char *path, const char *name) {
     expand_chroot_path(path);
     return next_lremovexattr(path, name);
+}
+
+int glob(const char *pattern, int flags, int (*errfunc) (const char *, int), glob_t *pglob)
+{
+    int rc,i;
+    char tmp[MAXPATH], *tmpptr;
+
+    expand_chroot_path(pattern);
+    rc = next_glob(pattern,flags,errfunc,pglob);
+    if (rc < 0)
+	return rc;
+    for(i = 0;i < pglob->gl_pathc;i++)
+     {
+       strcpy(tmp,pglob->gl_pathv[i]);
+       fakechroot_path = getenv("FAKECHROOT_BASE");
+       if (fakechroot_path != NULL) { 
+	 fakechroot_ptr = strstr(tmp, fakechroot_path);
+         if (fakechroot_ptr != tmp) {
+	    tmpptr = tmp;
+	 } else {
+	    tmpptr = tmp + strlen(fakechroot_path);
+	 }
+	 strcpy(pglob->gl_pathv[i], tmpptr);
+       }
+     }
+    return rc;
+}
+
+int glob64(const char *pattern, int flags, int (*errfunc) (const char *, int), glob64_t *pglob)
+{
+    int rc,i;
+    char tmp[MAXPATH], *tmpptr;
+
+    expand_chroot_path(pattern);
+    rc = next_glob64(pattern,flags,errfunc,pglob);
+    if (rc < 0)
+	return rc;
+    for(i = 0;i < pglob->gl_pathc;i++)
+     {
+       strcpy(tmp,pglob->gl_pathv[i]);
+       fakechroot_path = getenv("FAKECHROOT_BASE");
+       if (fakechroot_path != NULL) { 
+	 fakechroot_ptr = strstr(tmp, fakechroot_path);
+         if (fakechroot_ptr != tmp) {
+	    tmpptr = tmp;
+	 } else {
+	    tmpptr = tmp + strlen(fakechroot_path);
+	 }
+	 strcpy(pglob->gl_pathv[i], tmpptr);
+       }
+     }
+    return rc;
+}
+
+int glob_pattern_p(const char *pattern, int quote)
+{
+    expand_chroot_path(pattern);
+    return next_glob_pattern_p(pattern, quote);
+}
+
+int scandir(const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *))
+{
+    expand_chroot_path(dir);
+    return next_scandir(dir, namelist, filter, compar);
+}
+
+int scandir64(const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *))
+{
+    expand_chroot_path(dir);
+    return next_scandir(dir, namelist, filter, compar);
 }
 
 int fakeroot_disable(int new)

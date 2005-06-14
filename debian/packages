@@ -27,7 +27,7 @@ Standards-Version: 3.6.1
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: gives a fake chroot environment
 Copyright: GPL
- (c) 2003 Piotr Roszatycki <dexter@debian.org>, GPL
+ (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, GPL
  .
  Based on fakeroot package:
  GNU copyleft joost witteveen, <joostje@debian.org>.
