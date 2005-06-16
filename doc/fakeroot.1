@@ -172,6 +172,23 @@ The value is true for fake chroot environment.
 .B 
 .IP FAKECHROOTDIR
 The root directory for fake chroot environment.
+.B
+.IP LD_LIBRARY_PATH
+.B
+.IP LD_PRELOAD
+Fakechroot is implemented by wrapping system calls.  This is
+accomplished by setting LD_LIBRARY_PATH=/usr/lib/fakechroot and
+LD_PRELOAD=libfakechroot.so.0.  That library is loaded before the
+system's C library, and so most of the library functions are
+intercepted by it.  If you need to set either
+.B LD_LIBRARY_PATH
+or
+.B LD_PRELOAD
+from
+within a fakechroot environment, it should be set relative to the
+given paths, as in
+.B LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/
+
 .SH LIMITATIONS
 .IP "\(bu" 4
 Every command executed within 

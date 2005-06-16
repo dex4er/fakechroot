@@ -1,3 +1,11 @@
+fakechroot (0.8+1.3) unstable; urgency=medium
+
+  * Merged with fakeroot 1.3.
+  * chroot(2) function includes default path to LD_LIBRARY_PATH.
+  * Fixed scandir64(3) function.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 14 Jun 2005 16:20:12 +0200
+
 fakechroot (0.7+1.2.4) unstable; urgency=low
 
   * Implement wrapper for scandir(3) function. Now, the run-parts(8) works

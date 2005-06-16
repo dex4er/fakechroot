@@ -129,7 +129,11 @@ extern int init_get_msg();
 extern key_t get_ipc_key();
 extern void cpyfakemstat(struct fake_msg *b1, const struct stat     *st);
 #else /* FAKEROOT_FAKENET */
-extern void close_comm_sd(void);
+# ifdef FAKEROOT_LIBFAKEROOT
+extern volatile int comm_sd;
+extern void lock_comm_sd(void);
+extern void unlock_comm_sd(void);
+# endif
 #endif /* FAKEROOT_FAKENET */
 
 #ifdef STAT64_SUPPORT  

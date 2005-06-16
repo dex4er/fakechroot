@@ -19,6 +19,8 @@
 */
 #define _GNU_SOURCE 
 
+#define FAKEROOT_LIBFAKEROOT
+
 #include "config.h"
 #include "communicate.h"
 #include <stdlib.h>
@@ -33,6 +35,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <utime.h>
+#include <stdlib.h>
 #include <glob.h>
 
 #define MAXPATH 2048
@@ -960,8 +963,17 @@ pid_t fork(void)
 
   pid = next_fork();
 
-  if (pid == 0)
-    close_comm_sd();
+  if (pid == 0) {
+    int err = errno;
+
+    /* No need to lock in the child process. */
+    if (comm_sd >= 0) {
+      next_close(comm_sd);
+      comm_sd = -1;
+    }
+
+    errno = err;
+  }
 
   return pid;
 }
@@ -972,7 +984,50 @@ pid_t vfork(void)
   return fork();
 }
 
+/* Return an error when trying to close the comm_sd file descriptor
+   (pretend that it's closed). */
+int close(int fd)
+{
+  int retval, reterr;
+
+  lock_comm_sd();
+
+  if (comm_sd >= 0 && comm_sd == fd) {
+    retval = -1;
+    reterr = EBADF;
+  } else {
+    retval = next_close(fd);
+    reterr = errno;
+  }
+
+  unlock_comm_sd();
+
+  errno = reterr;
+  return retval;
+}
+
+int dup2(int oldfd, int newfd)
+{
+  int retval, reterr;
+
+  lock_comm_sd();
+
+  if (comm_sd >= 0 && comm_sd == newfd) {
+    /* If dup fails, comm_sd gets set to -1, which is fine. */
+    comm_sd = dup(newfd);
+    next_close(newfd);
+  }
+
+  retval = next_dup2(oldfd, newfd);
+  reterr = errno;
+
+  unlock_comm_sd();
+
+  errno = reterr;
+  return retval;
+}
 #endif /* FAKEROOT_FAKENET */
+
 uid_t getuid(void){
   if (fakeroot_disabled)
     return next_getuid();
@@ -1102,8 +1157,8 @@ int setgroups(SETGROUPS_SIZE_TYPE size, const gid_t *list){
 }
 
 int chroot(const char *path) {
-    char *ptr;
-    int status;
+    char *ptr, *ld_library_path, *tmp;
+    int status, len;
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
     if (fakechroot_path != NULL) {
@@ -1125,6 +1180,23 @@ int chroot(const char *path) {
     setenv("FAKECHROOT_BASE", path, 1);
     fakechroot_path = getenv("FAKECHROOT_BASE");
     chdir("/");
+
+    ld_library_path = getenv("LD_LIBRARY_PATH");
+    if (ld_library_path == NULL) {
+	return EFAULT;
+    }
+
+    if ((len = strlen(ld_library_path)+strlen(path)*2+sizeof(":/usr/lib:/lib"))+1 > MAXPATH) {
+        return ENAMETOOLONG;
+    }
+    
+    if ((tmp = malloc(len+1)) == NULL) {
+	return ENOMEM;
+    }
+
+    snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, path, path);
+    setenv("LD_LIBRARY_PATH", tmp, 1);
+    free(tmp);
     return 0;
 }
 
@@ -1859,7 +1931,7 @@ int scandir(const char *dir, struct dirent ***namelist, int(*filter)(const struc
 int scandir64(const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *))
 {
     expand_chroot_path(dir);
-    return next_scandir(dir, namelist, filter, compar);
+    return next_scandir64(dir, namelist, filter, compar);
 }
 
 int fakeroot_disable(int new)

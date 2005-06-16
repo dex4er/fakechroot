@@ -49,7 +49,7 @@ int msg_snd=-1;
 int msg_get=-1;
 int sem_id=-1;
 #else /* FAKEROOT_FAKENET */
-static int comm_sd = -1;
+volatile int comm_sd = -1;
 static pthread_mutex_t comm_sd_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* FAKEROOT_FAKENET */
 
@@ -277,64 +277,17 @@ static struct sockaddr *get_addr(void)
 
 static void open_comm_sd(void)
 {
-  char *str;
-  int base, val;
+  int val;
 
-  if (comm_sd >= 0) {
-    int rc;
-    socklen_t len;
-
-    val = 0;
-    len = sizeof (val);
-    rc = getsockopt(comm_sd, SOL_SOCKET, SO_TYPE, &val, &len);
-
-    if (rc >= 0 && val == SOCK_STREAM) {
-      val = 0;
-      len = sizeof (val);
-      rc = getsockopt(comm_sd, SOL_SOCKET, SO_REUSEADDR, &val, &len);
-
-      if (rc >= 0 && val)
-        return;
-    }
-
-    fprintf(stderr, "libfakeroot: file descriptor %d was hijacked ", comm_sd);
-    if (rc < 0)
-      fprintf(stderr, "(getsockopt said \"%s\")\n", strerror(errno));
-    else
-      fprintf(stderr, "(socket options changed)\n");
-
-    comm_sd = -1;
-  }
-
-  base = getdtablesize() - 100;
-  if (base < 3)
-    base = 3;
-
-  if ((str = getenv(FD_BASE_ENV))) {
-    int fd = atoi(str);
-    if (fd >= 3)
-      base = fd;
-  }
+  if (comm_sd >= 0)
+    return;
 
   comm_sd = socket(PF_INET, SOCK_STREAM, 0);
   if (comm_sd < 0)
     fail("socket");
 
-  if (comm_sd < base) {
-    int fd;
-
-    do {
-      fd = fcntl(comm_sd, F_DUPFD, base);
-      if (fd < 0) {
-	if (errno == EINTR)
-	  continue;
-	fail("fcntl(F_DUPFD)");
-      }
-    } while (0);
-
-    close(comm_sd);
-    comm_sd = fd;
-  }
+  if (fcntl(comm_sd, F_SETFD, FD_CLOEXEC) < 0)
+    fail("fcntl(F_SETFD, FD_CLOEXEC)");
 
   val = 1;
   if (setsockopt(comm_sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof (val)) < 0)
@@ -344,16 +297,13 @@ static void open_comm_sd(void)
     fail("connect");
 }
 
-void close_comm_sd(void)
+void lock_comm_sd(void)
 {
-  /* We must synchronize since the vfork calls us in the parent process. */
   pthread_mutex_lock(&comm_sd_mutex);
+}
 
-  if (comm_sd >= 0) {
-    close(comm_sd);
-    comm_sd = -1;
-  }
-
+void unlock_comm_sd(void)
+{
   pthread_mutex_unlock(&comm_sd_mutex);
 }
 
@@ -467,12 +417,12 @@ static void send_fakem_nr(const struct fake_msg *buf)
 
 void send_fakem(const struct fake_msg *buf)
 {
-  pthread_mutex_lock(&comm_sd_mutex);
+  lock_comm_sd();
 
   open_comm_sd();
   send_fakem_nr(buf);
 
-  pthread_mutex_unlock(&comm_sd_mutex);
+  unlock_comm_sd();
 }
 
 static void get_fakem_nr(struct fake_msg *buf)
@@ -505,13 +455,13 @@ static void get_fakem_nr(struct fake_msg *buf)
 
 void send_get_fakem(struct fake_msg *buf)
 {
-  pthread_mutex_lock(&comm_sd_mutex);
+  lock_comm_sd();
 
   open_comm_sd();
   send_fakem_nr(buf);
   get_fakem_nr(buf);
 
-  pthread_mutex_unlock(&comm_sd_mutex);
+  unlock_comm_sd();
 }
 
 #endif /* FAKEROOT_FAKENET */

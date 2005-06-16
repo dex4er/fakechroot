@@ -19,7 +19,7 @@ BINDIR=`dirname $0`
 PREFIX=`dirname ${BINDIR}`
     
 LIB=lib@fakeroot_transformed@.so.0
-PATHS=${PREFIX}/lib/libfakechroot:${PREFIX}/lib64/libfakechroot
+PATHS=${PREFIX}/lib/libfakechroot:${PREFIX}/lib64/libfakechroot:${PREFIX}/lib32/libfakechroot
 FAKED=${BINDIR}/@faked_transformed@
 
 FAKECHROOT=true

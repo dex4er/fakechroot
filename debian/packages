@@ -15,9 +15,15 @@
 #   with_test=%{with_test} without_test=%{without_test}
 
 %define automake_version 1.7
+%define DEB_HOST_GNU_SYSTEM %`dpkg-architecture -qDEB_HOST_GNU_SYSTEM`
+%define fakechroot_sysv_altprio %`if [ "$(dpkg-architecture -qDEB_HOST_GNU_SYSTEM)" != "gnu" ]; then echo 50; else echo 30; fi`
+%define fakechroot_tcp_altprio %`if [ "$(dpkg-architecture -qDEB_HOST_GNU_SYSTEM)" != "gnu" ]; then echo 30; else echo 50; fi`
 
 # Other macros:
 #   automake_version=%{automake_version}
+#   DEB_HOST_GNU_SYSTEM=%{DEB_HOST_GNU_SYSTEM}
+#   fakechroot_sysv_altprio=%{fakechroot_sysv_altprio}
+#   fakechroot_tcp_altprio=%{fakechroot_tcp_altprio}
 
 Source: fakechroot
 Section: utils
@@ -34,6 +40,7 @@ Copyright: GPL
 Build-Depends: automake%{automake_version}, autoconf, libtool
 Build-Depends: sharutils, file
 Build-Depends: libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc]
+Build-Depends: gcc-3.4 [amd64], ia32-libs-dev [amd64]
 Build: bash
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}
@@ -62,51 +69,69 @@ Build: bash
  fi
  .
  if ! [ -f configure-stamp ]; then
-     install -d build-tree-lib build-tree-fake build-tree-lib64
-     pushd build-tree-lib
+     install -d build-tree-lib-sysv build-tree-fake-sysv build-tree-lib64-sysv
+     pushd build-tree-lib-sysv
          CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-             ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot
+             ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot \
+                 --program-suffix=-sysv
      popd
-     pushd build-tree-fake
+     pushd build-tree-fake-sysv
      CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-         ../fake/configure --prefix=/usr --mandir=/usr/share/man
+         ../fake/configure --prefix=/usr --mandir=/usr/share/man \
+                 --program-suffix=-sysv
      popd
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
-         pushd build-tree-lib64
+         pushd build-tree-lib64-sysv
          CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
-             ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux \
+                 --program-suffix=-sysv
+         popd
+     fi
+     if [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
+         pushd build-tree-lib64-sysv
+         CC="gcc-3.4 -m32" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=x86_64-linux --host=i386-linux \
+                 --program-suffix=-sysv
          popd
      fi
      install -d build-tree-lib-tcp build-tree-fake-tcp build-tree-lib64-tcp
      pushd build-tree-lib-tcp
          CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
              ../configure --prefix=/usr --mandir=/usr/share/man --libdir=/usr/lib/libfakechroot \
-                 --with-ipc=tcp --program-suffix=-tcp
+                 --program-suffix=-tcp --with-ipc=tcp
      popd
      pushd build-tree-fake-tcp
      CC="$CC" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
          ../fake/configure --prefix=/usr --mandir=/usr/share/man \
-                 --with-ipc=tcp --program-suffix=-tcp
+                 --program-suffix=-tcp --with-ipc=tcp
      popd
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64-tcp
          CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
              ../configure --prefix=/usr --mandir=/usr/share/man --build=sparc-linux --host=sparc64-linux \
-                 --with-ipc=tcp --program-suffix=-tcp
+                 --program-suffix=-tcp --with-ipc=tcp
+         popd
+     fi
+     if [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
+         pushd build-tree-lib64-tcp
+         CC="gcc-3.4 -m32" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=x86_64-linux --host=i386-linux \
+                 --program-suffix=-tcp x86_64-linux
          popd
      fi
      touch configure-stamp
  fi
  .
  if ! [ -f build-stamp ]; then
-     pushd build-tree-lib
+     pushd build-tree-lib-sysv
          make
      popd
-     pushd build-tree-fake
+     pushd build-tree-fake-sysv
          make
      popd
-     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
-         pushd build-tree-lib64
+     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
+        [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
+         pushd build-tree-lib64-sysv
              make
          popd
      fi
@@ -116,7 +141,8 @@ Build: bash
      pushd build-tree-fake-tcp
          make
      popd
-     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
+     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
+        [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
          pushd build-tree-lib64-tcp
              make
          popd
@@ -125,7 +151,7 @@ Build: bash
  fi
  .
 %if %{with_test}
- pushd build-tree-lib
+ pushd build-tree-lib-sysv
      make check
  popd
  pushd build-tree-lib-tcp
@@ -150,6 +176,12 @@ Description: gives a fake chroot environment
  environment and build packages inside chroot'ed system using standard
  non-root user account.
 Install: bash
+ if [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
+     BIARCH_LIB_DIR=emul/ia32-linux/usr/lib
+ else
+     BIARCH_LIB_DIR=usr/lib64
+ fi
+ .
  for i in build-tree*; do
      pushd $i
          if [ -f Makefile ]; then
@@ -159,20 +191,26 @@ Install: bash
      popd
  done
  .
- yada install -lib -into /usr/lib build-tree-fake/tmp/usr/lib/*.so.*.*.*
+ yada install -lib -into /usr/lib \
+     -as $(basename build-tree-fake-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/') \
+     build-tree-fake-sysv/tmp/usr/lib/*.so.*.*.*
  yada symlink -into /usr/lib \
-     -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.?) \
-     $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.*)
+     -as $(basename build-tree-fake-sysv/tmp/usr/lib/*.so.? | sed 's/\.so/-sysv&/') \
+     $(basename build-tree-fake-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/')
  yada install -lib -into /usr/lib \
      -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/') \
      build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.*
  yada symlink -into /usr/lib \
      -as $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.? | sed 's/\.so/-tcp&/') \
      $(basename build-tree-fake-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/')
- yada install -script -as fakechroot build-tree-lib/tmp/usr/bin/fakeroot
- yada install -bin -as fakechrootd build-tree-lib/tmp/usr/bin/faked
- yada copy -into /usr/lib/libfakechroot build-tree-lib/tmp/usr/lib/libfakechroot/*.so.?
- yada install -lib -into /usr/lib/libfakechroot build-tree-lib/tmp/usr/lib/libfakechroot/*.so.*.*.*
+ yada install -script -as fakechroot-sysv build-tree-lib-sysv/tmp/usr/bin/fakeroot-sysv
+ yada install -bin -as fakechrootd-sysv build-tree-lib-sysv/tmp/usr/bin/faked-sysv
+ yada install -lib -into /usr/lib/libfakechroot \
+     -as $(basename build-tree-lib-sysv/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-sysv&/') \
+     build-tree-lib-sysv/tmp/usr/lib/libfakechroot/*.so.*.*.*
+ yada symlink -into /usr/lib/libfakechroot \
+     -as $(basename build-tree-lib-sysv/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-sysv&/') \
+     $(basename build-tree-lib-sysv/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-sysv&/')
  yada install -script -as fakechroot-tcp build-tree-lib-tcp/tmp/usr/bin/fakeroot-tcp
  yada install -bin -as fakechrootd-tcp build-tree-lib-tcp/tmp/usr/bin/faked-tcp
  yada install -lib -into /usr/lib/libfakechroot \
@@ -182,29 +220,43 @@ Install: bash
      -as $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
      $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/')
  .
- if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
-     yada install -lib -into /usr/lib64/libfakechroot build-tree-lib64/tmp/usr/lib/*.so.*.*.*
-     yada symlink -into /usr/lib64/libfakechroot \
-         -as $(basename build-tree-lib64/tmp/usr/lib/*.so.?) \
-         $(basename build-tree-lib64/tmp/usr/lib/*.so.*.*.*)
-     yada install -lib -into /usr/lib64/libfakechroot \
+ if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
+    [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
+     yada install -lib -into /usr/$BIARCH_LIB_DIR/libfakechroot \
+         -as $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/') \
+         build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.*
+     yada symlink -into /usr/$BIARCH_LIB_DIR/libfakechroot \
+         -as $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.? | sed 's/\.so/-sysv&/') \
+         $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/')
+     yada install -lib -into /usr/$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/') \
          build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.*
-     yada symlink -into /usr/lib64/libfakechroot \
+     yada symlink -into /usr/$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.? | sed 's/\.so/-tcp&/') \
          $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/')
  fi
  .
- yada install -man -as fakechroot.1 doc/fakeroot.1
+ yada install -man -as fakechroot-sysv.1 doc/fakeroot.1
  yada install -man -as fakechroot-tcp.1 doc/fakeroot.1
- yada install -man -as fakechrootd.1 doc/faked.1
+ yada install -man -as fakechrootd-sysv.1 doc/faked.1
  yada install -man -as fakechrootd-tcp.1 doc/faked.1
  yada install -doc README.fakechroot doc/debootstrap.diff
  yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake
 Shlibs:
- /usr/lib/libfakechroot/libfakechroot 0
+ /usr/lib/libfakechroot/libfakeroot-sysv 0
+ /usr/lib/libfakechroot/libfakeroot-tcp 0
+Alternatives:
+ /usr/bin/fakechroot -> fakechroot -> /usr/bin/fakechroot-sysv (%{fakechroot_sysv_altprio})
+ >> /usr/share/man/man1/fakechroot.1.gz -> fakechroot.1.gz -> /usr/share/man/man1/fakechroot-sysv.1.gz
+ >> /usr/share/man/man1/fakechrootd.1.gz -> fakechrootd.1.gz -> /usr/share/man/man1/fakechrootd-sysv.1.gz
+ /usr/bin/fakechroot -> fakechroot -> /usr/bin/fakechroot-tcp (%{fakechroot_tcp_altprio})
+ >> /usr/share/man/man1/fakechroot.1.gz -> fakechroot.1.gz -> /usr/share/man/man1/fakechroot-tcp.1.gz
+ >> /usr/share/man/man1/fakechrootd.1.gz -> fakechrootd.1.gz -> /usr/share/man/man1/fakechrootd-tcp.1.gz
 Overrides:
- ldconfig-symlink-referencing-wrong-file usr/lib/libfakechroot.so.0 -> libfakechroot.so.0.0.1 instead of libfakechroot-tcp.so.0.0.1
- shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot.so.0.0.1
+ ldconfig-symlink-missing-for-shlib usr/lib/libfakechroot.so.0 usr/lib/libfakechroot-tcp.so.0.0.1 libfakechroot.so.0
+ ldconfig-symlink-missing-for-shlib usr/lib/libfakechroot.so.0 usr/lib/libfakechroot-sysv.so.0.0.1 libfakechroot.so.0
  shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot-tcp.so.0.0.1
- unused-shlib-entry-in-control-file /usr/lib/libfakechroot/libfakechroot
+ shlib-missing-in-control-file libfakechroot usr/lib/libfakechroot-sysv.so.0.0.1
+ unused-shlib-entry-in-control-file /usr/lib/libfakechroot/libfakeroot-tcp
+ unused-shlib-entry-in-control-file /usr/lib/libfakechroot/libfakeroot-sysv
+ postinst-must-call-ldconfig usr/lib/libfakechroot-sysv.so.0.0.1

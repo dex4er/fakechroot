@@ -249,7 +249,7 @@ diff -Nru debootstrap-0.2.45/sid debootstrap-0.2.45.fakechroot/sid
      base="adduser apt apt-utils libdb4.2 at base-config aptitude libsigc++-1.2-5c102 bsdmainutils console-common console-tools libconsole console-data cpio cron dhcp-client ed exim4 exim4-base exim4-config exim4-daemon-light libgnutls11 libgcrypt11 libgpg-error0 libopencdk8 libtasn1-2 fdutils gettext-base groff-base ifupdown info klogd libssl0.9.7 liblzo1 zlib1g liblockfile1 libpcre3 libwrap0 logrotate mailx man-db libgdbm3 manpages nano net-tools netbase netkit-inetd iputils-ping nvi ppp pppconfig pppoe pppoeconf libpcap0.7 sysklogd tasksel libtextwrap1 tcpd telnet libtext-iconv-perl wget $additional" 
  
 +    if [ "$FAKECHROOT" = "true" ]; then
-+        required="$required fakeroot fakechroot"
++        required="$required fakeroot fakechroot binutils"
 +    fi
 +
      without_package () {

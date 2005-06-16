@@ -53,6 +53,8 @@ rename;int;(const char *oldpath, const char *newpath);(oldpath, newpath)
 #ifdef FAKEROOT_FAKENET
 fork;pid_t;(void);()
 vfork;pid_t;(void);()
+close;int;(int fd);(fd)
+dup2;int;(int oldfd, int newfd);(oldfd, newfd)
 #endif /* FAKEROOT_FAKENET */
 
 /* for fakeroot */
