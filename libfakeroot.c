@@ -39,18 +39,13 @@
 #include <glob.h>
 
 #define MAXPATH 2048
-static char *fakechroot_ptr;
-static char *fakechroot_path;
-static char fakechroot_buf[MAXPATH];
 
 #define narrow_chroot_path(path) \
     { \
 	fakechroot_path = getenv("FAKECHROOT_BASE"); \
 	if (fakechroot_path != NULL) { \
 	    fakechroot_ptr = strstr((path), fakechroot_path); \
-	    if (fakechroot_ptr != (path)) { \
-		(path) = NULL; \
-	    } else { \
+	    if (fakechroot_ptr == (path)) { \
 	        (path) = ((path) + strlen(fakechroot_path)); \
 	    } \
 	} \
@@ -71,6 +66,24 @@ static char fakechroot_buf[MAXPATH];
 	} \
     }
 
+#define expand_chroot_path_malloc(path) \
+    { \
+	if (path != NULL && *path == '/') { \
+    	    fakechroot_path = getenv("FAKECHROOT_BASE"); \
+	    if (fakechroot_path != NULL) { \
+		fakechroot_ptr = strstr((path), fakechroot_path); \
+		if (fakechroot_ptr != (path)) { \
+		    if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
+		        errno = ENOMEM; \
+			return NULL; \
+		    } \
+		    strcpy(fakechroot_buf, fakechroot_path); \
+		    strcat(fakechroot_buf, path); \
+		    path = fakechroot_buf; \
+		} \
+	    } \
+	} \
+    }
 
 /* 
    Where are those shared libraries? 
@@ -518,6 +531,7 @@ int WRAP_LSTAT LSTAT_ARG(int ver,
 		       struct stat *statbuf){
 
   int r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
   expand_chroot_path(file_name);
   r=NEXT_LSTAT(ver, file_name, statbuf);
@@ -532,6 +546,7 @@ int WRAP_STAT STAT_ARG(int ver,
 		       const char *file_name, 
 		       struct stat *st){
   int r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
   expand_chroot_path(file_name);
   r=NEXT_STAT(ver, file_name, st);
   if(r)
@@ -563,6 +578,7 @@ int WRAP_LSTAT64 LSTAT64_ARG (int ver,
 			   struct stat64 *st){
 
   int r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
   expand_chroot_path(file_name);
 
   r=NEXT_LSTAT64(ver, file_name, st);
@@ -580,6 +596,7 @@ int WRAP_STAT64 STAT64_ARG(int ver,
 			   const char *file_name, 
 			   struct stat64 *st){
   int r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
   expand_chroot_path(file_name);
 
   r=NEXT_STAT64(ver,file_name,st);
@@ -638,6 +655,7 @@ int WRAP_FSTAT64 FSTAT64_ARG(int ver,
 int chown(const char *path, uid_t owner, gid_t group){
   struct stat st;
   int r=0;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
   expand_chroot_path(path);
 
@@ -670,6 +688,8 @@ int chown(const char *path, uid_t owner, gid_t group){
 int lchown(const char *path, uid_t owner, gid_t group){
   struct stat st;
   int r=0;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
+
   expand_chroot_path(path);
 
   r=NEXT_LSTAT(_STAT_VER, path, &st);
@@ -715,6 +735,7 @@ int fchown(int fd, uid_t owner, gid_t group){
 int chmod(const char *path, mode_t mode){
   struct stat st;
   int r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
   expand_chroot_path(path);
 
@@ -775,6 +796,7 @@ int WRAP_MKNOD MKNOD_ARG(int ver UNUSED,
   struct stat st;
   mode_t old_mask=umask(022);
   int fd,r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
   umask(old_mask);
   
@@ -808,6 +830,7 @@ int mkdir(const char *path, mode_t mode){
   struct stat st;
   int r;
   mode_t old_mask=umask(022);
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
   umask(old_mask);
 
@@ -850,6 +873,7 @@ int mkdir(const char *path, mode_t mode){
 
 int unlink(const char *pathname){
   int r;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 #ifdef STAT64_SUPPORT
   struct stat64 st;
   expand_chroot_path(pathname);
@@ -885,6 +909,8 @@ int unlink(const char *pathname){
 int rmdir(const char *pathname){
   int r;
   struct stat st;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
+
   expand_chroot_path(pathname);
 
   r=NEXT_LSTAT(_STAT_VER, pathname, &st);
@@ -906,6 +932,8 @@ int rmdir(const char *pathname){
 int remove(const char *pathname){
   int r;
   struct stat st;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
+
   expand_chroot_path(pathname);
 
   r=NEXT_LSTAT(_STAT_VER, pathname, &st);
@@ -931,7 +959,7 @@ int remove(const char *pathname){
 int rename(const char *oldpath, const char *newpath){
   int r,s;
   struct stat st;     
-  char tmp[MAXPATH];
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH], tmp[MAXPATH];
 
   /* If newpath points to an existing file, that file will be 
      unlinked.   Make sure we tell the faked daemon about this! */
@@ -1157,12 +1185,12 @@ int setgroups(SETGROUPS_SIZE_TYPE size, const gid_t *list){
 }
 
 int chroot(const char *path) {
-    char *ptr, *ld_library_path, *tmp;
+    char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
     if (fakechroot_path != NULL) {
-	return EACCES;
+	return EFAULT;
     }
     
     if ((status = chdir(path)) != 0) {
@@ -1201,12 +1229,14 @@ int chroot(const char *path) {
 }
 
 int chdir(const char *path) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_chdir(path);
 }
 
 char *getcwd(char *buf, size_t size) {
     char *cwd;
+    char *fakechroot_ptr, *fakechroot_path;
 
     if ((cwd = next_getcwd(buf, size)) == NULL) {
 	return NULL;
@@ -1217,6 +1247,7 @@ char *getcwd(char *buf, size_t size) {
 
 char *getwd(char *buf) {
     char *cwd;
+    char *fakechroot_ptr, *fakechroot_path;
 
     if ((cwd = next_getwd(buf)) == NULL) {
 	return NULL;
@@ -1227,6 +1258,7 @@ char *getwd(char *buf) {
 
 char *get_current_dir_name(void) {
     char *cwd, *oldptr, *newptr;
+    char *fakechroot_ptr, *fakechroot_path;
 
     if ((cwd = next_get_current_dir_name()) == NULL) {
 	return NULL;
@@ -1250,6 +1282,7 @@ int open(const char *pathname, int flags, ...) {
     int mode = 0;
     int r;
     int ret = -1;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
@@ -1267,6 +1300,7 @@ int open(const char *pathname, int flags, ...) {
 }
 
 int creat(const char *pathname, mode_t mode) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
     return next_creat(pathname, mode);
 }
@@ -1276,6 +1310,7 @@ int open64(const char *pathname, int flags, ...) {
     int mode = 0;
     int r;
     int ret = -1;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
@@ -1295,6 +1330,7 @@ int open64(const char *pathname, int flags, ...) {
 int creat64(const char *pathname, mode_t mode) {
     struct stat st;
     int ret,r;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
     ret = next_creat64(pathname, mode);
     r=NEXT_LSTAT(_STAT_VER, pathname, &st);
@@ -1305,24 +1341,34 @@ int creat64(const char *pathname, mode_t mode) {
 }
 
 DIR *opendir(const char *name) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(name);
     return next_opendir(name);
 }
 
 int utime(const char *filename, const struct utimbuf *buf) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(filename);
     return next_utime(filename, buf);
 }
 
-int utimes(char *filename, struct timeval *tvp) {
+int utimes(const char *filename, struct timeval *tvp) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(filename);
     return next_utimes(filename, tvp);
+}
+
+int lutimes(const char *filename, struct timeval *tvp) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
+    expand_chroot_path(filename);
+    return next_lutimes(filename, tvp);
 }
 
 int symlink(const char *oldpath, const char *newpath) {
     struct stat st;
     char tmp[MAXPATH];
     int ret,r;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(oldpath);
     strcpy(tmp, oldpath); oldpath=tmp;
     expand_chroot_path(newpath);
@@ -1337,6 +1383,7 @@ int link(const char *oldpath, const char *newpath) {
     struct stat st;
     char tmp[MAXPATH];
     int ret,r;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(oldpath);
     strcpy(tmp, oldpath); oldpath=tmp;
     expand_chroot_path(newpath);
@@ -1350,6 +1397,7 @@ int link(const char *oldpath, const char *newpath) {
 int readlink(const char *path, char *buf, size_t bufsiz) {
     int status;
     char tmp[MAXPATH], *tmpptr;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
     expand_chroot_path(path);
 
@@ -1375,17 +1423,20 @@ int readlink(const char *path, char *buf, size_t bufsiz) {
 }
 
 FILE *fopen(const char *path, const char *mode) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_fopen(path, mode);
 }
 
 FILE *freopen(const char *path, const char *mode, FILE *stream) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_freopen(path, mode, stream);
 }
 
 char *mktemp(char *template) {
-    expand_chroot_path(template);
+    char *fakechroot_ptr, *fakechroot_path, *fakechroot_buf;
+    expand_chroot_path_malloc(template);
     return next_mktemp(template);
 }
 
@@ -1393,6 +1444,7 @@ int mkstemp(char *template) {
     struct stat st;
     char tmp[MAXPATH], *oldtemplate, *ptr;
     int fd,r;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
     oldtemplate = template;
     
@@ -1416,6 +1468,7 @@ int mkstemp64(char *template) {
     struct stat st;
     char tmp[MAXPATH], *oldtemplate, *ptr;
     int fd,r;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
     oldtemplate = template;
     
@@ -1439,6 +1492,7 @@ char *mkdtemp(char *template) {
     struct stat st;
     char tmp[MAXPATH], *oldtemplate, *ptr;
     int r;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
     oldtemplate = template;
     
@@ -1460,25 +1514,26 @@ char *mkdtemp(char *template) {
 }
 
 char *tempnam(const char *dir, const char *pfx) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(dir);
     return next_tempnam(dir, pfx);
 }
 
 char *tmpnam(char *s) {
-    static char buf[MAXPATH];
     char *ptr;
+    char *fakechroot_ptr, *fakechroot_path, *fakechroot_buf;
     
     if (s != NULL) {
 	return next_tmpnam(s);
     }
     
     ptr = next_tmpnam(NULL);
-    expand_chroot_path(ptr);
-    strcpy(buf, ptr);
-    return buf;
+    expand_chroot_path_malloc(ptr);
+    return ptr;
 }
 
 int mkfifo(const char *pathname, mode_t mode) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
     return next_mkfifo(pathname, mode);
 }
@@ -1588,6 +1643,7 @@ int execve(const char *filename, char *const argv [], char *const envp[]) {
     char tmp[2048], newfilename[2048], argv0[2048], *ptr;
     unsigned int i, j, n;
     char c;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     
     expand_chroot_path(filename);
     strcpy(tmp, filename);
@@ -1680,6 +1736,7 @@ int execlp (const char *file, const char *arg, ...) {
   const char **argv = alloca (argv_max * sizeof (const char *));
   unsigned int i;
   va_list args;
+  char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
   argv[0] = arg;
 
@@ -1743,31 +1800,37 @@ int execle (const char *path, const char *arg, ...) {
 }
 
 int access(const char *pathname, int mode) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
     return next_access(pathname, mode);
 }
 
 FILE *fopen64(const char *path, const char *mode) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_fopen64(path, mode);
 }
 
 FILE *freopen64(const char *path, const char *mode, FILE *stream) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_freopen64(path, mode, stream);
 }
 
 int truncate(const char *path, off_t length) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_truncate(path, length);
 }
 
 int truncate64(const char *path, off64_t length) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_truncate(path, length);
 }
 
 void *dlopen(const char *filename, int flag) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(filename);
     return next_dlopen(filename, flag);
 }
@@ -1775,6 +1838,7 @@ void *dlopen(const char *filename, int flag) {
 int __open(const char *pathname, int flags, ...) {
     struct stat st;
     int mode = 0;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
 
 return -1;
@@ -1798,6 +1862,7 @@ int __open64(const char *pathname, int flags, ...) {
     struct stat st;
     int mode = 0;
     int ret;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
@@ -1825,41 +1890,49 @@ int ulckpwdf() {
 }
 
 int setxattr(const char *path, const char *name, const void *value, size_t size, int flags) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_setxattr(path, name, value, size, flags);
 }
 
 int lsetxattr(const char *path, const char *name, const void *value, size_t size, int flags) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_lsetxattr(path, name, value, size, flags);
 }
 
 ssize_t getxattr(const char *path, const char *name, void *value, size_t size) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_getxattr(path, name, value, size);
 }
 
 ssize_t lgetxattr(const char *path, const char *name, void *value, size_t size) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_lgetxattr(path, name, value, size);
 }
 
 ssize_t listxattr(const char *path, char *list, size_t size) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_listxattr(path, list, size);
 }
 
 ssize_t llistxattr(const char *path, char *list, size_t size) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_llistxattr(path, list, size);
 }
 
 int removexattr(const char *path, const char *name) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_removexattr(path, name);
 }
 
 int lremovexattr(const char *path, const char *name) {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(path);
     return next_lremovexattr(path, name);
 }
@@ -1868,6 +1941,7 @@ int glob(const char *pattern, int flags, int (*errfunc) (const char *, int), glo
 {
     int rc,i;
     char tmp[MAXPATH], *tmpptr;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
     expand_chroot_path(pattern);
     rc = next_glob(pattern,flags,errfunc,pglob);
@@ -1894,6 +1968,7 @@ int glob64(const char *pattern, int flags, int (*errfunc) (const char *, int), g
 {
     int rc,i;
     char tmp[MAXPATH], *tmpptr;
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
 
     expand_chroot_path(pattern);
     rc = next_glob64(pattern,flags,errfunc,pglob);
@@ -1918,18 +1993,21 @@ int glob64(const char *pattern, int flags, int (*errfunc) (const char *, int), g
 
 int glob_pattern_p(const char *pattern, int quote)
 {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(pattern);
     return next_glob_pattern_p(pattern, quote);
 }
 
 int scandir(const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *))
 {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(dir);
     return next_scandir(dir, namelist, filter, compar);
 }
 
 int scandir64(const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *))
 {
+    char *fakechroot_ptr, *fakechroot_path, fakechroot_buf[MAXPATH];
     expand_chroot_path(dir);
     return next_scandir64(dir, namelist, filter, compar);
 }

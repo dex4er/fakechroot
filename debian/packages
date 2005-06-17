@@ -222,16 +222,16 @@ Install: bash
  .
  if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
     [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
-     yada install -lib -into /usr/$BIARCH_LIB_DIR/libfakechroot \
+     yada install -lib -into /$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/') \
          build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.*
-     yada symlink -into /usr/$BIARCH_LIB_DIR/libfakechroot \
+     yada symlink -into /$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.? | sed 's/\.so/-sysv&/') \
          $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/')
-     yada install -lib -into /usr/$BIARCH_LIB_DIR/libfakechroot \
+     yada install -lib -into /$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/') \
          build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.*
-     yada symlink -into /usr/$BIARCH_LIB_DIR/libfakechroot \
+     yada symlink -into /$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.? | sed 's/\.so/-tcp&/') \
          $(basename build-tree-lib64-tcp/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-tcp&/')
  fi

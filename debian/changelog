@@ -1,3 +1,14 @@
+fakechroot (0.9+1.3) unstable; urgency=medium
+
+  * Clean up the code - no static variables.
+  * narrow_chroot_path(path) macro returns original path if it is outside
+    chroot so getcwd(2) works for /dev and /proc.
+  * Implement lutimes(2) function.
+  * Fixed path for biarch libraries on sparc and amd64.
+  * Updated ldd.fake script. Now works on biarch systems.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Thu, 16 Jun 2005 15:09:33 +0200
+
 fakechroot (0.8+1.3) unstable; urgency=medium
 
   * Merged with fakeroot 1.3.
