@@ -237,7 +237,8 @@ Install: bash
      -as $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.? | sed 's/\.so/-tcp&/') \
      $(basename build-tree-lib-tcp/tmp/usr/lib/libfakechroot/*.so.*.*.* | sed 's/\.so/-tcp&/')
  .
- if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
+ if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ] || \
+    [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
     [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
      yada install -lib -into /$BIARCH_LIB_DIR/libfakechroot \
          -as $(basename build-tree-lib64-sysv/tmp/usr/lib/*.so.*.*.* | sed 's/\.so/-sysv&/') \
