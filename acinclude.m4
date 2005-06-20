@@ -1,1 +1,1 @@
-define(FAKEROOT_VERSION, 0.7+1.3)
+define(FAKEROOT_VERSION, 0.9+1.3)

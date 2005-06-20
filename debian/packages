@@ -258,7 +258,6 @@ Install: bash
  yada install -man -as fakechroot-tcp.1 doc/fakeroot.1
  yada install -man -as fakechrootd-sysv.1 doc/faked.1
  yada install -man -as fakechrootd-tcp.1 doc/faked.1
- yada install -doc README.fakechroot doc/debootstrap.diff
  yada install -doc -subdir examples scripts/restoremode.sh scripts/savemode.sh scripts/ldd.fake
 Shlibs:
  /usr/lib/libfakechroot/libfakeroot-sysv 0

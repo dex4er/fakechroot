@@ -117,33 +117,22 @@ Here is an example session with
 Notice that inside the fake root environment file manipulation that
 requires root privileges succeeds, but is not really happening.
 .CW
-$ cp \-a /usr/lib/debootstrap /tmp
-$ cp \-a /usr/sbin/debootstrap /tmp/debootstrap/scripts
-$ ( cd /tmp/debootstrap; patch \-f \-p1 ) < debootstrap.diff
-$ ( cd /tmp/debootstrap/scripts; patch \-f \-p1 ) < debootstrap.diff
+$ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
+$ fakechroot \-s fakechroot.save debootstrap \-\-variant=fakechroot sarge /tmp/sarge
 
-$ fakechroot \-s fakeroot.save
+$ fakechroot \-i fakechroot.save chroot /tmp/sarge /bin/bash
 # cd /
-# export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
-# DEBOOTSTRAP_DIR=/tmp/debootstrap /tmp/debootstrap/scripts/debootstrap sid /tmp/sid
-# exit
-$ rm \-rf /tmp/sid/proc; ln \-s /proc /tmp/sid
-$ mv /tmp/sid/dev /tmp/sid/.dev; ln \-s /dev /tmp/sid
-
-$ fakechroot \-i fakeroot.save
-# cd /
-# export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
-# chroot /tmp/sid /bin/bash
 # sh /usr/share/doc/fakechroot/examples/savemode.sh
-# apt\-setup
-# adduser \-\-uid 1001 dexter
-# nano /etc/apt/sources.lists
+# echo deb http://ftp.debian.org/debian sarge main contrib non\-free > /etc/apt/sources.list
+# echo deb\-src http://ftp.debian.org/debian sarge main contrib non\-free >> /etc/apt/sources.list
 # apt\-get update
-# apt\-get install build\-essential devscripts
+# apt\-get install adduser whiptail build\-essential devscripts
+# adduser \-\-uid 1001 dexter
 # cd /tmp
 # apt\-get source hello
 # cd hello\-*
-# debuild \-\-preserve\-env \-B
+# export DEBUILD_PRESERVE_ENVVARS=FAKECHROOT,LD_PRELOAD,LD_LIBRARY_PATH,FAKEROOTKEY,FAKECHROOT_BASE,FAKED_MODE
+# debuild \-\-preserve\-env \-b
 # exit
 .CE
 
@@ -195,8 +184,7 @@ Every command executed within
 .B fakechroot 
 needs to be linked to the same version of the C library as
 .B fakechroot
-itself. Because the Potato version of Debian now uses libc6 only
-(glibc2.1), this isn't that much of a problem any more. 
+itself.
 .IP "\(bu" 4
 Statically linked binaries doesn't work, especially
 .BR ldconfig (8),
