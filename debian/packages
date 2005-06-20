@@ -39,7 +39,8 @@ Copyright: GPL
  GNU copyleft joost witteveen, <joostje@debian.org>.
 Build-Depends: automake%{automake_version}, autoconf, libtool
 Build-Depends: sharutils, file
-Build-Depends: libc6-dev-s390x [s390], libc6-dev-sparc64 [sparc]
+Build-Depends: libc6-dev-s390x [s390]
+Build-Depends: libc6-dev-sparc64 [sparc]
 Build-Depends: gcc-3.4 [amd64], ia32-libs-dev [amd64]
 Build: bash
  CC=${CC:-gcc}
@@ -80,6 +81,13 @@ Build: bash
          ../fake/configure --prefix=/usr --mandir=/usr/share/man \
                  --program-suffix=-sysv
      popd
+     if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
+         pushd build-tree-lib64-sysv
+         CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux \
+                 --program-suffix=-sysv
+         popd
+     fi
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64-sysv
          CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
@@ -105,6 +113,13 @@ Build: bash
          ../fake/configure --prefix=/usr --mandir=/usr/share/man \
                  --program-suffix=-tcp --with-ipc=tcp
      popd
+     if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ]; then
+         pushd build-tree-lib64-tcp
+         CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+             ../configure --prefix=/usr --mandir=/usr/share/man --build=s390-linux --host=s390x-linux \
+                 --program-suffix=-tcp --with-ipc=tcp
+         popd
+     fi
      if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ]; then
          pushd build-tree-lib64-tcp
          CC="gcc -m64" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
@@ -129,7 +144,8 @@ Build: bash
      pushd build-tree-fake-sysv
          make
      popd
-     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
+     if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ] || \
+        [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
         [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
          pushd build-tree-lib64-sysv
              make
@@ -141,7 +157,8 @@ Build: bash
      pushd build-tree-fake-tcp
          make
      popd
-     if [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
+     if [ "$DEB_HOST_GNU_TYPE" = "s390-linux" ] || \
+        [ "$DEB_HOST_GNU_TYPE" = "sparc-linux" ] || \
         [ "$DEB_HOST_GNU_TYPE" = "x86_64-linux" ]; then
          pushd build-tree-lib64-tcp
              make
