@@ -1,6 +1,0 @@
-#!/bin/sh
-
-tdir=$(cd ..; pwd -P)
-
-../scripts/fakeroot${tcp} -f ${tdir}/faked${tcp} -l ${tdir}/.libs/${libfakeroot} -- \
- ${srcdir}/tartest

@@ -1,0 +1,196 @@
+# pod2man --section=1 --release="Debian" --center=" " --date="23 Aug 2005"
+#
+# $Id$
+
+=head1 NAME
+
+fakechroot - gives a fake chroot environment
+
+=head1 SYNOPSIS
+
+B<fakechroot>
+S<[B<-l>|B<--lib> I<library>]>
+S<[B<-->]>
+S<[I<command>]>
+
+=head1 DESCRIPTION
+
+fakechroot runs a command in an environment were is additional possibility to
+use chroot(8) command without root privileges. This is useful for allowing
+users to create own chrooted environment with possibility to install another
+packages without need for root privileges.
+
+fakechroot replaces more library functions (chroot(2), open(2), etc.) by ones
+that simulate the effect the real library functions would have had, had the
+user really been in chroot. These wrapper functions are in a shared library
+F</usr/lib/libfakechroot/libfakechroot-*.so*> which is loaded through the
+B<LD_PRELOAD> mechanism of the dynamic loader. (See ld.so(8))
+
+In fake chroot you can install Debian bootstrap with `debootstrap
+--variant=fakechroot' command. In this environment you can use i.e. apt-get(8)
+command to install another packages from common user's account.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-l> I<library>|B<--lib> I<library>
+
+Specify an alternative wrapper library.
+
+=item [B<-->] I<command>
+
+Any command you want to be ran as fakechroot. Use 'B<-->' if in the command
+you have other options that may confuse fakechroot's option parsing.
+
+=item B<-h>
+
+Display help.
+
+=item B<-v>
+
+Display version.
+
+=back
+
+=head1 EXAMPLES
+
+Here is an example session with fakechroot. Notice that inside the fake root
+environment file manipulation that requires root privileges succeeds, but is
+not really happening.
+
+ $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
+ $ fakeroot -s fakechroot.save fakechroot debootstrap --variant=fakechroot sarge /tmp/sarge
+
+ $ fakeroot -i fakechroot.save fakechroot chroot /tmp/sarge /bin/bash
+ # cd /
+ # sh /usr/share/doc/fakechroot/examples/savemode.sh
+ # echo deb http://ftp.debian.org/debian sarge main contrib non-free > /etc/apt/sources.list
+ # echo deb-src http://ftp.debian.org/debian sarge main contrib non-free >> /etc/apt/sources.list
+ # apt-get update
+ # apt-get install adduser whiptail build-essential devscripts
+ # adduser --uid 1001 dexter
+ # cd /tmp
+ # apt-get source hello
+ # cd hello-*
+ # export DEBUILD_PRESERVE_ENVVARS=FAKECHROOT,LD_PRELOAD,LD_LIBRARY_PATH,FAKEROOTKEY,\
+ > FAKECHROOT_BASE,FAKED_MODE
+ # debuild --preserve-env -b
+ # exit
+
+=head1 SECURITY ASPECTS
+
+fakechroot is a regular, non-setuid program. It does not enhance a user's
+privileges, or decrease the system's security.
+
+=head1 FILES
+
+=over
+
+=item F</usr/lib/libfakechroot/libfakechroot-*.so*>
+
+The shared library containing the wrapper functions.
+
+=back
+
+=head1 ENVIRONMENT
+
+=over
+
+=item B<FAKECHROOT>
+
+The value is true for fake chroot environment.
+
+=item B<FAKECHROOT_VERSION>
+
+The version of current fakechroot package.
+
+=item B<FAKECHROOT_BASE>
+
+The root directory for fake chroot environment.
+
+=item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
+
+Fakechroot is implemented by wrapping system calls. This is accomplished by
+setting LD_LIBRARY_PATH=/usr/lib/fakechroot and
+LD_PRELOAD=libfakechroot-VERSION.so. That library is loaded before the
+system's C library, and so most of the library functions are intercepted by
+it. If you need to set either B<LD_LIBRARY_PATH> or B<LD_PRELOAD> from within
+a fakechroot environment, it should be set relative to the given paths, as in
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/
+
+=back
+
+=head1 LIMITATIONS
+
+=over
+
+=item o
+
+Every command executed within fakechroot needs to be linked to the same
+version of the C library as fakechroot itself.
+
+=item o
+
+F</lib/ld-linux.so.2> is always loaded from real environment.
+
+=item o
+
+You can override fake chroot with symlinks to the outside. It can be useful
+for accessing F</proc> or F</dev> directory.
+
+=item o
+
+Statically linked binaries doesn't work, especially ldconfig(8), so you have to
+wrap this command and i.e. set the dpkg diversion, see: dpkg-divert(8).
+
+=item o
+
+ldd(1) also doesn't work. You have to use wrapper.
+
+=item o
+
+There are no real devices so you have to symlink to the real ones.
+
+=item o
+
+Remove F</dev/tty> or symlink to the real F</dev/tty> - the full screen apps
+doesn't work if it exists as faked device.
+
+=item o
+
+If debconf with dialog is broken - remove F</dev/tty> or export
+DEBIAN_FRONTEND=readline.
+
+=item o
+
+ltrace(1) sometimes doesn't work. strace(1) does work pretty well.
+
+=item o
+
+lckpwdf() and ulckpwdf() are ignored so update-passwd should work
+
+=item o
+
+Your real uid have to exist in F</etc/passwd>. Create it with adduser --uid
+realuid realuser.
+
+=item o
+
+debuild(1) cleans environment. Use --preserve-env option to prevent this
+behaviour.
+
+=back
+
+=head1 COPYING
+
+fakechroot is distributed under the GNU General Public License. (GPL 2.0 or
+greater).
+
+=head1 AUTHOR
+
+Piotr Roszatycki <dexter@debian.org>
+
+=head1 SEE ALSO
+
+fakeroot(1), dpkg-buildpackage(1), debuild(1), debootstrap(8)

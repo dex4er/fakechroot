@@ -1,12 +1,10 @@
 AUTOMAKE_OPTIONS=foreign
 
-TESTS = t.echoarg t.mknod t.tar t.truereturn t.falsereturn t.option \
-	t.touchinstall
+TESTS = t.pwd
 
 suffix =
-TESTS_ENVIRONMENT = libfakeroot=libfakechroot.so.0 suffix=$(suffix)
 
-CLEANFILES = tmp* tartest.tar.gz hda3
+CLEANFILES = testtree
 
-check_SCRIPTS = $(TESTS) echo_arg tartest compare-tar
-EXTRA_DIST = $(check_SCRIPTS) tartest.tar.gz.uue
+check_SCRIPTS = $(TESTS) fakechroot.sh
+EXTRA_DIST = $(check_SCRIPTS)

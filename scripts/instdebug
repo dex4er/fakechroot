@@ -1,3 +1,0 @@
-#!/bin/sh
-
-ln -sf `pwd`/.libs/libtricks.so.0.0.1 /usr/lib/libtricks/libtricks.so.0.0.1

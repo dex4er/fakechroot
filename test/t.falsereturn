@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if ../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
- false
-then
- false
-else
- true
-fi

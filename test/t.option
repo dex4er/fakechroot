@@ -1,4 +1,0 @@
-#!/bin/sh
-
-../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
- echo -1 -2 | grep -- -1

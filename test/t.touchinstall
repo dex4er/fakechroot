@@ -1,8 +1,0 @@
-#!/bin/sh
-
-mkdir tmp
-../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
- sh -c "touch tmp/iamnotuser; ls -al tmp/iamnotuser" | grep root
-TEMP=$?
-rm -r tmp
-exit $TEMP

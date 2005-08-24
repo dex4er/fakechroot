@@ -1,4 +1,0 @@
-#!/bin/sh
-
-../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
- sh -c 'mknod hda3 b 3 1; ls -l hda3' | grep "^b"

@@ -1,4 +1,8 @@
 #!/bin/sh
 
-../scripts/fakeroot${tcp} -f ../faked${tcp} -l ../.libs/${libfakeroot} -- \
- sh -c 'RET="$('"${srcdir}"'/echo_arg 3 a b c d e)"; echo RET=$RET; test "$RET" = "b"'
+t=$(./fakechroot.sh /bin/pwd)
+if [ "$t" = "/" ]; then
+    true
+else
+    false
+fi
