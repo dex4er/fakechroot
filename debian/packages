@@ -31,7 +31,7 @@ Build: bash
  if [ "${DEB_BUILD_OPTIONS#*noopt}" != "$DEB_BUILD_OPTIONS" ]; then
      CFLAGS="$CFLAGS -O0"
  else
-     CFLAGS="$CFLAGS -O2"
+     CFLAGS="$CFLAGS -O2 -fno-strict-aliasing"
  fi
  .
  COMMON_CONFIG="\
