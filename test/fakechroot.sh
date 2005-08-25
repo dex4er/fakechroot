@@ -45,9 +45,9 @@ else
 fi
 
 if [ -n "$LD_PRELOAD" ]; then
-    export LD_PRELOAD="$LD_PRELOAD libfakechroot-2.0.so"
+    export LD_PRELOAD="$LD_PRELOAD libfakechroot-2.1.so"
 else
-    export LD_PRELOAD="libfakechroot-2.0.so"
+    export LD_PRELOAD="libfakechroot-2.1.so"
 fi
 
 HOME=/root /usr/sbin/chroot $(pwd)/testtree "$@"
