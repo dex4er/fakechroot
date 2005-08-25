@@ -36,7 +36,9 @@
 #include <glob.h>
 #include <utime.h>
 #include <shadow.h>
+#ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
+#endif
 
 
 #if defined(HAVE_PATH_MAX)
@@ -127,7 +129,9 @@ static int     (*next_creat) (const char *pathname, mode_t mode);
 #ifdef __USE_LARGEFILE64
 static int     (*next_creat64) (const char *pathname, mode_t mode);
 #endif
+#ifdef HAVE_DLMOPEN
 static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag);
+#endif
 static void *  (*next_dlopen) (const char *filename, int flag);
 static int     (*next_euidaccess) (const char *pathname, int mode);
 static int     (*next_execl) (const char *path, const char *arg, ...);
@@ -147,28 +151,44 @@ static FILE *  (*next_freopen64) (const char *path, const char *mode, FILE *stre
 static char *  (*next_get_current_dir_name) (void);
 static char *  (*next_getcwd) (char *buf, size_t size);
 static char *  (*next_getwd) (char *buf);
+#ifdef HAVE_GETXATTR
 static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size);
+#endif
 static int     (*next_glob) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob_t *pglob);
 #ifdef __USE_LARGEFILE64
 static int     (*next_glob64) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob64_t *pglob);
 #endif
 static int     (*next_glob_pattern_p) (const char *pattern, int quote);
+#ifdef HAVE_LCHMOD
 static int     (*next_lchmod) (const char *path, mode_t mode);
+#endif
 static int     (*next_lchown) (const char *path, uid_t owner, gid_t group);
 static int     (*next_lckpwdf) (void);
+#ifdef HAVE_LGETXATTR
 static ssize_t (*next_lgetxattr) (const char *path, const char *name, void *value, size_t size);
+#endif
 static int     (*next_link) (const char *oldpath, const char *newpath);
+#ifdef HAVE_LISTXATTR
 static ssize_t (*next_listxattr) (const char *path, char *list, size_t size);
+#endif
+#ifdef HAVE_LLISTXATTR
 static ssize_t (*next_llistxattr) (const char *path, char *list, size_t size);
+#endif
+#ifdef HAVE_LREMOVEXATTR
 static int     (*next_lremovexattr) (const char *path, const char *name);
+#endif
+#ifdef HAVE_LSETXATTR
 static int     (*next_lsetxattr) (const char *path, const char *name, const void *value, size_t size, int flags);
+#endif
 #ifndef __GLIBC__
 static int     (*next_lstat) (const char *file_name, struct stat *buf);
 #ifdef __USE_LARGEFILE64
 static int     (*next_lstat64) (const char *file_name, struct stat64 *buf);
 #endif
 #endif
+#ifdef HAVE_LUTIMES
 static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]);
+#endif
 static int     (*next_mkdir) (const char *pathname, mode_t mode);
 static char *  (*next_mkdtemp) (char *template);
 static int     (*next_mknod) (const char *pathname, mode_t mode, dev_t dev);
@@ -187,15 +207,21 @@ static long    (*next_pathconf) (const char *path, int name);
 static int     (*next_readlink) (const char *path, char *buf, size_t bufsiz);
 static char *  (*next_realpath) (const char *name, char *resolved);
 static int     (*next_remove) (const char *pathname);
+#ifdef HAVE_REMOVEXATTR
 static int     (*next_removexattr) (const char *path, const char *name);
+#endif
 static int     (*next_rename) (const char *oldpath, const char *newpath);
+#ifdef HAVE_REVOKE
 static int     (*next_revoke) (const char *file);
+#endif
 static int     (*next_rmdir) (const char *pathname);
 static int     (*next_scandir) (const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *));
 #ifdef __USE_LARGEFILE64
 static int     (*next_scandir64) (const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *));
 #endif
+#ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *path, const char *name, const void *value, size_t size, int flags);
+#endif
 #ifndef __GLIBC__
 static int     (*next_stat) (const char *file_name, struct stat *buf);
 #ifdef __USE_LARGEFILE64
@@ -240,7 +266,9 @@ void fakechroot_init (void)
 #ifdef __USE_LARGEFILE64
     *(void **)(&next_creat64)                 = dlsym(RTLD_NEXT, "creat64");
 #endif
+#ifdef HAVE_DLMOPEN
     *(void **)(&next_dlmopen)                 = dlsym(RTLD_NEXT, "dlmopen");
+#endif
     *(void **)(&next_dlopen)                  = dlsym(RTLD_NEXT, "dlopen");
     *(void **)(&next_euidaccess)              = dlsym(RTLD_NEXT, "euidaccess");
     *(void **)(&next_execl)                   = dlsym(RTLD_NEXT, "execl");
@@ -260,28 +288,44 @@ void fakechroot_init (void)
     *(void **)(&next_get_current_dir_name)    = dlsym(RTLD_NEXT, "get_current_dir_name");
     *(void **)(&next_getcwd)                  = dlsym(RTLD_NEXT, "getcwd");
     *(void **)(&next_getwd)                   = dlsym(RTLD_NEXT, "getwd");
+#ifdef HAVE_GETXATTR
     *(void **)(&next_getxattr)                = dlsym(RTLD_NEXT, "getxattr");
+#endif
     *(void **)(&next_glob)                    = dlsym(RTLD_NEXT, "glob");
 #ifdef __USE_LARGEFILE64
     *(void **)(&next_glob64)                  = dlsym(RTLD_NEXT, "glob64");
 #endif
     *(void **)(&next_glob_pattern_p)          = dlsym(RTLD_NEXT, "glob_pattern_p");
+#ifdef HAVE_LCHMOD
     *(void **)(&next_lchmod)                  = dlsym(RTLD_NEXT, "lchmod");
+#endif
     *(void **)(&next_lchown)                  = dlsym(RTLD_NEXT, "lchown");
     *(void **)(&next_lckpwdf)                 = dlsym(RTLD_NEXT, "lckpwdf");
+#ifdef HAVE_LGETXATTR
     *(void **)(&next_lgetxattr)               = dlsym(RTLD_NEXT, "lgetxattr");
-    *(void **)(&next_listxattr)               = dlsym(RTLD_NEXT, "listxattr");
+#endif
     *(void **)(&next_link)                    = dlsym(RTLD_NEXT, "link");
+#ifdef HAVE_LISTXATTR
+    *(void **)(&next_listxattr)               = dlsym(RTLD_NEXT, "listxattr");
+#endif
+#ifdef HAVE_LLISTXATTR
     *(void **)(&next_llistxattr)              = dlsym(RTLD_NEXT, "llistxattr");
+#endif
+#ifdef HAVE_LREMOVEXATTR
     *(void **)(&next_lremovexattr)            = dlsym(RTLD_NEXT, "lremovexattr");
+#endif
+#ifdef HAVE_LSETXATTR
     *(void **)(&next_lsetxattr)               = dlsym(RTLD_NEXT, "lsetxattr");
+#endif
 #ifndef __GLIBC__
     *(void **)(&next_lstat)                   = dlsym(RTLD_NEXT, "lstat");
 #ifdef __USE_LARGEFILE64
     *(void **)(&next_lstat64)                 = dlsym(RTLD_NEXT, "lstat64");
 #endif
 #endif
+#ifdef HAVE_LUTIMES
     *(void **)(&next_lutimes)                 = dlsym(RTLD_NEXT, "lutimes");
+#endif
     *(void **)(&next_mkdir)                   = dlsym(RTLD_NEXT, "mkdir");
     *(void **)(&next_mkdtemp)                 = dlsym(RTLD_NEXT, "mkdtemp");
     *(void **)(&next_mknod)                   = dlsym(RTLD_NEXT, "mknod");
@@ -300,15 +344,21 @@ void fakechroot_init (void)
     *(void **)(&next_readlink)                = dlsym(RTLD_NEXT, "readlink");
     *(void **)(&next_realpath)                = dlsym(RTLD_NEXT, "realpath");
     *(void **)(&next_remove)                  = dlsym(RTLD_NEXT, "remove");
+#ifdef HAVE_REMOVEXATTR
     *(void **)(&next_removexattr)             = dlsym(RTLD_NEXT, "removexattr");
+#endif
     *(void **)(&next_rename)                  = dlsym(RTLD_NEXT, "rename");
+#ifdef HAVE_REVOKE
     *(void **)(&next_revoke)                  = dlsym(RTLD_NEXT, "revoke");
+#endif
     *(void **)(&next_rmdir)                   = dlsym(RTLD_NEXT, "rmdir");
     *(void **)(&next_scandir)                 = dlsym(RTLD_NEXT, "scandir");
 #ifdef __USE_LARGEFILE64
     *(void **)(&next_scandir64)               = dlsym(RTLD_NEXT, "scandir64");
 #endif
+#ifdef HAVE_SETXATTR
     *(void **)(&next_setxattr)                = dlsym(RTLD_NEXT, "setxattr");
+#endif
 #ifndef __GLIBC__
     *(void **)(&next_stat)                    = dlsym(RTLD_NEXT, "stat");
 #ifdef __USE_LARGEFILE64
@@ -547,6 +597,7 @@ int creat64 (const char *pathname, mode_t mode)
 #endif
 
 
+#ifdef HAVE_DLMOPEN
 /* #include <dlfcn.h> */
 void *dlmopen (Lmid_t nsid, const char *filename, int flag)
 {
@@ -554,6 +605,7 @@ void *dlmopen (Lmid_t nsid, const char *filename, int flag)
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_dlmopen(nsid, filename, flag);
 }
+#endif
 
 
 /* #include <dlfcn.h> */
@@ -945,6 +997,7 @@ char * getwd (char *buf)
 }
 
 
+#ifdef HAVE_GETXATTR
 /* #include <sys/xattr.h> */
 ssize_t getxattr (const char *path, const char *name, void *value, size_t size)
 {
@@ -952,6 +1005,7 @@ ssize_t getxattr (const char *path, const char *name, void *value, size_t size)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_getxattr(path, name, value, size);
 }
+#endif
 
 
 /* #include <glob.h> */
@@ -1023,6 +1077,7 @@ int glob_pattern_p (const char *pattern, int quote)
 }
 
 
+#ifdef HAVE_LCHMOD
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 int lchmod (const char *path, mode_t mode)
@@ -1031,6 +1086,7 @@ int lchmod (const char *path, mode_t mode)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_lchmod(path, mode);
 }
+#endif
 
 
 /* #include <sys/types.h> */
@@ -1050,6 +1106,7 @@ int lckpwdf (void)
 }
 
 
+#ifdef HAVE_LGETXATTR
 /* #include <sys/xattr.h> */
 ssize_t lgetxattr (const char *path, const char *name, void *value, size_t size)
 {
@@ -1057,8 +1114,22 @@ ssize_t lgetxattr (const char *path, const char *name, void *value, size_t size)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_lgetxattr(path, name, value, size);
 }
+#endif
 
 
+/* #include <unistd.h> */
+int link (const char *oldpath, const char *newpath)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    return next_link(oldpath, newpath);
+}
+
+
+#ifdef HAVE_LISTXATTR
 /* #include <sys/xattr.h> */
 ssize_t listxattr (const char *path, char *list, size_t size)
 {
@@ -1066,8 +1137,10 @@ ssize_t listxattr (const char *path, char *list, size_t size)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_listxattr(path, list, size);
 }
+#endif
 
 
+#ifdef HAVE_LLISTXATTR
 /* #include <sys/xattr.h> */
 ssize_t llistxattr (const char *path, char *list, size_t size)
 {
@@ -1075,8 +1148,21 @@ ssize_t llistxattr (const char *path, char *list, size_t size)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_llistxattr(path, list, size);
 }
+#endif
 
 
+#ifdef HAVE_LREMOVEXATTR
+/* #include <sys/xattr.h> */
+int lremovexattr (const char *path, const char *name)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    return next_lremovexattr(path, name);
+}
+#endif
+
+
+#ifdef HAVE_LSETXATTR
 /* #include <sys/xattr.h> */
 int lsetxattr (const char *path, const char *name, const void *value, size_t size, int flags)
 {
@@ -1084,6 +1170,7 @@ int lsetxattr (const char *path, const char *name, const void *value, size_t siz
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_lsetxattr(path, name, value, size, flags);
 }
+#endif
 
 
 #ifndef __GLIBC__
@@ -1112,6 +1199,7 @@ int lstat64 (const char *file_name, struct stat64 *buf)
 #endif
 
 
+#ifdef HAVE_LUTIMES
 /* #include <sys/time.h> */
 int lutimes (const char *filename, const struct timeval tv[2])
 {
@@ -1119,6 +1207,7 @@ int lutimes (const char *filename, const struct timeval tv[2])
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_lutimes(filename, tv);
 }
+#endif
 
 
 /* #include <sys/stat.h> */
@@ -1230,18 +1319,6 @@ char *mktemp (char *template)
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(template, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_mktemp(template);
-}
-
-
-/* #include <unistd.h> */
-int link (const char *oldpath, const char *newpath)
-{
-    char tmp[FAKECHROOT_MAXPATH];
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-    strcpy(tmp, oldpath); oldpath=tmp;
-    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-    return next_link(oldpath, newpath);
 }
 
 
@@ -1357,6 +1434,7 @@ int remove (const char *pathname)
 }
 
 
+#ifdef HAVE_REMOVEXATTR
 /* #include <sys/xattr.h> */
 int removexattr (const char *path, const char *name)
 {
@@ -1364,6 +1442,7 @@ int removexattr (const char *path, const char *name)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_removexattr(path, name);
 }
+#endif
 
 
 /* #include <stdio.h> */
@@ -1378,6 +1457,7 @@ int rename (const char *oldpath, const char *newpath)
 }
 
 
+#ifdef HAVE_REVOKE
 /* #include <unistd.h> */
 int revoke (const char *file)
 {
@@ -1385,6 +1465,7 @@ int revoke (const char *file)
     expand_chroot_path(file, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_rmdir(file);
 }
+#endif
 
 
 /* #include <unistd.h> */
@@ -1416,6 +1497,7 @@ int scandir64 (const char *dir, struct dirent64 ***namelist, int(*filter)(const 
 #endif
 
 
+#ifdef HAVE_SETXATTR
 /* #include <sys/xattr.h> */
 int setxattr (const char *path, const char *name, const void *value, size_t size, int flags)
 {
@@ -1423,6 +1505,7 @@ int setxattr (const char *path, const char *name, const void *value, size_t size
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_setxattr(path, name, value, size, flags);
 }
+#endif
 
 
 #ifndef __GLIBC__

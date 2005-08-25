@@ -20,7 +20,15 @@ AC_CHECK_LIB([dl], [dlopen])
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h shadow.h stdlib.h string.h unistd.h utime.h])
+AC_CHECK_HEADERS([ \
+fcntl.h \
+shadow.h \
+stdlib.h \
+string.h \
+unistd.h \
+utime.h \
+sys/xattr.h \
+])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -38,7 +46,95 @@ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([euidaccess getcwd lchown mkdir mkfifo pathconf realpath rmdir setenv strchr strstr utime])
+AC_CHECK_FUNCS([ \
+__lxstat \
+__lxstat64 \
+__open \
+__open64 \
+__xmknod \
+__xstat \
+__xstat64 \
+access \
+acct \
+canonicalize_file_name \
+chdir \
+chmod \
+chown \
+chroot \
+creat \
+creat64 \
+dlmopen \
+dlopen \
+euidaccess \
+execl \
+execle \
+execlp \
+execv \
+execve \
+execvp \
+fopen \
+fopen64 \
+freopen \
+freopen64 \
+get_current_dir_name \
+getcwd \
+getwd \
+getxattr \
+glob \
+glob64 \
+glob_pattern_p \
+lchmod \
+lchown \
+lckpwdf \
+lgetxattr \
+link \
+listxattr \
+llistxattr \
+lremovexattr \
+lsetxattr \
+lstat \
+lstat64 \
+lutimes \
+mkdir \
+mkdtemp \
+mknod \
+mkfifo \
+mkstemp \
+mkstemp64 \
+mktemp \
+open \
+open64 \
+opendir \
+pathconf \
+readlink \
+realpath \
+remove \
+removexattr \
+rename \
+revoke \
+rmdir \
+scandir \
+scandir64 \
+setxattr \
+stat \
+stat64 \
+symlink \
+tempnam \
+tmpnam \
+truncate \
+truncate64 \
+unlink \
+ulckpwdf \
+utime \
+utimes \
+])
 
-AC_CONFIG_FILES([Makefile doc/Makefile man/Makefile src/Makefile scripts/Makefile test/Makefile])
+AC_CONFIG_FILES([ \
+Makefile \
+doc/Makefile \
+man/Makefile \
+src/Makefile \
+scripts/Makefile \
+test/Makefile \
+])
 AC_OUTPUT

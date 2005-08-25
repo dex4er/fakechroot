@@ -20552,7 +20552,16 @@ fi
 
 
 
-for ac_header in fcntl.h shadow.h stdlib.h string.h unistd.h utime.h
+
+for ac_header in  \
+fcntl.h \
+shadow.h \
+stdlib.h \
+string.h \
+unistd.h \
+utime.h \
+sys/xattr.h \
+
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -22284,7 +22293,156 @@ rm -f conftest.data
 
 
 
-for ac_func in euidaccess getcwd lchown mkdir mkfifo pathconf realpath rmdir setenv strchr strstr utime
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+for ac_func in  \
+__lxstat \
+__lxstat64 \
+__open \
+__open64 \
+__xmknod \
+__xstat \
+__xstat64 \
+access \
+acct \
+canonicalize_file_name \
+chdir \
+chmod \
+chown \
+chroot \
+creat \
+creat64 \
+dlmopen \
+dlopen \
+euidaccess \
+execl \
+execle \
+execlp \
+execv \
+execve \
+execvp \
+fopen \
+fopen64 \
+freopen \
+freopen64 \
+get_current_dir_name \
+getcwd \
+getwd \
+getxattr \
+glob \
+glob64 \
+glob_pattern_p \
+lchmod \
+lchown \
+lckpwdf \
+lgetxattr \
+link \
+listxattr \
+llistxattr \
+lremovexattr \
+lsetxattr \
+lstat \
+lstat64 \
+lutimes \
+mkdir \
+mkdtemp \
+mknod \
+mkfifo \
+mkstemp \
+mkstemp64 \
+mktemp \
+open \
+open64 \
+opendir \
+pathconf \
+readlink \
+realpath \
+remove \
+removexattr \
+rename \
+revoke \
+rmdir \
+scandir \
+scandir64 \
+setxattr \
+stat \
+stat64 \
+symlink \
+tempnam \
+tmpnam \
+truncate \
+truncate64 \
+unlink \
+ulckpwdf \
+utime \
+utimes \
+
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
