@@ -20,6 +20,8 @@
 /* $Id$ */
 
 
+#include "config.h"
+
 #define _GNU_SOURCE
 #include <unistd.h>
 #include <stdlib.h>
@@ -105,35 +107,189 @@
     }
 
 
+#ifndef __GLIBC__
+extern char **environ;
+#endif
+
+
+#ifndef HAVE_STRCHRNUL
+/* Find the first occurrence of C in S or the final NUL byte.  */
+char *strchrnul (const char *s, int c_in)
+{
+    const unsigned char *char_ptr;
+    const unsigned long int *longword_ptr;
+    unsigned long int longword, magic_bits, charmask;
+    unsigned char c;
+
+    c = (unsigned char) c_in;
+
+    /* Handle the first few characters by reading one character at a time.
+       Do this until CHAR_PTR is aligned on a longword boundary.  */
+    for (char_ptr = s; ((unsigned long int) char_ptr
+			& (sizeof(longword) - 1)) != 0; ++char_ptr)
+	if (*char_ptr == c || *char_ptr == '\0')
+	    return (void *) char_ptr;
+
+    /* All these elucidatory comments refer to 4-byte longwords,
+       but the theory applies equally well to 8-byte longwords.  */
+
+    longword_ptr = (unsigned long int *) char_ptr;
+
+    /* Bits 31, 24, 16, and 8 of this number are zero.  Call these bits
+       the "holes."  Note that there is a hole just to the left of
+       each byte, with an extra at the end:
+
+       bits:  01111110 11111110 11111110 11111111
+       bytes: AAAAAAAA BBBBBBBB CCCCCCCC DDDDDDDD
+
+       The 1-bits make sure that carries propagate to the next 0-bit.
+       The 0-bits provide holes for carries to fall into.  */
+    switch (sizeof(longword)) {
+    case 4:
+	magic_bits = 0x7efefeffL;
+	break;
+    case 8:
+	magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
+	break;
+    default:
+	abort();
+    }
+
+    /* Set up a longword, each of whose bytes is C.  */
+    charmask = c | (c << 8);
+    charmask |= charmask << 16;
+    if (sizeof(longword) > 4)
+	/* Do the shift in two steps to avoid a warning if long has 32 bits.  */
+	charmask |= (charmask << 16) << 16;
+    if (sizeof(longword) > 8)
+	abort();
+
+    /* Instead of the traditional loop which tests each character,
+       we will test a longword at a time.  The tricky part is testing
+       if *any of the four* bytes in the longword in question are zero.  */
+    for (;;) {
+	/* We tentatively exit the loop if adding MAGIC_BITS to
+	   LONGWORD fails to change any of the hole bits of LONGWORD.
+
+	   1) Is this safe?  Will it catch all the zero bytes?
+	   Suppose there is a byte with all zeros.  Any carry bits
+	   propagating from its left will fall into the hole at its
+	   least significant bit and stop.  Since there will be no
+	   carry from its most significant bit, the LSB of the
+	   byte to the left will be unchanged, and the zero will be
+	   detected.
+
+	   2) Is this worthwhile?  Will it ignore everything except
+	   zero bytes?  Suppose every byte of LONGWORD has a bit set
+	   somewhere.  There will be a carry into bit 8.  If bit 8
+	   is set, this will carry into bit 16.  If bit 8 is clear,
+	   one of bits 9-15 must be set, so there will be a carry
+	   into bit 16.  Similarly, there will be a carry into bit
+	   24.  If one of bits 24-30 is set, there will be a carry
+	   into bit 31, so all of the hole bits will be changed.
+
+	   The one misfire occurs when bits 24-30 are clear and bit
+	   31 is set; in this case, the hole at bit 31 is not
+	   changed.  If we had access to the processor carry flag,
+	   we could close this loophole by putting the fourth hole
+	   at bit 32!
+
+	   So it ignores everything except 128's, when they're aligned
+	   properly.
+
+	   3) But wait!  Aren't we looking for C as well as zero?
+	   Good point.  So what we do is XOR LONGWORD with a longword,
+	   each of whose bytes is C.  This turns each byte that is C
+	   into a zero.  */
+
+	longword = *longword_ptr++;
+
+	/* Add MAGIC_BITS to LONGWORD.  */
+	if ((((longword + magic_bits)
+
+	      /* Set those bits that were unchanged by the addition.  */
+	      ^ ~longword)
+
+	     /* Look at only the hole bits.  If any of the hole bits
+	        are unchanged, most likely one of the bytes was a
+	        zero.  */
+	     & ~magic_bits) != 0 ||
+	    /* That caught zeroes.  Now test for C.  */
+	    ((((longword ^ charmask) +
+	       magic_bits) ^ ~(longword ^ charmask))
+	     & ~magic_bits) != 0) {
+	    /* Which of the bytes was C or zero?
+	       If none of them were, it was a misfire; continue the search.  */
+
+	    const unsigned char *cp =
+		(const unsigned char *) (longword_ptr - 1);
+
+	    if (*cp == c || *cp == '\0')
+		return (char *) cp;
+	    if (*++cp == c || *cp == '\0')
+		return (char *) cp;
+	    if (*++cp == c || *cp == '\0')
+		return (char *) cp;
+	    if (*++cp == c || *cp == '\0')
+		return (char *) cp;
+	    if (sizeof(longword) > 4) {
+		if (*++cp == c || *cp == '\0')
+		    return (char *) cp;
+		if (*++cp == c || *cp == '\0')
+		    return (char *) cp;
+		if (*++cp == c || *cp == '\0')
+		    return (char *) cp;
+		if (*++cp == c || *cp == '\0')
+		    return (char *) cp;
+	    }
+	}
+    }
+
+    /* This should never happen.  */
+    return NULL;
+}
+#endif
+
+
+#ifdef HAVE___LXSTAT
 static int     (*next___lxstat) (int ver, const char *filename, struct stat *buf);
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE___LXSTAT64
 static int     (*next___lxstat64) (int ver, const char *filename, struct stat64 *buf);
 #endif
+#ifdef HAVE___OPEN
 static int     (*next___open) (const char *pathname, int flags, ...);
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE___OPEN64
 static int     (*next___open64) (const char *pathname, int flags, ...);
 #endif
+#ifdef HAVE___XMKNOD
 static int     (*next___xmknod) (int ver, const char *path, mode_t mode, dev_t *dev);
+#endif
+#ifdef HAVE___XSTAT
 static int     (*next___xstat) (int ver, const char *filename, struct stat *buf);
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE___XSTAT64
 static int     (*next___xstat64) (int ver, const char *filename, struct stat64 *buf);
 #endif
 static int     (*next_access) (const char *pathname, int mode);
 static int     (*next_acct) (const char *filename);
+#ifdef HAVE_CANONICALIZE_FILE_NAME
 static char *  (*next_canonicalize_file_name) (const char *name);
+#endif
 static int     (*next_chdir) (const char *path);
 static int     (*next_chmod) (const char *path, mode_t mode);
 static int     (*next_chown) (const char *path, uid_t owner, gid_t group);
 static int     (*next_chroot) (const char *path);
 static int     (*next_creat) (const char *pathname, mode_t mode);
-#ifdef __USE_LARGEFILE64
 static int     (*next_creat64) (const char *pathname, mode_t mode);
-#endif
 #ifdef HAVE_DLMOPEN
 static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag);
 #endif
 static void *  (*next_dlopen) (const char *filename, int flag);
+#ifdef HAVE_EUIDACCESS
 static int     (*next_euidaccess) (const char *pathname, int mode);
+#endif
 static int     (*next_execl) (const char *path, const char *arg, ...);
 static int     (*next_execle) (const char *path, const char *arg, ...);
 static int     (*next_execlp) (const char *file, const char *arg, ...);
@@ -141,24 +297,24 @@ static int     (*next_execv) (const char *path, char *const argv []);
 static int     (*next_execve) (const char *filename, char *const argv [], char *const envp[]);
 static int     (*next_execvp) (const char *file, char *const argv []);
 static FILE *  (*next_fopen) (const char *path, const char *mode);
-#ifdef __USE_LARGEFILE64
 static FILE *  (*next_fopen64) (const char *path, const char *mode);
-#endif
 static FILE *  (*next_freopen) (const char *path, const char *mode, FILE *stream);
-#ifdef __USE_LARGEFILE64
 static FILE *  (*next_freopen64) (const char *path, const char *mode, FILE *stream);
-#endif
+#ifdef HAVE_GET_CURRENT_DIR_NAME
 static char *  (*next_get_current_dir_name) (void);
+#endif
 static char *  (*next_getcwd) (char *buf, size_t size);
 static char *  (*next_getwd) (char *buf);
 #ifdef HAVE_GETXATTR
 static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size);
 #endif
 static int     (*next_glob) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob_t *pglob);
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE_GLOB64
 static int     (*next_glob64) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob64_t *pglob);
 #endif
+#ifdef HAVE_GLOB_PATTERN_P
 static int     (*next_glob_pattern_p) (const char *pattern, int quote);
+#endif
 #ifdef HAVE_LCHMOD
 static int     (*next_lchmod) (const char *path, mode_t mode);
 #endif
@@ -182,26 +338,22 @@ static int     (*next_lsetxattr) (const char *path, const char *name, const void
 #endif
 #ifndef __GLIBC__
 static int     (*next_lstat) (const char *file_name, struct stat *buf);
-#ifdef __USE_LARGEFILE64
 static int     (*next_lstat64) (const char *file_name, struct stat64 *buf);
-#endif
 #endif
 #ifdef HAVE_LUTIMES
 static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]);
 #endif
 static int     (*next_mkdir) (const char *pathname, mode_t mode);
+#ifdef HAVE_MKDTEMP
 static char *  (*next_mkdtemp) (char *template);
+#endif
 static int     (*next_mknod) (const char *pathname, mode_t mode, dev_t dev);
 static int     (*next_mkfifo) (const char *pathname, mode_t mode);
 static int     (*next_mkstemp) (char *template);
-#ifdef __USE_LARGEFILE64
 static int     (*next_mkstemp64) (char *template);
-#endif
 static char *  (*next_mktemp) (char *template);
 static int     (*next_open) (const char *pathname, int flags, ...);
-#ifdef __USE_LARGEFILE64
 static int     (*next_open64) (const char *pathname, int flags, ...);
-#endif
 static DIR *   (*next_opendir) (const char *name);
 static long    (*next_pathconf) (const char *path, int name);
 static int     (*next_readlink) (const char *path, char *buf, size_t bufsiz);
@@ -215,8 +367,10 @@ static int     (*next_rename) (const char *oldpath, const char *newpath);
 static int     (*next_revoke) (const char *file);
 #endif
 static int     (*next_rmdir) (const char *pathname);
+#ifdef HAVE_SCANDIR
 static int     (*next_scandir) (const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *));
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE_SCANDIR64
 static int     (*next_scandir64) (const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *));
 #endif
 #ifdef HAVE_SETXATTR
@@ -224,17 +378,13 @@ static int     (*next_setxattr) (const char *path, const char *name, const void 
 #endif
 #ifndef __GLIBC__
 static int     (*next_stat) (const char *file_name, struct stat *buf);
-#ifdef __USE_LARGEFILE64
 static int     (*next_stat64) (const char *file_name, struct stat64 *buf);
-#endif
 #endif
 static int     (*next_symlink) (const char *oldpath, const char *newpath);
 static char *  (*next_tempnam) (const char *dir, const char *pfx);
 static char *  (*next_tmpnam) (char *s);
 static int     (*next_truncate) (const char *path, off_t length);
-#ifdef __USE_LARGEFILE64
 static int     (*next_truncate64) (const char *path, off64_t length);
-#endif
 static int     (*next_unlink) (const char *pathname);
 static int     (*next_ulckpwdf) (void);
 static int     (*next_utime) (const char *filename, const struct utimbuf *buf);
@@ -244,33 +394,45 @@ static int     (*next_utimes) (const char *filename, const struct timeval tv[2])
 void fakechroot_init (void) __attribute((constructor));
 void fakechroot_init (void)
 {
+#ifdef HAVE___LXSTAT
     *(void **)(&next___lxstat)                = dlsym(RTLD_NEXT, "__lxstat");
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE___LXSTAT64
     *(void **)(&next___lxstat64)              = dlsym(RTLD_NEXT, "__lxstat64");
 #endif
+#ifdef HAVE___OPEN
     *(void **)(&next___open)                  = dlsym(RTLD_NEXT, "__open");
+#endif
+#ifdef HAVE___OPEN64
     *(void **)(&next___open64)                = dlsym(RTLD_NEXT, "__open64");
+#endif
+#ifdef HAVE___XMKNOD
     *(void **)(&next___xmknod)                = dlsym(RTLD_NEXT, "__xmknod");
+#endif
+#ifdef HAVE___XSTAT
     *(void **)(&next___xstat)                 = dlsym(RTLD_NEXT, "__xstat");
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE___XSTAT64
     *(void **)(&next___xstat64)               = dlsym(RTLD_NEXT, "__xstat64");
 #endif
     *(void **)(&next_access)                  = dlsym(RTLD_NEXT, "access");
     *(void **)(&next_acct)                    = dlsym(RTLD_NEXT, "acct");
+#ifdef HAVE_CANONICALIZE_FILE_NAME
     *(void **)(&next_canonicalize_file_name)  = dlsym(RTLD_NEXT, "canonicalize_file_name");
+#endif
     *(void **)(&next_chdir)                   = dlsym(RTLD_NEXT, "chdir");
     *(void **)(&next_chmod)                   = dlsym(RTLD_NEXT, "chmod");
     *(void **)(&next_chown)                   = dlsym(RTLD_NEXT, "chown");
     *(void **)(&next_chroot)                  = dlsym(RTLD_NEXT, "chroot");
     *(void **)(&next_creat)                   = dlsym(RTLD_NEXT, "creat");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_creat64)                 = dlsym(RTLD_NEXT, "creat64");
-#endif
 #ifdef HAVE_DLMOPEN
     *(void **)(&next_dlmopen)                 = dlsym(RTLD_NEXT, "dlmopen");
 #endif
     *(void **)(&next_dlopen)                  = dlsym(RTLD_NEXT, "dlopen");
+#ifdef HAVE_EUIDACCESS
     *(void **)(&next_euidaccess)              = dlsym(RTLD_NEXT, "euidaccess");
+#endif
     *(void **)(&next_execl)                   = dlsym(RTLD_NEXT, "execl");
     *(void **)(&next_execle)                  = dlsym(RTLD_NEXT, "execle");
     *(void **)(&next_execlp)                  = dlsym(RTLD_NEXT, "execlp");
@@ -278,24 +440,24 @@ void fakechroot_init (void)
     *(void **)(&next_execve)                  = dlsym(RTLD_NEXT, "execve");
     *(void **)(&next_execvp)                  = dlsym(RTLD_NEXT, "execvp");
     *(void **)(&next_fopen)                   = dlsym(RTLD_NEXT, "fopen");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_fopen64)                 = dlsym(RTLD_NEXT, "fopen64");
-#endif
     *(void **)(&next_freopen)                 = dlsym(RTLD_NEXT, "freopen");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_freopen64)               = dlsym(RTLD_NEXT, "freopen64");
-#endif
+#ifdef HAVE_GET_CURRENT_DIR_NAME
     *(void **)(&next_get_current_dir_name)    = dlsym(RTLD_NEXT, "get_current_dir_name");
+#endif
     *(void **)(&next_getcwd)                  = dlsym(RTLD_NEXT, "getcwd");
     *(void **)(&next_getwd)                   = dlsym(RTLD_NEXT, "getwd");
 #ifdef HAVE_GETXATTR
     *(void **)(&next_getxattr)                = dlsym(RTLD_NEXT, "getxattr");
 #endif
     *(void **)(&next_glob)                    = dlsym(RTLD_NEXT, "glob");
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE_GLOB64
     *(void **)(&next_glob64)                  = dlsym(RTLD_NEXT, "glob64");
 #endif
+#ifdef HAVE_GLOB_PATTERN_P
     *(void **)(&next_glob_pattern_p)          = dlsym(RTLD_NEXT, "glob_pattern_p");
+#endif
 #ifdef HAVE_LCHMOD
     *(void **)(&next_lchmod)                  = dlsym(RTLD_NEXT, "lchmod");
 #endif
@@ -319,26 +481,22 @@ void fakechroot_init (void)
 #endif
 #ifndef __GLIBC__
     *(void **)(&next_lstat)                   = dlsym(RTLD_NEXT, "lstat");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_lstat64)                 = dlsym(RTLD_NEXT, "lstat64");
-#endif
 #endif
 #ifdef HAVE_LUTIMES
     *(void **)(&next_lutimes)                 = dlsym(RTLD_NEXT, "lutimes");
 #endif
     *(void **)(&next_mkdir)                   = dlsym(RTLD_NEXT, "mkdir");
+#ifdef HAVE_MKDTEMP
     *(void **)(&next_mkdtemp)                 = dlsym(RTLD_NEXT, "mkdtemp");
+#endif
     *(void **)(&next_mknod)                   = dlsym(RTLD_NEXT, "mknod");
     *(void **)(&next_mkfifo)                  = dlsym(RTLD_NEXT, "mkfifo");
     *(void **)(&next_mkstemp)                 = dlsym(RTLD_NEXT, "mkstemp");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_mkstemp64)               = dlsym(RTLD_NEXT, "mkstemp64");
-#endif
     *(void **)(&next_mktemp)                  = dlsym(RTLD_NEXT, "mktemp");
     *(void **)(&next_open)                    = dlsym(RTLD_NEXT, "open");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_open64)                  = dlsym(RTLD_NEXT, "open64");
-#endif
     *(void **)(&next_opendir)                 = dlsym(RTLD_NEXT, "opendir");
     *(void **)(&next_pathconf)                = dlsym(RTLD_NEXT, "pathconf");
     *(void **)(&next_readlink)                = dlsym(RTLD_NEXT, "readlink");
@@ -352,8 +510,10 @@ void fakechroot_init (void)
     *(void **)(&next_revoke)                  = dlsym(RTLD_NEXT, "revoke");
 #endif
     *(void **)(&next_rmdir)                   = dlsym(RTLD_NEXT, "rmdir");
+#ifdef HAVE_SCANDIR
     *(void **)(&next_scandir)                 = dlsym(RTLD_NEXT, "scandir");
-#ifdef __USE_LARGEFILE64
+#endif
+#ifdef HAVE_SCANDIR64
     *(void **)(&next_scandir64)               = dlsym(RTLD_NEXT, "scandir64");
 #endif
 #ifdef HAVE_SETXATTR
@@ -361,17 +521,13 @@ void fakechroot_init (void)
 #endif
 #ifndef __GLIBC__
     *(void **)(&next_stat)                    = dlsym(RTLD_NEXT, "stat");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_stat64)                  = dlsym(RTLD_NEXT, "stat64");
-#endif
 #endif
     *(void **)(&next_symlink)                 = dlsym(RTLD_NEXT, "symlink");
     *(void **)(&next_tempnam)                 = dlsym(RTLD_NEXT, "tempnam");
     *(void **)(&next_tmpnam)                  = dlsym(RTLD_NEXT, "tmpnam");
     *(void **)(&next_truncate)                = dlsym(RTLD_NEXT, "truncate");
-#ifdef __USE_LARGEFILE64
     *(void **)(&next_truncate64)              = dlsym(RTLD_NEXT, "truncate64");
-#endif
     *(void **)(&next_unlink)                  = dlsym(RTLD_NEXT, "unlink");
     *(void **)(&next_ulckpwdf)                = dlsym(RTLD_NEXT, "ulckpwdf");
     *(void **)(&next_utime)                   = dlsym(RTLD_NEXT, "utime");
@@ -379,6 +535,7 @@ void fakechroot_init (void)
 }
 
 
+#ifdef HAVE___LXSTAT
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int __lxstat (int ver, const char *filename, struct stat *buf)
@@ -387,9 +544,10 @@ int __lxstat (int ver, const char *filename, struct stat *buf)
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next___lxstat(ver, filename, buf);
 }
+#endif
 
 
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE___LXSTAT64
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int __lxstat64 (int ver, const char *filename, struct stat64 *buf)
@@ -401,6 +559,7 @@ int __lxstat64 (int ver, const char *filename, struct stat64 *buf)
 #endif
 
 
+#ifdef HAVE___OPEN
 /* Internal libc function */
 int __open (const char *pathname, int flags, ...)
 {
@@ -417,9 +576,10 @@ int __open (const char *pathname, int flags, ...)
 
     return next___open(pathname, flags, mode);
 }
+#endif
 
 
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE___OPEN64
 /* Internal libc function */
 int __open64 (const char *pathname, int flags, ...)
 {
@@ -439,6 +599,7 @@ int __open64 (const char *pathname, int flags, ...)
 #endif
 
 
+#ifdef HAVE___XMKNOD
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int __xmknod (int ver, const char *path, mode_t mode, dev_t *dev)
@@ -447,8 +608,10 @@ int __xmknod (int ver, const char *path, mode_t mode, dev_t *dev)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next___xmknod(ver, path, mode, dev);
 }
+#endif
 
 
+#ifdef HAVE___XSTAT
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int __xstat (int ver, const char *filename, struct stat *buf)
@@ -457,9 +620,10 @@ int __xstat (int ver, const char *filename, struct stat *buf)
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next___xstat(ver, filename, buf);
 }
+#endif
 
 
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE___XSTAT64
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int __xstat64 (int ver, const char *filename, struct stat64 *buf)
@@ -489,6 +653,7 @@ int acct (const char *filename)
 }
 
 
+#ifdef HAVE_CANONICALIZE_FILE_NAME
 /* #include <stdlib.h> */
 char *canonicalize_file_name (const char *name)
 {
@@ -496,6 +661,7 @@ char *canonicalize_file_name (const char *name)
     expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_canonicalize_file_name(name);
 }
+#endif
 
 
 /* #include <unistd.h> */
@@ -532,6 +698,9 @@ int chroot (const char *path)
 {
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
+#ifndef HAVE_SETENV
+    char *envbuf;
+#endif
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
     if (fakechroot_path != NULL) {
@@ -550,7 +719,13 @@ int chroot (const char *path)
         }
     }
 
+#ifdef HAVE_SETENV
     setenv("FAKECHROOT_BASE", path, 1);
+#else
+    envbuf = malloc(FAKECHROOT_MAXPATH+16);
+    snprintf(envbuf, FAKECHROOT_MAXPATH+16, "FAKECHROOT_BASE=%s", path);
+    putenv(envbuf);
+#endif
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
     ld_library_path = getenv("LD_LIBRARY_PATH");
@@ -567,7 +742,13 @@ int chroot (const char *path)
     }
 
     snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, path, path);
+#ifdef HAVE_SETENV
     setenv("LD_LIBRARY_PATH", tmp, 1);
+#else
+    envbuf = malloc(FAKECHROOT_MAXPATH+16);
+    snprintf(envbuf, FAKECHROOT_MAXPATH+16, "LD_LIBRARY_PATH=%s", tmp);
+    putenv(envbuf);
+#endif
     free(tmp);
     return 0;
 }
@@ -584,7 +765,6 @@ int creat (const char *pathname, mode_t mode)
 }
 
 
-#ifdef __USE_LARGEFILE64
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
@@ -594,7 +774,6 @@ int creat64 (const char *pathname, mode_t mode)
     expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_creat64(pathname, mode);
 }
-#endif
 
 
 #ifdef HAVE_DLMOPEN
@@ -615,6 +794,17 @@ void *dlopen (const char *filename, int flag)
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_dlopen(filename, flag);
 }
+
+
+#ifdef HAVE_EUIDACCESS
+/* #include <unistd.h> */
+int euidaccess (const char *pathname, int mode)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    return next_euidaccess(pathname, mode);
+}
+#endif
 
 
 /* #include <unistd.h> */
@@ -897,15 +1087,6 @@ int execvp (const char *file, char *const argv [])
 }
 
 
-/* #include <unistd.h> */
-int euidaccess (const char *pathname, int mode)
-{
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-    return next_euidaccess(pathname, mode);
-}
-
-
 /* #include <stdio.h> */
 FILE *fopen (const char *path, const char *mode)
 {
@@ -915,7 +1096,6 @@ FILE *fopen (const char *path, const char *mode)
 }
 
 
-#ifdef __USE_LARGEFILE64
 /* #include <stdio.h> */
 FILE *fopen64 (const char *path, const char *mode)
 {
@@ -923,7 +1103,6 @@ FILE *fopen64 (const char *path, const char *mode)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_fopen64(path, mode);
 }
-#endif
 
 
 /* #include <stdio.h> */
@@ -935,7 +1114,6 @@ FILE *freopen (const char *path, const char *mode, FILE *stream)
 }
 
 
-#ifdef __USE_LARGEFILE64
 /* #include <stdio.h> */
 FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 {
@@ -943,9 +1121,9 @@ FILE *freopen64 (const char *path, const char *mode, FILE *stream)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_freopen64(path, mode, stream);
 }
-#endif
 
 
+#ifdef HAVE_GET_CURRENT_DIR_NAME
 /* #include <unistd.h> */
 char * get_current_dir_name (void) {
     char *cwd, *oldptr, *newptr;
@@ -967,6 +1145,7 @@ char * get_current_dir_name (void) {
     free(oldptr);
     return newptr;
 }
+#endif
 
 
 /* #include <unistd.h> */
@@ -1037,7 +1216,7 @@ int glob (const char *pattern, int flags, int (*errfunc) (const char *, int), gl
 }
 
 
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE_GLOB64
 /* #include <glob.h> */
 int glob64 (const char *pattern, int flags, int (*errfunc) (const char *, int), glob64_t *pglob)
 {
@@ -1068,6 +1247,7 @@ int glob64 (const char *pattern, int flags, int (*errfunc) (const char *, int), 
 #endif
 
 
+#ifdef HAVE_GLOB_PATTERN_P
 /* #include <glob.h> */
 int glob_pattern_p (const char *pattern, int quote)
 {
@@ -1075,6 +1255,7 @@ int glob_pattern_p (const char *pattern, int quote)
     expand_chroot_path(pattern, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_glob_pattern_p(pattern, quote);
 }
+#endif
 
 
 #ifdef HAVE_LCHMOD
@@ -1186,7 +1367,6 @@ int lstat (const char *file_name, struct stat *buf)
 
 
 #ifndef __GLIBC__
-#ifdef __USE_LARGEFILE64
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int lstat64 (const char *file_name, struct stat64 *buf)
@@ -1195,7 +1375,6 @@ int lstat64 (const char *file_name, struct stat64 *buf)
     expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_lstat64(file_name, buf);
 }
-#endif
 #endif
 
 
@@ -1220,6 +1399,7 @@ int mkdir (const char *pathname, mode_t mode)
 }
 
 
+#ifdef HAVE_MKDTEMP
 /* #include <stdlib.h> */
 char *mkdtemp (char *template)
 {
@@ -1241,6 +1421,7 @@ char *mkdtemp (char *template)
     strcpy(oldtemplate, ptr);
     return oldtemplate;
 }
+#endif
 
 
 /* #include <sys/types.h> */
@@ -1288,7 +1469,6 @@ int mkstemp (char *template)
 }
 
 
-#ifdef __USE_LARGEFILE64
 /* #include <stdlib.h> */
 int mkstemp64 (char *template)
 {
@@ -1310,7 +1490,6 @@ int mkstemp64 (char *template)
     }
     return fd;
 }
-#endif
 
 
 /* #include <stdlib.h> */
@@ -1341,7 +1520,6 @@ int open (const char *pathname, int flags, ...) {
 }
 
 
-#ifdef __USE_LARGEFILE64
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
@@ -1360,7 +1538,6 @@ int open64 (const char *pathname, int flags, ...)
 
     return next_open64(pathname, flags, mode);
 }
-#endif
 
 
 /* #include <sys/types.h> */
@@ -1477,6 +1654,7 @@ int rmdir (const char *pathname)
 }
 
 
+#ifdef HAVE_SCANDIR
 /* #include <dirent.h> */
 int scandir (const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *))
 {
@@ -1484,9 +1662,10 @@ int scandir (const char *dir, struct dirent ***namelist, int(*filter)(const stru
     expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_scandir(dir, namelist, filter, compar);
 }
+#endif
 
 
-#ifdef __USE_LARGEFILE64
+#ifdef HAVE_SCANDIR64
 /* #include <dirent.h> */
 int scandir64 (const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *))
 {
@@ -1521,7 +1700,6 @@ int stat (const char *file_name, struct stat *buf)
 
 
 #ifndef __GLIBC__
-#ifdef __USE_LARGEFILE64
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int stat64 (const char *file_name, struct stat64 *buf)
@@ -1530,7 +1708,6 @@ int stat64 (const char *file_name, struct stat64 *buf)
     expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_stat64(file_name, buf);
 }
-#endif
 #endif
 
 
@@ -1581,7 +1758,6 @@ int truncate (const char *path, off_t length)
 }
 
 
-#ifdef __USE_LARGEFILE64
 /* #include <unistd.h> */
 /* #include <sys/types.h> */
 int truncate64 (const char *path, off64_t length)
@@ -1590,7 +1766,6 @@ int truncate64 (const char *path, off64_t length)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_truncate64(path, length);
 }
-#endif
 
 
 /* #include <shadow.h> */

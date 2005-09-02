@@ -35,7 +35,6 @@ Build: bash
  fi
  .
  COMMON_CONFIG="\
- 	--cache-file=./config.cache \
  	--prefix=/usr \
  	--mandir=/usr/share/man \
  	--disable-static"
@@ -45,18 +44,21 @@ Build: bash
      pushd build-tree-lib
          CC="$CC" CFLAGS="$CFLAGS" \
              ../configure \
+ 	         --cache-file=../config.cache \
  	         --libdir=/usr/lib/libfakechroot \
                  $COMMON_CONFIG
      popd
      pushd build-tree-fake
          CC="$CC" CFLAGS="$CFLAGS" \
              ../fake/configure \
+ 	         --cache-file=../config.cache \
                  $COMMON_CONFIG
      popd
      if [ "$DEB_BUILD_ARCH" = "s390" ]; then
          pushd build-tree-lib-biarch
              CC="gcc -m64" CFLAGS="$CFLAGS" \
                  ../configure \
+ 	             --cache-file=../config.biarch.cache \
  		     --build=s390-linux \
  		     --host=s390x-linux \
    	             --libdir=/usr/lib64/libfakechroot \
@@ -65,6 +67,7 @@ Build: bash
          pushd build-tree-fake-biarch
              CC="gcc -m64" CFLAGS="$CFLAGS" \
                  ../fake/configure \
+ 	             --cache-file=../config.biarch.cache \
  		     --build=s390-linux \
  		     --host=s390x-linux \
    	             --libdir=/usr/lib64 \
@@ -75,6 +78,7 @@ Build: bash
          pushd build-tree-lib-biarch
              CC="gcc -m64" CFLAGS="$CFLAGS" \
                  ../configure \
+ 	             --cache-file=../config.biarch.cache \
  		     --build=sparc-linux \
  		     --host=sparc64-linux \
    	             --libdir=/usr/lib64/libfakechroot \
@@ -83,6 +87,7 @@ Build: bash
          pushd build-tree-fake-biarch
              CC="gcc -m64" CFLAGS="$CFLAGS" \
                  ../fake/configure \
+ 	             --cache-file=../config.biarch.cache \
  		     --build=sparc-linux \
  		     --host=sparc64-linux \
    	             --libdir=/usr/lib64 \
@@ -93,6 +98,7 @@ Build: bash
          pushd build-tree-lib-biarch
              CC="gcc -m32" CFLAGS="$CFLAGS" \
                  ../configure \
+ 	             --cache-file=../config.biarch.cache \
  		     --build=x86_64-linux \
  		     --host=i386-linux \
    	             --libdir=/emul/ia32-linux/usr/lib/libfakechroot \
@@ -101,6 +107,7 @@ Build: bash
          pushd build-tree-fake-biarch
              CC="gcc -m32" CFLAGS="$CFLAGS" \
                  ../fake/configure \
+ 	             --cache-file=../config.biarch.cache \
  		     --build=x86_64-linux \
  		     --host=i386-linux \
    	             --libdir=/emul/ia32-linux/usr/lib \
@@ -130,6 +137,7 @@ Build: bash
      touch build-stamp
  fi
 Clean: sh
+ rm -f config.*cache || true
  rm -rf build-tree-* || true
  rm -f *-stamp || true
 

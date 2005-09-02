@@ -22,7 +22,7 @@ do
 done
 
 for f in \
-    /bin/ash \
+    /bin/sh \
     /bin/bash \
     /bin/grep \
     /bin/ls \
@@ -36,18 +36,24 @@ do
     ln -sf $f testtree/$f
 done
 
-dir=$(cd $(pwd)/../src/.libs; pwd)
+dir=`cd \`pwd\`/../src/.libs; pwd`
 
-if [ -n "$LD_LIBRARY_PATH" ]; then
-    export LD_LIBRARY_PATH="$dir:$LD_LIBRARY_PATH"
-else
-    export LD_LIBRARY_PATH="$dir"
-fi
+#if [ -n "$LD_LIBRARY_PATH" ]; then
+#    LD_LIBRARY_PATH="$dir:$LD_LIBRARY_PATH"
+#else
+#    LD_LIBRARY_PATH="$dir"
+#fi
+#export LD_LIBRARY_PATH
 
 if [ -n "$LD_PRELOAD" ]; then
-    export LD_PRELOAD="$LD_PRELOAD libfakechroot-2.1.so"
+    LD_PRELOAD="$LD_PRELOAD libfakechroot-2.1.so"
 else
-    export LD_PRELOAD="libfakechroot-2.1.so"
+    LD_PRELOAD="$dir/libfakechroot-2.1.so"
 fi
+export LD_PRELOAD
 
-HOME=/root /usr/sbin/chroot $(pwd)/testtree "$@"
+if [ -n "$*" ]; then
+    HOME=/root /usr/sbin/chroot $(pwd)/testtree /bin/sh
+else
+    HOME=/root /usr/sbin/chroot $(pwd)/testtree "$@"
+fi

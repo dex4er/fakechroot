@@ -228,6 +228,9 @@
 /* Define to 1 if you have the `scandir64' function. */
 #undef HAVE_SCANDIR64
 
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
+
 /* Define to 1 if you have the `setxattr' function. */
 #undef HAVE_SETXATTR
 
@@ -249,6 +252,9 @@
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strchrnul' function. */
+#undef HAVE_STRCHRNUL
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
