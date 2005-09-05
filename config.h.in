@@ -42,8 +42,7 @@
 /* Define to 1 if you have the `creat64' function. */
 #undef HAVE_CREAT64
 
-/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-   */
+/* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
@@ -327,6 +326,9 @@
 /* Define to 1 if you have the `__open64' function. */
 #undef HAVE___OPEN64
 
+/* Define to 1 if you have the `__opendir2' function. */
+#undef HAVE___OPENDIR2
+
 /* Define to 1 if you have the `__xmknod' function. */
 #undef HAVE___XMKNOD
 
@@ -357,6 +359,27 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Define to the type of arg 1 for `readlink'. */
+#undef READLINK_TYPE_ARG1
+
+/* Define to the type of arg 2 for `readlink'. */
+#undef READLINK_TYPE_ARG2
+
+/* Define to the type of arg 3 for `readlink'. */
+#undef READLINK_TYPE_ARG3
+
+/* Define to the type of arg 1 for `scandir'. */
+#undef SCANDIR_TYPE_ARG1
+
+/* Define to the type of arg 2 for `scandir'. */
+#undef SCANDIR_TYPE_ARG2
+
+/* Define to the type of arg 3 for `scandir'. */
+#undef SCANDIR_TYPE_ARG3
+
+/* Define to the type of arg 4 for `scandir'. */
+#undef SCANDIR_TYPE_ARG4
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be

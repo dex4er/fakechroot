@@ -20,9 +20,11 @@
 /* $Id$ */
 
 
-#include "config.h"
+#include <config.h>
 
 #define _GNU_SOURCE
+#define __BSD_VISIBLE
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -37,17 +39,22 @@
 #include <string.h>
 #include <glob.h>
 #include <utime.h>
+#ifdef HAVE_FTS_H
+#include <fts.h>
+#endif
+#ifdef HAVE_SHADOW_H
 #include <shadow.h>
+#endif
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
 
 
-#if defined(HAVE_PATH_MAX)
+#if defined(PATH_MAX)
 #define FAKECHROOT_MAXPATH PATH_MAX
-#elif defined(HAVE__POSIX_PATH_MAX)
+#elif defined(_POSIX_PATH_MAX)
 #define FAKECHROOT_MAXPATH _POSIX_PATH_MAX
-#elif defined(HAVE_MAXPATHLEN)
+#elif defined(MAXPATHLEN)
 #define FAKECHROOT_MAXPATH MAXPATHLEN
 #else
 #define FAKECHROOT_MAXPATH 2048
@@ -263,6 +270,9 @@ static int     (*next___open) (const char *pathname, int flags, ...);
 #ifdef HAVE___OPEN64
 static int     (*next___open64) (const char *pathname, int flags, ...);
 #endif
+#ifdef HAVE___OPENDIR2
+static DIR *   (*next___opendir2) (const char *name, int flags);
+#endif
 #ifdef HAVE___XMKNOD
 static int     (*next___xmknod) (int ver, const char *path, mode_t mode, dev_t *dev);
 #endif
@@ -300,6 +310,9 @@ static FILE *  (*next_fopen) (const char *path, const char *mode);
 static FILE *  (*next_fopen64) (const char *path, const char *mode);
 static FILE *  (*next_freopen) (const char *path, const char *mode, FILE *stream);
 static FILE *  (*next_freopen64) (const char *path, const char *mode, FILE *stream);
+#ifdef HAVE_FTS_OPEN
+static FTS *   (*next_fts_open) (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **));
+#endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 static char *  (*next_get_current_dir_name) (void);
 #endif
@@ -319,7 +332,9 @@ static int     (*next_glob_pattern_p) (const char *pattern, int quote);
 static int     (*next_lchmod) (const char *path, mode_t mode);
 #endif
 static int     (*next_lchown) (const char *path, uid_t owner, gid_t group);
+#ifdef HAVE_LCKPWDF
 static int     (*next_lckpwdf) (void);
+#endif
 #ifdef HAVE_LGETXATTR
 static ssize_t (*next_lgetxattr) (const char *path, const char *name, void *value, size_t size);
 #endif
@@ -338,7 +353,9 @@ static int     (*next_lsetxattr) (const char *path, const char *name, const void
 #endif
 #ifndef __GLIBC__
 static int     (*next_lstat) (const char *file_name, struct stat *buf);
+#ifdef HAVE_LSTAT64
 static int     (*next_lstat64) (const char *file_name, struct stat64 *buf);
+#endif
 #endif
 #ifdef HAVE_LUTIMES
 static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]);
@@ -356,7 +373,7 @@ static int     (*next_open) (const char *pathname, int flags, ...);
 static int     (*next_open64) (const char *pathname, int flags, ...);
 static DIR *   (*next_opendir) (const char *name);
 static long    (*next_pathconf) (const char *path, int name);
-static int     (*next_readlink) (const char *path, char *buf, size_t bufsiz);
+static int     (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3);
 static char *  (*next_realpath) (const char *name, char *resolved);
 static int     (*next_remove) (const char *pathname);
 #ifdef HAVE_REMOVEXATTR
@@ -368,7 +385,7 @@ static int     (*next_revoke) (const char *file);
 #endif
 static int     (*next_rmdir) (const char *pathname);
 #ifdef HAVE_SCANDIR
-static int     (*next_scandir) (const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *));
+static int     (*next_scandir) (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3, int(*compar)(const void *, const void *));
 #endif
 #ifdef HAVE_SCANDIR64
 static int     (*next_scandir64) (const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *));
@@ -378,15 +395,21 @@ static int     (*next_setxattr) (const char *path, const char *name, const void 
 #endif
 #ifndef __GLIBC__
 static int     (*next_stat) (const char *file_name, struct stat *buf);
+#ifdef HAVE_STAT64
 static int     (*next_stat64) (const char *file_name, struct stat64 *buf);
+#endif
 #endif
 static int     (*next_symlink) (const char *oldpath, const char *newpath);
 static char *  (*next_tempnam) (const char *dir, const char *pfx);
 static char *  (*next_tmpnam) (char *s);
 static int     (*next_truncate) (const char *path, off_t length);
+#ifdef HAVE_TRUNCATE64
 static int     (*next_truncate64) (const char *path, off64_t length);
+#endif
 static int     (*next_unlink) (const char *pathname);
+#ifdef HAVE_ULCKPWDF
 static int     (*next_ulckpwdf) (void);
+#endif
 static int     (*next_utime) (const char *filename, const struct utimbuf *buf);
 static int     (*next_utimes) (const char *filename, const struct timeval tv[2]);
 
@@ -405,6 +428,9 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE___OPEN64
     *(void **)(&next___open64)                = dlsym(RTLD_NEXT, "__open64");
+#endif
+#ifdef HAVE___OPENDIR2
+    *(void **)(&next___opendir2)              = dlsym(RTLD_NEXT, "__opendir2");
 #endif
 #ifdef HAVE___XMKNOD
     *(void **)(&next___xmknod)                = dlsym(RTLD_NEXT, "__xmknod");
@@ -443,6 +469,9 @@ void fakechroot_init (void)
     *(void **)(&next_fopen64)                 = dlsym(RTLD_NEXT, "fopen64");
     *(void **)(&next_freopen)                 = dlsym(RTLD_NEXT, "freopen");
     *(void **)(&next_freopen64)               = dlsym(RTLD_NEXT, "freopen64");
+#ifdef HAVE_FTS_OPEN
+    *(void **)(&next_fts_open)                = dlsym(RTLD_NEXT, "fts_open");
+#endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
     *(void **)(&next_get_current_dir_name)    = dlsym(RTLD_NEXT, "get_current_dir_name");
 #endif
@@ -462,7 +491,9 @@ void fakechroot_init (void)
     *(void **)(&next_lchmod)                  = dlsym(RTLD_NEXT, "lchmod");
 #endif
     *(void **)(&next_lchown)                  = dlsym(RTLD_NEXT, "lchown");
+#ifdef HAVE_LCKPWDF
     *(void **)(&next_lckpwdf)                 = dlsym(RTLD_NEXT, "lckpwdf");
+#endif
 #ifdef HAVE_LGETXATTR
     *(void **)(&next_lgetxattr)               = dlsym(RTLD_NEXT, "lgetxattr");
 #endif
@@ -481,7 +512,9 @@ void fakechroot_init (void)
 #endif
 #ifndef __GLIBC__
     *(void **)(&next_lstat)                   = dlsym(RTLD_NEXT, "lstat");
+#ifdef HAVE_LSTAT64
     *(void **)(&next_lstat64)                 = dlsym(RTLD_NEXT, "lstat64");
+#endif
 #endif
 #ifdef HAVE_LUTIMES
     *(void **)(&next_lutimes)                 = dlsym(RTLD_NEXT, "lutimes");
@@ -521,15 +554,21 @@ void fakechroot_init (void)
 #endif
 #ifndef __GLIBC__
     *(void **)(&next_stat)                    = dlsym(RTLD_NEXT, "stat");
+#ifdef HAVE_STAT64
     *(void **)(&next_stat64)                  = dlsym(RTLD_NEXT, "stat64");
+#endif
 #endif
     *(void **)(&next_symlink)                 = dlsym(RTLD_NEXT, "symlink");
     *(void **)(&next_tempnam)                 = dlsym(RTLD_NEXT, "tempnam");
     *(void **)(&next_tmpnam)                  = dlsym(RTLD_NEXT, "tmpnam");
     *(void **)(&next_truncate)                = dlsym(RTLD_NEXT, "truncate");
+#ifdef HAVE_TRUNCATE64
     *(void **)(&next_truncate64)              = dlsym(RTLD_NEXT, "truncate64");
+#endif
     *(void **)(&next_unlink)                  = dlsym(RTLD_NEXT, "unlink");
+#ifdef HAVE_ULCKPWDF
     *(void **)(&next_ulckpwdf)                = dlsym(RTLD_NEXT, "ulckpwdf");
+#endif
     *(void **)(&next_utime)                   = dlsym(RTLD_NEXT, "utime");
     *(void **)(&next_utimes)                  = dlsym(RTLD_NEXT, "utimes");
 }
@@ -595,6 +634,18 @@ int __open64 (const char *pathname, int flags, ...)
     }
 
     return next___open64(pathname, flags, mode);
+}
+#endif
+
+
+#ifdef HAVE___OPENDIR2
+/* Internal libc function */
+/* #include <dirent.h> */
+DIR *__opendir2 (const char *name, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    return next___opendir2(name, flags);
 }
 #endif
 
@@ -698,6 +749,7 @@ int chroot (const char *path)
 {
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
+    char dir[FAKECHROOT_MAXPATH];
 #ifndef HAVE_SETENV
     char *envbuf;
 #endif
@@ -710,9 +762,13 @@ int chroot (const char *path)
     if ((status = chdir(path)) != 0) {
         return status;
     }
+    
+    if (getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
+	return EFAULT;
+    }
 
-    ptr = rindex(path, 0);
-    if (ptr > path) {
+    ptr = rindex(dir, 0);
+    if (ptr > dir) {
         ptr--;
         while (*ptr == '/') {
             *ptr-- = 0;
@@ -720,10 +776,10 @@ int chroot (const char *path)
     }
 
 #ifdef HAVE_SETENV
-    setenv("FAKECHROOT_BASE", path, 1);
+    setenv("FAKECHROOT_BASE", dir, 1);
 #else
     envbuf = malloc(FAKECHROOT_MAXPATH+16);
-    snprintf(envbuf, FAKECHROOT_MAXPATH+16, "FAKECHROOT_BASE=%s", path);
+    snprintf(envbuf, FAKECHROOT_MAXPATH+16, "FAKECHROOT_BASE=%s", dir);
     putenv(envbuf);
 #endif
     fakechroot_path = getenv("FAKECHROOT_BASE");
@@ -733,7 +789,7 @@ int chroot (const char *path)
 	ld_library_path = "";
     }
 
-    if ((len = strlen(ld_library_path)+strlen(path)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_MAXPATH) {
+    if ((len = strlen(ld_library_path)+strlen(dir)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_MAXPATH) {
         return ENAMETOOLONG;
     }
 
@@ -741,7 +797,7 @@ int chroot (const char *path)
         return ENOMEM;
     }
 
-    snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, path, path);
+    snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, dir, dir);
 #ifdef HAVE_SETENV
     setenv("LD_LIBRARY_PATH", tmp, 1);
 #else
@@ -1123,6 +1179,21 @@ FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 }
 
 
+#ifdef HAVE_FTS_OPEN
+/* #include <fts.h> */
+FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) {
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf;
+    char *path;
+
+    for (path=*path_argv; *path != NULL; path += strlen(path) +1) {
+	expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    }
+    
+    return next_fts_open(
+}
+#endif
+
+
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 /* #include <unistd.h> */
 char * get_current_dir_name (void) {
@@ -1280,11 +1351,13 @@ int lchown (const char *path, uid_t owner, gid_t group)
 }
 
 
+#ifdef HAVE_LCKPWDF
 /* #include <shadow.h> */
 int lckpwdf (void)
 {
     return 0;
 }
+#endif
 
 
 #ifdef HAVE_LGETXATTR
@@ -1367,6 +1440,7 @@ int lstat (const char *file_name, struct stat *buf)
 
 
 #ifndef __GLIBC__
+#ifdef HAVE_LSTAT64
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int lstat64 (const char *file_name, struct stat64 *buf)
@@ -1375,6 +1449,7 @@ int lstat64 (const char *file_name, struct stat64 *buf)
     expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_lstat64(file_name, buf);
 }
+#endif
 #endif
 
 
@@ -1540,6 +1615,7 @@ int open64 (const char *pathname, int flags, ...)
 }
 
 
+#ifndef HAVE__OPENDIR2
 /* #include <sys/types.h> */
 /* #include <dirent.h> */
 DIR *opendir (const char *name)
@@ -1548,6 +1624,7 @@ DIR *opendir (const char *name)
     expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_opendir(name);
 }
+#endif
 
 
 /* #include <unistd.h> */
@@ -1560,7 +1637,7 @@ long pathconf (const char *path, int name)
 
 
 /* #include <unistd.h> */
-int readlink (const char *path, char *buf, size_t bufsiz)
+int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
@@ -1656,7 +1733,7 @@ int rmdir (const char *pathname)
 
 #ifdef HAVE_SCANDIR
 /* #include <dirent.h> */
-int scandir (const char *dir, struct dirent ***namelist, int(*filter)(const struct dirent *), int(*compar)(const void *, const void *))
+int scandir (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3, int(*compar)(const void *, const void *))
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
@@ -1700,6 +1777,7 @@ int stat (const char *file_name, struct stat *buf)
 
 
 #ifndef __GLIBC__
+#ifdef HAVE_STAT64
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int stat64 (const char *file_name, struct stat64 *buf)
@@ -1708,6 +1786,7 @@ int stat64 (const char *file_name, struct stat64 *buf)
     expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_stat64(file_name, buf);
 }
+#endif
 #endif
 
 
@@ -1758,6 +1837,7 @@ int truncate (const char *path, off_t length)
 }
 
 
+#ifdef HAVE_TRUNCATE64
 /* #include <unistd.h> */
 /* #include <sys/types.h> */
 int truncate64 (const char *path, off64_t length)
@@ -1766,13 +1846,16 @@ int truncate64 (const char *path, off64_t length)
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     return next_truncate64(path, length);
 }
+#endif
 
 
+#ifdef HAVE_ULCKPWDF
 /* #include <shadow.h> */
 int ulckpwdf (void)
 {
     return 0;
 }
+#endif
 
 
 /* #include <unistd.h> */

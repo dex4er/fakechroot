@@ -1,3 +1,10 @@
+fakechroot (2.3) unstable; urgency=low
+
+  * UNRELEASED
+  * Initial port to FreeBSD 5.x.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Mon,  5 Sep 2005 19:09:13 +0200
+
 fakechroot (2.2) unstable; urgency=low
 
   * Included config.h, so GLIBC 2.3 functions works now.

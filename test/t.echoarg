@@ -1,6 +1,6 @@
 #!/bin/sh
 
-t=$(./fakechroot.sh /bin/pwd)
+t=`./fakechroot.sh /bin/pwd`
 if [ "$t" = "/" ]; then
     true
 else

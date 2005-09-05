@@ -1,5 +1,7 @@
 #!/bin/sh
 
+VERSION=`grep ^AC_INIT ../configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
+
 for d in \
     /bin \
     /etc \
@@ -8,7 +10,8 @@ for d in \
     /sbin \
     /usr/bin \
     /usr/lib \
-    /usr/sbin
+    /usr/sbin \
+    /usr/local/bin
 do
     mkdir -p testtree/$d
 done
@@ -22,6 +25,7 @@ do
 done
 
 for f in \
+    /bin/csh \
     /bin/sh \
     /bin/bash \
     /bin/grep \
@@ -29,9 +33,12 @@ for f in \
     /bin/pwd \
     /bin/sh \
     /usr/bin/id \
+    /usr/bin/find \
     /usr/bin/perl \
     /usr/bin/ltrace \
-    /usr/bin/strace
+    /usr/bin/strace \
+    /usr/local/bin/bash \
+    /usr/local/bin/strace
 do
     ln -sf $f testtree/$f
 done
@@ -46,14 +53,14 @@ dir=`cd \`pwd\`/../src/.libs; pwd`
 #export LD_LIBRARY_PATH
 
 if [ -n "$LD_PRELOAD" ]; then
-    LD_PRELOAD="$LD_PRELOAD libfakechroot-2.1.so"
+    LD_PRELOAD="$LD_PRELOAD libfakechroot-$VERSION.so"
 else
-    LD_PRELOAD="$dir/libfakechroot-2.1.so"
+    LD_PRELOAD="$dir/libfakechroot-$VERSION.so"
 fi
 export LD_PRELOAD
 
-if [ -n "$*" ]; then
-    HOME=/root /usr/sbin/chroot $(pwd)/testtree /bin/sh
+if ! [ -n "$*" ]; then
+    HOME=/root /usr/sbin/chroot `pwd`/testtree /bin/sh
 else
-    HOME=/root /usr/sbin/chroot $(pwd)/testtree "$@"
+    HOME=/root /usr/sbin/chroot `pwd`/testtree "$@"
 fi

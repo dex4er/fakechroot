@@ -39,7 +39,9 @@ target_triplet = @target@
 subdir = man
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/readlink_argtypes.m4 \
+	$(top_srcdir)/m4/scandir_argtypes.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -158,8 +160,6 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 AUTOMAKE_OPTIONS = foreign
 man_MANS = fakechroot.1
-EXTRA_DIST = fakechroot.pod
-CLEANFILES = fakechroot.1
 all: all-am
 
 .SUFFIXES:
@@ -305,7 +305,6 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
-	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -372,9 +371,6 @@ uninstall-man: uninstall-man1
 	uninstall uninstall-am uninstall-info-am uninstall-man \
 	uninstall-man1
 
-
-fakechroot.1: $(srcdir)/fakechroot.pod
-	pod2man $(shell head -n1 $< | sed 's/^# pod2man //') $< > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
