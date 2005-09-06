@@ -16,7 +16,7 @@ AC_PROG_CC
 AC_PROG_LN_S
 
 # Checks for libraries.
-AC_CHECK_LIB([dl], [dlopen])
+AC_CHECK_LIB([dl], [dlsym])
 
 # Checks for header files.
 AC_HEADER_DIRENT
