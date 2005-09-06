@@ -23,6 +23,8 @@ AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([ \
 fcntl.h \
+fts.h \
+ftw.h \
 shadow.h \
 stdlib.h \
 string.h \
@@ -56,6 +58,8 @@ __opendir2 \
 __xmknod \
 __xstat \
 __xstat64 \
+_xftw \
+_xftw64 \
 access \
 acct \
 canonicalize_file_name \
@@ -78,6 +82,9 @@ fopen \
 fopen64 \
 freopen \
 freopen64 \
+fts_open \
+ftw \
+ftw64 \
 get_current_dir_name \
 getcwd \
 getwd \
@@ -104,6 +111,8 @@ mkfifo \
 mkstemp \
 mkstemp64 \
 mktemp \
+nftw \
+nftw64 \
 open \
 open64 \
 opendir \

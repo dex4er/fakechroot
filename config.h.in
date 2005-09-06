@@ -90,6 +90,21 @@
 /* Define to 1 if you have the `freopen64' function. */
 #undef HAVE_FREOPEN64
 
+/* Define to 1 if you have the <fts.h> header file. */
+#undef HAVE_FTS_H
+
+/* Define to 1 if you have the `fts_open' function. */
+#undef HAVE_FTS_OPEN
+
+/* Define to 1 if you have the `ftw' function. */
+#undef HAVE_FTW
+
+/* Define to 1 if you have the `ftw64' function. */
+#undef HAVE_FTW64
+
+/* Define to 1 if you have the <ftw.h> header file. */
+#undef HAVE_FTW_H
+
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
@@ -187,6 +202,12 @@
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
+
+/* Define to 1 if you have the `nftw' function. */
+#undef HAVE_NFTW
+
+/* Define to 1 if you have the `nftw64' function. */
+#undef HAVE_NFTW64
 
 /* Define to 1 if you have the `open' function. */
 #undef HAVE_OPEN
@@ -313,6 +334,12 @@
 
 /* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
 #undef HAVE_UTIME_NULL
+
+/* Define to 1 if you have the `_xftw' function. */
+#undef HAVE__XFTW
+
+/* Define to 1 if you have the `_xftw64' function. */
+#undef HAVE__XFTW64
 
 /* Define to 1 if you have the `__lxstat' function. */
 #undef HAVE___LXSTAT

@@ -20559,8 +20559,12 @@ fi
 
 
 
+
+
 for ac_header in  \
 fcntl.h \
+fts.h \
+ftw.h \
 shadow.h \
 stdlib.h \
 string.h \
@@ -22370,6 +22374,13 @@ rm -f conftest.data
 
 
 
+
+
+
+
+
+
+
 for ac_func in  \
 __lxstat \
 __lxstat64 \
@@ -22379,6 +22390,8 @@ __opendir2 \
 __xmknod \
 __xstat \
 __xstat64 \
+_xftw \
+_xftw64 \
 access \
 acct \
 canonicalize_file_name \
@@ -22401,6 +22414,9 @@ fopen \
 fopen64 \
 freopen \
 freopen64 \
+fts_open \
+ftw \
+ftw64 \
 get_current_dir_name \
 getcwd \
 getwd \
@@ -22427,6 +22443,8 @@ mkfifo \
 mkstemp \
 mkstemp64 \
 mktemp \
+nftw \
+nftw64 \
 open \
 open64 \
 opendir \

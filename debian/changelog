@@ -2,6 +2,7 @@ fakechroot (2.3) unstable; urgency=low
 
   * UNRELEASED
   * Initial port to FreeBSD 5.x.
+  * Implement <fts.h> and <ftw.h> functions.
 
  -- Piotr Roszatycki <dexter@debian.org>  Mon,  5 Sep 2005 19:09:13 +0200
 

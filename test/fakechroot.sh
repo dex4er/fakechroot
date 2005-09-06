@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=`grep ^AC_INIT ../configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
+VERSION=`grep '^AC_INIT' ../configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
 
 for d in \
     /bin \
@@ -37,6 +37,7 @@ for f in \
     /usr/bin/perl \
     /usr/bin/ltrace \
     /usr/bin/strace \
+    /usr/sbin/chroot \
     /usr/local/bin/bash \
     /usr/local/bin/strace
 do
@@ -59,8 +60,8 @@ else
 fi
 export LD_PRELOAD
 
-if ! [ -n "$*" ]; then
-    HOME=/root /usr/sbin/chroot `pwd`/testtree /bin/sh
-else
+if [ -n "$*" ]; then
     HOME=/root /usr/sbin/chroot `pwd`/testtree "$@"
+else
+    HOME=/root /usr/sbin/chroot `pwd`/testtree /bin/sh
 fi
