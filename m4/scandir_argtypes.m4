@@ -29,10 +29,10 @@ AC_CACHE_CHECK([types of arguments for scandir],
  done
 done
 # Provide a safe default value.
-: ${ac_cv_func_scandir_args='undetected'}
+: ${ac_cv_func_scandir_args='(default) const char *dir;struct dirent ***namelist;int(*filter)(const struct dirent *);int(*compar)(const void *,const void *)'}
 ])
 ac_save_IFS=$IFS; IFS=';'
-set dummy `echo "$ac_cv_func_scandir_args" | sed 's/\*/\*/g'`
+set dummy `echo "$ac_cv_func_scandir_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`
 IFS=$ac_save_IFS
 shift
 AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG1, $[1],

@@ -26,10 +26,10 @@ AC_CACHE_CHECK([types of arguments for readlink],
  done
 done
 # Provide a safe default value.
-: ${ac_cv_func_readlink_args='undetected'}
+: ${ac_cv_func_readlink_args='(default) const char *path;char *buf;size_t bufsiz'}
 ])
 ac_save_IFS=$IFS; IFS=';'
-set dummy `echo "$ac_cv_func_readlink_args" | sed 's/\*/\*/g'`
+set dummy `echo "$ac_cv_func_readlink_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`
 IFS=$ac_save_IFS
 shift
 AC_DEFINE_UNQUOTED(READLINK_TYPE_ARG1, $[1],
