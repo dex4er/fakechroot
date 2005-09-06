@@ -148,7 +148,7 @@ packages without need for root privileges.
 fakechroot replaces more library functions (\fIchroot\fR\|(2), \fIopen\fR\|(2), etc.) by ones
 that simulate the effect the real library functions would have had, had the
 user really been in chroot. These wrapper functions are in a shared library
-\&\fI/usr/lib/libfakechroot/libfakechroot\-*.so*\fR which is loaded through the
+\&\fI/usr/lib/fakechroot/libfakechroot.so\fR which is loaded through the
 \&\fB\s-1LD_PRELOAD\s0\fR mechanism of the dynamic loader. (See \fIld.so\fR\|(8))
 .PP
 In fake chroot you can install Debian bootstrap with `debootstrap
@@ -203,8 +203,8 @@ fakechroot is a regular, non-setuid program. It does not enhance a user's
 privileges, or decrease the system's security.
 .SH "FILES"
 .IX Header "FILES"
-.IP "\fI/usr/lib/libfakechroot/libfakechroot\-*.so*\fR" 4
-.IX Item "/usr/lib/libfakechroot/libfakechroot-*.so*"
+.IP "\fI/usr/lib/fakechroot/libfakechroot.so\fR" 4
+.IX Item "/usr/lib/fakechroot/libfakechroot.so"
 The shared library containing the wrapper functions.
 .SH "ENVIRONMENT"
 .IX Header "ENVIRONMENT"
@@ -221,7 +221,7 @@ The root directory for fake chroot environment.
 .IX Item "LD_LIBRARY_PATH, LD_PRELOAD"
 Fakechroot is implemented by wrapping system calls. This is accomplished by
 setting LD_LIBRARY_PATH=/usr/lib/fakechroot and
-LD_PRELOAD=libfakechroot\-VERSION.so. That library is loaded before the
+LD_PRELOAD=libfakechroot.so. That library is loaded before the
 system's C library, and so most of the library functions are intercepted by
 it. If you need to set either \fB\s-1LD_LIBRARY_PATH\s0\fR or \fB\s-1LD_PRELOAD\s0\fR from within
 a fakechroot environment, it should be set relative to the given paths, as in
