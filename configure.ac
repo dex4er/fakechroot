@@ -9,6 +9,19 @@ AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
 
+# --with-libpath
+AC_ARG_WITH([libpath],
+	    AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
+			   [path list where library might be located [[default=$libdir]]]),
+	    [ac_cv_libpath=$withval
+case "$ac_cv_libpath" in
+      "") AC_MSG_ERROR([invalid libpath specified]) ;;
+      *) libpath="$ac_cv_libpath" ;;
+esac],
+	    [ac_cv_libpath=$libdir
+libpath="$ac_cv_libpath"])
+AC_SUBST(libpath)
+
 # Checks for programs.
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL

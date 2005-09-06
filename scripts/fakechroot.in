@@ -16,8 +16,8 @@ EOF
 BINDIR=`dirname $0`
 PREFIX=`dirname ${BINDIR}`
     
-LIB=lib@fakechroot_transformed@-@VERSION@.so
-PATHS=${PREFIX}/lib/libfakechroot:${PREFIX}/lib64/libfakechroot:${PREFIX}/lib32/libfakechroot
+LIB=lib@fakechroot_transformed@.so
+PATHS=@libpath@
 
 FAKECHROOT=true
 export FAKECHROOT

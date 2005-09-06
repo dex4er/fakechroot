@@ -8,7 +8,7 @@
 
 # Other macros:
 
-%define libfakechroot_version %`grep ^AC_INIT configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
+%define libfakechroot_version %`grep '^AC_INIT' configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
 
 #   libfakechroot_version=%{libfakechroot_version}
 
@@ -37,7 +37,8 @@ Build: bash
  COMMON_CONFIG="\
  	--prefix=/usr \
  	--mandir=/usr/share/man \
- 	--disable-static"
+ 	--disable-static \
+ 	--with-libpath=/usr/lib/fakechroot:/usr/lib64/fakechroot:/usr/lib32/fakechroot"
  .
  if ! [ -f configure-stamp ]; then
      mkdir -p build-tree-lib build-tree-fake build-tree-lib-biarch build-tree-fake-biarch
@@ -45,7 +46,7 @@ Build: bash
          CC="$CC" CFLAGS="$CFLAGS" \
              ../configure \
  	         --cache-file=../config.cache \
- 	         --libdir=/usr/lib/libfakechroot \
+ 	         --libdir=/usr/lib/fakechroot \
                  $COMMON_CONFIG
      popd
      pushd build-tree-fake
@@ -61,7 +62,7 @@ Build: bash
  	             --cache-file=../config.biarch.cache \
  		     --build=s390-linux \
  		     --host=s390x-linux \
-   	             --libdir=/usr/lib64/libfakechroot \
+   	             --libdir=/usr/lib64/fakechroot \
                      $COMMON_CONFIG
          popd
          pushd build-tree-fake-biarch
@@ -81,7 +82,7 @@ Build: bash
  	             --cache-file=../config.biarch.cache \
  		     --build=sparc-linux \
  		     --host=sparc64-linux \
-   	             --libdir=/usr/lib64/libfakechroot \
+   	             --libdir=/usr/lib64/fakechroot \
                      $COMMON_CONFIG
          popd
          pushd build-tree-fake-biarch
@@ -101,7 +102,7 @@ Build: bash
  	             --cache-file=../config.biarch.cache \
  		     --build=x86_64-linux \
  		     --host=i386-linux \
-   	             --libdir=/emul/ia32-linux/usr/lib/libfakechroot \
+   	             --libdir=/emul/ia32-linux/usr/lib/fakechroot \
                      $COMMON_CONFIG
          popd
          pushd build-tree-fake-biarch
@@ -137,6 +138,7 @@ Build: bash
      touch build-stamp
  fi
 Clean: sh
+ make distclean || make clean || true
  rm -f config.*cache || true
  rm -rf build-tree-* || true
  rm -f *-stamp || true
@@ -172,8 +174,8 @@ Finalize: sh
          chmod -v u+s $ROOT/usr/lib64/*.so;;
  esac
 Overrides:
- non-standard-file-perm usr/lib/libfakechroot-%{libfakechroot_version}.so 0744 != 0644
- no-shlibs-control-file usr/lib/libfakechroot-%{libfakechroot_version}.so
- package-name-doesnt-match-sonames libfakechroot-%{libfakechroot_version}.so
- shlib-with-bad-permissions usr/lib/libfakechroot-%{libfakechroot_version}.so 0744
+ non-standard-file-perm usr/lib/libfakechroot.so 0744 != 0644
+ no-shlibs-control-file usr/lib/libfakechroot.so
+ package-name-doesnt-match-sonames libfakechroot
+ shlib-with-bad-permissions usr/lib/libfakechroot.so 0744
 Contains: libs

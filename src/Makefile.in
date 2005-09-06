@@ -166,6 +166,7 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+libpath = @libpath@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
@@ -183,7 +184,7 @@ target_vendor = @target_vendor@
 AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = libfakechroot.la
 libfakechroot_la_SOURCES = libfakechroot.c
-libfakechroot_la_LDFLAGS = -release $(VERSION)
+libfakechroot_la_LDFLAGS = -avoid-version
 all: all-am
 
 .SUFFIXES:

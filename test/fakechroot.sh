@@ -54,9 +54,9 @@ dir=`cd \`pwd\`/../src/.libs; pwd`
 #export LD_LIBRARY_PATH
 
 if [ -n "$LD_PRELOAD" ]; then
-    LD_PRELOAD="$LD_PRELOAD libfakechroot-$VERSION.so"
+    LD_PRELOAD="$LD_PRELOAD libfakechroot.so"
 else
-    LD_PRELOAD="$dir/libfakechroot-$VERSION.so"
+    LD_PRELOAD="$dir/libfakechroot.so"
 fi
 export LD_PRELOAD
 
