@@ -1,3 +1,12 @@
+fakechroot (2.4-1) unstable; urgency=low
+
+  * Convert to non native Debian package.
+  * Fix revoke(2) function.
+  * Load symbols on demand, so fakechroot is compatible with libselinux.
+  * Support RedHat EL 4.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Wed,  7 Sep 2005 16:47:28 +0200
+
 fakechroot (2.3) unstable; urgency=low
 
   * Initial port to FreeBSD 5.x.
