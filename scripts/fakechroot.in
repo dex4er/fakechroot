@@ -96,9 +96,15 @@ if test -n "$LD_PRELOAD"; then
 fi
 
 if test -z "$*"; then
-  LD_LIBRARY_PATH="$PATHS" LD_PRELOAD="$LIB" exec ${SHELL:-/bin/sh}
+  LD_LIBRARY_PATH="$PATHS"
+  LD_PRELOAD="$LIB"
+  export LD_LIBRARY_PATH LD_PRELOAD
+  exec ${SHELL:-/bin/sh}
 else
-  LD_LIBRARY_PATH="$PATHS" LD_PRELOAD="$LIB" exec "$@"
+  LD_LIBRARY_PATH="$PATHS"
+  LD_PRELOAD="$LIB"
+  export LD_LIBRARY_PATH LD_PRELOAD
+  exec "$@"
 fi
 
 exit 1
