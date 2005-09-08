@@ -4,6 +4,8 @@ fakechroot (2.4-1) unstable; urgency=low
   * Fix revoke(2) function.
   * Load symbols on demand, so fakechroot is compatible with libselinux.
   * Support RedHat EL 4.
+  * Configure script regenerated with libtool 2.1a. The source should be
+    more portable.
 
  -- Piotr Roszatycki <dexter@debian.org>  Wed,  7 Sep 2005 16:47:28 +0200
 
