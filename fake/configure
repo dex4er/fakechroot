@@ -9934,7 +9934,7 @@ echo "${ECHO_T}no, using $LN_S" >&6
 fi
 
 
-                    ac_config_files="$ac_config_files Makefile src/Makefile"
+                              ac_config_files="$ac_config_files Makefile doc/Makefile src/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10732,6 +10732,7 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "libtool" ) CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;

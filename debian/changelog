@@ -1,11 +1,14 @@
 fakechroot (2.4-1) unstable; urgency=low
 
   * Convert to non native Debian package.
+  * New option --use-system-libs as a workaround if the system dynamic
+    linker can't load the libc.so from fake chroot.
   * Fix revoke(2) function.
   * Load symbols on demand, so fakechroot is compatible with libselinux.
-  * Support RedHat EL 4.
+  * Support RedHat EL 4 (and CentOS, and Whitebox, etc.)
+  * Updated manual page.
   * Configure script regenerated with libtool 2.1a. The source should be
-    more portable.
+    more portable and does not require C++ compiler installed.
 
  -- Piotr Roszatycki <dexter@debian.org>  Wed,  7 Sep 2005 16:47:28 +0200
 

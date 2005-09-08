@@ -4,18 +4,15 @@
 
 usage () {
 cat - >&2 <<EOF
-fakechroot, create a fake root environment.
+fakechroot, create a fake chroot environment.
    usage: fakechroot [-l|--lib fakechrootlib]
+                     [-s|--use-system-libs]
                      [-h|--help] [-v|--version]
                      [--] [command]
 EOF
   exit 1
 }
 
-# strip /usr/bin/fakechroot to find install prefix
-BINDIR=`dirname $0`
-PREFIX=`dirname ${BINDIR}`
-    
 LIB=lib@fakechroot_transformed@.so
 PATHS=@libpath@
 
@@ -30,10 +27,10 @@ libfound=no
 GETOPTEST=`getopt --version`
 case $GETOPTEST in
 getopt*) # GNU getopt
-    TEMP=`getopt -l lib: -l version -l help -- +l:vh "$@"`
+    TEMP=`getopt -l lib: -l use-system-libs -l version -l help -- +l:svh "$@"`
     ;;
 *) # POSIX getopt ?
-    TEMP=`getopt l:vh "$@"`
+    TEMP=`getopt l:svh "$@"`
     ;;
 esac
 
@@ -53,6 +50,9 @@ while test "X$1" != "X--"; do
     -v|--version)
        echo "fakechroot version @VERSION@"
        exit 0
+       ;;
+    -s|--use-system-libs)
+       PATHS="$PATHS:/usr/lib:/lib"
        ;;
     -h|--help)
        usage

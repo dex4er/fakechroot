@@ -15,5 +15,5 @@ AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_LN_S
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile src/Makefile])
 AC_OUTPUT

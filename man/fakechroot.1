@@ -129,12 +129,13 @@
 .\" ========================================================================
 .\"
 .IX Title "FAKECHROOT 1"
-.TH FAKECHROOT 1 "23 Aug 2005" "Debian" " "
+.TH FAKECHROOT 1 "8 Sep 2005" "Debian" " "
 .SH "NAME"
 fakechroot \- gives a fake chroot environment
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
 \&\fBfakechroot\fR
+[\fB\-s\fR|\fB\-\-use\-system\-libs\fR]
 [\fB\-l\fR|\fB\-\-lib\fR\ \fIlibrary\fR]
 [\fB\-\-\fR]
 [\fIcommand\fR]
@@ -154,11 +155,40 @@ user really been in chroot. These wrapper functions are in a shared library
 In fake chroot you can install Debian bootstrap with `debootstrap
 \&\-\-variant=fakechroot' command. In this environment you can use i.e. \fIapt\-get\fR\|(8)
 command to install another packages from common user's account.
+.PP
+In the current version, the fakechroot does not provide the \fIfakeroot\fR\|(1)
+functionality! You might to call fakechroot with fakeroot command, if
+you want to emulate root environment, i.e.:
+.PP
+.Vb 3
+\& $ fakeroot fakechroot /usr/sbin/chroot /tmp/debian
+\& # id
+\& uid=0(root) gid=0(root) groups=0(root)
+.Ve
 .SH "OPTIONS"
 .IX Header "OPTIONS"
 .IP "\fB\-l\fR \fIlibrary\fR|\fB\-\-lib\fR \fIlibrary\fR" 4
 .IX Item "-l library|--lib library"
 Specify an alternative wrapper library.
+.IP "\fB\-s\fR|\fB\-\-use\-system\-libs\fR" 4
+.IX Item "-s|--use-system-libs"
+Use system libraries before chroot's libraries. This might be a workaround if
+system dynamic linker (\fI/lib/ld\-linux.so.2\fR for Linux) can not load
+\&\fIlibc.so\fR from fake chroot.
+.Sp
+Try this setting if you noticed following errors:
+.Sp
+.Vb 4
+\& $ fakechroot /usr/sbin/chroot /tmp/sarge /bin/true
+\& /bin/true: relocation error: /srv/sarge/lib/tls/libc.so.6: symbol _dl
+\& _starting_up, version GLIBC_PRIVATE not defined in file ld\-linux.so.2
+\&  with link time reference
+.Ve
+.Sp
+.Vb 2
+\& $ fakechroot /usr/sbin/chroot /tmp/centos4 /bin/true
+\& Segmentation fault
+.Ve
 .IP "[\fB\-\-\fR] \fIcommand\fR" 4
 .IX Item "[--] command"
 Any command you want to be ran as fakechroot. Use '\fB\-\-\fR' if in the command
@@ -175,25 +205,27 @@ Here is an example session with fakechroot. Notice that inside the fake root
 environment file manipulation that requires root privileges succeeds, but is
 not really happening.
 .PP
-.Vb 2
-\& $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11
-\& $ fakeroot \-s fakechroot.save fakechroot debootstrap \-\-variant=fakechroot sarge /tmp/sarge
+.Vb 4
+\& $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
+\& :/bin:/usr/bin/X11
+\& $ fakeroot \-s fakechroot.save fakechroot debootstrap \-\-variant=fakech
+\& root sarge /tmp/sarge
 .Ve
 .PP
 .Vb 15
 \& $ fakeroot \-i fakechroot.save fakechroot chroot /tmp/sarge /bin/bash
 \& # cd /
 \& # sh /usr/share/doc/fakechroot/examples/savemode.sh
-\& # echo deb http://ftp.debian.org/debian sarge main contrib non\-free > /etc/apt/sources.list
-\& # echo deb\-src http://ftp.debian.org/debian sarge main contrib non\-free >> /etc/apt/sources.list
+\& # echo deb http://ftp.debian.org/debian sarge main contrib non\-free >
+\& /etc/apt/sources.list
+\& # echo deb\-src http://ftp.debian.org/debian sarge main contrib non\-fr
+\& ee >> /etc/apt/sources.list
 \& # apt\-get update
 \& # apt\-get install adduser whiptail build\-essential devscripts
 \& # adduser \-\-uid 1001 dexter
 \& # cd /tmp
 \& # apt\-get source hello
 \& # cd hello\-*
-\& # export DEBUILD_PRESERVE_ENVVARS=FAKECHROOT,LD_PRELOAD,LD_LIBRARY_PATH,FAKEROOTKEY,\e
-\& > FAKECHROOT_BASE,FAKED_MODE
 \& # debuild \-\-preserve\-env \-b
 \& # exit
 .Ve
@@ -213,7 +245,7 @@ The shared library containing the wrapper functions.
 The value is true for fake chroot environment.
 .IP "\fB\s-1FAKECHROOT_VERSION\s0\fR" 4
 .IX Item "FAKECHROOT_VERSION"
-The version of current fakechroot package.
+The version of current fakechroot library.
 .IP "\fB\s-1FAKECHROOT_BASE\s0\fR" 4
 .IX Item "FAKECHROOT_BASE"
 The root directory for fake chroot environment.
@@ -229,33 +261,33 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/
 .SH "LIMITATIONS"
 .IX Header "LIMITATIONS"
 .IP "o" 4
+\&\fI/lib/ld\-linux.so.2\fR is always loaded from real environment. This path is
+hardcoded by linker for all binaries.
+.IP "o" 4
 Every command executed within fakechroot needs to be linked to the same
-version of the C library as fakechroot itself.
+version of the C library as fakechroot itself. If the libraries in chroot
+are not compatible, try to use \fB\-\-use\-system\-libs\fR option.
 .IP "o" 4
-\&\fI/lib/ld\-linux.so.2\fR is always loaded from real environment.
-.IP "o" 4
-You can override fake chroot with symlinks to the outside. It can be useful
-for accessing \fI/proc\fR or \fI/dev\fR directory.
+You can provide symlinks to the outside. The symlink have to be created
+before chroot is called. It can be useful for accessing the real \fI/proc\fR and
+\&\fI/dev\fR directory.
 .IP "o" 4
 Statically linked binaries doesn't work, especially \fIldconfig\fR\|(8), so you have to
-wrap this command and i.e. set the dpkg diversion, see: \fIdpkg\-divert\fR\|(8).
+wrap this command with dummy version and i.e. set the dpkg diversion, see:
+\&\fIdpkg\-divert\fR\|(8).
 .IP "o" 4
-\&\fIldd\fR\|(1) also doesn't work. You have to use wrapper.
+\&\fIldd\fR\|(1) also doesn't work. You have to use wrapper. The example wrapper is
+available at \fIscripts/\fR directory in fakechroot's source package and it
+is located at \fI/usr/share/doc/fakechroot/examples\fR directory.
 .IP "o" 4
-There are no real devices so you have to symlink to the real ones.
+The full screen applications hangs up if \fI/dev/tty\fR file is not a real
+device. Link \fI/dev/tty\fR file or whole \fI/dev\fR directory to the real one or
+remove it from fake chroot environment.
 .IP "o" 4
-Remove \fI/dev/tty\fR or symlink to the real \fI/dev/tty\fR \- the full screen apps
-doesn't work if it exists as faked device.
+\&\fIlckpwdf()\fR and \fIulckpwdf()\fR are ignored so \fIpasswd\fR\|(1) command should work
 .IP "o" 4
-If debconf with dialog is broken \- remove \fI/dev/tty\fR or export
-DEBIAN_FRONTEND=readline.
-.IP "o" 4
-\&\fIltrace\fR\|(1) sometimes doesn't work. \fIstrace\fR\|(1) does work pretty well.
-.IP "o" 4
-\&\fIlckpwdf()\fR and \fIulckpwdf()\fR are ignored so update-passwd should work
-.IP "o" 4
-Your real uid have to exist in \fI/etc/passwd\fR. Create it with adduser \-\-uid
-realuid realuser.
+Your real uid should exist in \fI/etc/passwd\fR. Create it with adduser \-\-uid
+\&\fIrealuid\fR \fIrealuser\fR.
 .IP "o" 4
 \&\fIdebuild\fR\|(1) cleans environment. Use \-\-preserve\-env option to prevent this
 behaviour.
@@ -265,7 +297,7 @@ fakechroot is distributed under the \s-1GNU\s0 General Public License. (\s-1GPL\
 greater).
 .SH "AUTHOR"
 .IX Header "AUTHOR"
-Piotr Roszatycki <dexter@debian.org>
+(c) 2003\-2005 Piotr Roszatycki <dexter@debian.org>
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIfakeroot\fR\|(1), \fIdpkg\-buildpackage\fR\|(1), \fIdebuild\fR\|(1), \fIdebootstrap\fR\|(8)

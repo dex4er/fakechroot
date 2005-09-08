@@ -1020,7 +1020,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-libpath[=LIBPATH]
                           path list where library might be located
-                          [default=$libdir]
+                          [default=$pkglibdir]
   --with-pic              try to use only PIC/non-PIC objects [default=use
                           both]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
@@ -2049,7 +2049,7 @@ echo "$as_me: error: invalid libpath specified" >&2;}
       *) libpath="$ac_cv_libpath" ;;
 esac
 else
-  ac_cv_libpath=$libdir
+  ac_cv_libpath=$libdir/$PACKAGE_NAME
 libpath="$ac_cv_libpath"
 fi;
 
@@ -13023,7 +13023,7 @@ _ACEOF
 rm -f conftest*
 
 
-                                                            ac_config_files="$ac_config_files Makefile doc/Makefile man/Makefile src/Makefile scripts/Makefile test/Makefile"
+                                                  ac_config_files="$ac_config_files Makefile man/Makefile src/Makefile scripts/Makefile test/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -13821,7 +13821,6 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-  "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "man/Makefile" ) CONFIG_FILES="$CONFIG_FILES man/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "scripts/Makefile" ) CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;

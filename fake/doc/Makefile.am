@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS=foreign
 
-SUBDIRS=doc src
+EXTRA_DIST = README.fake

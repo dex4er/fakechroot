@@ -12,13 +12,13 @@ AC_LANG_C
 # --with-libpath
 AC_ARG_WITH([libpath],
 	    AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
-			   [path list where library might be located [[default=$libdir]]]),
+			   [path list where library might be located [[default=$pkglibdir]]]),
 	    [ac_cv_libpath=$withval
 case "$ac_cv_libpath" in
       "") AC_MSG_ERROR([invalid libpath specified]) ;;
       *) libpath="$ac_cv_libpath" ;;
 esac],
-	    [ac_cv_libpath=$libdir
+	    [ac_cv_libpath=$libdir/$PACKAGE_NAME
 libpath="$ac_cv_libpath"])
 AC_SUBST(libpath)
 
@@ -160,7 +160,6 @@ AC_FUNC_SCANDIR_ARGTYPES
 
 AC_CONFIG_FILES([ \
 Makefile \
-doc/Makefile \
 man/Makefile \
 src/Makefile \
 scripts/Makefile \
