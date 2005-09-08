@@ -10,7 +10,7 @@ fakechroot (2.4-1) unstable; urgency=low
   * Configure script regenerated with libtool 2.1a. The source should be
     more portable and does not require C++ compiler installed.
 
- -- Piotr Roszatycki <dexter@debian.org>  Wed,  7 Sep 2005 16:47:28 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Thu,  8 Sep 2005 17:54:15 +0200
 
 fakechroot (2.3) unstable; urgency=low
 
