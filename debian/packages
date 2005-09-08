@@ -46,7 +46,6 @@ Build: bash
          CC="$CC" CFLAGS="$CFLAGS" \
              ../configure \
  	         --cache-file=../config.cache \
- 	         --libdir=/usr/lib/fakechroot \
                  $COMMON_CONFIG
      popd
      pushd build-tree-fake
@@ -62,7 +61,7 @@ Build: bash
  	             --cache-file=../config.biarch.cache \
  		     --build=s390-linux \
  		     --host=s390x-linux \
-   	             --libdir=/usr/lib64/fakechroot \
+   	             --libdir=/usr/lib64 \
                      $COMMON_CONFIG
          popd
          pushd build-tree-fake-biarch
@@ -82,7 +81,7 @@ Build: bash
  	             --cache-file=../config.biarch.cache \
  		     --build=sparc-linux \
  		     --host=sparc64-linux \
-   	             --libdir=/usr/lib64/fakechroot \
+   	             --libdir=/usr/lib64 \
                      $COMMON_CONFIG
          popd
          pushd build-tree-fake-biarch
@@ -102,7 +101,7 @@ Build: bash
  	             --cache-file=../config.biarch.cache \
  		     --build=x86_64-linux \
  		     --host=i386-linux \
-   	             --libdir=/emul/ia32-linux/usr/lib/fakechroot \
+   	             --libdir=/emul/ia32-linux/usr/lib \
                      $COMMON_CONFIG
          popd
          pushd build-tree-fake-biarch
