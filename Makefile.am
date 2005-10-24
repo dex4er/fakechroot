@@ -1,0 +1,5 @@
+AUTOMAKE_OPTIONS=foreign
+
+SUBDIRS=man src scripts test
+
+EXTRA_DIST=LICENSE

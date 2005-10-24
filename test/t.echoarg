@@ -1,0 +1,8 @@
+#!/bin/sh
+
+t=`./fakechroot.sh /bin/pwd`
+if [ "$t" = "/" ]; then
+    true
+else
+    false
+fi

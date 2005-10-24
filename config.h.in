@@ -1,0 +1,451 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#undef CRAY_STACKSEG_END
+
+/* Define to 1 if using `alloca.c'. */
+#undef C_ALLOCA
+
+/* Define to 1 if you have the `access' function. */
+#undef HAVE_ACCESS
+
+/* Define to 1 if you have the `acct' function. */
+#undef HAVE_ACCT
+
+/* Define to 1 if you have `alloca', as a function or macro. */
+#undef HAVE_ALLOCA
+
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+   */
+#undef HAVE_ALLOCA_H
+
+/* Define to 1 if you have the `canonicalize_file_name' function. */
+#undef HAVE_CANONICALIZE_FILE_NAME
+
+/* Define to 1 if you have the `chdir' function. */
+#undef HAVE_CHDIR
+
+/* Define to 1 if you have the `chmod' function. */
+#undef HAVE_CHMOD
+
+/* Define to 1 if you have the `chown' function. */
+#undef HAVE_CHOWN
+
+/* Define to 1 if you have the `chroot' function. */
+#undef HAVE_CHROOT
+
+/* Define to 1 if you have the `creat' function. */
+#undef HAVE_CREAT
+
+/* Define to 1 if you have the `creat64' function. */
+#undef HAVE_CREAT64
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the `dlmopen' function. */
+#undef HAVE_DLMOPEN
+
+/* Define to 1 if you have the `dlopen' function. */
+#undef HAVE_DLOPEN
+
+/* Define to 1 if you have the `euidaccess' function. */
+#undef HAVE_EUIDACCESS
+
+/* Define to 1 if you have the `execl' function. */
+#undef HAVE_EXECL
+
+/* Define to 1 if you have the `execle' function. */
+#undef HAVE_EXECLE
+
+/* Define to 1 if you have the `execlp' function. */
+#undef HAVE_EXECLP
+
+/* Define to 1 if you have the `execv' function. */
+#undef HAVE_EXECV
+
+/* Define to 1 if you have the `execve' function. */
+#undef HAVE_EXECVE
+
+/* Define to 1 if you have the `execvp' function. */
+#undef HAVE_EXECVP
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `fopen' function. */
+#undef HAVE_FOPEN
+
+/* Define to 1 if you have the `fopen64' function. */
+#undef HAVE_FOPEN64
+
+/* Define to 1 if you have the `freopen' function. */
+#undef HAVE_FREOPEN
+
+/* Define to 1 if you have the `freopen64' function. */
+#undef HAVE_FREOPEN64
+
+/* Define to 1 if you have the <fts.h> header file. */
+#undef HAVE_FTS_H
+
+/* Define to 1 if you have the `fts_open' function. */
+#undef HAVE_FTS_OPEN
+
+/* Define to 1 if you have the `ftw' function. */
+#undef HAVE_FTW
+
+/* Define to 1 if you have the `ftw64' function. */
+#undef HAVE_FTW64
+
+/* Define to 1 if you have the <ftw.h> header file. */
+#undef HAVE_FTW_H
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
+
+/* Define to 1 if you have the `getwd' function. */
+#undef HAVE_GETWD
+
+/* Define to 1 if you have the `getxattr' function. */
+#undef HAVE_GETXATTR
+
+/* Define to 1 if you have the `get_current_dir_name' function. */
+#undef HAVE_GET_CURRENT_DIR_NAME
+
+/* Define to 1 if you have the `glob' function. */
+#undef HAVE_GLOB
+
+/* Define to 1 if you have the `glob64' function. */
+#undef HAVE_GLOB64
+
+/* Define to 1 if you have the `glob_pattern_p' function. */
+#undef HAVE_GLOB_PATTERN_P
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `lchmod' function. */
+#undef HAVE_LCHMOD
+
+/* Define to 1 if you have the `lchown' function. */
+#undef HAVE_LCHOWN
+
+/* Define to 1 if you have the `lckpwdf' function. */
+#undef HAVE_LCKPWDF
+
+/* Define to 1 if you have the `lgetxattr' function. */
+#undef HAVE_LGETXATTR
+
+/* Define to 1 if you have the `dl' library (-ldl). */
+#undef HAVE_LIBDL
+
+/* Define to 1 if you have the `link' function. */
+#undef HAVE_LINK
+
+/* Define to 1 if you have the `listxattr' function. */
+#undef HAVE_LISTXATTR
+
+/* Define to 1 if you have the `llistxattr' function. */
+#undef HAVE_LLISTXATTR
+
+/* Define to 1 if you have the `lremovexattr' function. */
+#undef HAVE_LREMOVEXATTR
+
+/* Define to 1 if you have the `lsetxattr' function. */
+#undef HAVE_LSETXATTR
+
+/* Define to 1 if you have the `lstat' function. */
+#undef HAVE_LSTAT
+
+/* Define to 1 if you have the `lstat64' function. */
+#undef HAVE_LSTAT64
+
+/* Define to 1 if `lstat' has the bug that it succeeds when given the
+   zero-length file name argument. */
+#undef HAVE_LSTAT_EMPTY_STRING_BUG
+
+/* Define to 1 if you have the `lutimes' function. */
+#undef HAVE_LUTIMES
+
+/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+   to 0 otherwise. */
+#undef HAVE_MALLOC
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkdir' function. */
+#undef HAVE_MKDIR
+
+/* Define to 1 if you have the `mkdtemp' function. */
+#undef HAVE_MKDTEMP
+
+/* Define to 1 if you have the `mkfifo' function. */
+#undef HAVE_MKFIFO
+
+/* Define to 1 if you have the `mknod' function. */
+#undef HAVE_MKNOD
+
+/* Define to 1 if you have the `mkstemp' function. */
+#undef HAVE_MKSTEMP
+
+/* Define to 1 if you have the `mkstemp64' function. */
+#undef HAVE_MKSTEMP64
+
+/* Define to 1 if you have the `mktemp' function. */
+#undef HAVE_MKTEMP
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define to 1 if you have the `nftw' function. */
+#undef HAVE_NFTW
+
+/* Define to 1 if you have the `nftw64' function. */
+#undef HAVE_NFTW64
+
+/* Define to 1 if you have the `open' function. */
+#undef HAVE_OPEN
+
+/* Define to 1 if you have the `open64' function. */
+#undef HAVE_OPEN64
+
+/* Define to 1 if you have the `opendir' function. */
+#undef HAVE_OPENDIR
+
+/* Define to 1 if you have the `pathconf' function. */
+#undef HAVE_PATHCONF
+
+/* Define to 1 if you have the `readlink' function. */
+#undef HAVE_READLINK
+
+/* Define to 1 if you have the `realpath' function. */
+#undef HAVE_REALPATH
+
+/* Define to 1 if you have the `remove' function. */
+#undef HAVE_REMOVE
+
+/* Define to 1 if you have the `removexattr' function. */
+#undef HAVE_REMOVEXATTR
+
+/* Define to 1 if you have the `rename' function. */
+#undef HAVE_RENAME
+
+/* Define to 1 if you have the `revoke' function. */
+#undef HAVE_REVOKE
+
+/* Define to 1 if you have the `rmdir' function. */
+#undef HAVE_RMDIR
+
+/* Define to 1 if you have the `scandir' function. */
+#undef HAVE_SCANDIR
+
+/* Define to 1 if you have the `scandir64' function. */
+#undef HAVE_SCANDIR64
+
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
+
+/* Define to 1 if you have the `setxattr' function. */
+#undef HAVE_SETXATTR
+
+/* Define to 1 if you have the <shadow.h> header file. */
+#undef HAVE_SHADOW_H
+
+/* Define to 1 if you have the `stat' function. */
+#undef HAVE_STAT
+
+/* Define to 1 if you have the `stat64' function. */
+#undef HAVE_STAT64
+
+/* Define to 1 if `stat' has the bug that it succeeds when given the
+   zero-length file name argument. */
+#undef HAVE_STAT_EMPTY_STRING_BUG
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strchrnul' function. */
+#undef HAVE_STRCHRNUL
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `symlink' function. */
+#undef HAVE_SYMLINK
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/xattr.h> header file. */
+#undef HAVE_SYS_XATTR_H
+
+/* Define to 1 if you have the `tempnam' function. */
+#undef HAVE_TEMPNAM
+
+/* Define to 1 if you have the `tmpnam' function. */
+#undef HAVE_TMPNAM
+
+/* Define to 1 if you have the `truncate' function. */
+#undef HAVE_TRUNCATE
+
+/* Define to 1 if you have the `truncate64' function. */
+#undef HAVE_TRUNCATE64
+
+/* Define to 1 if you have the `ulckpwdf' function. */
+#undef HAVE_ULCKPWDF
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `unlink' function. */
+#undef HAVE_UNLINK
+
+/* Define to 1 if you have the `utime' function. */
+#undef HAVE_UTIME
+
+/* Define to 1 if you have the `utimes' function. */
+#undef HAVE_UTIMES
+
+/* Define to 1 if you have the <utime.h> header file. */
+#undef HAVE_UTIME_H
+
+/* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
+#undef HAVE_UTIME_NULL
+
+/* Define to 1 if you have the `_xftw' function. */
+#undef HAVE__XFTW
+
+/* Define to 1 if you have the `_xftw64' function. */
+#undef HAVE__XFTW64
+
+/* Define to 1 if you have the `__lxstat' function. */
+#undef HAVE___LXSTAT
+
+/* Define to 1 if you have the `__lxstat64' function. */
+#undef HAVE___LXSTAT64
+
+/* Define to 1 if you have the `__open' function. */
+#undef HAVE___OPEN
+
+/* Define to 1 if you have the `__open64' function. */
+#undef HAVE___OPEN64
+
+/* Define to 1 if you have the `__opendir2' function. */
+#undef HAVE___OPENDIR2
+
+/* Define to 1 if you have the `__xmknod' function. */
+#undef HAVE___XMKNOD
+
+/* Define to 1 if you have the `__xstat' function. */
+#undef HAVE___XSTAT
+
+/* Define to 1 if you have the `__xstat64' function. */
+#undef HAVE___XSTAT64
+
+/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
+   slash. */
+#undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to the type of arg 1 for `readlink'. */
+#undef READLINK_TYPE_ARG1
+
+/* Define to the type of arg 2 for `readlink'. */
+#undef READLINK_TYPE_ARG2
+
+/* Define to the type of arg 3 for `readlink'. */
+#undef READLINK_TYPE_ARG3
+
+/* Define to the type of arg 1 for `scandir'. */
+#undef SCANDIR_TYPE_ARG1
+
+/* Define to the type of arg 2 for `scandir'. */
+#undef SCANDIR_TYPE_ARG2
+
+/* Define to the type of arg 3 for `scandir'. */
+#undef SCANDIR_TYPE_ARG3
+
+/* Define to the type of arg 4 for `scandir'. */
+#undef SCANDIR_TYPE_ARG4
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at run-time.
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
+#undef STACK_DIRECTION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef gid_t
+
+/* Define to rpl_malloc if the replacement function should be used. */
+#undef malloc
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef mode_t
+
+/* Define to `long' if <sys/types.h> does not define. */
+#undef off_t
+
+/* Define to `unsigned' if <sys/types.h> does not define. */
+#undef size_t
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef uid_t

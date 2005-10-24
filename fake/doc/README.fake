@@ -1,0 +1,24 @@
+In /usr/lib/ there's a _SETUID_ libfakechroot.
+
+However, it's a *fake* fakechroot -- it doesn't wrap any `interesting'
+functions (check with `nm -D /usr/lib/libfakechroot.so').
+
+It was needed, because we need the LD_LIBRARY_PATH variable set.
+But, with it set, $LD_PRELOAD cannot start with a / anymore.
+And, if $LD_PRELOAD doesn't start with a slash, then for
+some strange reason (BUG, if you ask me), ld.so starts looking
+for $LD_PRELOAD, even if the binary is has the suid bit set.
+
+OK, that would be *REALLY* bad (anyone starting `fakechroot su' would
+gain root). But, fortunately, ld.so *does* ignore LD_LIBRARY_PATH.
+However, now ld.so cannot find the $LD_PRELOAD library any more,
+and it refuses to load the binary.
+
+
+Apparently, the *only* way to fix this, was to put a fake libfakechroot
+in /usr/lib/libfakechroot.so, and set it's suid bit.
+
+So, that's why.
+
+Annoyed is,
+joostje.

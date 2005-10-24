@@ -1,0 +1,159 @@
+#!/usr/bin/perl
+
+# fakeldd
+#
+# Replacement for ldd with usage of objdump
+#
+# (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
+
+
+my %libs = ();
+
+my $status = 0;
+my $dynamic = 0;
+my $biarch = 0;
+
+my $ldlinuxsodir = "/lib";
+my @ld_library_path = qw(/usr/lib /lib);
+
+
+sub ldso($) {
+    my ($lib) = @_;
+    my @files = ();
+
+    if ($lib =~ /^\//) {
+	$libs{$lib} = $lib;
+	push @files, $lib;
+    } else {
+	foreach my $ld_path (@ld_library_path) {
+	    next unless -f "$ld_path/$lib";
+            my $badformat = 0;
+	    open OBJDUMP, "objdump -p $ld_path/$lib 2>/dev/null |";
+   	    while (my $line = <OBJDUMP>) {
+        	if ($line =~ /file format (\S*)$/) {
+		    $badformat = 1 unless $format eq $1;
+		    last;
+        	}
+	    }
+	    close OBJDUMP;
+	    next if $badformat;
+	    $libs{$lib} = "$ld_path/$lib";
+	    push @files, "$ld_path/$lib";
+	}
+	objdump(@files);
+    }
+}
+
+
+sub objdump(@) {
+    my (@files) = @_;
+    my @libs = ();
+
+    foreach my $file (@files) {
+	open OBJDUMP, "objdump -p $file 2>/dev/null |";
+	while (my $line = <OBJDUMP>) {
+	    $line =~ s/^\s+//;
+	    my @f = split (/\s+/, $line);
+    	    if ($line =~ /file format (\S*)$/) {
+        	if (not $format) {
+            	    $format = $1;
+		    if ($unamearch eq "x86_64" and $format eq "elf32-i386") {
+		        my $link = readlink "/lib/ld-linux.so.2";
+			if ($link =~ /^\/emul\/ia32-linux\//) {
+			    $ld_library_path[-2] = "/emul/ia32-linux/usr/lib";
+			    $ld_library_path[-1] = "/emul/ia32-linux/lib";
+			}
+		    } elsif ($unamearch =~ /^(sparc|sparc64)$/ and $format eq "elf64-sparc") {
+			$ldlinuxsodir = "/lib64";
+			$ld_library_path[-2] = "/usr/lib64";
+			$ld_library_path[-1] = "/lib64";
+		    }
+        	} else {
+		    next unless $format eq $1;
+        	}
+	    }
+	    if (not $dynamic and $f[0] eq "Dynamic") {
+		$dynamic = 1;
+	    }
+	    next unless $f[0] eq "NEEDED";
+	    if ($f[1] =~ /^ld-linux(\.|-)/) {
+	        $f[1] = "$ldlinuxsodir/" . $f[1];
+	    }
+	    if (not defined $libs{$f[1]}) {
+	        $libs{$f[1]} = undef;
+		push @libs, $f[1];
+	    }
+	}
+	close OBJDUMP;
+    }
+
+    foreach my $lib (@libs) {
+	ldso($lib);
+    }
+}
+
+
+if ($#ARGV < 0) {
+    print STDERR "fakeldd: missing file arguments\n";
+    exit 1;
+}
+
+while ($ARGV[0] =~ /^-/) {
+    my $arg = $ARGV[0];
+    shift @ARGV;
+    last if $arg eq "--";
+}
+
+open LD_SO_CONF, "/etc/ld.so.conf";
+while ($line = <LD_SO_CONF>) {
+    chomp $line;
+    unshift @ld_library_path, $line;
+}
+close LD_SO_CONF;
+
+unshift @ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
+
+$unamearch = `/bin/uname -m`;
+chomp $unamearch;
+
+foreach my $file (@ARGV) {
+    my $address;
+    %libs = ();
+    $dynamic = 0;
+
+    if ($#ARGV > 0) {
+	print "$file:\n";
+    }
+
+    if (not -f $file) {
+	print STDERR "ldd: $file: No such file or directory\n";
+	$status = 1;
+	next;
+    }
+
+    objdump($file);
+    
+    if ($dynamic == 0) {
+	print "\tnot a dynamic executable\n";
+	$status = 1;
+    } elsif (scalar %libs eq "0") {
+	print "\tstatically linked\n";
+    }
+
+    if ($format =~ /^elf64-/) {
+        $address = "0x0000000000000000";
+    } else {
+        $address = "0x00000000";
+    }
+
+    foreach $lib (keys %libs) {
+	if ($libs{$lib}) {
+    	    printf "\t%s => %s (%s)\n", $lib, $libs{$lib}, $address;
+	} else {
+	    printf "\t%s => not found\n", $lib;
+	}
+    }
+    
+}
+
+exit $status;
