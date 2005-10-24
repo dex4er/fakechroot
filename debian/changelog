@@ -1,3 +1,10 @@
+fakechroot (2.5-1) unstable; urgency=low
+
+  * Relicensed to LGPL
+  * configure script regenerated with libtool 2.1a (2005-10-24).
+
+ -- Piotr Roszatycki <dexter@debian.org>  Mon, 24 Oct 2005 09:13:55 +0200
+
 fakechroot (2.4-1) unstable; urgency=low
 
   * Convert to non native Debian package.

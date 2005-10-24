@@ -20,8 +20,8 @@ Maintainer: Piotr Roszatycki <dexter@debian.org>
 Standards-Version: 3.6.2
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: gives a fake chroot environment
-Copyright: GPL
- (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, GPL
+Copyright: LGPL
+ (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
 Build-Depends: libc6-dev-s390x [s390]
 Build-Depends: libc6-dev-sparc64 [sparc]
 Build-Depends: ia32-libs-dev [amd64]
@@ -174,8 +174,19 @@ Finalize: sh
  esac
 Overrides:
  debian-changelog-file-missing-or-wrong-name
+ file-in-unusual-dir emul/ia32-linux/usr/lib/fakechroot/libfakechroot.so
+ file-in-unusual-dir emul/ia32-linux/usr/lib/libfakechroot.so
+ file-in-unusual-dir usr/lib64/fakechroot/libfakechroot.so
+ file-in-unusual-dir usr/lib64/libfakechroot.so
+ non-standard-dir-in-usr emul/ia32-linux/usr/lib/
+ non-standard-dir-in-usr usr/lib64/
+ non-standard-file-perm emul/ia32-linux/usr/lib/libfakechroot.so 0744 != 0644
+ non-standard-file-perm usr/lib64/libfakechroot.so 0744 != 0644
  non-standard-file-perm usr/lib/libfakechroot.so 0744 != 0644
  no-shlibs-control-file usr/lib/libfakechroot.so
  package-name-doesnt-match-sonames libfakechroot
+ package-name-doesnt-match-sonames libfakechroot.so
+ shlib-with-bad-permissions emul/ia32-linux/usr/lib/libfakechroot.so 0744
+ shlib-with-bad-permissions usr/lib64/libfakechroot.so 0744
  shlib-with-bad-permissions usr/lib/libfakechroot.so 0744
 Contains: libs

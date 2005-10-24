@@ -851,7 +851,7 @@ compiler=$CC
 m4_defun([_LT_COMPILER_BOILERPLATE],
 [ac_outfile=conftest.$ac_objext
 printf "$lt_simple_compile_test_code" >conftest.$ac_ext
-eval "$ac_compile" 2>&1 >/dev/null | $SED '/^$/d' >conftest.err
+eval "$ac_compile" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
 _lt_compiler_boilerplate=`cat conftest.err`
 $RM conftest*
 ])# _LT_COMPILER_BOILERPLATE
@@ -864,7 +864,7 @@ $RM conftest*
 m4_defun([_LT_LINKER_BOILERPLATE],
 [ac_outfile=conftest.$ac_objext
 printf "$lt_simple_link_test_code" >conftest.$ac_ext
-eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d' >conftest.err
+eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
 _lt_linker_boilerplate=`cat conftest.err`
 $RM conftest*
 ])# _LT_LINKER_BOILERPLATE
@@ -1251,9 +1251,9 @@ AC_CACHE_CHECK([$1], [$2],
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
-     $ECHO "X$_lt_compiler_boilerplate" | $Xsed >conftest.exp
-     $SED '/^$/d' conftest.err >conftest.er2
-     if test ! -s conftest.err || diff conftest.exp conftest.er2 >/dev/null; then
+     $ECHO "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
+     $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
+     if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
        $2=yes
      fi
    fi
@@ -1290,8 +1290,8 @@ AC_CACHE_CHECK([$1], [$2],
      if test -s conftest.err; then
        # Append any errors to the config.log.
        cat conftest.err 1>&AS_MESSAGE_LOG_FD
-       $ECHO "X$_lt_linker_boilerplate" | $Xsed > conftest.exp
-       $SED '/^$/d' conftest.err >conftest.er2
+       $ECHO "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
+       $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
        if diff conftest.exp conftest.er2 >/dev/null; then
          $2=yes
        fi
@@ -1683,9 +1683,9 @@ AC_CACHE_CHECK([if $compiler supports -c -o file.$ac_objext],
    then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
-     $ECHO "X$_lt_compiler_boilerplate" | $Xsed > out/conftest.exp
-     $SED '/^$/d' out/conftest.err >out/conftest.er2
-     if test ! -s out/conftest.err || diff out/conftest.exp out/conftest.er2 >/dev/null; then
+     $ECHO "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' > out/conftest.exp
+     $SED '/^$/d; /^ *+/d' out/conftest.err >out/conftest.er2
+     if test ! -s out/conftest.er2 || diff out/conftest.exp out/conftest.er2 >/dev/null; then
        _LT_TAGVAR(lt_cv_prog_compiler_c_o, $1)=yes
      fi
    fi
@@ -1837,8 +1837,10 @@ _LT_DECL([], [striplib], [1])
 # -----------------------------
 # PORTME Fill in your ld.so characteristics
 m4_defun([_LT_SYS_DYNAMIC_LINKER],
-[m4_require([_LT_DECL_EGREP])dnl
+[AC_REQUIRE([AC_CANONICAL_HOST])dnl
+m4_require([_LT_DECL_EGREP])dnl
 m4_require([_LT_FILEUTILS_DEFAULTS])dnl
+m4_require([_LT_DECL_SED])dnl
 AC_MSG_CHECKING([dynamic linker characteristics])
 m4_case([$1],
 	[C], [withGCC=$GCC],
@@ -2909,17 +2911,18 @@ else
 	  continue # so that we can try to find one that supports BSD flags
 	  ;;
 	esac
+        ;;
       esac
     fi
   done
   IFS="$lt_save_ifs"
-  test -z "$lt_cv_path_NM" && lt_cv_path_NM=nm
+  : ${lt_cv_path_NM=no}
 fi])
 if test "$lt_cv_path_NM" != "no"; then
   NM="$lt_cv_path_NM"
 else
   # Didn't find any BSD compatible name lister, look for dumpbin.
-  AC_CHECK_TOOL(DUMPBIN, [dumpbin -symbols], :)
+  AC_CHECK_TOOLS(DUMPBIN, ["dumpbin -symbols" "link -dump -symbols"], :)
   AC_SUBST([DUMPBIN])
   if test "$DUMPBIN" != ":"; then
     NM="$DUMPBIN"
@@ -2931,7 +2934,7 @@ _LT_DECL([], [NM], [1], [A BSD- or MS-compatible name lister])dnl
 
 AC_CACHE_CHECK([the name lister ($NM) interface], [lt_cv_nm_interface],
   [lt_cv_nm_interface="BSD nm"
-  printf "int some_variable = 0;" > conftest.$ac_ext
+  echo "int some_variable = 0;" > conftest.$ac_ext
   (eval echo "\"\$as_me:__oline__: $ac_compile\"" >&AS_MESSAGE_LOG_FD)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&AS_MESSAGE_LOG_FD
@@ -3010,6 +3013,7 @@ AC_REQUIRE([AC_OBJEXT])dnl
 AC_REQUIRE([LT_PATH_NM])dnl
 AC_REQUIRE([LT_PATH_LD])dnl
 m4_require([_LT_DECL_EGREP])dnl
+m4_require([_LT_TAG_COMPILER])dnl
 
 # Check for command to grab the raw symbol name followed by C symbol from nm.
 AC_MSG_CHECKING([command to parse $NM output from $compiler object])
@@ -3085,11 +3089,17 @@ for ac_symprfx in "" "_"; do
     # and D for any global variable.
     # Also find C++ and __fastcall symbols from MSVC++,
     # which start with @ or ?.
-    lt_cv_sys_global_symbol_pipe="$SED -n -e ['/ UNDEF [^|]*()/d; / 00* UNDEF /d;
-	s/.*().*External *| *$ac_symprfx$sympat.*/T $ac_symprfx\1 \1/p;
-	s/.*External *| *$ac_symprfx$sympat.*/D $ac_symprfx\1 \1/p;
-	s/.*().*External *| *\([@?][_A-Za-z0-9@?]*\).*/T \1 \1/p;
-	s/.*External *| *\([@?][_A-Za-z0-9@?]*\).*/D \1 \1/p']"
+    lt_cv_sys_global_symbol_pipe="$AWK ['"\
+"     {last_section=section; section=\$ 3};"\
+"     /Section length .*#relocs.*(pick any)/{hide[last_section]=1};"\
+"     \$ 0!~/External *\|/{next};"\
+"     / 0+ UNDEF /{next}; / UNDEF \([^|]\)*()/{next};"\
+"     {if(hide[section]) next};"\
+"     {f=0}; \$ 0~/\(\).*\|/{f=1}; {printf f ? \"T \" : \"D \"};"\
+"     {split(\$ 0, a, /\||\r/); split(a[2], s)};"\
+"     s[1]~/^[@?]/{print s[1], s[1]; next};"\
+"     s[1]~prfx {split(s[1],t,\"@\"); print t[1], substr(t[1],length(prfx))}"\
+"     ' prfx=^$ac_symprfx]"
   else
     lt_cv_sys_global_symbol_pipe="sed -n -e 's/^.*[[ 	]]\($symcode$symcode*\)[[ 	]][[ 	]]*$ac_symprfx$sympat$opt_cr$/$symxfrm/p'"
   fi
@@ -3216,7 +3226,8 @@ _LT_DECL([global_symbol_to_c_name_address],
 # _LT_COMPILER_PIC([TAGNAME])
 # ---------------------------
 m4_defun([_LT_COMPILER_PIC],
-[_LT_TAGVAR(lt_prog_compiler_wl, $1)=
+[m4_require([_LT_TAG_COMPILER])dnl
+_LT_TAGVAR(lt_prog_compiler_wl, $1)=
 _LT_TAGVAR(lt_prog_compiler_pic, $1)=
 _LT_TAGVAR(lt_prog_compiler_static, $1)=
 
@@ -3767,6 +3778,7 @@ AC_REQUIRE([LT_PATH_NM])dnl
 m4_require([_LT_FILEUTILS_DEFAULTS])dnl
 m4_require([_LT_DECL_EGREP])dnl
 m4_require([_LT_CMD_GLOBAL_SYMBOLS])dnl
+m4_require([_LT_TAG_COMPILER])dnl
 AC_MSG_CHECKING([whether the $compiler linker ($LD) supports shared libraries])
 m4_if([$1], [CXX], [
   _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
@@ -3924,7 +3936,7 @@ _LT_EOF
       _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]] /s/.* \([[^ ]]*\)/\1 DATA/'\'' | $SED -e '\''/^[[AITW]] /s/.* //'\'' | sort | uniq > $export_symbols'
 
       if $LD --help 2>&1 | $GREP 'auto-import' > /dev/null; then
-        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $libobjs $deplibs $compiler_flags -o $output_objdir/$soname ${wl}--image-base=0x10000000 ${wl}--out-implib,$lib'
+        _LT_TAGVAR(archive_cmds, $1)='$CC -shared $libobjs $deplibs $compiler_flags -o $output_objdir/$soname ${wl}--enable-auto-image-base -Xlinker --out-implib -Xlinker $lib'
 	# If the export-symbols file already is a .def file (1st line
 	# is EXPORTS), use it as is; otherwise, prepend...
 	_LT_TAGVAR(archive_expsym_cmds, $1)='if test "x`$SED 1q $export_symbols`" = xEXPORTS; then
@@ -3933,7 +3945,7 @@ _LT_EOF
 	  echo EXPORTS > $output_objdir/$soname.def;
 	  cat $export_symbols >> $output_objdir/$soname.def;
 	fi~
-	$CC -shared $output_objdir/$soname.def $libobjs $deplibs $compiler_flags -o $output_objdir/$soname ${wl}--image-base=0x10000000  ${wl}--out-implib,$lib'
+	$CC -shared $output_objdir/$soname.def $libobjs $deplibs $compiler_flags -o $output_objdir/$soname ${wl}--enable-auto-image-base -Xlinker --out-implib -Xlinker $lib'
       else
 	_LT_TAGVAR(ld_shlibs, $1)=no
       fi
@@ -4074,6 +4086,7 @@ _LT_EOF
   	    break
   	  fi
 	  done
+	  ;;
 	esac
 
 	exp_sym_flag='-bexport'
@@ -4112,6 +4125,7 @@ _LT_EOF
   	  _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='-L$libdir'
   	  _LT_TAGVAR(hardcode_libdir_separator, $1)=
 	  fi
+	  ;;
 	esac
 	shared_flag='-shared'
 	if test "$aix_use_runtimelinking" = yes; then
@@ -4124,11 +4138,11 @@ _LT_EOF
   	# chokes on -Wl,-G. The following line is correct:
 	  shared_flag='-G'
 	else
-  	if test "$aix_use_runtimelinking" = yes; then
+	  if test "$aix_use_runtimelinking" = yes; then
 	    shared_flag='${wl}-G'
 	  else
 	    shared_flag='${wl}-bM:SRE'
-  	fi
+	  fi
 	fi
       fi
 
@@ -4943,7 +4957,7 @@ if test "$_lt_caught_CXX_error" != yes; then
   lt_simple_compile_test_code="int some_variable = 0;\n"
 
   # Code to be used in simple link tests
-  lt_simple_link_test_code='int main(int, char *[]) { return(0); }\n'
+  lt_simple_link_test_code='int main(int, char *[[]]) { return(0); }\n'
 
   # ltmain only uses $CC for tagged configurations so make sure $CC is set.
   _LT_TAG_COMPILER
@@ -5063,6 +5077,7 @@ if test "$_lt_caught_CXX_error" != yes; then
   	        ;;
   	      esac
   	    done
+	    ;;
           esac
 
           exp_sym_flag='-bexport'
@@ -5160,6 +5175,18 @@ if test "$_lt_caught_CXX_error" != yes; then
           fi
         fi
         ;;
+
+      beos*)
+	if $LD --help 2>&1 | $GREP ': supported targets:.* elf' > /dev/null; then
+	  _LT_TAGVAR(allow_undefined_flag, $1)=unsupported
+	  # Joseph Beckenbach <jrb3@best.com> says some releases of gcc
+	  # support --undefined.  This deserves some investigation.  FIXME
+	  _LT_TAGVAR(archive_cmds, $1)='$CC -nostart $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname -o $lib'
+	else
+	  _LT_TAGVAR(ld_shlibs, $1)=no
+	fi
+	;;
+
       chorus*)
         case $cc_basename in
           *)
@@ -5178,7 +5205,7 @@ if test "$_lt_caught_CXX_error" != yes; then
         _LT_TAGVAR(enable_shared_with_static_runtimes, $1)=yes
 
         if $LD --help 2>&1 | $GREP 'auto-import' > /dev/null; then
-          _LT_TAGVAR(archive_cmds, $1)='$CC -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $output_objdir/$soname ${wl}--image-base=0x10000000 ${wl}--out-implib,$lib'
+          _LT_TAGVAR(archive_cmds, $1)='$CC -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $output_objdir/$soname ${wl}--enable-auto-image-base -Xlinker --out-implib -Xlinker $lib'
           # If the export-symbols file already is a .def file (1st line
           # is EXPORTS), use it as is; otherwise, prepend...
           _LT_TAGVAR(archive_expsym_cmds, $1)='if test "x`$SED 1q $export_symbols`" = xEXPORTS; then
@@ -5187,7 +5214,7 @@ if test "$_lt_caught_CXX_error" != yes; then
   	    echo EXPORTS > $output_objdir/$soname.def;
   	    cat $export_symbols >> $output_objdir/$soname.def;
           fi~
-          $CC -shared -nostdlib $output_objdir/$soname.def $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $output_objdir/$soname ${wl}--image-base=0x10000000 ${wl}--out-implib,$lib'
+          $CC -shared -nostdlib $output_objdir/$soname.def $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $output_objdir/$soname ${wl}--enable-auto-image-base -Xlinker --out-implib -Xlinker $lib'
         else
           _LT_TAGVAR(ld_shlibs, $1)=no
         fi
@@ -6030,6 +6057,7 @@ solaris*)
     _LT_TAGVAR(postdeps,$1)='-lCstd -lCrun'
     ;;
   esac
+  ;;
 esac
 ])
 
@@ -6996,7 +7024,7 @@ m4_define([_LT_WITH_PIC],
     [pic_mode="$withval"],
     [pic_mode=default])
 
-test -z "$pic_mode" && pic_mode=m4_if($#, 1, $1, default)
+test -z "$pic_mode" && pic_mode=m4_default([$1], [default])
 
 _LT_DECL([], [pic_mode], [0], [What type of objects to build])dnl
 ])# _LT_WITH_PIC
@@ -7139,15 +7167,15 @@ m4_define([lt_dict_filter],
 
 # Generated from ltversion.in; do not edit by hand
 
-# serial 2063
+# serial 2133
 # This file is part of GNU Libtool
 
 m4_define([LT_PACKAGE_VERSION], [2.1a])
-m4_define([LT_PACKAGE_REVISION], [1.2063])
+m4_define([LT_PACKAGE_REVISION], [1.2133])
 
 AC_DEFUN([LTVERSION_VERSION],
 [macro_version='2.1a'
-macro_revision='1.2063'
+macro_revision='1.2133'
 _LT_DECL(, macro_version, 0, [Which release of libtool.m4 was used?])
 _LT_DECL(, macro_revision, 0)
 ])

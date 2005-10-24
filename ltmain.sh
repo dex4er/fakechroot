@@ -1,6 +1,6 @@
 # Generated from ltmain.m4sh; do not edit by hand
 
-# ltmain.sh (GNU libtool 1.2063 2005/09/06 08:58:31) 2.1a
+# ltmain.sh (GNU libtool 1.2133 2005/10/17 14:06:35) 2.1a
 # Written by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
@@ -58,12 +58,12 @@
 # When reporting a bug, please describe a test case to reproduce it and
 # include the following information:
 #
-#       host-triplet:	powerpc-apple-darwin7.9.0
+#       host-triplet:	powerpc-apple-darwin8.2.1
 #       shell:		$SHELL
 #       compiler:		$LTCC
 #       compiler flags:		$LTCFLAGS
 #       linker:		$LD (gnu? $with_gnu_ld)
-#       $progname:		(GNU libtool 1.2063 2005/09/06 08:58:31) 2.1a
+#       $progname:		(GNU libtool 1.2133 2005/10/17 14:06:35) 2.1a
 #       automake:		$automake_version
 #       autoconf:		$autoconf_version
 #
@@ -72,8 +72,8 @@
 PROGRAM=ltmain.sh
 PACKAGE=libtool
 VERSION=2.1a
-TIMESTAMP=" 1.2063 2005/09/06 08:58:31"
-package_revision=1.2063
+TIMESTAMP=" 1.2133 2005/10/17 14:06:35"
+package_revision=1.2133
 
 ## --------------------- ##
 ## M4sh Initialization.  ##
@@ -1121,12 +1121,11 @@ func_win32_libid ()
     if eval $OBJDUMP -f $1 | $SED -e '10q' 2>/dev/null |
        $EGREP 'file format pe-i386(.*architecture: i386)?' >/dev/null ; then
       win32_nmres=`eval $NM -f posix -A $1 |
-	sed -n -e '1,100{/ I /{x;/import/!{s/^/import/;h;p;};x;};}'`
-      if test "X$win32_nmres" = "Ximport" ; then
-	win32_libid_type="x86 archive import"
-      else
-	win32_libid_type="x86 archive static"
-      fi
+	sed -n -e '1,100{/ I /{s,.*,import,;p;q;};}'`
+      case $win32_nmres in
+      import*)  win32_libid_type="x86 archive import";;
+      *)        win32_libid_type="x86 archive static";;
+      esac
     fi
     ;;
   *DLL*)
@@ -1288,15 +1287,15 @@ extern \"C\" {
 	    }
 	  else
 	    $opt_dry_run || {
-	      eval "${SED} -e 's/\([ ][.*^$]\)/\\\1/g' -e 's/^/ /' -e 's/$/$/'"' < "$export_symbols" > "$output_objdir/$outputname.exp"'
+	      eval "${SED} -e 's/\([].[*^$]\)/\\\\\1/g' -e 's/^/ /' -e 's/$/$/'"' < "$export_symbols" > "$output_objdir/$outputname.exp"'
+	      eval '$GREP -f "$output_objdir/$outputname.exp" < "$nlist" > "$nlist"T'
+	      eval '$MV "$nlist"T "$nlist"'
 	      case $host in
 	        *cygwin | *mingw* )
 	          eval "echo EXPORTS "'> "$output_objdir/$outputname.def"'
-	          eval 'cat "$output_objdir/$outputname.exp" >> "$output_objdir/$outputname.def"'
+	          eval 'cat "$nlist" >> "$output_objdir/$outputname.def"'
 	          ;;
 	      esac
-	      eval '$GREP -f "$output_objdir/$outputname.exp" < "$nlist" > "$nlist"T'
-	      eval '$MV "$nlist"T "$nlist"'
 	    }
 	  fi
 	fi
@@ -3037,11 +3036,11 @@ func_mode_link ()
       -l*)
 	if test "X$arg" = "X-lc" || test "X$arg" = "X-lm"; then
 	  case $host in
-	  *-*-cygwin* | *-*-pw32* | *-*-beos*)
+	  *-*-cygwin* | *-*-mingw* | *-*-pw32* | *-*-beos*)
 	    # These systems don't actually have a C or math library (as such)
 	    continue
 	    ;;
-	  *-*-mingw* | *-*-os2*)
+	  *-*-os2*)
 	    # These systems don't actually have a C library (as such)
 	    test "X$arg" = "X-lc" && continue
 	    ;;
@@ -3254,8 +3253,10 @@ func_mode_link ()
       # -xarch=*, -xtarget=* enable 64-bit mode on the Sun compiler
       # +DA*, +DD* enable 64-bit mode on the HP compiler
       # -q* pass through compiler args for the IBM compiler
-      # -m* pass through architecture-specific compiler args for GCC
-      -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*)
+      # -m*, -t[45]*, -txscale* pass through architecture-specific
+      # compiler args for GCC
+      -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*| \
+      -t[45]*|-txscale*)
         func_quote_for_eval "$arg"
 	arg="$func_quote_for_eval_result"
         compile_command="$compile_command $arg"
@@ -3773,7 +3774,7 @@ func_mode_link ()
 
 	if test "$found" = yes || test -f "$lib"; then :
 	else
-	  func_fatal_error "cannot find the library \`$lib'"
+	  func_fatal_error "cannot find the library \`$lib' or unhandled argument \`$deplib'"
 	fi
 
 	# Check to see that this really is a libtool archive.
@@ -4159,7 +4160,7 @@ func_mode_link ()
 		    # if the lib is a (non-dlopened) module then we can not
 		    # link against it, someone is ignoring the earlier warnings
 		    if /usr/bin/file -L $add 2> /dev/null |
-			 $GREP "bundle" >/dev/null ; then
+			 $GREP ": [^:]* bundle" >/dev/null ; then
 		      if test "X$dlopenmodule" != "X$lib"; then
 			$ECHO "*** Warning: lib $linklib is a module, not a shared library"
 			if test -z "$old_library" ; then
@@ -5371,6 +5372,33 @@ EOF
 	# Use standard objects if they are pic
 	test -z "$pic_flag" && libobjs=`$ECHO "X$libobjs" | $SP2NL | $Xsed -e "$lo2o" | $NL2SP`
 
+	delfiles=
+	if test -n "$export_symbols" && test -n "$include_expsyms"; then
+	  $opt_dry_run || cp "$export_symbols" "$output_objdir/$libname.uexp"
+	  export_symbols="$output_objdir/$libname.uexp"
+	  delfiles="$delfiles $export_symbols"
+	fi
+
+	orig_export_symbols=
+	case $host_os in
+	cygwin* | mingw*)
+	  if test -n "$export_symbols" && test -z "$export_symbols_regex"; then
+	    # exporting using user supplied symfile
+	    if test "x`$SED 1q $export_symbols`" != xEXPORTS; then
+	      # and it's NOT already a .def file. Must figure out
+	      # which of the given symbols are data symbols and tag
+	      # them as such. So, trigger use of export_symbols_cmds.
+	      # export_symbols gets reassigned inside the "prepare
+	      # the list of exported symbols" if statement, so the
+	      # include_expsyms logic still works.
+	      orig_export_symbols="$export_symbols"
+	      export_symbols=
+	      always_export_symbols=yes
+	    fi
+	  fi
+	  ;;
+	esac
+
 	# Prepare the list of exported symbols
 	if test -z "$export_symbols"; then
 	  if test "$always_export_symbols" = yes || test -n "$export_symbols_regex"; then
@@ -5404,7 +5432,23 @@ EOF
 	fi
 
 	if test -n "$export_symbols" && test -n "$include_expsyms"; then
-	  $opt_dry_run || eval '$ECHO "X$include_expsyms" | $Xsed | $SP2NL >> "$export_symbols"'
+	  tmp_export_symbols="$export_symbols"
+	  test -n "$orig_export_symbols" && tmp_export_symbols="$orig_export_symbols"
+	  $opt_dry_run || eval '$ECHO "X$include_expsyms" | $Xsed | $SP2NL >> "$tmp_export_symbols"'
+	fi
+
+	if test "X$skipped_export" != "X:" && test -n "$orig_export_symbols"; then
+	  # The given exports_symbols file has to be filtered, so filter it.
+	  func_echo "filter symbol list for \`$libname.la' to tag DATA exports"
+	  # FIXME: $output_objdir/$libname.filter potentially contains lots of
+	  # 's' commands which not all seds can handle. GNU sed should be fine
+	  # though. Also, the filter scales superlinearly with the number of
+	  # global variables. join(1) would be nice here, but unfortunately
+	  # isn't a blessed tool.
+	  $opt_dry_run || $SED -e '/[ ,]DATA/!d;s,\(.*\)\([ \,].*\),s|^\1$|\1\2|,' < $export_symbols > $output_objdir/$libname.filter
+	  delfiles="$delfiles $export_symbols $output_objdir/$libname.filter"
+	  export_symbols=$output_objdir/$libname.def
+	  $opt_dry_run || $SED -f $output_objdir/$libname.filter < $orig_export_symbols > $export_symbols
 	fi
 
 	tmp_deplibs=
@@ -5488,7 +5532,6 @@ EOF
 	  test_cmds=
 	  concat_cmds=
 	  objlist=
-	  delfiles=
 	  last_robj=
 	  k=1
 
@@ -5615,9 +5658,10 @@ EOF
 	      cmds=$archive_cmds
 	    fi
 	  fi
+	fi
 
-	  # Append the command to remove the reloadable object files
-	  # to the just-reset $cmds.
+	if test -n "$delfiles"; then
+	  # Append the command to remove temporary files to $cmds.
 	  eval cmds=\"\$cmds~\$RM $delfiles\"
 	fi
 
@@ -7002,9 +7046,17 @@ func_mode_uninstall ()
 	    rmfiles="$rmfiles $objdir/$n"
 	  done
 	  test -n "$old_library" && rmfiles="$rmfiles $objdir/$old_library"
-	  test "$mode" = clean && rmfiles="$rmfiles $objdir/$name $objdir/${name}i"
 
-	  if test "$mode" = uninstall; then
+	  case "$mode" in
+	  clean)
+	    case "  $library_names " in
+	    # "  " in the beginning catches empty $dlname
+	    *" $dlname "*) ;;
+	    *) rmfiles="$rmfiles $objdir/$dlname" ;;
+	    esac
+	    rmfiles="$rmfiles $objdir/$name $objdir/${name}i"
+	    ;;
+	  uninstall)
 	    if test -n "$library_names"; then
 	      # Do each command in the postuninstall commands.
 	      func_execute_cmds "$postuninstall_cmds" 'test "$rmforce" = yes || exit_status=1'
@@ -7015,7 +7067,8 @@ func_mode_uninstall ()
 	      func_execute_cmds "$old_postuninstall_cmds" 'test "$rmforce" = yes || exit_status=1'
 	    fi
 	    # FIXME: should reinstall the best remaining shared library.
-	  fi
+	    ;;
+	  esac
 	fi
 	;;
 

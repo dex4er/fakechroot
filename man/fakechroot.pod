@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="8 Sep 2005"
+# pod2man --section=1 --release="Debian" --center=" " --date="24 Oct 2005"
 #
 # $Id$
 
@@ -205,8 +205,8 @@ behaviour.
 
 =head1 COPYING
 
-fakechroot is distributed under the GNU General Public License. (GPL 2.0 or
-greater).
+fakechroot is distributed under the GNU Lesser General Public License. (LGPL
+2.1 or greater).
 
 =head1 AUTHOR
 
