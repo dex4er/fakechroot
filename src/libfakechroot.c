@@ -77,7 +77,7 @@
                         ((char *)(path))[0] = '/'; \
                         ((char *)(path))[1] = '\0'; \
                     } else { \
-                        (path) = ((path) + strlen(fakechroot_path)); \
+                        memmove((path), (path)+strlen(fakechroot_path), 1+strlen((path))-strlen(fakechroot_path)); \
                     } \
                 } \
             } \
