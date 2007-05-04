@@ -1,6 +1,9 @@
 /*
     libfakechroot -- fake chroot environment
-    (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
+    (c) 2003-2007 Piotr Roszatycki <dexter@debian.org>, LGPL
+
+    klik2 support -- give direct access to a list of directories
+    (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -39,6 +42,7 @@
 #include <string.h>
 #include <glob.h>
 #include <utime.h>
+#include <pwd.h>
 #ifdef HAVE_FTS_H
 #include <fts.h>
 #endif
@@ -52,7 +56,6 @@
 #include <sys/xattr.h>
 #endif
 
-
 #if defined(PATH_MAX)
 #define FAKECHROOT_MAXPATH PATH_MAX
 #elif defined(_POSIX_PATH_MAX)
@@ -62,7 +65,6 @@
 #else
 #define FAKECHROOT_MAXPATH 2048
 #endif
-
 
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
@@ -83,7 +85,7 @@
     }
 
 #define expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
-    { \
+    if (!fakechroot_localdir(path)) { \
         if ((path) != NULL && *((char *)(path)) == '/') { \
             fakechroot_path = getenv("FAKECHROOT_BASE"); \
             if (fakechroot_path != NULL) { \
@@ -98,7 +100,7 @@
     }
 
 #define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
-    { \
+    if (!fakechroot_localdir(path)) { \
         if ((path) != NULL && *((char *)(path)) == '/') { \
             fakechroot_path = getenv("FAKECHROOT_BASE"); \
             if (fakechroot_path != NULL) { \
@@ -132,6 +134,12 @@
 extern char **environ;
 #endif
 
+/* Useful to exclude a list of directories or files */
+static char *exclude_list[32];
+static int exclude_length[32];
+static int list_max = 0;
+static int first = 0;
+static char *home_path=NULL;
 
 #ifndef HAVE_STRCHRNUL
 /* Find the first occurrence of C in S or the final NUL byte.  */
@@ -270,7 +278,6 @@ static char *strchrnul (const char *s, int c_in)
     return NULL;
 }
 #endif
-
 
 #ifdef HAVE___LXSTAT
 static int     (*next___lxstat) (int ver, const char *filename, struct stat *buf) = NULL;
@@ -458,9 +465,41 @@ static int     (*next_utime) (const char *filename, const struct utimbuf *buf) =
 static int     (*next_utimes) (const char *filename, const struct timeval tv[2]) = NULL;
 
 
+/* Bootstrap the library */
 void fakechroot_init (void) __attribute((constructor));
 void fakechroot_init (void)
 {
+    int i,j;
+    struct passwd* passwd = NULL;
+    char *pointer;
+
+    if (!first) {
+        first = 1;
+
+        /* We get a list of directories or files */
+        pointer = getenv("FAKECHROOT_EXCLUDE_PATH");
+        if (pointer) {
+            for (i=0; list_max<32 ;) {
+                for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
+                exclude_list[list_max] = malloc(j-i+2);
+                memset(exclude_list[list_max], '\0', j-i+2);
+                strncpy(exclude_list[list_max], &(pointer[i]), j-i);
+                exclude_length[list_max] = strlen(exclude_list[list_max]);
+                list_max++;
+                if (pointer[j] != ':') break;
+                i=j+1;
+            }
+        }
+
+        /* We get the home of the user */
+        passwd = getpwuid(getuid());
+        if (passwd && passwd->pw_dir) {
+            home_path = malloc(strlen(passwd->pw_dir)+1);
+            strcpy(home_path, passwd->pw_dir);
+            strcat(home_path, "/");
+        }
+    }
+
 #ifdef HAVE___LXSTAT
     nextsym(__lxstat, "__lxstat");
 #endif
@@ -639,6 +678,44 @@ void fakechroot_init (void)
 #endif
     nextsym(utime, "utime");
     nextsym(utimes, "utimes");
+}
+
+
+/* Check if path is on exclude list */
+static int fakechroot_localdir (const char *p_path)
+{
+    char *v_path = (char*)p_path;
+    char *fakechroot_path, *fakechroot_ptr;
+    char cwd_path[FAKECHROOT_MAXPATH];
+    int i, len;
+
+    if (!p_path) return 0;
+
+    /* We need to expand ~ paths */
+    if (home_path!=NULL && p_path[0]=='~') {
+	strcpy(cwd_path, home_path);
+	strcat(cwd_path, &(p_path[1]));
+	v_path = cwd_path;
+    }
+
+    /* We need to expand relative paths */
+    if (p_path[0] != '/') {
+	if (next_getcwd == NULL) fakechroot_init();
+	next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
+	v_path = cwd_path;
+	narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
+    }
+
+    /* We try to find if we need direct access to a file */
+    len = strlen(v_path);
+    for (i=0; i<list_max; i++) {
+	if (exclude_length[i]>len ||
+	    v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
+	    strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
+	if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+    }
+
+    return 0;
 }
 
 

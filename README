@@ -1,0 +1,41 @@
+NAME
+    fakechroot - gives a fake chroot environment
+
+DESCRIPTION
+    fakechroot runs a command in an environment were is additional
+    possibility to use chroot(8) command without root privileges. This is
+    useful for allowing users to create own chrooted environment with
+    possibility to install another packages without need for root
+    privileges.
+
+    fakechroot replaces more library functions (chroot(2), open(2), etc.) by
+    ones that simulate the effect the real library functions would have had,
+    had the user really been in chroot. These wrapper functions are in a
+    shared library /usr/lib/fakechroot/libfakechroot.so which is loaded
+    through the LD_PRELOAD mechanism of the dynamic loader. (See ld.so(8))
+
+    In fake chroot you can install Debian bootstrap with `debootstrap
+    --variant=fakechroot' command. In this environment you can use i.e.
+    apt-get(8) command to install another packages from common user's
+    account.
+
+    In the current version, the fakechroot does not provide the fakeroot(1)
+    functionality! You might to call fakechroot with fakeroot command, if
+    you want to emulate root environment, i.e.:
+
+     $ fakeroot fakechroot /usr/sbin/chroot /tmp/debian
+     # id
+     uid=0(root) gid=0(root) groups=0(root)
+
+SECURITY ASPECTS
+    fakechroot is a regular, non-setuid program. It does not enhance a
+    user's privileges, or decrease the system's security.
+
+COPYING
+    fakechroot is distributed under the GNU Lesser General Public License
+    (LGPL 2.1 or greater).
+
+AUTHORS
+    (c) 2003-2007 Piotr Roszatycki <dexter@debian.org>
+
+    (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>
