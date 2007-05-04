@@ -940,15 +940,12 @@ int chroot (const char *path)
 #endif
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
-    if (fakechroot_path != NULL) {
-        return EFAULT;
-    }
 
     if ((status = chdir(path)) != 0) {
         return status;
     }
     
-    if (getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
+    if (next_getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
 	return EFAULT;
     }
 
