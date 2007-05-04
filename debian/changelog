@@ -1,7 +1,7 @@
 fakechroot (2.6-1) unstable; urgency=low
 
   * New environment variable FAKECHROOT_EXCLUDE_PATH.
-  * Fix getcwd(3) function. Closes: #410145.
+  * Fix getcwd(3) function. Closes: #410145, #410739.
   * Fix readlink(2) function. Closes: #412141.
   * Updated manpage.
 
