@@ -1953,10 +1953,9 @@ int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 
     if (next_readlink == NULL) fakechroot_init();
 
-    if ((status = next_readlink(path, tmp, bufsiz)) == -1) {
-        return status;
+    if ((status = next_readlink(path, tmp, FAKECHROOT_MAXPATH-1)) == -1) {
+        return -1;
     }
-    /* TODO: shouldn't end with \000 */
     tmp[status] = '\0';
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
@@ -1966,12 +1965,17 @@ int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
             tmpptr = tmp;
         } else {
             tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
         }
-        strcpy(buf, tmpptr);
+        if (strlen(tmpptr) > bufsiz) {
+            errno = EFAULT;
+            return -1;
+        }
+        strncpy(buf, tmpptr, status);
     } else {
-        strcpy(buf, tmp);
+        strncpy(buf, tmp, status);
     }
-    return strlen(buf);
+    return status;
 }
 
 
