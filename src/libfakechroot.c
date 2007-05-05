@@ -1851,24 +1851,28 @@ char *mktemp (char *template)
 {
     char tmp[FAKECHROOT_MAXPATH], *ptr;
     char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
+    int localdir = 0;
 
     tmp[FAKECHROOT_MAXPATH] = '\0';
     strncpy(tmp, template, FAKECHROOT_MAXPATH-1);
     ptr = tmp;
 
-    expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (!fakechroot_localdir(ptr)) {
+        localdir = 1;
+        expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    }
 
     if (next_mktemp == NULL) fakechroot_init();
 
     if (next_mktemp(ptr) == NULL) {
-        free(fakechroot_buf);
+        if (!localdir) free(fakechroot_buf);
         return NULL;
     }
 
     narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
 
     strncpy(template, ptr, strlen(template));
-    free(fakechroot_buf);
+    if (!localdir) free(fakechroot_buf);
     return template;
 }
 
