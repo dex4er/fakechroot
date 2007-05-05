@@ -1,6 +1,7 @@
 /*
     libfakechroot -- fake chroot environment
     (c) 2003-2007 Piotr Roszatycki <dexter@debian.org>, LGPL
+    (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
 
     klik2 support -- give direct access to a list of directories
     (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
@@ -1844,10 +1845,27 @@ int mkstemp64 (char *template)
 /* #include <stdlib.h> */
 char *mktemp (char *template)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(template, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char tmp[FAKECHROOT_MAXPATH], *ptr;
+    char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
+
+    tmp[FAKECHROOT_MAXPATH] = '\0';
+    strncpy(tmp, template, FAKECHROOT_MAXPATH-1);
+    ptr = tmp;
+
+    expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
     if (next_mktemp == NULL) fakechroot_init();
-    return next_mktemp(template);
+
+    if (next_mktemp(ptr) == NULL) {
+        free(fakechroot_buf);
+        return NULL;
+    }
+
+    narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
+
+    strncpy(template, ptr, strlen(template));
+    free(fakechroot_buf);
+    return template;
 }
 
 

@@ -3,11 +3,12 @@ fakechroot (2.6-1) unstable; urgency=low
   * New environment variable FAKECHROOT_EXCLUDE_PATH.
   * Fix getcwd(3) function. Closes: #410145, #410739.
   * Fix readlink(2) function. Closes: #412141.
+  * Fix mktemp(3) function. Closes: #412918.
   * The chroot(2) function is now recursive and allows nested chroots.
     Closes: #412603.
   * Updated manpage.
 
- -- Piotr Roszatycki <dexter@dandelion>  Fri,  4 May 2007 19:41:47 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Sat,  5 May 2007 17:20:28 +0200
 
 fakechroot (2.5-1.1) unstable; urgency=low
 
