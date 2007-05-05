@@ -7,6 +7,7 @@ fakechroot (2.6-1) unstable; urgency=low
   * The chroot(2) function is now recursive and allows nested chroots.
     Closes: #412603.
   * Updated manpage.
+  * Supported 32-bit biarch on ppc64 architecture. Closes: #361202.
   * Fixed typo in package's description. Closes: #363403.
 
  -- Piotr Roszatycki <dexter@debian.org>  Sat,  5 May 2007 17:20:28 +0200

@@ -22,9 +22,10 @@ Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: gives a fake chroot environment
 Copyright: LGPL
  (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
+Build-Depends: libc6-dev-i386 [amd64]
+Build-Depends: libc6-dev-powerpc [ppc64]
 Build-Depends: libc6-dev-s390x [s390]
 Build-Depends: libc6-dev-sparc64 [sparc]
-Build-Depends: libc6-dev-i386 [amd64]
 Build: bash
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}
@@ -94,6 +95,26 @@ Build: bash
                      $COMMON_CONFIG
          popd
      fi
+     if [ "$DEB_BUILD_ARCH" = "ppc64" ]; then
+         pushd build-tree-lib-biarch
+             CC="gcc -m32" CFLAGS="$CFLAGS" \
+                 ../configure \
+                    --cache-file=../config.biarch.cache \
+                    --build=powerpc64-linux \
+                    --host=powerpc-linux \
+                    --libdir=/usr/lib32 \
+                     $COMMON_CONFIG
+         popd
+         pushd build-tree-fake-biarch
+             CC="gcc -m32" CFLAGS="$CFLAGS" \
+                 ../fake/configure \
+                    --cache-file=../config.biarch.cache \
+                    --build=powerpc64-linux \
+                    --host=powerpc-linux \
+                    --libdir=/usr/lib32 \
+                     $COMMON_CONFIG
+         popd
+     fi
      if [ "$DEB_BUILD_ARCH" = "amd64" ]; then
          pushd build-tree-lib-biarch
              CC="gcc -m32" CFLAGS="$CFLAGS" \
@@ -126,6 +147,7 @@ Build: bash
      popd
      if [ "$DEB_BUILD_ARCH" = "s390" ] || \
         [ "$DEB_BUILD_ARCH" = "sparc" ] || \
+        [ "$DEB_BUILD_ARCH" = "ppc64" ] || \
         [ "$DEB_BUILD_ARCH" = "amd64" ]; then
          pushd build-tree-lib-biarch
              make
@@ -169,6 +191,8 @@ Finalize: sh
  case "$DEB_BUILD_ARCH" in
      amd64)
          chmod -v u+s $ROOT/emul/ia32-linux/usr/lib/*.so;;
+     ppc64)
+         chmod -v u+s $ROOT/usr/lib32/*.so;;
      s390|sparc)
          chmod -v u+s $ROOT/usr/lib64/*.so;;
  esac
@@ -178,15 +202,20 @@ Overrides:
  file-in-unusual-dir emul/ia32-linux/usr/lib/libfakechroot.so
  file-in-unusual-dir usr/lib64/fakechroot/libfakechroot.so
  file-in-unusual-dir usr/lib64/libfakechroot.so
+ file-in-unusual-dir usr/lib32/fakechroot/libfakechroot.so
+ file-in-unusual-dir usr/lib32/libfakechroot.so
  non-standard-dir-in-usr emul/ia32-linux/usr/lib/
  non-standard-dir-in-usr usr/lib64/
+ non-standard-dir-in-usr usr/lib32/
  non-standard-file-perm emul/ia32-linux/usr/lib/libfakechroot.so 0744 != 0644
  non-standard-file-perm usr/lib64/libfakechroot.so 0744 != 0644
+ non-standard-file-perm usr/lib32/libfakechroot.so 0744 != 0644
  non-standard-file-perm usr/lib/libfakechroot.so 0744 != 0644
  no-shlibs-control-file usr/lib/libfakechroot.so
  package-name-doesnt-match-sonames libfakechroot
  package-name-doesnt-match-sonames libfakechroot.so
  shlib-with-bad-permissions emul/ia32-linux/usr/lib/libfakechroot.so 0744
  shlib-with-bad-permissions usr/lib64/libfakechroot.so 0744
+ shlib-with-bad-permissions usr/lib32/libfakechroot.so 0744
  shlib-with-bad-permissions usr/lib/libfakechroot.so 0744
 Contains: libs
