@@ -1849,7 +1849,7 @@ int mkstemp64 (char *template)
 /* #include <stdlib.h> */
 char *mktemp (char *template)
 {
-    char tmp[FAKECHROOT_MAXPATH], *ptr;
+    char tmp[FAKECHROOT_MAXPATH], *ptr, *ptr2;
     char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
     int localdir = 0;
 
@@ -1865,14 +1865,15 @@ char *mktemp (char *template)
     if (next_mktemp == NULL) fakechroot_init();
 
     if (next_mktemp(ptr) == NULL) {
-        if (!localdir) free(fakechroot_buf);
+        if (!localdir) free(ptr);
         return NULL;
     }
 
-    narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
+    ptr2 = ptr;
+    narrow_chroot_path(ptr2, fakechroot_path, fakechroot_ptr);
 
-    strncpy(template, ptr, strlen(template));
-    if (!localdir) free(fakechroot_buf);
+    strncpy(template, ptr2, strlen(template));
+    if (!localdir) free(ptr);
     return template;
 }
 
