@@ -86,34 +86,38 @@
     }
 
 #define expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
-    if (!fakechroot_localdir(path)) { \
-        if ((path) != NULL && *((char *)(path)) == '/') { \
-            fakechroot_path = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_path != NULL) { \
-                fakechroot_ptr = strstr((path), fakechroot_path); \
-                if (fakechroot_ptr != (path)) { \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
+    { \
+        if (!fakechroot_localdir(path)) { \
+            if ((path) != NULL && *((char *)(path)) == '/') { \
+                fakechroot_path = getenv("FAKECHROOT_BASE"); \
+                if (fakechroot_path != NULL) { \
+                    fakechroot_ptr = strstr((path), fakechroot_path); \
+                    if (fakechroot_ptr != (path)) { \
+                        strcpy(fakechroot_buf, fakechroot_path); \
+                        strcat(fakechroot_buf, (path)); \
+                        (path) = fakechroot_buf; \
+                    } \
                 } \
             } \
         } \
     }
 
 #define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
-    if (!fakechroot_localdir(path)) { \
-        if ((path) != NULL && *((char *)(path)) == '/') { \
-            fakechroot_path = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_path != NULL) { \
-                fakechroot_ptr = strstr((path), fakechroot_path); \
-                if (fakechroot_ptr != (path)) { \
-                    if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
-                        errno = ENOMEM; \
-                        return NULL; \
+    { \
+        if (!fakechroot_localdir(path)) { \
+            if ((path) != NULL && *((char *)(path)) == '/') { \
+                fakechroot_path = getenv("FAKECHROOT_BASE"); \
+                if (fakechroot_path != NULL) { \
+                    fakechroot_ptr = strstr((path), fakechroot_path); \
+                    if (fakechroot_ptr != (path)) { \
+                        if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
+                            errno = ENOMEM; \
+                            return NULL; \
+                        } \
+                        strcpy(fakechroot_buf, fakechroot_path); \
+                        strcat(fakechroot_buf, (path)); \
+                        (path) = fakechroot_buf; \
                     } \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
                 } \
             } \
         } \
