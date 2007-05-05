@@ -1,6 +1,10 @@
 /*
     libfakechroot -- fake chroot environment
-    (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
+    (c) 2003-2007 Piotr Roszatycki <dexter@debian.org>, LGPL
+    (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
+
+    klik2 support -- give direct access to a list of directories
+    (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,7 +21,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-/* $Id: /trunk/src/libfakechroot.c 191 2005-10-24T10:09:41.420717Z dexter  $ */
+/* $Id: /local/src/libfakechroot.c 223 2007-05-05T16:16:27.924224Z dexter  $ */
 
 
 #include <config.h>
@@ -39,6 +43,7 @@
 #include <string.h>
 #include <glob.h>
 #include <utime.h>
+#include <pwd.h>
 #ifdef HAVE_FTS_H
 #include <fts.h>
 #endif
@@ -52,7 +57,6 @@
 #include <sys/xattr.h>
 #endif
 
-
 #if defined(PATH_MAX)
 #define FAKECHROOT_MAXPATH PATH_MAX
 #elif defined(_POSIX_PATH_MAX)
@@ -62,7 +66,6 @@
 #else
 #define FAKECHROOT_MAXPATH 2048
 #endif
-
 
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
@@ -75,7 +78,7 @@
                         ((char *)(path))[0] = '/'; \
                         ((char *)(path))[1] = '\0'; \
                     } else { \
-                        (path) = ((path) + strlen(fakechroot_path)); \
+                        memmove((path), (path)+strlen(fakechroot_path), 1+strlen((path))-strlen(fakechroot_path)); \
                     } \
                 } \
             } \
@@ -84,14 +87,16 @@
 
 #define expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
     { \
-        if ((path) != NULL && *((char *)(path)) == '/') { \
-            fakechroot_path = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_path != NULL) { \
-                fakechroot_ptr = strstr((path), fakechroot_path); \
-                if (fakechroot_ptr != (path)) { \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
+        if (!fakechroot_localdir(path)) { \
+            if ((path) != NULL && *((char *)(path)) == '/') { \
+                fakechroot_path = getenv("FAKECHROOT_BASE"); \
+                if (fakechroot_path != NULL) { \
+                    fakechroot_ptr = strstr((path), fakechroot_path); \
+                    if (fakechroot_ptr != (path)) { \
+                        strcpy(fakechroot_buf, fakechroot_path); \
+                        strcat(fakechroot_buf, (path)); \
+                        (path) = fakechroot_buf; \
+                    } \
                 } \
             } \
         } \
@@ -99,18 +104,20 @@
 
 #define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
     { \
-        if ((path) != NULL && *((char *)(path)) == '/') { \
-            fakechroot_path = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_path != NULL) { \
-                fakechroot_ptr = strstr((path), fakechroot_path); \
-                if (fakechroot_ptr != (path)) { \
-                    if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
-                        errno = ENOMEM; \
-                        return NULL; \
+        if (!fakechroot_localdir(path)) { \
+            if ((path) != NULL && *((char *)(path)) == '/') { \
+                fakechroot_path = getenv("FAKECHROOT_BASE"); \
+                if (fakechroot_path != NULL) { \
+                    fakechroot_ptr = strstr((path), fakechroot_path); \
+                    if (fakechroot_ptr != (path)) { \
+                        if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
+                            errno = ENOMEM; \
+                            return NULL; \
+                        } \
+                        strcpy(fakechroot_buf, fakechroot_path); \
+                        strcat(fakechroot_buf, (path)); \
+                        (path) = fakechroot_buf; \
                     } \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
                 } \
             } \
         } \
@@ -132,6 +139,12 @@
 extern char **environ;
 #endif
 
+/* Useful to exclude a list of directories or files */
+static char *exclude_list[32];
+static int exclude_length[32];
+static int list_max = 0;
+static int first = 0;
+static char *home_path=NULL;
 
 #ifndef HAVE_STRCHRNUL
 /* Find the first occurrence of C in S or the final NUL byte.  */
@@ -270,7 +283,6 @@ static char *strchrnul (const char *s, int c_in)
     return NULL;
 }
 #endif
-
 
 #ifdef HAVE___LXSTAT
 static int     (*next___lxstat) (int ver, const char *filename, struct stat *buf) = NULL;
@@ -458,9 +470,41 @@ static int     (*next_utime) (const char *filename, const struct utimbuf *buf) =
 static int     (*next_utimes) (const char *filename, const struct timeval tv[2]) = NULL;
 
 
+/* Bootstrap the library */
 void fakechroot_init (void) __attribute((constructor));
 void fakechroot_init (void)
 {
+    int i,j;
+    struct passwd* passwd = NULL;
+    char *pointer;
+
+    if (!first) {
+        first = 1;
+
+        /* We get a list of directories or files */
+        pointer = getenv("FAKECHROOT_EXCLUDE_PATH");
+        if (pointer) {
+            for (i=0; list_max<32 ;) {
+                for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
+                exclude_list[list_max] = malloc(j-i+2);
+                memset(exclude_list[list_max], '\0', j-i+2);
+                strncpy(exclude_list[list_max], &(pointer[i]), j-i);
+                exclude_length[list_max] = strlen(exclude_list[list_max]);
+                list_max++;
+                if (pointer[j] != ':') break;
+                i=j+1;
+            }
+        }
+
+        /* We get the home of the user */
+        passwd = getpwuid(getuid());
+        if (passwd && passwd->pw_dir) {
+            home_path = malloc(strlen(passwd->pw_dir)+1);
+            strcpy(home_path, passwd->pw_dir);
+            strcat(home_path, "/");
+        }
+    }
+
 #ifdef HAVE___LXSTAT
     nextsym(__lxstat, "__lxstat");
 #endif
@@ -639,6 +683,44 @@ void fakechroot_init (void)
 #endif
     nextsym(utime, "utime");
     nextsym(utimes, "utimes");
+}
+
+
+/* Check if path is on exclude list */
+static int fakechroot_localdir (const char *p_path)
+{
+    char *v_path = (char*)p_path;
+    char *fakechroot_path, *fakechroot_ptr;
+    char cwd_path[FAKECHROOT_MAXPATH];
+    int i, len;
+
+    if (!p_path) return 0;
+
+    /* We need to expand ~ paths */
+    if (home_path!=NULL && p_path[0]=='~') {
+	strcpy(cwd_path, home_path);
+	strcat(cwd_path, &(p_path[1]));
+	v_path = cwd_path;
+    }
+
+    /* We need to expand relative paths */
+    if (p_path[0] != '/') {
+	if (next_getcwd == NULL) fakechroot_init();
+	next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
+	v_path = cwd_path;
+	narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
+    }
+
+    /* We try to find if we need direct access to a file */
+    len = strlen(v_path);
+    for (i=0; i<list_max; i++) {
+	if (exclude_length[i]>len ||
+	    v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
+	    strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
+	if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+    }
+
+    return 0;
 }
 
 
@@ -863,15 +945,12 @@ int chroot (const char *path)
 #endif
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
-    if (fakechroot_path != NULL) {
-        return EFAULT;
-    }
 
     if ((status = chdir(path)) != 0) {
         return status;
     }
     
-    if (getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
+    if (next_getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
 	return EFAULT;
     }
 
@@ -1770,10 +1849,32 @@ int mkstemp64 (char *template)
 /* #include <stdlib.h> */
 char *mktemp (char *template)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(template, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char tmp[FAKECHROOT_MAXPATH], *ptr, *ptr2;
+    char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
+    int localdir = 0;
+
+    tmp[FAKECHROOT_MAXPATH] = '\0';
+    strncpy(tmp, template, FAKECHROOT_MAXPATH-1);
+    ptr = tmp;
+
+    if (!fakechroot_localdir(ptr)) {
+        localdir = 1;
+        expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    }
+
     if (next_mktemp == NULL) fakechroot_init();
-    return next_mktemp(template);
+
+    if (next_mktemp(ptr) == NULL) {
+        if (!localdir) free(ptr);
+        return NULL;
+    }
+
+    ptr2 = ptr;
+    narrow_chroot_path(ptr2, fakechroot_path, fakechroot_ptr);
+
+    strncpy(template, ptr2, strlen(template));
+    if (!localdir) free(ptr);
+    return template;
 }
 
 
@@ -1876,10 +1977,9 @@ int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 
     if (next_readlink == NULL) fakechroot_init();
 
-    if ((status = next_readlink(path, tmp, bufsiz)) == -1) {
-        return status;
+    if ((status = next_readlink(path, tmp, FAKECHROOT_MAXPATH-1)) == -1) {
+        return -1;
     }
-    /* TODO: shouldn't end with \000 */
     tmp[status] = '\0';
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
@@ -1889,12 +1989,17 @@ int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
             tmpptr = tmp;
         } else {
             tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
         }
-        strcpy(buf, tmpptr);
+        if (strlen(tmpptr) > bufsiz) {
+            errno = EFAULT;
+            return -1;
+        }
+        strncpy(buf, tmpptr, status);
     } else {
-        strcpy(buf, tmp);
+        strncpy(buf, tmp, status);
     }
-    return strlen(buf);
+    return status;
 }
 
 
