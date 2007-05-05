@@ -17,7 +17,7 @@ Source: fakechroot
 Section: utils
 Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
-Standards-Version: 3.6.2
+Standards-Version: 3.7.2
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: gives a fake chroot environment
 Copyright: LGPL
@@ -207,15 +207,15 @@ Overrides:
  non-standard-dir-in-usr emul/ia32-linux/usr/lib/
  non-standard-dir-in-usr usr/lib64/
  non-standard-dir-in-usr usr/lib32/
- non-standard-file-perm emul/ia32-linux/usr/lib/libfakechroot.so 0744 != 0644
- non-standard-file-perm usr/lib64/libfakechroot.so 0744 != 0644
- non-standard-file-perm usr/lib32/libfakechroot.so 0744 != 0644
- non-standard-file-perm usr/lib/libfakechroot.so 0744 != 0644
+ non-standard-file-perm emul/ia32-linux/usr/lib/libfakechroot.so 4644 != 0644
+ non-standard-file-perm usr/lib64/libfakechroot.so 4644 != 0644
+ non-standard-file-perm usr/lib32/libfakechroot.so 4644 != 0644
+ non-standard-file-perm usr/lib/libfakechroot.so 4644 != 0644
  no-shlibs-control-file usr/lib/libfakechroot.so
  package-name-doesnt-match-sonames libfakechroot
  package-name-doesnt-match-sonames libfakechroot.so
- shlib-with-bad-permissions emul/ia32-linux/usr/lib/libfakechroot.so 0744
- shlib-with-bad-permissions usr/lib64/libfakechroot.so 0744
- shlib-with-bad-permissions usr/lib32/libfakechroot.so 0744
- shlib-with-bad-permissions usr/lib/libfakechroot.so 0744
+ shlib-with-bad-permissions emul/ia32-linux/usr/lib/libfakechroot.so 4644
+ shlib-with-bad-permissions usr/lib64/libfakechroot.so 4644
+ shlib-with-bad-permissions usr/lib32/libfakechroot.so 4644
+ shlib-with-bad-permissions usr/lib/libfakechroot.so 4644
 Contains: libs
