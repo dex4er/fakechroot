@@ -1,3 +1,9 @@
+fakechroot (2.7-0) unstable; urgency=low
+
+  * UNRELEASED
+
+ -- Piotr Roszatycki <dexter@debian.org>  Thu, 05 Jun 2008 21:41:39 +0200
+
 fakechroot (2.6-1) unstable; urgency=low
 
   * New environment variable FAKECHROOT_EXCLUDE_PATH.
