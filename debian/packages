@@ -26,6 +26,7 @@ Build-Depends: libc6-dev-i386 [amd64]
 Build-Depends: libc6-dev-powerpc [ppc64]
 Build-Depends: libc6-dev-s390x [s390]
 Build-Depends: libc6-dev-sparc64 [sparc]
+Build-Depends: gcc-multilib [amd64 i386 s390 sparc]
 Build: bash
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}

@@ -427,7 +427,7 @@ static int     (*next_open64) (const char *pathname, int flags, ...) = NULL;
 static DIR *   (*next_opendir) (const char *name) = NULL;
 #endif
 static long    (*next_pathconf) (const char *path, int name) = NULL;
-static int     (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+static ssize_t     (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
 #ifdef HAVE_REMOVEXATTR
@@ -1967,7 +1967,7 @@ long pathconf (const char *path, int name)
 
 
 /* #include <unistd.h> */
-int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
+ssize_t readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;

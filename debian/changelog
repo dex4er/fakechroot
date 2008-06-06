@@ -1,8 +1,25 @@
-fakechroot (2.7-0) unstable; urgency=low
+fakechroot (2.6-1.3) unstable; urgency=low
 
-  * UNRELEASED
+  * Non-maintainer upload to fix the fix for the fix for #422586
+  * Only use gcc-multilib on some archs.
+  * Fix the readlink function to be ssize_t as it is in newer libc
 
- -- Piotr Roszatycki <dexter@debian.org>  Thu, 05 Jun 2008 21:41:39 +0200
+ -- Sune Vuorela <debian@pusling.com>  Sat, 19 May 2007 17:19:53 +0200
+
+fakechroot (2.6-1.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Add build-dependency on gcc-multilib the yada way to avoid FTBFS. 
+    (Closes: #422586)
+
+ -- Sune Vuorela <debian@pusling.com>  Sat, 19 May 2007 15:13:28 +0200
+
+fakechroot (2.6-1.1) unstable; urgency=low
+
+  * Non-maintainer upload during BSP.
+  * Added build-dependency on gcc-multilib to avoid FTBFS (Closes: #422586).
+
+ -- Mario Iseli <admin@marioiseli.com>  Fri, 18 May 2007 18:17:26 +0200
 
 fakechroot (2.6-1) unstable; urgency=low
 
