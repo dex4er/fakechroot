@@ -29,12 +29,12 @@
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/times.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -1013,17 +1013,31 @@ int chroot (const char *path)
 #if !defined(HAVE_SETENV)
     char *envbuf;
 #endif
+    struct stat sb;
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
-    if ((status = chdir(path)) != 0) {
-        return status;
+    if (fakechroot_path != NULL) {
+	snprintf(dir, FAKECHROOT_MAXPATH, "%s/%s", fakechroot_path, path);
     }
-    
-    if (next_getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
-	return EFAULT;
+    else {
+	snprintf(dir, FAKECHROOT_MAXPATH, "%s", path);
     }
 
+#if defined(HAVE___XSTAT) && defined(_STAT_VER)
+    if ((status = next___xstat(_STAT_VER, dir, &sb)) != 0) {
+        return status;
+    }
+#else
+    if ((status = next_stat(dir, &sb)) != 0) {
+        return status;
+    }
+#endif
+    
+    if ((sb.st_mode & S_IFMT) != S_IFDIR) {
+	return ENOTDIR;
+    }
+    
     ptr = rindex(dir, 0);
     if (ptr > dir) {
         ptr--;

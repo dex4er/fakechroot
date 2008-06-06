@@ -2,11 +2,13 @@ fakechroot (2.7-0) unstable; urgency=medium
 
   * Apply all NMU patches.  Thank you, people!
   * src/libfakechroot.c:
-    - Fix the readlink(2) function to be ssize_t as it is in newer libc.
+    - Fixed readlink(2) function to be ssize_t as it is in newer libc.
       Thanks Sune Vuorela.
     - New functions: __fxstatat(2), __fxstatat64(2), fchmodat(2), fchownat(2),
       __openat(2), __openat64(2), unlinkat(2).  It fixes last coreutils.
-      Thanks Martin Pitt and Daniel Kahn Gillmor.
+      Thanks Martin Pitt and Daniel Kahn Gillmor.  Closes: #473682.
+    - Fixed chroot(2) function to not change current working directory.
+      Closes: #477447.
   * test/fakechroot.sh:
     - Add cp, mkdir, chmod, rm.
     - Call bash instead of sh.
