@@ -25,23 +25,26 @@ do
 done
 
 for f in \
+    /bin/bash \
     /bin/busybox \
     /bin/cat \
-    /bin/csh \
-    /bin/sh \
-    /bin/bash \
-    /bin/grep \
-    /bin/ls \
-    /bin/cp \
-    /bin/mkdir \
     /bin/chmod \
-    /bin/pwd \
+    /bin/csh \
+    /bin/cp \
+    /bin/grep \
     /bin/sh \
+    /bin/ls \
+    /bin/mkdir \
+    /bin/ps \
+    /bin/pwd \
     /bin/rm \
-    /usr/bin/id \
+    /bin/sh \
+    /usr/bin/basename \
+    /usr/bin/dirname \
     /usr/bin/find \
-    /usr/bin/perl \
+    /usr/bin/id \
     /usr/bin/ltrace \
+    /usr/bin/perl \
     /usr/bin/strace \
     /usr/sbin/chroot \
     /usr/local/bin/bash \

@@ -1270,6 +1270,8 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char c;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
+    strncpy(argv0, filename, FAKECHROOT_MAXPATH);
+
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     strcpy(tmp, filename);
     filename = tmp;
@@ -1302,11 +1304,8 @@ int execve (const char *filename, char *const argv [], char *const envp[])
                     ptr = &hashbang[j];
                     expand_chroot_path(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
                     strcpy(newfilename, ptr);
-                    strcpy(argv0, &hashbang[j]);
-                    newargv[n++] = argv0;
-                } else {
-                    newargv[n++] = &hashbang[j];
-                }
+		}
+                newargv[n++] = &hashbang[j];
             }
             j = i + 1;
         }
@@ -1314,8 +1313,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
             break;
     }
 
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-    newargv[n++] = filename;
+    newargv[n++] = argv0;
 
     for (i = 1; argv[i] != NULL && i<argv_max; ) {
         newargv[n++] = argv[i++];
