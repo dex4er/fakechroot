@@ -1,6 +1,6 @@
 #!/bin/bash
 
-automake_version=1.9
+automake_version=1.10
 
 rm -f aclocal.m4 configure
 
