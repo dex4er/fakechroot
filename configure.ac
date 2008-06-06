@@ -86,6 +86,7 @@ creat \
 creat64 \
 dlmopen \
 dlopen \
+eaccess \
 euidaccess \
 execl \
 execle \

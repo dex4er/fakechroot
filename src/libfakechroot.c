@@ -335,6 +335,9 @@ static int     (*next_creat64) (const char *pathname, mode_t mode) = NULL;
 static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag) = NULL;
 #endif
 static void *  (*next_dlopen) (const char *filename, int flag) = NULL;
+#ifdef HAVE_EACCESS
+static int     (*next_eaccess) (const char *pathname, int mode) = NULL;
+#endif
 #ifdef HAVE_EUIDACCESS
 static int     (*next_euidaccess) (const char *pathname, int mode) = NULL;
 #endif
@@ -571,6 +574,9 @@ void fakechroot_init (void)
     nextsym(dlmopen, "dlmopen");
 #endif
     nextsym(dlopen, "dlopen");
+#ifdef HAVE_EACCESS
+    nextsym(eaccess, "eaccess");
+#endif
 #ifdef HAVE_EUIDACCESS
     nextsym(euidaccess, "euidaccess");
 #endif
@@ -1127,7 +1133,21 @@ void *dlopen (const char *filename, int flag)
 }
 
 
+#ifdef HAVE_EACCESS
+/* #define _GNU_SOURCE */
+/* #include <unistd.h> */
+int eaccess (const char *pathname, int mode)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_eaccess == NULL) fakechroot_init();
+    return next_eaccess(pathname, mode);
+}
+#endif
+
+
 #ifdef HAVE_EUIDACCESS
+/* #define _GNU_SOURCE */
 /* #include <unistd.h> */
 int euidaccess (const char *pathname, int mode)
 {
