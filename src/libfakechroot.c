@@ -31,6 +31,8 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -322,6 +324,9 @@ static int     (*next__xftw64) (int mode, const char *dir, int (*fn)(const char 
 #endif
 static int     (*next_access) (const char *pathname, int mode) = NULL;
 static int     (*next_acct) (const char *filename) = NULL;
+#ifdef AF_UNIX
+static int     (*next_bind) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 static char *  (*next_canonicalize_file_name) (const char *name) = NULL;
 #endif
@@ -561,6 +566,9 @@ void fakechroot_init (void)
 #endif
     nextsym(access, "access");
     nextsym(acct, "acct");
+#ifdef AF_UNIX
+    nextsym(bind, "bind");
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
     nextsym(canonicalize_file_name, "canonicalize_file_name");
 #endif
@@ -964,6 +972,34 @@ int acct (const char *filename)
     if (next_acct == NULL) fakechroot_init();
     return next_acct(filename);
 }
+
+
+#ifdef AF_UNIX
+/* #include <sys/types.h> */
+/* #include <sys/socket.h> */
+/* #include <sys/un.h> */
+int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *path;
+    //expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
+	fprintf(stderr, "*** bind in=%s\n", addr_un->sun_path);
+	fprintf(stderr, "*** bind sizeof(addr_un->sun_path)=%ld\n", sizeof(addr_un->sun_path));
+	path = addr_un->sun_path;
+	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+	if (strlen(path) >= sizeof(addr_un->sun_path)) {
+	    return ENAMETOOLONG;
+	}
+	strncpy(addr_un->sun_path, path, sizeof(addr_un->sun_path));
+	addrlen = sizeof(addr_un->sun_family) + strlen(addr_un->sun_path);
+	fprintf(stderr, "*** bind out=%s\n", addr_un->sun_path);
+    }
+    if (next_bind == NULL) fakechroot_init();
+    return next_bind(sockfd, addr, addrlen);
+}
+#endif
 
 
 #ifdef HAVE_CANONICALIZE_FILE_NAME
