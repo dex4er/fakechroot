@@ -12,6 +12,7 @@ fakechroot (2.7-0) unstable; urgency=medium
     - Fixed execve(2) function to not expand argv0 and handle "#!" correctly.
       Thanks Mark Eichin.  Closes: #412774.
     - New eaccess(3) function backported from Klik.
+    - More memory allocation for fakechroot_init.
   * test/fakechroot.sh:
     - Add cp, mkdir, chmod, rm.
     - Call bash instead of sh.

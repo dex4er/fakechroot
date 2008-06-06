@@ -523,7 +523,7 @@ void fakechroot_init (void)
         /* We get the home of the user */
         passwd = getpwuid(getuid());
         if (passwd && passwd->pw_dir) {
-            home_path = malloc(strlen(passwd->pw_dir)+1);
+            home_path = malloc(strlen(passwd->pw_dir)+2);
             strcpy(home_path, passwd->pw_dir);
             strcat(home_path, "/");
         }
