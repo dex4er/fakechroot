@@ -988,17 +988,22 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr_un;
     struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
 	path = addr_un->sun_path;
 	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
 	if (strlen(path) >= sizeof(addr_un->sun_path)) {
 	    return ENAMETOOLONG;
 	}
-	strncpy(addr_un->sun_path, path, sizeof(addr_un->sun_path));
-	addrlen = sizeof(addr_un->sun_family) + strlen(addr_un->sun_path);
+	memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
+	newaddr_un.sun_family = addr_un->sun_family;
+	strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+	newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+	return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
-    if (next_bind == NULL) fakechroot_init();
     return next_bind(sockfd, addr, addrlen);
 }
 #endif
@@ -1133,17 +1138,22 @@ int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr_un;
     struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    if (next_connect == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
 	path = addr_un->sun_path;
 	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
 	if (strlen(path) >= sizeof(addr_un->sun_path)) {
 	    return ENAMETOOLONG;
 	}
-	strncpy(addr_un->sun_path, path, sizeof(addr_un->sun_path));
-	addrlen = sizeof(addr_un->sun_family) + strlen(addr_un->sun_path);
+	memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
+	newaddr_un.sun_family = addr_un->sun_family;
+	strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+	newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+	return next_connect(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
-    if (next_connect == NULL) fakechroot_init();
     return next_connect(sockfd, addr, addrlen);
 }
 #endif
