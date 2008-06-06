@@ -69,6 +69,10 @@
 #define FAKECHROOT_MAXPATH 2048
 #endif
 
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX 108
+#endif
+
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -384,6 +388,12 @@ static int     (*next_ftw64) (const char *dir, int (*fn)(const char *file, const
 static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
 static char *  (*next_getcwd) (char *buf, size_t size) = NULL;
+#ifdef AF_UNIX
+static int     (*next_getpeername) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+#endif
+#ifdef AF_UNIX
+static int     (*next_getsockname) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+#endif
 static char *  (*next_getwd) (char *buf) = NULL;
 #ifdef HAVE_GETXATTR
 static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
@@ -629,6 +639,12 @@ void fakechroot_init (void)
     nextsym(get_current_dir_name, "get_current_dir_name");
 #endif
     nextsym(getcwd, "getcwd");
+#ifdef AF_UNIX
+    nextsym(getpeername, "getpeername");
+#endif
+#ifdef AF_UNIX
+    nextsym(getsockname, "getsockname");
+#endif
     nextsym(getwd, "getwd");
 #ifdef HAVE_GETXATTR
     nextsym(getxattr, "getxattr");
@@ -1680,6 +1696,62 @@ char * getcwd (char *buf, size_t size)
     narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
     return cwd;
 }
+
+
+#ifdef AF_UNIX
+/* #include <sys/socket.h> */
+int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
+{
+    int status;
+    socklen_t newnamelen;
+    struct sockaddr_un newname;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    
+    if (next_getpeername == NULL) fakechroot_init();
+    memset(&newname, 0, sizeof(struct sockaddr_un));
+    status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
+    if (status != 0) {
+	return status;
+    }
+    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
+	strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+	narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
+	strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+    }
+    
+    memcpy(name, &newname, sizeof(struct sockaddr_un));
+    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    return status;
+}
+#endif
+
+
+#ifdef AF_UNIX
+/* #include <sys/socket.h> */
+int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
+{
+    int status;
+    socklen_t newnamelen;
+    struct sockaddr_un newname;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    
+    if (next_getsockname == NULL) fakechroot_init();
+    memset(&newname, 0, sizeof(struct sockaddr_un));
+    status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
+    if (status != 0) {
+	return status;
+    }
+    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
+	strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+	narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
+	strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+    }
+    
+    memcpy(name, &newname, sizeof(struct sockaddr_un));
+    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    return status;
+}
+#endif
 
 
 /* #include <unistd.h> */
