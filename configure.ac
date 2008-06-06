@@ -69,8 +69,6 @@ __lxstat \
 __lxstat64 \
 __open \
 __open64 \
-__openat \
-__openat64 \
 __opendir2 \
 __xmknod \
 __xstat \

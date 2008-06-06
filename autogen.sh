@@ -14,6 +14,7 @@ autogen () {
     rm -f config.h.in~
 }
 
+set -x
 cd $(dirname $0)
 autogen
 cd fake

@@ -302,12 +302,6 @@ static int     (*next___open) (const char *pathname, int flags, ...) = NULL;
 #ifdef HAVE___OPEN64
 static int     (*next___open64) (const char *pathname, int flags, ...) = NULL;
 #endif
-#ifdef HAVE___OPENAT
-static int     (*next___openat) (int dfd, const char *pathname, int flags, ...) = NULL;
-#endif
-#ifdef HAVE___OPENAT64
-static int     (*next___openat64) (int dfd, const char *pathname, int flags, ...) = NULL;
-#endif
 #ifdef HAVE___OPENDIR2
 static DIR *   (*next___opendir2) (const char *name, int flags) = NULL;
 #endif
@@ -549,12 +543,6 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE___OPEN64
     nextsym(__open64, "__open64");
-#endif
-#ifdef HAVE___OPENAT
-    nextsym(__openat, "__openat");
-#endif
-#ifdef HAVE___OPENAT64
-    nextsym(__openat64, "__openat64");
 #endif
 #ifdef HAVE___OPENDIR2
     nextsym(__opendir2, "__opendir2");
@@ -872,50 +860,6 @@ int __open64 (const char *pathname, int flags, ...)
 
     if (next___open64 == NULL) fakechroot_init();
     return next___open64(pathname, flags, mode);
-}
-#endif
-
-
-#ifdef HAVE___OPENAT
-/* #define _ATFILE_SOURCE */
-/* #include <fcntl.h> */
-int __openat (int dfd, const char *pathname, int flags, ...)
-{
-    int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-
-    if (flags & O_CREAT) {
-        va_list arg;
-        va_start (arg, flags);
-        mode = va_arg (arg, int);
-        va_end (arg);
-    }
-
-    if (next_openat == NULL) fakechroot_init();
-    return next_openat(dfd, pathname, flags, mode);
-}
-#endif
-
-
-#ifdef HAVE___OPENAT64
-/* #define _ATFILE_SOURCE */
-/* #include <fcntl.h> */
-int __openat64 (int dfd, const char *pathname, int flags, ...)
-{
-    int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-
-    if (flags & O_CREAT) {
-        va_list arg;
-        va_start (arg, flags);
-        mode = va_arg (arg, int);
-        va_end (arg);
-    }
-
-    if (next_openat64 == NULL) fakechroot_init();
-    return next_openat64(dfd, pathname, flags, mode);
 }
 #endif
 
