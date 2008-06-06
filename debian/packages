@@ -18,7 +18,11 @@ Section: utils
 Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
 Standards-Version: 3.7.3
-Home-Page: <URL:http://fakechroot.alioth.debian.org/>
+%if %`dpkg --compare-versions %{YADA_VERSION} ge 0.54 && echo 1`
+Homepage: http://fakechroot.alioth.debian.org/
+Vcs-Browser: http://svn.debian.org/wsvn/fakechroot/trunk/
+Vcs-Svn: svn://svn.debian.org/fakechroot/trunk/
+%endif
 Description: gives a fake chroot environment
 Copyright: LGPL
  (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
