@@ -10,7 +10,7 @@ fakechroot (2.7-0) unstable; urgency=medium
     - Fixed chroot(2) function to not change current working directory.
       Closes: #477447.
     - Fixed execve(2) function to not expand argv0 and handle "#!" correctly.
-      Closes: #412774.
+      Thanks Mark Eichin.  Closes: #412774.
   * test/fakechroot.sh:
     - Add cp, mkdir, chmod, rm.
     - Call bash instead of sh.
