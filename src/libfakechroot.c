@@ -334,6 +334,9 @@ static int     (*next_chdir) (const char *path) = NULL;
 static int     (*next_chmod) (const char *path, mode_t mode) = NULL;
 static int     (*next_chown) (const char *path, uid_t owner, gid_t group) = NULL;
 /* static int     (*next_chroot) (const char *path) = NULL; */
+#ifdef AF_UNIX
+static int     (*next_connect) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+#endif
 static int     (*next_creat) (const char *pathname, mode_t mode) = NULL;
 static int     (*next_creat64) (const char *pathname, mode_t mode) = NULL;
 #ifdef HAVE_DLMOPEN
@@ -576,6 +579,9 @@ void fakechroot_init (void)
     nextsym(chmod, "chmod");
     nextsym(chown, "chown");
 /*    nextsym(chroot, "chroot"); */
+#ifdef AF_UNIX
+    nextsym(connect, "connect");
+#endif
     nextsym(creat, "creat");
     nextsym(creat64, "creat64");
 #ifdef HAVE_DLMOPEN
@@ -982,11 +988,8 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
-    //expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
-	fprintf(stderr, "*** bind in=%s\n", addr_un->sun_path);
-	fprintf(stderr, "*** bind sizeof(addr_un->sun_path)=%ld\n", sizeof(addr_un->sun_path));
 	path = addr_un->sun_path;
 	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
 	if (strlen(path) >= sizeof(addr_un->sun_path)) {
@@ -994,7 +997,6 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	}
 	strncpy(addr_un->sun_path, path, sizeof(addr_un->sun_path));
 	addrlen = sizeof(addr_un->sun_family) + strlen(addr_un->sun_path);
-	fprintf(stderr, "*** bind out=%s\n", addr_un->sun_path);
     }
     if (next_bind == NULL) fakechroot_init();
     return next_bind(sockfd, addr, addrlen);
@@ -1121,6 +1123,30 @@ int chroot (const char *path)
     free(tmp);
     return 0;
 }
+
+
+#ifdef AF_UNIX
+/* #include <sys/types.h> */
+/* #include <sys/socket.h> */
+/* #include <sys/un.h> */
+int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *path;
+    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
+	path = addr_un->sun_path;
+	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+	if (strlen(path) >= sizeof(addr_un->sun_path)) {
+	    return ENAMETOOLONG;
+	}
+	strncpy(addr_un->sun_path, path, sizeof(addr_un->sun_path));
+	addrlen = sizeof(addr_un->sun_family) + strlen(addr_un->sun_path);
+    }
+    if (next_connect == NULL) fakechroot_init();
+    return next_connect(sockfd, addr, addrlen);
+}
+#endif
 
 
 /* #include <sys/types.h> */
