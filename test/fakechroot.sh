@@ -25,6 +25,8 @@ do
 done
 
 for f in \
+    /bin/busybox \
+    /bin/cat \
     /bin/csh \
     /bin/sh \
     /bin/bash \
