@@ -1,3 +1,29 @@
+fakechroot (2.7-0) unstable; urgency=medium
+
+  * Apply all NMU patches.  Thank you, people!
+  * src/libfakechroot.c:
+    - Fix the readlink(2) function to be ssize_t as it is in newer libc.
+      Thanks Sune Vuorela.
+    - New functions: __fxstatat(2), __fxstatat64(2), fchmodat(2), fchownat(2),
+      __openat(2), __openat64(2), unlinkat(2).  It fixes last coreutils.
+      Thanks Martin Pitt and Daniel Kahn Gillmor.
+  * test/fakechroot.sh:
+    - Add cp, mkdir, chmod, rm.
+    - Call bash instead of sh.
+  * debian/packages:
+    - Standards-Version: 3.7.3
+
+fakechroot (2.6-1.3ubuntu1) intrepid; urgency=low
+
+  * src/libfakechroot.c: Provide wrapping of unlinkat(), __fxstatat(), and
+    __fxstatat64() to unbreak rm'ing absolute directories. This extends the
+    original patch from Daniel Kahn Gillmor in Debian #473682. Still
+    incomplete, since other *at() functions are still missing, but those are
+    the most pressing which cause the Apport retracers to fail so badly.
+  * test/fakechroot.sh: Add /bin/rm, and call bash instead of sh.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 08 May 2008 20:45:48 +0200
+
 fakechroot (2.6-1.3) unstable; urgency=low
 
   * Non-maintainer upload to fix the fix for the fix for #422586

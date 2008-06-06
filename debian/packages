@@ -17,7 +17,7 @@ Source: fakechroot
 Section: utils
 Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
-Standards-Version: 3.7.2
+Standards-Version: 3.7.3
 Home-Page: <URL:http://fakechroot.alioth.debian.org/>
 Description: gives a fake chroot environment
 Copyright: LGPL

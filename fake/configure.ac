@@ -1,7 +1,7 @@
 # $Id$
 
 AC_PREREQ(2.59)
-AC_INIT([fakechroot], [2.5], [dexter@debian.org])
+AC_INIT([fakechroot], [2.7], [dexter@debian.org])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

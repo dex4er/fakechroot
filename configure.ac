@@ -1,7 +1,7 @@
 # $Id$
 
 AC_PREREQ(2.59)
-AC_INIT([fakechroot], [2.5], [dexter@debian.org])
+AC_INIT([fakechroot], [2.7], [dexter@debian.org])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -63,10 +63,14 @@ AC_FUNC_MALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([ \
+__fxstatat \
+__fxstatat64 \
 __lxstat \
 __lxstat64 \
 __open \
 __open64 \
+__openat \
+__openat64 \
 __opendir2 \
 __xmknod \
 __xstat \
@@ -91,6 +95,8 @@ execlp \
 execv \
 execve \
 execvp \
+fchmodat \
+fchownat \
 fopen \
 fopen64 \
 freopen \
@@ -128,6 +134,8 @@ nftw \
 nftw64 \
 open \
 open64 \
+openat \
+openat64 \
 opendir \
 pathconf \
 readlink \
@@ -150,6 +158,7 @@ tmpnam \
 truncate \
 truncate64 \
 unlink \
+unlinkat \
 ulckpwdf \
 utime \
 utimes \
