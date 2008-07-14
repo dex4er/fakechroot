@@ -19,7 +19,12 @@ fakechroot (2.7-0) unstable; urgency=medium
     - Add cp, mkdir, chmod, rm.
     - Call bash instead of sh.
   * debian/packages:
-    - Standards-Version: 3.7.3
+    - Standards-Version: 3.8.0
+    - Depends on main libc package.  Non-default multilib architecture is
+      excluded from dependencies list.
+    - Multilib architecture is supported on i386.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Mon, 14 Jul 2008 17:24:37 +0200
 
 fakechroot (2.6-1.3ubuntu1) intrepid; urgency=low
 

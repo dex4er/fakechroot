@@ -1,23 +1,19 @@
-# $Id$
-
 # If the debian/rules or debian/control file is missing, rebuild the file:
 #
 #   $ yada rebuild control
 #   $ yada rebuild rules
 
 
-# Other macros:
-
 %define libfakechroot_version %`grep '^AC_INIT' configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
-
-#   libfakechroot_version=%{libfakechroot_version}
+%define biarch_amd64_libdir /emul/ia32-linux/usr/lib
+# %define biarch_amd64_libdir /usr/lib32
 
 
 Source: fakechroot
 Section: utils
 Priority: optional
 Maintainer: Piotr Roszatycki <dexter@debian.org>
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 %if %`dpkg --compare-versions %{YADA_VERSION} ge 0.54 && echo 1`
 Homepage: http://fakechroot.alioth.debian.org/
 Vcs-Browser: http://svn.debian.org/wsvn/fakechroot/trunk/
@@ -25,12 +21,13 @@ Vcs-Svn: svn://svn.debian.org/fakechroot/trunk/
 %endif
 Description: gives a fake chroot environment
 Copyright: LGPL
- (c) 2003-2005 Piotr Roszatycki <dexter@debian.org>, LGPL
+ (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
 Build-Depends: libc6-dev-i386 [amd64]
+Build-Depends: libc6-dev-amd64 [i386]
 Build-Depends: libc6-dev-powerpc [ppc64]
 Build-Depends: libc6-dev-s390x [s390]
 Build-Depends: libc6-dev-sparc64 [sparc]
-Build-Depends: gcc-multilib [amd64 i386 s390 sparc]
+Build-Depends: gcc-multilib [amd64 i386 powerpc s390 sparc]
 Build: bash
  CC=${CC:-gcc}
  CFLAGS=${CFLAGS:--Wall -pedantic -g}
@@ -41,105 +38,127 @@ Build: bash
  fi
  .
  COMMON_CONFIG="\
- 	--prefix=/usr \
- 	--mandir=/usr/share/man \
- 	--disable-static \
- 	--with-libpath=/usr/lib/fakechroot:/usr/lib64/fakechroot:/usr/lib32/fakechroot"
+        --prefix=/usr \
+        --mandir=/usr/share/man \
+        --disable-static \
+        --with-libpath=/usr/lib/fakechroot:/usr/lib64/fakechroot:/usr/lib32/fakechroot"
  .
  if ! [ -f configure-stamp ]; then
      mkdir -p build-tree-lib build-tree-fake build-tree-lib-biarch build-tree-fake-biarch
      pushd build-tree-lib
          CC="$CC" CFLAGS="$CFLAGS" \
              ../configure \
- 	         --cache-file=../config.cache \
+                 --cache-file=../config.cache \
                  $COMMON_CONFIG
      popd
      pushd build-tree-fake
          CC="$CC" CFLAGS="$CFLAGS" \
              ../fake/configure \
- 	         --cache-file=../config.cache \
+                 --cache-file=../config.cache \
                  $COMMON_CONFIG
      popd
-     if [ "$DEB_BUILD_ARCH" = "s390" ]; then
-         pushd build-tree-lib-biarch
-             CC="gcc -m64" CFLAGS="$CFLAGS" \
-                 ../configure \
- 	             --cache-file=../config.biarch.cache \
- 		     --build=s390-linux \
- 		     --host=s390x-linux \
-   	             --libdir=/usr/lib64 \
-                     $COMMON_CONFIG
-         popd
-         pushd build-tree-fake-biarch
-             CC="gcc -m64" CFLAGS="$CFLAGS" \
-                 ../fake/configure \
- 	             --cache-file=../config.biarch.cache \
- 		     --build=s390-linux \
- 		     --host=s390x-linux \
-   	             --libdir=/usr/lib64 \
-                     $COMMON_CONFIG
-         popd
-     fi
-     if [ "$DEB_BUILD_ARCH" = "sparc" ]; then
-         pushd build-tree-lib-biarch
-             CC="gcc -m64" CFLAGS="$CFLAGS" \
-                 ../configure \
- 	             --cache-file=../config.biarch.cache \
- 		     --build=sparc-linux \
- 		     --host=sparc64-linux \
-   	             --libdir=/usr/lib64 \
-                     $COMMON_CONFIG
-         popd
-         pushd build-tree-fake-biarch
-             CC="gcc -m64" CFLAGS="$CFLAGS" \
-                 ../fake/configure \
- 	             --cache-file=../config.biarch.cache \
- 		     --build=sparc-linux \
- 		     --host=sparc64-linux \
-   	             --libdir=/usr/lib64 \
-                     $COMMON_CONFIG
-         popd
-     fi
-     if [ "$DEB_BUILD_ARCH" = "ppc64" ]; then
-         pushd build-tree-lib-biarch
-             CC="gcc -m32" CFLAGS="$CFLAGS" \
-                 ../configure \
-                    --cache-file=../config.biarch.cache \
-                    --build=powerpc64-linux \
-                    --host=powerpc-linux \
-                    --libdir=/usr/lib32 \
-                     $COMMON_CONFIG
-         popd
-         pushd build-tree-fake-biarch
-             CC="gcc -m32" CFLAGS="$CFLAGS" \
-                 ../fake/configure \
-                    --cache-file=../config.biarch.cache \
-                    --build=powerpc64-linux \
-                    --host=powerpc-linux \
-                    --libdir=/usr/lib32 \
-                     $COMMON_CONFIG
-         popd
-     fi
-     if [ "$DEB_BUILD_ARCH" = "amd64" ]; then
-         pushd build-tree-lib-biarch
-             CC="gcc -m32" CFLAGS="$CFLAGS" \
-                 ../configure \
- 	             --cache-file=../config.biarch.cache \
- 		     --build=x86_64-linux \
- 		     --host=i386-linux \
-   	             --libdir=/emul/ia32-linux/usr/lib \
-                     $COMMON_CONFIG
-         popd
-         pushd build-tree-fake-biarch
-             CC="gcc -m32" CFLAGS="$CFLAGS" \
-                 ../fake/configure \
- 	             --cache-file=../config.biarch.cache \
- 		     --build=x86_64-linux \
- 		     --host=i386-linux \
-   	             --libdir=/emul/ia32-linux/usr/lib \
-                     $COMMON_CONFIG
-         popd
-     fi
+     case "$DEB_BUILD_ARCH" in
+         amd64)
+             pushd build-tree-lib-biarch
+                 CC="gcc -m32" CFLAGS="$CFLAGS" \
+                     ../configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=x86_64-linux \
+                         --host=i386-linux \
+                         --libdir=%{biarch_amd64_libdir} \
+                         $COMMON_CONFIG
+             popd
+             pushd build-tree-fake-biarch
+                 CC="gcc -m32" CFLAGS="$CFLAGS" \
+                     ../fake/configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=x86_64-linux \
+                         --host=i386-linux \
+                         --libdir=%{biarch_amd64_libdir} \
+                         $COMMON_CONFIG
+             popd
+             ;;
+         i386)
+             pushd build-tree-lib-biarch
+                 CC="gcc -m64" CFLAGS="$CFLAGS" \
+                     ../configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=i386-linux \
+                         --host=x86_64-linux \
+                         --libdir=/usr/lib64 \
+                         $COMMON_CONFIG
+             popd
+             pushd build-tree-fake-biarch
+                 CC="gcc -m64" CFLAGS="$CFLAGS" \
+                     ../fake/configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=i386-linux \
+                         --host=x86_64-linux \
+                         --libdir=/usr/lib64 \
+                         $COMMON_CONFIG
+             popd
+             ;;
+         ppc64)
+             pushd build-tree-lib-biarch
+                 CC="gcc -m32" CFLAGS="$CFLAGS" \
+                     ../configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=powerpc64-linux \
+                         --host=powerpc-linux \
+                         --libdir=/usr/lib32 \
+                         $COMMON_CONFIG
+             popd
+             pushd build-tree-fake-biarch
+                 CC="gcc -m32" CFLAGS="$CFLAGS" \
+                     ../fake/configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=powerpc64-linux \
+                         --host=powerpc-linux \
+                         --libdir=/usr/lib32 \
+                         $COMMON_CONFIG
+             popd
+             ;;
+         s390)
+             pushd build-tree-lib-biarch
+                 CC="gcc -m64" CFLAGS="$CFLAGS" \
+                     ../configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=s390-linux \
+                         --host=s390x-linux \
+                         --libdir=/usr/lib64 \
+                         $COMMON_CONFIG
+             popd
+             pushd build-tree-fake-biarch
+                 CC="gcc -m64" CFLAGS="$CFLAGS" \
+                     ../fake/configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=s390-linux \
+                         --host=s390x-linux \
+                         --libdir=/usr/lib64 \
+                         $COMMON_CONFIG
+             popd
+             ;;
+         sparc)
+             pushd build-tree-lib-biarch
+                 CC="gcc -m64" CFLAGS="$CFLAGS" \
+                     ../configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=sparc-linux \
+                         --host=sparc64-linux \
+                         --libdir=/usr/lib64 \
+                         $COMMON_CONFIG
+             popd
+             pushd build-tree-fake-biarch
+                 CC="gcc -m64" CFLAGS="$CFLAGS" \
+                     ../fake/configure \
+                         --cache-file=../config.biarch.cache \
+                         --build=sparc-linux \
+                         --host=sparc64-linux \
+                         --libdir=/usr/lib64 \
+                         $COMMON_CONFIG
+             popd
+             ;;
+     esac
      sleep 1 && touch configure-stamp
  fi
  .
@@ -150,17 +169,16 @@ Build: bash
      pushd build-tree-fake
          make
      popd
-     if [ "$DEB_BUILD_ARCH" = "s390" ] || \
-        [ "$DEB_BUILD_ARCH" = "sparc" ] || \
-        [ "$DEB_BUILD_ARCH" = "ppc64" ] || \
-        [ "$DEB_BUILD_ARCH" = "amd64" ]; then
-         pushd build-tree-lib-biarch
-             make
-         popd
-         pushd build-tree-fake-biarch
-             make
-         popd
-     fi
+     case "$DEB_BUILD_ARCH" in
+         amd64|i386|ppc64|s390|sparc)
+             pushd build-tree-lib-biarch
+                 make
+             popd
+             pushd build-tree-fake-biarch
+                 make
+             popd
+             ;;
+     esac
      touch build-stamp
  fi
 Clean: sh
@@ -171,6 +189,7 @@ Clean: sh
 
 Package: fakechroot
 Architecture: any
+Depends: [/usr/lib/libfakechroot.so]
 Description: gives a fake chroot environment
  This package provides a library which overrides libc functions, so
  it is possible to use root-specific tools without root privileges.
@@ -195,10 +214,10 @@ Finalize: sh
  .
  case "$DEB_BUILD_ARCH" in
      amd64)
-         chmod -v u+s $ROOT/emul/ia32-linux/usr/lib/*.so;;
+         chmod -v u+s $ROOT%{biarch_amd64_libdir}/*.so;;
      ppc64)
          chmod -v u+s $ROOT/usr/lib32/*.so;;
-     s390|sparc)
+     i386|s390|sparc)
          chmod -v u+s $ROOT/usr/lib64/*.so;;
  esac
 Overrides:

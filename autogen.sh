@@ -17,5 +17,11 @@ autogen () {
 set -x
 cd $(dirname $0)
 autogen
-cd fake
+pushd fake
 autogen
+popd
+
+if [ -x /usr/bin/yada ]; then
+    yada rebuild
+    rm -f debian/packages-tmp*
+fi
