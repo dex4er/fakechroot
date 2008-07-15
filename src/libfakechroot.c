@@ -441,7 +441,7 @@ static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]
 #endif
 static int     (*next_mkdir) (const char *pathname, mode_t mode) = NULL;
 #ifdef HAVE_MKDIRAT
-static char *  (*next_mkdirat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkdirat) (int dirfd, const char *pathname, mode_t mode) = NULL;
 #endif
 #ifdef HAVE_MKDTEMP
 static char *  (*next_mkdtemp) (char *template) = NULL;
