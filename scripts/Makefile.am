@@ -1,8 +1,8 @@
-AUTOMAKE_OPTIONS=foreign
+AUTOMAKE_OPTIONS = foreign
 
-bin_SCRIPTS=fakechroot
+bin_SCRIPTS = fakechroot
 EXTRA_DIST = fakechroot.in ldd.fake restoremode.sh savemode.sh
-CLEANFILES=fakechroot
+CLEANFILES = fakechroot
 
 do_subst = sed -e 's,[@]prefix[@],$(prefix),g' \
 	   -e 's,[@]bindir[@],$(bindir),g' \
