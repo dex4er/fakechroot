@@ -469,7 +469,7 @@ static int     (*next_openat64) (int dirfd, const char *pathname, int flags, ...
 static DIR *   (*next_opendir) (const char *name) = NULL;
 #endif
 static long    (*next_pathconf) (const char *path, int name) = NULL;
-static ssize_t     (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+static ssize_t (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
 #ifdef HAVE_REMOVEXATTR
