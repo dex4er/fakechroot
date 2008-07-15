@@ -8,6 +8,10 @@ I'm glad to see that fakechroot had found another purposes:
   * to be a part of Klik application installer (http://klik.atekon.de)
   * to be a supporter for pbuilder building system
     (http://pbuilder.alioth.debian.org/)
+  * to be a supporter for Apport retracer
+    (https://wiki.ubuntu.com/Apport)
+  * to be a part of Slind - a minimal Debian-based distro for embedded devices
+    (https://www.slind.org/Main_Page)
 
 I would like to thank to:
 
