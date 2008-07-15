@@ -1,5 +1,3 @@
-AUTOMAKE_OPTIONS = foreign
-
 TESTS = t.echoarg
 
 suffix =

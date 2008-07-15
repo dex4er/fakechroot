@@ -1,5 +1,3 @@
-AUTOMAKE_OPTIONS = foreign
-
 bin_SCRIPTS = fakechroot
 EXTRA_DIST = fakechroot.in ldd.fake restoremode.sh savemode.sh
 CLEANFILES = fakechroot

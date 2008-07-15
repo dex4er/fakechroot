@@ -5,7 +5,7 @@ autogen () {
 
     rm -f aclocal.m4 configure
 
-    aclocal-${automake_version} -I m4
+    aclocal-${automake_version} "$@"
     autoheader
     libtoolize --force --copy
     automake-${automake_version} --add-missing --copy
@@ -16,9 +16,9 @@ autogen () {
 
 set -x
 cd $(dirname $0)
-autogen
+autogen -I m4
 pushd fake
-autogen
+    autogen
 popd
 
 pushd man

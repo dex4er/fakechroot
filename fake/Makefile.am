@@ -1,3 +1,3 @@
-AUTOMAKE_OPTIONS=foreign
+AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS=doc src
+SUBDIRS = doc src
