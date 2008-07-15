@@ -1,10 +1,10 @@
 /*
     libfakechroot -- fake chroot environment
-    (c) 2003-2007 Piotr Roszatycki <dexter@debian.org>, LGPL
-    (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
+    Copyright (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
+    Copyright (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
 
     klik2 support -- give direct access to a list of directories
-    (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
+    Copyright (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

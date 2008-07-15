@@ -21,7 +21,12 @@ Vcs-Svn: svn://svn.debian.org/fakechroot/trunk/
 %endif
 Description: gives a fake chroot environment
 Copyright: LGPL
- (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
+ libfakechroot -- fake chroot environment
+ Copyright (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
+ Copyright (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
+ .
+ klik2 support -- give direct access to a list of directories
+ Copyright (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
 Build-Depends: libc6-dev-i386 [amd64]
 Build-Depends: libc6-dev-amd64 [i386]
 Build-Depends: libc6-dev-powerpc [ppc64]
@@ -235,6 +240,9 @@ Overrides:
  non-standard-file-perm usr/lib64/libfakechroot.so 4644 != 0644
  non-standard-file-perm usr/lib32/libfakechroot.so 4644 != 0644
  non-standard-file-perm usr/lib/libfakechroot.so 4644 != 0644
+ no-shlibs-control-file emul/ia32-linux/usr/lib/libfakechroot.so
+ no-shlibs-control-file usr/lib64/libfakechroot.so
+ no-shlibs-control-file usr/lib32/libfakechroot.so
  no-shlibs-control-file usr/lib/libfakechroot.so
  package-name-doesnt-match-sonames libfakechroot
  package-name-doesnt-match-sonames libfakechroot.so
