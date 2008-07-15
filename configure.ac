@@ -123,6 +123,7 @@ lstat \
 lstat64 \
 lutimes \
 mkdir \
+mkdirat \
 mkdtemp \
 mknod \
 mkfifo \
@@ -142,6 +143,7 @@ realpath \
 remove \
 removexattr \
 rename \
+renameat \
 revoke \
 rmdir \
 scandir \

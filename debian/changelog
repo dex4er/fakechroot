@@ -8,7 +8,7 @@ fakechroot (2.7-0) unstable; urgency=medium
     - New functions: __fxstatat(2), __fxstatat64(2), fchmodat(2), fchownat(2),
       __openat(2), __openat64(2), unlinkat(2).  It fixes last coreutils.
       Thanks Martin Pitt and Daniel Kahn Gillmor.  Closes: #473682.
-    - New function: mkdirat(2).
+    - New functions: mkdirat(2), renameat(2).
     - Fixed chroot(2) function to not change current working directory.
       Closes: #477447.
     - Fixed chroot(2) function to handle relative path.

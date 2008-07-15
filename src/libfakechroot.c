@@ -476,6 +476,9 @@ static int     (*next_remove) (const char *pathname) = NULL;
 static int     (*next_removexattr) (const char *path, const char *name) = NULL;
 #endif
 static int     (*next_rename) (const char *oldpath, const char *newpath) = NULL;
+#ifdef HAVE_RENAMEAT
+static int     (*next_renameat) (int olddirfd, const char *oldpath, int newdirfd, const char *newpath) = NULL;
+#endif
 #ifdef HAVE_REVOKE
 static int     (*next_revoke) (const char *file) = NULL;
 #endif
@@ -730,6 +733,9 @@ void fakechroot_init (void)
     nextsym(removexattr, "removexattr");
 #endif
     nextsym(rename, "rename");
+#ifdef HAVE_RENAMEAT
+    nextsym(renameat, "renameat");
+#endif
 #ifdef HAVE_REVOKE
     nextsym(revoke, "revoke");
 #endif
@@ -2419,6 +2425,23 @@ int rename (const char *oldpath, const char *newpath)
     if (next_rename == NULL) fakechroot_init();
     return next_rename(oldpath, newpath);
 }
+
+
+#ifdef HAVE_RENAMEAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <stdio.h> */
+int renameat (int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_rename == NULL) fakechroot_init();
+    return next_renameat(olddirfd, oldpath, newdirfd, newpath);
+}
+#endif
 
 
 #ifdef HAVE_REVOKE
