@@ -9,6 +9,7 @@ fakechroot (2.7-0) unstable; urgency=medium
       Thanks Martin Pitt and Daniel Kahn Gillmor.  Closes: #473682.
     - Fixed chroot(2) function to not change current working directory.
       Closes: #477447.
+    - Fixed chroot(2) function to handle relative path.
     - Fixed execve(2) function to not expand argv0 and handle "#!" correctly.
       Thanks Mark Eichin.  Closes: #412774.
     - New eaccess(3) function backported from Klik.

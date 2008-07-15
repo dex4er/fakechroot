@@ -1074,19 +1074,42 @@ int chroot (const char *path)
 {
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
-    char dir[FAKECHROOT_MAXPATH];
+    char dir[FAKECHROOT_MAXPATH], cwd[FAKECHROOT_MAXPATH], full_path[FAKECHROOT_MAXPATH];
 #if !defined(HAVE_SETENV)
     char *envbuf;
 #endif
     struct stat sb;
 
+    if (path == NULL) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (!*path) {
+        errno = ENOENT;
+        return -1;
+    }
+    if (*path != '/') {
+        if (getcwd(cwd, FAKECHROOT_MAXPATH) == NULL) {
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+        if (cwd == NULL) {
+            errno = EFAULT;
+            return -1;
+        }
+        strncpy(full_path, cwd, FAKECHROOT_MAXPATH);
+    }
+    else {
+        strncpy(full_path, path, FAKECHROOT_MAXPATH);
+    }
+
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
     if (fakechroot_path != NULL) {
-	snprintf(dir, FAKECHROOT_MAXPATH, "%s/%s", fakechroot_path, path);
+        snprintf(dir, FAKECHROOT_MAXPATH, "%s/%s", fakechroot_path, full_path);
     }
     else {
-	snprintf(dir, FAKECHROOT_MAXPATH, "%s", path);
+        snprintf(dir, FAKECHROOT_MAXPATH, "%s", full_path);
     }
 
 #if defined(HAVE___XSTAT) && defined(_STAT_VER)
