@@ -1,6 +1,7 @@
 fakechroot (2.7-0) unstable; urgency=medium
 
   * Apply all NMU patches.  Thank you, people!
+  * Improved stability and support for the latest libc.  Closes: #420870.
   * src/libfakechroot.c:
     - Fixed readlink(2) function to be ssize_t as it is in newer libc.
       Thanks Sune Vuorela.
@@ -17,15 +18,34 @@ fakechroot (2.7-0) unstable; urgency=medium
       They support PF_UNIX sockets.  Closes: #413918.
     - More memory allocation for fakechroot_init.
   * test/fakechroot.sh:
-    - Add cp, mkdir, chmod, rm.
+    - Add cp, mkdir, chmod, rm and libraries.
     - Call bash instead of sh.
+    - Use /usr/lib/fakechroot library path if own version is not compiled.
   * debian/packages:
     - Standards-Version: 3.8.0
     - Depends on main libc package.  Non-default multilib architecture is
       excluded from dependencies list.
     - Multilib architecture is supported on i386.
 
- -- Piotr Roszatycki <dexter@debian.org>  Mon, 14 Jul 2008 17:24:37 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 15 Jul 2008 13:31:00 +0200
+
+fakechroot (2.6-1.3ubuntu3) intrepid; urgency=low
+
+  * src/libfakechroot.c: Define openat64(), to unbreak rm -r on i386, too.
+    (LP: #228534)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 09 May 2008 07:53:31 +0200
+
+fakechroot (2.6-1.3ubuntu2) intrepid; urgency=low
+
+  * src/libfakechroot.c:
+    - Define openat(), to unbreak rm -r.
+    - Define fchmodat(), to unbreak chmod.
+    - Define fchownat(), to unbreak chown.
+    This fixes everything which broke debootstrapping Hardy.
+  * test/fakechroot.sh: Add cp, mkdir, chmod.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 08 May 2008 22:13:43 +0200
 
 fakechroot (2.6-1.3ubuntu1) intrepid; urgency=low
 
