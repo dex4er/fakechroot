@@ -1097,16 +1097,21 @@ int chroot (const char *path)
             errno = EFAULT;
             return -1;
         }
-        strncpy(full_path, cwd, FAKECHROOT_MAXPATH);
+        if (strcmp(cwd, "/") == 0) {
+            snprintf(full_path, FAKECHROOT_MAXPATH, "/%s", path);
+        }
+        else {
+            snprintf(full_path, FAKECHROOT_MAXPATH, "%s/%s", cwd, path);
+        }
     }
     else {
-        strncpy(full_path, path, FAKECHROOT_MAXPATH);
+        snprintf(full_path, FAKECHROOT_MAXPATH, "%s", path);
     }
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
     if (fakechroot_path != NULL) {
-        snprintf(dir, FAKECHROOT_MAXPATH, "%s/%s", fakechroot_path, full_path);
+        snprintf(dir, FAKECHROOT_MAXPATH, "%s%s", fakechroot_path, full_path);
     }
     else {
         snprintf(dir, FAKECHROOT_MAXPATH, "%s", full_path);
