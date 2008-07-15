@@ -1,4 +1,4 @@
-fakechroot (2.7-0) unstable; urgency=medium
+fakechroot (2.7-1) unstable; urgency=medium
 
   * Apply all NMU patches.  Thank you, people!
   * Improved stability and support for the latest libc.  Closes: #420870.
