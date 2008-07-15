@@ -440,6 +440,9 @@ static int     (*next_lstat64) (const char *file_name, struct stat64 *buf) = NUL
 static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]) = NULL;
 #endif
 static int     (*next_mkdir) (const char *pathname, mode_t mode) = NULL;
+#ifdef HAVE_MKDIRAT
+static char *  (*next_mkdirat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+#endif
 #ifdef HAVE_MKDTEMP
 static char *  (*next_mkdtemp) (char *template) = NULL;
 #endif
@@ -691,6 +694,9 @@ void fakechroot_init (void)
     nextsym(lutimes, "lutimes");
 #endif
     nextsym(mkdir, "mkdir");
+#ifdef HAVE_MKDIRAT
+    nextsym(mkdirat, "mkdirat");
+#endif
 #ifdef HAVE_MKDTEMP
     nextsym(mkdtemp, "mkdtemp");
 #endif
@@ -2043,6 +2049,20 @@ int mkdir (const char *pathname, mode_t mode)
     if (next_mkdir == NULL) fakechroot_init();
     return next_mkdir(pathname, mode);
 }
+
+
+#ifdef HAVE_MKDIRAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <sys/stat.h> */
+int mkdirat (int dfd, const char *pathname, mode_t mode)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_mkdir == NULL) fakechroot_init();
+    return next_mkdirat(dfd, pathname, mode);
+}
+#endif
 
 
 #ifdef HAVE_MKDTEMP

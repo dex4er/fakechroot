@@ -21,6 +21,10 @@ pushd fake
 autogen
 popd
 
+pushd man
+    ./makeman.sh
+popd
+
 if [ -x /usr/bin/yada ]; then
     yada rebuild
     rm -f debian/packages-tmp*
