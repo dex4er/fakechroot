@@ -360,10 +360,10 @@ static int     (*next_euidaccess) (const char *pathname, int mode) = NULL;
 static int     (*next_execve) (const char *filename, char *const argv [], char *const envp[]) = NULL;
 static int     (*next_execvp) (const char *file, char *const argv []) = NULL;
 #ifdef HAVE_FCHMODAT
-static int     (*next_fchmodat) (int dfd, const char *path, mode_t mode, int flag) = NULL;
+static int     (*next_fchmodat) (int dirfd, const char *path, mode_t mode, int flag) = NULL;
 #endif
 #ifdef HAVE_FCHOWNAT
-static int     (*next_fchownat) (int dfd, const char *path, uid_t owner, gid_t group, int flag) = NULL;
+static int     (*next_fchownat) (int dirfd, const char *path, uid_t owner, gid_t group, int flag) = NULL;
 #endif
 static FILE *  (*next_fopen) (const char *path, const char *mode) = NULL;
 static FILE *  (*next_fopen64) (const char *path, const char *mode) = NULL;
@@ -460,10 +460,10 @@ static int     (*next_nftw64) (const char *dir, int (*fn)(const char *file, cons
 static int     (*next_open) (const char *pathname, int flags, ...) = NULL;
 static int     (*next_open64) (const char *pathname, int flags, ...) = NULL;
 #ifdef HAVE_OPENAT
-static int     (*next_openat) (int dfd, const char *pathname, int flags, ...) = NULL;
+static int     (*next_openat) (int dirfd, const char *pathname, int flags, ...) = NULL;
 #endif
 #ifdef HAVE_OPENAT64
-static int     (*next_openat64) (int dfd, const char *pathname, int flags, ...) = NULL;
+static int     (*next_openat64) (int dirfd, const char *pathname, int flags, ...) = NULL;
 #endif
 #if !defined(HAVE___OPENDIR2)
 static DIR *   (*next_opendir) (const char *name) = NULL;
@@ -1567,12 +1567,12 @@ int execvp (const char *file, char *const argv [])
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
 /* #include <sys/stat.h> */
-int fchmodat (int dfd, const char *path, mode_t mode, int flag)
+int fchmodat (int dirfd, const char *path, mode_t mode, int flag)
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_fchmodat == NULL) fakechroot_init();
-    return next_fchmodat(dfd, path, mode, flag);
+    return next_fchmodat(dirfd, path, mode, flag);
 }
 #endif
 
@@ -1581,12 +1581,12 @@ int fchmodat (int dfd, const char *path, mode_t mode, int flag)
 #ifdef HAVE_FCHOWNAT
 /* #include <fcntl.h> */
 /* #include <unistd.h> */
-int fchownat (int dfd, const char *path, uid_t owner, gid_t group, int flag)
+int fchownat (int dirfd, const char *path, uid_t owner, gid_t group, int flag)
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_fchownat == NULL) fakechroot_init();
-    return next_fchownat(dfd, path, owner, group, flag);
+    return next_fchownat(dirfd, path, owner, group, flag);
 }
 #endif
 
@@ -2055,12 +2055,12 @@ int mkdir (const char *pathname, mode_t mode)
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
 /* #include <sys/stat.h> */
-int mkdirat (int dfd, const char *pathname, mode_t mode)
+int mkdirat (int dirfd, const char *pathname, mode_t mode)
 {
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_mkdir == NULL) fakechroot_init();
-    return next_mkdirat(dfd, pathname, mode);
+    return next_mkdirat(dirfd, pathname, mode);
 }
 #endif
 
@@ -2270,7 +2270,7 @@ int open64 (const char *pathname, int flags, ...)
 #ifdef HAVE_OPENAT
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
-int openat (int dfd, const char *pathname, int flags, ...)
+int openat (int dirfd, const char *pathname, int flags, ...)
 {
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
@@ -2284,7 +2284,7 @@ int openat (int dfd, const char *pathname, int flags, ...)
     }
 
     if (next_openat == NULL) fakechroot_init();
-    return next_openat(dfd, pathname, flags, mode);
+    return next_openat(dirfd, pathname, flags, mode);
 }
 #endif
 
@@ -2292,7 +2292,7 @@ int openat (int dfd, const char *pathname, int flags, ...)
 #ifdef HAVE_OPENAT64
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
-int openat64 (int dfd, const char *pathname, int flags, ...)
+int openat64 (int dirfd, const char *pathname, int flags, ...)
 {
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
@@ -2306,7 +2306,7 @@ int openat64 (int dfd, const char *pathname, int flags, ...)
     }
 
     if (next_openat64 == NULL) fakechroot_init();
-    return next_openat64(dfd, pathname, flags, mode);
+    return next_openat64(dirfd, pathname, flags, mode);
 }
 #endif
 
