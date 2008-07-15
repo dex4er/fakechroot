@@ -132,12 +132,12 @@
 #define nextsym(function, name) \
     { \
         char *msg; \
-	if (next_##function == NULL) { \
-	    *(void **)(&next_##function) = dlsym(RTLD_NEXT, name); \
-	    if ((msg = dlerror()) != NULL) { \
- 		fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
-	    } \
-	} \
+        if (next_##function == NULL) { \
+            *(void **)(&next_##function) = dlsym(RTLD_NEXT, name); \
+            if ((msg = dlerror()) != NULL) { \
+                fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
+            } \
+        } \
     }
 
 
@@ -166,9 +166,9 @@ static char *strchrnul (const char *s, int c_in)
     /* Handle the first few characters by reading one character at a time.
        Do this until CHAR_PTR is aligned on a longword boundary.  */
     for (char_ptr = s; ((unsigned long int) char_ptr
-			& (sizeof(longword) - 1)) != 0; ++char_ptr)
-	if (*char_ptr == c || *char_ptr == '\0')
-	    return (void *) char_ptr;
+                        & (sizeof(longword) - 1)) != 0; ++char_ptr)
+        if (*char_ptr == c || *char_ptr == '\0')
+            return (void *) char_ptr;
 
     /* All these elucidatory comments refer to 4-byte longwords,
        but the theory applies equally well to 8-byte longwords.  */
@@ -186,103 +186,103 @@ static char *strchrnul (const char *s, int c_in)
        The 0-bits provide holes for carries to fall into.  */
     switch (sizeof(longword)) {
     case 4:
-	magic_bits = 0x7efefeffL;
-	break;
+        magic_bits = 0x7efefeffL;
+        break;
     case 8:
-	magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
-	break;
+        magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
+        break;
     default:
-	abort();
+        abort();
     }
 
     /* Set up a longword, each of whose bytes is C.  */
     charmask = c | (c << 8);
     charmask |= charmask << 16;
     if (sizeof(longword) > 4)
-	/* Do the shift in two steps to avoid a warning if long has 32 bits.  */
-	charmask |= (charmask << 16) << 16;
+        /* Do the shift in two steps to avoid a warning if long has 32 bits.  */
+        charmask |= (charmask << 16) << 16;
     if (sizeof(longword) > 8)
-	abort();
+        abort();
 
     /* Instead of the traditional loop which tests each character,
        we will test a longword at a time.  The tricky part is testing
        if *any of the four* bytes in the longword in question are zero.  */
     for (;;) {
-	/* We tentatively exit the loop if adding MAGIC_BITS to
-	   LONGWORD fails to change any of the hole bits of LONGWORD.
+        /* We tentatively exit the loop if adding MAGIC_BITS to
+           LONGWORD fails to change any of the hole bits of LONGWORD.
 
-	   1) Is this safe?  Will it catch all the zero bytes?
-	   Suppose there is a byte with all zeros.  Any carry bits
-	   propagating from its left will fall into the hole at its
-	   least significant bit and stop.  Since there will be no
-	   carry from its most significant bit, the LSB of the
-	   byte to the left will be unchanged, and the zero will be
-	   detected.
+           1) Is this safe?  Will it catch all the zero bytes?
+           Suppose there is a byte with all zeros.  Any carry bits
+           propagating from its left will fall into the hole at its
+           least significant bit and stop.  Since there will be no
+           carry from its most significant bit, the LSB of the
+           byte to the left will be unchanged, and the zero will be
+           detected.
 
-	   2) Is this worthwhile?  Will it ignore everything except
-	   zero bytes?  Suppose every byte of LONGWORD has a bit set
-	   somewhere.  There will be a carry into bit 8.  If bit 8
-	   is set, this will carry into bit 16.  If bit 8 is clear,
-	   one of bits 9-15 must be set, so there will be a carry
-	   into bit 16.  Similarly, there will be a carry into bit
-	   24.  If one of bits 24-30 is set, there will be a carry
-	   into bit 31, so all of the hole bits will be changed.
+           2) Is this worthwhile?  Will it ignore everything except
+           zero bytes?  Suppose every byte of LONGWORD has a bit set
+           somewhere.  There will be a carry into bit 8.  If bit 8
+           is set, this will carry into bit 16.  If bit 8 is clear,
+           one of bits 9-15 must be set, so there will be a carry
+           into bit 16.  Similarly, there will be a carry into bit
+           24.  If one of bits 24-30 is set, there will be a carry
+           into bit 31, so all of the hole bits will be changed.
 
-	   The one misfire occurs when bits 24-30 are clear and bit
-	   31 is set; in this case, the hole at bit 31 is not
-	   changed.  If we had access to the processor carry flag,
-	   we could close this loophole by putting the fourth hole
-	   at bit 32!
+           The one misfire occurs when bits 24-30 are clear and bit
+           31 is set; in this case, the hole at bit 31 is not
+           changed.  If we had access to the processor carry flag,
+           we could close this loophole by putting the fourth hole
+           at bit 32!
 
-	   So it ignores everything except 128's, when they're aligned
-	   properly.
+           So it ignores everything except 128's, when they're aligned
+           properly.
 
-	   3) But wait!  Aren't we looking for C as well as zero?
-	   Good point.  So what we do is XOR LONGWORD with a longword,
-	   each of whose bytes is C.  This turns each byte that is C
-	   into a zero.  */
+           3) But wait!  Aren't we looking for C as well as zero?
+           Good point.  So what we do is XOR LONGWORD with a longword,
+           each of whose bytes is C.  This turns each byte that is C
+           into a zero.  */
 
-	longword = *longword_ptr++;
+        longword = *longword_ptr++;
 
-	/* Add MAGIC_BITS to LONGWORD.  */
-	if ((((longword + magic_bits)
+        /* Add MAGIC_BITS to LONGWORD.  */
+        if ((((longword + magic_bits)
 
-	      /* Set those bits that were unchanged by the addition.  */
-	      ^ ~longword)
+              /* Set those bits that were unchanged by the addition.  */
+              ^ ~longword)
 
-	     /* Look at only the hole bits.  If any of the hole bits
-	        are unchanged, most likely one of the bytes was a
-	        zero.  */
-	     & ~magic_bits) != 0 ||
-	    /* That caught zeroes.  Now test for C.  */
-	    ((((longword ^ charmask) +
-	       magic_bits) ^ ~(longword ^ charmask))
-	     & ~magic_bits) != 0) {
-	    /* Which of the bytes was C or zero?
-	       If none of them were, it was a misfire; continue the search.  */
+             /* Look at only the hole bits.  If any of the hole bits
+                are unchanged, most likely one of the bytes was a
+                zero.  */
+             & ~magic_bits) != 0 ||
+            /* That caught zeroes.  Now test for C.  */
+            ((((longword ^ charmask) +
+               magic_bits) ^ ~(longword ^ charmask))
+             & ~magic_bits) != 0) {
+            /* Which of the bytes was C or zero?
+               If none of them were, it was a misfire; continue the search.  */
 
-	    const unsigned char *cp =
-		(const unsigned char *) (longword_ptr - 1);
+            const unsigned char *cp =
+                (const unsigned char *) (longword_ptr - 1);
 
-	    if (*cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (*++cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (*++cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (*++cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (sizeof(longword) > 4) {
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-	    }
-	}
+            if (*cp == c || *cp == '\0')
+                return (char *) cp;
+            if (*++cp == c || *cp == '\0')
+                return (char *) cp;
+            if (*++cp == c || *cp == '\0')
+                return (char *) cp;
+            if (*++cp == c || *cp == '\0')
+                return (char *) cp;
+            if (sizeof(longword) > 4) {
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+            }
+        }
     }
 
     /* This should never happen.  */
@@ -776,26 +776,26 @@ static int fakechroot_localdir (const char *p_path)
 
     /* We need to expand ~ paths */
     if (home_path!=NULL && p_path[0]=='~') {
-	strcpy(cwd_path, home_path);
-	strcat(cwd_path, &(p_path[1]));
-	v_path = cwd_path;
+        strcpy(cwd_path, home_path);
+        strcat(cwd_path, &(p_path[1]));
+        v_path = cwd_path;
     }
 
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
-	if (next_getcwd == NULL) fakechroot_init();
-	next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
-	v_path = cwd_path;
-	narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
+        if (next_getcwd == NULL) fakechroot_init();
+        next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
+        v_path = cwd_path;
+        narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
     }
 
     /* We try to find if we need direct access to a file */
     len = strlen(v_path);
     for (i=0; i<list_max; i++) {
-	if (exclude_length[i]>len ||
-	    v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
-	    strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
-	if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+        if (exclude_length[i]>len ||
+            v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
+            strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
+        if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
     }
 
     return 0;
@@ -1009,16 +1009,16 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
-	path = addr_un->sun_path;
-	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-	if (strlen(path) >= sizeof(addr_un->sun_path)) {
-	    return ENAMETOOLONG;
-	}
-	memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
-	newaddr_un.sun_family = addr_un->sun_family;
-	strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
-	newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
-	return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
+        path = addr_un->sun_path;
+        expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        if (strlen(path) >= sizeof(addr_un->sun_path)) {
+            return ENAMETOOLONG;
+        }
+        memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
+        newaddr_un.sun_family = addr_un->sun_family;
+        strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_bind(sockfd, addr, addrlen);
 }
@@ -1121,11 +1121,11 @@ int chroot (const char *path)
         return status;
     }
 #endif
-    
+
     if ((sb.st_mode & S_IFMT) != S_IFDIR) {
-	return ENOTDIR;
+        return ENOTDIR;
     }
-    
+
     ptr = rindex(dir, 0);
     if (ptr > dir) {
         ptr--;
@@ -1145,7 +1145,7 @@ int chroot (const char *path)
 
     ld_library_path = getenv("LD_LIBRARY_PATH");
     if (ld_library_path == NULL) {
-	ld_library_path = "";
+        ld_library_path = "";
     }
 
     if ((len = strlen(ld_library_path)+strlen(dir)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_MAXPATH) {
@@ -1182,16 +1182,16 @@ int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
     if (next_connect == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
-	path = addr_un->sun_path;
-	expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-	if (strlen(path) >= sizeof(addr_un->sun_path)) {
-	    return ENAMETOOLONG;
-	}
-	memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
-	newaddr_un.sun_family = addr_un->sun_family;
-	strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
-	newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
-	return next_connect(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
+        path = addr_un->sun_path;
+        expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        if (strlen(path) >= sizeof(addr_un->sun_path)) {
+            return ENAMETOOLONG;
+        }
+        memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
+        newaddr_un.sun_family = addr_un->sun_family;
+        strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        return next_connect(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_connect(sockfd, addr, addrlen);
 }
@@ -1435,7 +1435,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
                     ptr = &hashbang[j];
                     expand_chroot_path(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
                     strcpy(newfilename, ptr);
-		}
+                }
                 newargv[n++] = &hashbang[j];
             }
             j = i + 1;
@@ -1633,15 +1633,15 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
 
     for (n=0, p=path_argv; *p; n++, p++);
     if ((new_path_argv = malloc(n*(sizeof(char *)))) == NULL) {
-	return NULL;
+        return NULL;
     }
 
     for (n=0, p=path_argv, np=new_path_argv; *p; n++, p++, np++) {
-	path = *p;
-	expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-	*np = path;
+        path = *p;
+        expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        *np = path;
     }
-    
+
     if (next_fts_open == NULL) fakechroot_init();
     return next_fts_open(new_path_argv, options, compar);
 }
@@ -1729,19 +1729,19 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
     socklen_t newnamelen;
     struct sockaddr_un newname;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    
+
     if (next_getpeername == NULL) fakechroot_init();
     memset(&newname, 0, sizeof(struct sockaddr_un));
     status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
     if (status != 0) {
-	return status;
+        return status;
     }
     if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
-	strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
-	narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-	strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+        narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
+        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
-    
+
     memcpy(name, &newname, sizeof(struct sockaddr_un));
     *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
     return status;
@@ -1757,19 +1757,19 @@ int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
     socklen_t newnamelen;
     struct sockaddr_un newname;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    
+
     if (next_getsockname == NULL) fakechroot_init();
     memset(&newname, 0, sizeof(struct sockaddr_un));
     status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
     if (status != 0) {
-	return status;
+        return status;
     }
     if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
-	strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
-	narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-	strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+        narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
+        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
-    
+
     memcpy(name, &newname, sizeof(struct sockaddr_un));
     *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
     return status;
