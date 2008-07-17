@@ -54,21 +54,25 @@ Build: bash
          CC="$CC" CFLAGS="$CFLAGS" \
              ../configure \
                  --cache-file=../config.cache \
+                 --build=$DEB_BUILD_GNU_TYPE \
+                 --host=$DEB_HOST_GNU_TYPE \
                  $COMMON_CONFIG
      popd
      pushd build-tree-fake
          CC="$CC" CFLAGS="$CFLAGS" \
              ../fake/configure \
                  --cache-file=../config.cache \
+                 --build=$DEB_BUILD_GNU_TYPE \
+                 --host=$DEB_HOST_GNU_TYPE \
                  $COMMON_CONFIG
      popd
-     case "$DEB_BUILD_ARCH" in
+     case "$DEB_HOST_ARCH" in
          amd64)
              pushd build-tree-lib-biarch
                  CC="gcc -m32" CFLAGS="$CFLAGS" \
                      ../configure \
                          --cache-file=../config.biarch.cache \
-                         --build=x86_64-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=i386-linux \
                          --libdir=%{biarch_amd64_libdir} \
                          $COMMON_CONFIG
@@ -77,7 +81,7 @@ Build: bash
                  CC="gcc -m32" CFLAGS="$CFLAGS" \
                      ../fake/configure \
                          --cache-file=../config.biarch.cache \
-                         --build=x86_64-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=i386-linux \
                          --libdir=%{biarch_amd64_libdir} \
                          $COMMON_CONFIG
@@ -88,7 +92,7 @@ Build: bash
                  CC="gcc -m64" CFLAGS="$CFLAGS" \
                      ../configure \
                          --cache-file=../config.biarch.cache \
-                         --build=i386-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=x86_64-linux \
                          --libdir=/usr/lib64 \
                          $COMMON_CONFIG
@@ -97,7 +101,7 @@ Build: bash
                  CC="gcc -m64" CFLAGS="$CFLAGS" \
                      ../fake/configure \
                          --cache-file=../config.biarch.cache \
-                         --build=i386-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=x86_64-linux \
                          --libdir=/usr/lib64 \
                          $COMMON_CONFIG
@@ -108,7 +112,7 @@ Build: bash
                  CC="gcc -m32" CFLAGS="$CFLAGS" \
                      ../configure \
                          --cache-file=../config.biarch.cache \
-                         --build=powerpc64-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=powerpc-linux \
                          --libdir=/usr/lib32 \
                          $COMMON_CONFIG
@@ -117,7 +121,7 @@ Build: bash
                  CC="gcc -m32" CFLAGS="$CFLAGS" \
                      ../fake/configure \
                          --cache-file=../config.biarch.cache \
-                         --build=powerpc64-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=powerpc-linux \
                          --libdir=/usr/lib32 \
                          $COMMON_CONFIG
@@ -128,7 +132,7 @@ Build: bash
                  CC="gcc -m64" CFLAGS="$CFLAGS" \
                      ../configure \
                          --cache-file=../config.biarch.cache \
-                         --build=s390-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=s390x-linux \
                          --libdir=/usr/lib64 \
                          $COMMON_CONFIG
@@ -137,7 +141,7 @@ Build: bash
                  CC="gcc -m64" CFLAGS="$CFLAGS" \
                      ../fake/configure \
                          --cache-file=../config.biarch.cache \
-                         --build=s390-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=s390x-linux \
                          --libdir=/usr/lib64 \
                          $COMMON_CONFIG
@@ -148,7 +152,7 @@ Build: bash
                  CC="gcc -m64" CFLAGS="$CFLAGS" \
                      ../configure \
                          --cache-file=../config.biarch.cache \
-                         --build=sparc-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=sparc64-linux \
                          --libdir=/usr/lib64 \
                          $COMMON_CONFIG
@@ -157,7 +161,7 @@ Build: bash
                  CC="gcc -m64" CFLAGS="$CFLAGS" \
                      ../fake/configure \
                          --cache-file=../config.biarch.cache \
-                         --build=sparc-linux \
+                         --build=$DEB_BUILD_GNU_TYPE \
                          --host=sparc64-linux \
                          --libdir=/usr/lib64 \
                          $COMMON_CONFIG
@@ -174,7 +178,7 @@ Build: bash
      pushd build-tree-fake
          make
      popd
-     case "$DEB_BUILD_ARCH" in
+     case "$DEB_HOST_ARCH" in
          amd64|i386|ppc64|s390|sparc)
              pushd build-tree-lib-biarch
                  make
@@ -217,7 +221,7 @@ Install: bash
 Finalize: sh
  chmod -v u+s $ROOT/usr/lib/*.so
  .
- case "$DEB_BUILD_ARCH" in
+ case "$DEB_HOST_ARCH" in
      amd64)
          chmod -v u+s $ROOT%{biarch_amd64_libdir}/*.so;;
      ppc64)

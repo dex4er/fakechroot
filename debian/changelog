@@ -1,8 +1,14 @@
 fakechroot (2.7.1-1) unstable; urgency=low
 
+  * src/libfakechroot.c:
+    - Supports uclibc which doesn't provide getwd(2) function.
   * m4/readlink_argtypes.m4, src/libfakechroot.c:
     - Compiles with older libc: configure script detects readlink type of
       return value.
+  * debian/packages:
+    - Supports cross compiling.
+  * test/fakechroot.sh:
+    - Can be called with $PREFIX environment variable.
 
  -- Piotr Roszatycki <dexter@debian.org>  Thu, 17 Jul 2008 13:50:10 +0200
 

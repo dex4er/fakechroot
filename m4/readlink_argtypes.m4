@@ -8,7 +8,7 @@ AC_DEFUN([AC_FUNC_READLINK_ARGTYPES],
 [AC_CHECK_HEADERS(unistd.h)
 AC_CACHE_CHECK([types of arguments for readlink],
 [ac_cv_func_readlink_args],
-[for ac_return in 'size_t' 'int'; do
+[for ac_return in 'ssize_t' 'int'; do
  for ac_arg1 in 'const char *path'; do
   for ac_arg2 in 'char *buf'; do
    for ac_arg3 in 'size_t bufsiz' 'int bufsiz'; do
@@ -26,7 +26,7 @@ AC_CACHE_CHECK([types of arguments for readlink],
  done
 done
 # Provide a safe default value.
-: ${ac_cv_func_readlink_args='(default) size_t;const char *path;char *buf;size_t bufsiz'}
+: ${ac_cv_func_readlink_args='(default) ssize_t;const char *path;char *buf;size_t bufsiz'}
 ])
 ac_save_IFS=$IFS; IFS=';'
 set dummy `echo "$ac_cv_func_readlink_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`

@@ -2,7 +2,8 @@
 
 17 Jul 2008
 
-* Compiles with older libc: configure script detects readlink type of return value.
+* Compiles with older GNU libc: readlink type of return value is detected.
+* Compiles with uClibc: existence of getwd function is detected.
 
 == Version 2.7 ==
 

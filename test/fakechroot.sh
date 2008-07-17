@@ -24,41 +24,47 @@ do
     ln -sf $d testtree/$d
 done
 
-for f in \
-    /bin/bash \
-    /bin/busybox \
-    /bin/cat \
-    /bin/chmod \
-    /bin/csh \
-    /bin/cp \
-    /bin/grep \
-    /bin/sh \
-    /bin/ls \
-    /bin/mkdir \
-    /bin/ps \
-    /bin/pwd \
-    /bin/rm \
-    /bin/sh \
-    /lib/ld-linux.so.2 \
-    /lib/libacl.so.1 \
-    /lib/libattr.so.1 \
-    /lib/libc.so.6 \
-    /lib/libdl.so.2 \
-    /lib/libpthread.so.0 \
-    /lib/librt.so.1 \
-    /lib/libselinux.so.1 \
-    /usr/bin/basename \
-    /usr/bin/dirname \
-    /usr/bin/find \
-    /usr/bin/id \
-    /usr/bin/ltrace \
-    /usr/bin/perl \
-    /usr/bin/strace \
-    /usr/sbin/chroot \
-    /usr/local/bin/bash \
-    /usr/local/bin/strace
+for p in \
+    '/bin/bash' \
+    '/bin/busybox' \
+    '/bin/cat' \
+    '/bin/chmod' \
+    '/bin/csh' \
+    '/bin/cp' \
+    '/bin/grep' \
+    '/bin/sh' \
+    '/bin/ls' \
+    '/bin/mkdir' \
+    '/bin/ps' \
+    '/bin/pwd' \
+    '/bin/rm' \
+    '/bin/sh' \
+    '/lib/ld-linux.so.*' \
+    '/lib/ld-uClibc.so.*' \
+    '/lib/libacl.so.*' \
+    '/lib/libattr.so.*' \
+    '/lib/libc.so.*' \
+    '/lib/libcrypt.so.*' \
+    '/lib/libdl.so.*' \
+    '/lib/libgcc_s.so.*' \
+    '/lib/libpthread.so.*' \
+    '/lib/librt.so.*' \
+    '/lib/libselinux.so.*' \
+    '/lib/libm.so.*' \
+    '/usr/bin/basename' \
+    '/usr/bin/dirname' \
+    '/usr/bin/find' \
+    '/usr/bin/id' \
+    '/usr/bin/ltrace' \
+    '/usr/bin/perl' \
+    '/usr/bin/strace' \
+    '/usr/sbin/chroot' \
+    '/usr/local/bin/bash' \
+    '/usr/local/bin/strace'
 do
-    cp -pf $f testtree/$f
+    for f in $p; do
+	cp -pf $PREFIX$f testtree/$(dirname $f)
+    done
 done
 
 dir=`cd \`pwd\`/../src/.libs 2>/dev/null && pwd`
@@ -81,7 +87,7 @@ export LD_PRELOAD
 echo "LD_PRELOAD=$LD_PRELOAD"
 
 if [ -n "$*" ]; then
-    HOME=/root /usr/sbin/chroot `pwd`/testtree "$@"
+    HOME=/root testtree/usr/sbin/chroot `pwd`/testtree "$@"
 else
-    HOME=/root /usr/sbin/chroot `pwd`/testtree /bin/bash
+    HOME=/root testtree/usr/sbin/chroot `pwd`/testtree /bin/bash
 fi

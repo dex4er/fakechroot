@@ -394,7 +394,9 @@ static int     (*next_getpeername) (int s, struct sockaddr *name, socklen_t *nam
 #ifdef AF_UNIX
 static int     (*next_getsockname) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
 #endif
+#ifdef HAVE_GETWD
 static char *  (*next_getwd) (char *buf) = NULL;
+#endif
 #ifdef HAVE_GETXATTR
 static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
 #endif
@@ -651,7 +653,9 @@ void fakechroot_init (void)
 #ifdef AF_UNIX
     nextsym(getsockname, "getsockname");
 #endif
+#ifdef HAVE_GETWD
     nextsym(getwd, "getwd");
+#endif
 #ifdef HAVE_GETXATTR
     nextsym(getxattr, "getxattr");
 #endif
@@ -1794,6 +1798,7 @@ int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
 #endif
 
 
+#ifdef HAVE_GETWD
 /* #include <unistd.h> */
 char * getwd (char *buf)
 {
@@ -1808,6 +1813,7 @@ char * getwd (char *buf)
     narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
     return cwd;
 }
+#endif
 
 
 #ifdef HAVE_GETXATTR
