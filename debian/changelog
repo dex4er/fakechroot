@@ -1,4 +1,4 @@
-fakechroot (2.7.1) unstable; urgency=low
+fakechroot (2.7.1-1) unstable; urgency=low
 
   * m4/readlink_argtypes.m4, src/libfakechroot.c:
     - Compiles with older libc: configure script detects readlink type of
