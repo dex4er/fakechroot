@@ -1,5 +1,6 @@
-AUTOMAKE_OPTIONS=foreign
+AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS=man src scripts test
+SUBDIRS = man src scripts test
+DIST_SUBDIRS = $(SUBDIRS) fake
 
-EXTRA_DIST=LICENSE README THANKS
+EXTRA_DIST = LICENSE NEWS README THANKS autogen.sh makedist.sh

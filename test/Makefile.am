@@ -1,6 +1,4 @@
-AUTOMAKE_OPTIONS=foreign
-
-TESTS = t.pwd
+TESTS = t.echoarg
 
 suffix =
 

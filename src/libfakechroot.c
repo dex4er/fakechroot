@@ -1,10 +1,10 @@
 /*
     libfakechroot -- fake chroot environment
-    (c) 2003-2007 Piotr Roszatycki <dexter@debian.org>, LGPL
-    (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
+    Copyright (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
+    Copyright (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
 
     klik2 support -- give direct access to a list of directories
-    (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
+    Copyright (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-/* $Id: /local/src/libfakechroot.c 223 2007-05-05T16:16:27.924224Z dexter  $ */
+/* $Id: /svn/trunk/src/libfakechroot.c 364 2008-07-17T18:52:06.015071Z dexter  $ */
 
 
 #include <config.h>
@@ -29,12 +29,14 @@
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/times.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -67,6 +69,10 @@
 #define FAKECHROOT_MAXPATH 2048
 #endif
 
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX 108
+#endif
+
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -78,7 +84,7 @@
                         ((char *)(path))[0] = '/'; \
                         ((char *)(path))[1] = '\0'; \
                     } else { \
-                        memmove((path), (path)+strlen(fakechroot_path), 1+strlen((path))-strlen(fakechroot_path)); \
+                        memmove((void*)(path), (path)+strlen(fakechroot_path), 1+strlen((path))-strlen(fakechroot_path)); \
                     } \
                 } \
             } \
@@ -126,12 +132,12 @@
 #define nextsym(function, name) \
     { \
         char *msg; \
-	if (next_##function == NULL) { \
-	    *(void **)(&next_##function) = dlsym(RTLD_NEXT, name); \
-	    if ((msg = dlerror()) != NULL) { \
- 		fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
-	    } \
-	} \
+        if (next_##function == NULL) { \
+            *(void **)(&next_##function) = dlsym(RTLD_NEXT, name); \
+            if ((msg = dlerror()) != NULL) { \
+                fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
+            } \
+        } \
     }
 
 
@@ -160,9 +166,9 @@ static char *strchrnul (const char *s, int c_in)
     /* Handle the first few characters by reading one character at a time.
        Do this until CHAR_PTR is aligned on a longword boundary.  */
     for (char_ptr = s; ((unsigned long int) char_ptr
-			& (sizeof(longword) - 1)) != 0; ++char_ptr)
-	if (*char_ptr == c || *char_ptr == '\0')
-	    return (void *) char_ptr;
+                        & (sizeof(longword) - 1)) != 0; ++char_ptr)
+        if (*char_ptr == c || *char_ptr == '\0')
+            return (void *) char_ptr;
 
     /* All these elucidatory comments refer to 4-byte longwords,
        but the theory applies equally well to 8-byte longwords.  */
@@ -180,103 +186,103 @@ static char *strchrnul (const char *s, int c_in)
        The 0-bits provide holes for carries to fall into.  */
     switch (sizeof(longword)) {
     case 4:
-	magic_bits = 0x7efefeffL;
-	break;
+        magic_bits = 0x7efefeffL;
+        break;
     case 8:
-	magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
-	break;
+        magic_bits = ((0x7efefefeL << 16) << 16) | 0xfefefeffL;
+        break;
     default:
-	abort();
+        abort();
     }
 
     /* Set up a longword, each of whose bytes is C.  */
     charmask = c | (c << 8);
     charmask |= charmask << 16;
     if (sizeof(longword) > 4)
-	/* Do the shift in two steps to avoid a warning if long has 32 bits.  */
-	charmask |= (charmask << 16) << 16;
+        /* Do the shift in two steps to avoid a warning if long has 32 bits.  */
+        charmask |= (charmask << 16) << 16;
     if (sizeof(longword) > 8)
-	abort();
+        abort();
 
     /* Instead of the traditional loop which tests each character,
        we will test a longword at a time.  The tricky part is testing
        if *any of the four* bytes in the longword in question are zero.  */
     for (;;) {
-	/* We tentatively exit the loop if adding MAGIC_BITS to
-	   LONGWORD fails to change any of the hole bits of LONGWORD.
+        /* We tentatively exit the loop if adding MAGIC_BITS to
+           LONGWORD fails to change any of the hole bits of LONGWORD.
 
-	   1) Is this safe?  Will it catch all the zero bytes?
-	   Suppose there is a byte with all zeros.  Any carry bits
-	   propagating from its left will fall into the hole at its
-	   least significant bit and stop.  Since there will be no
-	   carry from its most significant bit, the LSB of the
-	   byte to the left will be unchanged, and the zero will be
-	   detected.
+           1) Is this safe?  Will it catch all the zero bytes?
+           Suppose there is a byte with all zeros.  Any carry bits
+           propagating from its left will fall into the hole at its
+           least significant bit and stop.  Since there will be no
+           carry from its most significant bit, the LSB of the
+           byte to the left will be unchanged, and the zero will be
+           detected.
 
-	   2) Is this worthwhile?  Will it ignore everything except
-	   zero bytes?  Suppose every byte of LONGWORD has a bit set
-	   somewhere.  There will be a carry into bit 8.  If bit 8
-	   is set, this will carry into bit 16.  If bit 8 is clear,
-	   one of bits 9-15 must be set, so there will be a carry
-	   into bit 16.  Similarly, there will be a carry into bit
-	   24.  If one of bits 24-30 is set, there will be a carry
-	   into bit 31, so all of the hole bits will be changed.
+           2) Is this worthwhile?  Will it ignore everything except
+           zero bytes?  Suppose every byte of LONGWORD has a bit set
+           somewhere.  There will be a carry into bit 8.  If bit 8
+           is set, this will carry into bit 16.  If bit 8 is clear,
+           one of bits 9-15 must be set, so there will be a carry
+           into bit 16.  Similarly, there will be a carry into bit
+           24.  If one of bits 24-30 is set, there will be a carry
+           into bit 31, so all of the hole bits will be changed.
 
-	   The one misfire occurs when bits 24-30 are clear and bit
-	   31 is set; in this case, the hole at bit 31 is not
-	   changed.  If we had access to the processor carry flag,
-	   we could close this loophole by putting the fourth hole
-	   at bit 32!
+           The one misfire occurs when bits 24-30 are clear and bit
+           31 is set; in this case, the hole at bit 31 is not
+           changed.  If we had access to the processor carry flag,
+           we could close this loophole by putting the fourth hole
+           at bit 32!
 
-	   So it ignores everything except 128's, when they're aligned
-	   properly.
+           So it ignores everything except 128's, when they're aligned
+           properly.
 
-	   3) But wait!  Aren't we looking for C as well as zero?
-	   Good point.  So what we do is XOR LONGWORD with a longword,
-	   each of whose bytes is C.  This turns each byte that is C
-	   into a zero.  */
+           3) But wait!  Aren't we looking for C as well as zero?
+           Good point.  So what we do is XOR LONGWORD with a longword,
+           each of whose bytes is C.  This turns each byte that is C
+           into a zero.  */
 
-	longword = *longword_ptr++;
+        longword = *longword_ptr++;
 
-	/* Add MAGIC_BITS to LONGWORD.  */
-	if ((((longword + magic_bits)
+        /* Add MAGIC_BITS to LONGWORD.  */
+        if ((((longword + magic_bits)
 
-	      /* Set those bits that were unchanged by the addition.  */
-	      ^ ~longword)
+              /* Set those bits that were unchanged by the addition.  */
+              ^ ~longword)
 
-	     /* Look at only the hole bits.  If any of the hole bits
-	        are unchanged, most likely one of the bytes was a
-	        zero.  */
-	     & ~magic_bits) != 0 ||
-	    /* That caught zeroes.  Now test for C.  */
-	    ((((longword ^ charmask) +
-	       magic_bits) ^ ~(longword ^ charmask))
-	     & ~magic_bits) != 0) {
-	    /* Which of the bytes was C or zero?
-	       If none of them were, it was a misfire; continue the search.  */
+             /* Look at only the hole bits.  If any of the hole bits
+                are unchanged, most likely one of the bytes was a
+                zero.  */
+             & ~magic_bits) != 0 ||
+            /* That caught zeroes.  Now test for C.  */
+            ((((longword ^ charmask) +
+               magic_bits) ^ ~(longword ^ charmask))
+             & ~magic_bits) != 0) {
+            /* Which of the bytes was C or zero?
+               If none of them were, it was a misfire; continue the search.  */
 
-	    const unsigned char *cp =
-		(const unsigned char *) (longword_ptr - 1);
+            const unsigned char *cp =
+                (const unsigned char *) (longword_ptr - 1);
 
-	    if (*cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (*++cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (*++cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (*++cp == c || *cp == '\0')
-		return (char *) cp;
-	    if (sizeof(longword) > 4) {
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-		if (*++cp == c || *cp == '\0')
-		    return (char *) cp;
-	    }
-	}
+            if (*cp == c || *cp == '\0')
+                return (char *) cp;
+            if (*++cp == c || *cp == '\0')
+                return (char *) cp;
+            if (*++cp == c || *cp == '\0')
+                return (char *) cp;
+            if (*++cp == c || *cp == '\0')
+                return (char *) cp;
+            if (sizeof(longword) > 4) {
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+                if (*++cp == c || *cp == '\0')
+                    return (char *) cp;
+            }
+        }
     }
 
     /* This should never happen.  */
@@ -284,6 +290,12 @@ static char *strchrnul (const char *s, int c_in)
 }
 #endif
 
+#ifdef HAVE___FXSTATAT
+static int     (*next___fxstatat) (int ver, int dirfd, const char *pathname, struct stat *buf, int flags) = NULL;
+#endif
+#ifdef HAVE___FXSTATAT64
+static int     (*next___fxstatat64) (int ver, int dirfd, const char *pathname, struct stat64 *buf, int flags) = NULL;
+#endif
 #ifdef HAVE___LXSTAT
 static int     (*next___lxstat) (int ver, const char *filename, struct stat *buf) = NULL;
 #endif
@@ -316,6 +328,9 @@ static int     (*next__xftw64) (int mode, const char *dir, int (*fn)(const char 
 #endif
 static int     (*next_access) (const char *pathname, int mode) = NULL;
 static int     (*next_acct) (const char *filename) = NULL;
+#ifdef AF_UNIX
+static int     (*next_bind) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 static char *  (*next_canonicalize_file_name) (const char *name) = NULL;
 #endif
@@ -323,12 +338,18 @@ static int     (*next_chdir) (const char *path) = NULL;
 static int     (*next_chmod) (const char *path, mode_t mode) = NULL;
 static int     (*next_chown) (const char *path, uid_t owner, gid_t group) = NULL;
 /* static int     (*next_chroot) (const char *path) = NULL; */
+#ifdef AF_UNIX
+static int     (*next_connect) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+#endif
 static int     (*next_creat) (const char *pathname, mode_t mode) = NULL;
 static int     (*next_creat64) (const char *pathname, mode_t mode) = NULL;
 #ifdef HAVE_DLMOPEN
 static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag) = NULL;
 #endif
 static void *  (*next_dlopen) (const char *filename, int flag) = NULL;
+#ifdef HAVE_EACCESS
+static int     (*next_eaccess) (const char *pathname, int mode) = NULL;
+#endif
 #ifdef HAVE_EUIDACCESS
 static int     (*next_euidaccess) (const char *pathname, int mode) = NULL;
 #endif
@@ -338,6 +359,12 @@ static int     (*next_euidaccess) (const char *pathname, int mode) = NULL;
 /* static int     (*next_execv) (const char *path, char *const argv []) = NULL; */
 static int     (*next_execve) (const char *filename, char *const argv [], char *const envp[]) = NULL;
 static int     (*next_execvp) (const char *file, char *const argv []) = NULL;
+#ifdef HAVE_FCHMODAT
+static int     (*next_fchmodat) (int dirfd, const char *path, mode_t mode, int flag) = NULL;
+#endif
+#ifdef HAVE_FCHOWNAT
+static int     (*next_fchownat) (int dirfd, const char *path, uid_t owner, gid_t group, int flag) = NULL;
+#endif
 static FILE *  (*next_fopen) (const char *path, const char *mode) = NULL;
 static FILE *  (*next_fopen64) (const char *path, const char *mode) = NULL;
 static FILE *  (*next_freopen) (const char *path, const char *mode, FILE *stream) = NULL;
@@ -361,7 +388,15 @@ static int     (*next_ftw64) (const char *dir, int (*fn)(const char *file, const
 static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
 static char *  (*next_getcwd) (char *buf, size_t size) = NULL;
+#ifdef AF_UNIX
+static int     (*next_getpeername) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+#endif
+#ifdef AF_UNIX
+static int     (*next_getsockname) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+#endif
+#ifdef HAVE_GETWD
 static char *  (*next_getwd) (char *buf) = NULL;
+#endif
 #ifdef HAVE_GETXATTR
 static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
 #endif
@@ -407,6 +442,9 @@ static int     (*next_lstat64) (const char *file_name, struct stat64 *buf) = NUL
 static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]) = NULL;
 #endif
 static int     (*next_mkdir) (const char *pathname, mode_t mode) = NULL;
+#ifdef HAVE_MKDIRAT
+static int     (*next_mkdirat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+#endif
 #ifdef HAVE_MKDTEMP
 static char *  (*next_mkdtemp) (char *template) = NULL;
 #endif
@@ -423,17 +461,26 @@ static int     (*next_nftw64) (const char *dir, int (*fn)(const char *file, cons
 #endif
 static int     (*next_open) (const char *pathname, int flags, ...) = NULL;
 static int     (*next_open64) (const char *pathname, int flags, ...) = NULL;
+#ifdef HAVE_OPENAT
+static int     (*next_openat) (int dirfd, const char *pathname, int flags, ...) = NULL;
+#endif
+#ifdef HAVE_OPENAT64
+static int     (*next_openat64) (int dirfd, const char *pathname, int flags, ...) = NULL;
+#endif
 #if !defined(HAVE___OPENDIR2)
 static DIR *   (*next_opendir) (const char *name) = NULL;
 #endif
 static long    (*next_pathconf) (const char *path, int name) = NULL;
-static int     (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+static READLINK_TYPE_RETURN (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
 #ifdef HAVE_REMOVEXATTR
 static int     (*next_removexattr) (const char *path, const char *name) = NULL;
 #endif
 static int     (*next_rename) (const char *oldpath, const char *newpath) = NULL;
+#ifdef HAVE_RENAMEAT
+static int     (*next_renameat) (int olddirfd, const char *oldpath, int newdirfd, const char *newpath) = NULL;
+#endif
 #ifdef HAVE_REVOKE
 static int     (*next_revoke) (const char *file) = NULL;
 #endif
@@ -463,6 +510,9 @@ static int     (*next_truncate) (const char *path, off_t length) = NULL;
 static int     (*next_truncate64) (const char *path, off64_t length) = NULL;
 #endif
 static int     (*next_unlink) (const char *pathname) = NULL;
+#ifdef HAVE_UNLINKAT
+static int     (*next_unlinkat) (int dirfd, const char *pathname, int flags) = NULL;
+#endif
 #ifdef HAVE_ULCKPWDF
 /* static int     (*next_ulckpwdf) (void) = NULL; */
 #endif
@@ -499,12 +549,18 @@ void fakechroot_init (void)
         /* We get the home of the user */
         passwd = getpwuid(getuid());
         if (passwd && passwd->pw_dir) {
-            home_path = malloc(strlen(passwd->pw_dir)+1);
+            home_path = malloc(strlen(passwd->pw_dir)+2);
             strcpy(home_path, passwd->pw_dir);
             strcat(home_path, "/");
         }
     }
 
+#ifdef HAVE___FXSTATAT
+    nextsym(__fxstatat, "__fxstatat");
+#endif
+#ifdef HAVE___FXSTATAT64
+    nextsym(__fxstatat64, "__fxstatat64");
+#endif
 #ifdef HAVE___LXSTAT
     nextsym(__lxstat, "__lxstat");
 #endif
@@ -531,6 +587,9 @@ void fakechroot_init (void)
 #endif
     nextsym(access, "access");
     nextsym(acct, "acct");
+#ifdef AF_UNIX
+    nextsym(bind, "bind");
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
     nextsym(canonicalize_file_name, "canonicalize_file_name");
 #endif
@@ -538,12 +597,18 @@ void fakechroot_init (void)
     nextsym(chmod, "chmod");
     nextsym(chown, "chown");
 /*    nextsym(chroot, "chroot"); */
+#ifdef AF_UNIX
+    nextsym(connect, "connect");
+#endif
     nextsym(creat, "creat");
     nextsym(creat64, "creat64");
 #ifdef HAVE_DLMOPEN
     nextsym(dlmopen, "dlmopen");
 #endif
     nextsym(dlopen, "dlopen");
+#ifdef HAVE_EACCESS
+    nextsym(eaccess, "eaccess");
+#endif
 #ifdef HAVE_EUIDACCESS
     nextsym(euidaccess, "euidaccess");
 #endif
@@ -553,6 +618,12 @@ void fakechroot_init (void)
 /*    nextsym(execv, "execv"); */
     nextsym(execve, "execve");
     nextsym(execvp, "execvp");
+#ifdef HAVE_FCHMODAT
+    nextsym(fchmodat, "fchmodat");
+#endif
+#ifdef HAVE_FCHOWNAT
+    nextsym(fchownat, "fchownat");
+#endif
     nextsym(fopen, "fopen");
     nextsym(fopen64, "fopen64");
     nextsym(freopen, "freopen");
@@ -576,7 +647,15 @@ void fakechroot_init (void)
     nextsym(get_current_dir_name, "get_current_dir_name");
 #endif
     nextsym(getcwd, "getcwd");
+#ifdef AF_UNIX
+    nextsym(getpeername, "getpeername");
+#endif
+#ifdef AF_UNIX
+    nextsym(getsockname, "getsockname");
+#endif
+#ifdef HAVE_GETWD
     nextsym(getwd, "getwd");
+#endif
 #ifdef HAVE_GETXATTR
     nextsym(getxattr, "getxattr");
 #endif
@@ -622,6 +701,9 @@ void fakechroot_init (void)
     nextsym(lutimes, "lutimes");
 #endif
     nextsym(mkdir, "mkdir");
+#ifdef HAVE_MKDIRAT
+    nextsym(mkdirat, "mkdirat");
+#endif
 #ifdef HAVE_MKDTEMP
     nextsym(mkdtemp, "mkdtemp");
 #endif
@@ -638,6 +720,12 @@ void fakechroot_init (void)
 #endif
     nextsym(open, "open");
     nextsym(open64, "open64");
+#ifdef HAVE_OPENAT
+    nextsym(openat, "openat");
+#endif
+#ifdef HAVE_OPENAT64
+    nextsym(openat64, "openat64");
+#endif
 #if !defined(HAVE___OPENDIR2)
     nextsym(opendir, "opendir");
 #endif
@@ -649,6 +737,9 @@ void fakechroot_init (void)
     nextsym(removexattr, "removexattr");
 #endif
     nextsym(rename, "rename");
+#ifdef HAVE_RENAMEAT
+    nextsym(renameat, "renameat");
+#endif
 #ifdef HAVE_REVOKE
     nextsym(revoke, "revoke");
 #endif
@@ -678,6 +769,9 @@ void fakechroot_init (void)
     nextsym(truncate64, "truncate64");
 #endif
     nextsym(unlink, "unlink");
+#ifdef HAVE_UNLINKAT
+    nextsym(unlinkat, "unlinkat");
+#endif
 #ifdef HAVE_ULCKPWDF
 /*    nextsym(ulckpwdf, "ulckpwdf"); */
 #endif
@@ -698,30 +792,58 @@ static int fakechroot_localdir (const char *p_path)
 
     /* We need to expand ~ paths */
     if (home_path!=NULL && p_path[0]=='~') {
-	strcpy(cwd_path, home_path);
-	strcat(cwd_path, &(p_path[1]));
-	v_path = cwd_path;
+        strcpy(cwd_path, home_path);
+        strcat(cwd_path, &(p_path[1]));
+        v_path = cwd_path;
     }
 
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
-	if (next_getcwd == NULL) fakechroot_init();
-	next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
-	v_path = cwd_path;
-	narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
+        if (next_getcwd == NULL) fakechroot_init();
+        next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
+        v_path = cwd_path;
+        narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
     }
 
     /* We try to find if we need direct access to a file */
     len = strlen(v_path);
     for (i=0; i<list_max; i++) {
-	if (exclude_length[i]>len ||
-	    v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
-	    strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
-	if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+        if (exclude_length[i]>len ||
+            v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
+            strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
+        if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
     }
 
     return 0;
 }
+
+
+#ifdef HAVE___FXSTATAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <sys/stat.h> */
+int __fxstatat (int ver, int dirfd, const char *pathname, struct stat *buf, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next___fxstatat == NULL) fakechroot_init();
+    return next___fxstatat(ver, dirfd, pathname, buf, flags);
+}
+#endif
+
+
+#ifdef HAVE__FXSTATAT64
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <sys/stat.h> */
+int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next___fxstatat64 == NULL) fakechroot_init();
+    return next___fxstatat64(ver, dirfd, pathname, buf, flags);
+}
+#endif
 
 
 #ifdef HAVE___LXSTAT
@@ -890,6 +1012,35 @@ int acct (const char *filename)
 }
 
 
+#ifdef AF_UNIX
+/* #include <sys/types.h> */
+/* #include <sys/socket.h> */
+/* #include <sys/un.h> */
+int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *path;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr_un;
+    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    if (next_bind == NULL) fakechroot_init();
+    if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
+        path = addr_un->sun_path;
+        expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        if (strlen(path) >= sizeof(addr_un->sun_path)) {
+            return ENAMETOOLONG;
+        }
+        memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
+        newaddr_un.sun_family = addr_un->sun_family;
+        strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
+    }
+    return next_bind(sockfd, addr, addrlen);
+}
+#endif
+
+
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 /* #include <stdlib.h> */
 char *canonicalize_file_name (const char *name)
@@ -939,19 +1090,61 @@ int chroot (const char *path)
 {
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
-    char dir[FAKECHROOT_MAXPATH];
+    char dir[FAKECHROOT_MAXPATH], cwd[FAKECHROOT_MAXPATH], full_path[FAKECHROOT_MAXPATH];
 #if !defined(HAVE_SETENV)
     char *envbuf;
 #endif
+    struct stat sb;
+
+    if (path == NULL) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (!*path) {
+        errno = ENOENT;
+        return -1;
+    }
+    if (*path != '/') {
+        if (getcwd(cwd, FAKECHROOT_MAXPATH) == NULL) {
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+        if (cwd == NULL) {
+            errno = EFAULT;
+            return -1;
+        }
+        if (strcmp(cwd, "/") == 0) {
+            snprintf(full_path, FAKECHROOT_MAXPATH, "/%s", path);
+        }
+        else {
+            snprintf(full_path, FAKECHROOT_MAXPATH, "%s/%s", cwd, path);
+        }
+    }
+    else {
+        snprintf(full_path, FAKECHROOT_MAXPATH, "%s", path);
+    }
 
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
-    if ((status = chdir(path)) != 0) {
+    if (fakechroot_path != NULL) {
+        snprintf(dir, FAKECHROOT_MAXPATH, "%s%s", fakechroot_path, full_path);
+    }
+    else {
+        snprintf(dir, FAKECHROOT_MAXPATH, "%s", full_path);
+    }
+
+#if defined(HAVE___XSTAT) && defined(_STAT_VER)
+    if ((status = next___xstat(_STAT_VER, dir, &sb)) != 0) {
         return status;
     }
-    
-    if (next_getcwd(dir, FAKECHROOT_MAXPATH) == NULL) {
-	return EFAULT;
+#else
+    if ((status = next_stat(dir, &sb)) != 0) {
+        return status;
+    }
+#endif
+
+    if ((sb.st_mode & S_IFMT) != S_IFDIR) {
+        return ENOTDIR;
     }
 
     ptr = rindex(dir, 0);
@@ -973,7 +1166,7 @@ int chroot (const char *path)
 
     ld_library_path = getenv("LD_LIBRARY_PATH");
     if (ld_library_path == NULL) {
-	ld_library_path = "";
+        ld_library_path = "";
     }
 
     if ((len = strlen(ld_library_path)+strlen(dir)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_MAXPATH) {
@@ -995,6 +1188,35 @@ int chroot (const char *path)
     free(tmp);
     return 0;
 }
+
+
+#ifdef AF_UNIX
+/* #include <sys/types.h> */
+/* #include <sys/socket.h> */
+/* #include <sys/un.h> */
+int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *path;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr_un;
+    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    if (next_connect == NULL) fakechroot_init();
+    if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
+        path = addr_un->sun_path;
+        expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        if (strlen(path) >= sizeof(addr_un->sun_path)) {
+            return ENAMETOOLONG;
+        }
+        memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
+        newaddr_un.sun_family = addr_un->sun_family;
+        strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        return next_connect(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
+    }
+    return next_connect(sockfd, addr, addrlen);
+}
+#endif
 
 
 /* #include <sys/types.h> */
@@ -1043,7 +1265,21 @@ void *dlopen (const char *filename, int flag)
 }
 
 
+#ifdef HAVE_EACCESS
+/* #define _GNU_SOURCE */
+/* #include <unistd.h> */
+int eaccess (const char *pathname, int mode)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_eaccess == NULL) fakechroot_init();
+    return next_eaccess(pathname, mode);
+}
+#endif
+
+
 #ifdef HAVE_EUIDACCESS
+/* #define _GNU_SOURCE */
 /* #include <unistd.h> */
 int euidaccess (const char *pathname, int mode)
 {
@@ -1186,6 +1422,8 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char c;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
+    strncpy(argv0, filename, FAKECHROOT_MAXPATH);
+
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     strcpy(tmp, filename);
     filename = tmp;
@@ -1218,11 +1456,8 @@ int execve (const char *filename, char *const argv [], char *const envp[])
                     ptr = &hashbang[j];
                     expand_chroot_path(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
                     strcpy(newfilename, ptr);
-                    strcpy(argv0, &hashbang[j]);
-                    newargv[n++] = argv0;
-                } else {
-                    newargv[n++] = &hashbang[j];
                 }
+                newargv[n++] = &hashbang[j];
             }
             j = i + 1;
         }
@@ -1230,8 +1465,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
             break;
     }
 
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-    newargv[n++] = filename;
+    newargv[n++] = argv0;
 
     for (i = 1; argv[i] != NULL && i<argv_max; ) {
         newargv[n++] = argv[i++];
@@ -1339,6 +1573,34 @@ int execvp (const char *file, char *const argv [])
 }
 
 
+#ifdef HAVE_FCHMODAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <sys/stat.h> */
+int fchmodat (int dirfd, const char *path, mode_t mode, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_fchmodat == NULL) fakechroot_init();
+    return next_fchmodat(dirfd, path, mode, flag);
+}
+#endif
+
+
+/* #define _ATFILE_SOURCE */
+#ifdef HAVE_FCHOWNAT
+/* #include <fcntl.h> */
+/* #include <unistd.h> */
+int fchownat (int dirfd, const char *path, uid_t owner, gid_t group, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_fchownat == NULL) fakechroot_init();
+    return next_fchownat(dirfd, path, owner, group, flag);
+}
+#endif
+
+
 /* #include <stdio.h> */
 FILE *fopen (const char *path, const char *mode)
 {
@@ -1392,15 +1654,15 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
 
     for (n=0, p=path_argv; *p; n++, p++);
     if ((new_path_argv = malloc(n*(sizeof(char *)))) == NULL) {
-	return NULL;
+        return NULL;
     }
 
     for (n=0, p=path_argv, np=new_path_argv; *p; n++, p++, np++) {
-	path = *p;
-	expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-	*np = path;
+        path = *p;
+        expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        *np = path;
     }
-    
+
     if (next_fts_open == NULL) fakechroot_init();
     return next_fts_open(new_path_argv, options, compar);
 }
@@ -1438,7 +1700,8 @@ int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb,
 
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 /* #include <unistd.h> */
-char * get_current_dir_name (void) {
+char * get_current_dir_name (void)
+{
     char *cwd, *oldptr, *newptr;
     char *fakechroot_path, *fakechroot_ptr;
 
@@ -1479,6 +1742,63 @@ char * getcwd (char *buf, size_t size)
 }
 
 
+#ifdef AF_UNIX
+/* #include <sys/socket.h> */
+int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
+{
+    int status;
+    socklen_t newnamelen;
+    struct sockaddr_un newname;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    if (next_getpeername == NULL) fakechroot_init();
+    memset(&newname, 0, sizeof(struct sockaddr_un));
+    status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
+    if (status != 0) {
+        return status;
+    }
+    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
+        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+        narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
+        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+    }
+
+    memcpy(name, &newname, sizeof(struct sockaddr_un));
+    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    return status;
+}
+#endif
+
+
+#ifdef AF_UNIX
+/* #include <sys/socket.h> */
+int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
+{
+    int status;
+    socklen_t newnamelen;
+    struct sockaddr_un newname;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    if (next_getsockname == NULL) fakechroot_init();
+    memset(&newname, 0, sizeof(struct sockaddr_un));
+    status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
+    if (status != 0) {
+        return status;
+    }
+    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
+        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+        narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
+        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+    }
+
+    memcpy(name, &newname, sizeof(struct sockaddr_un));
+    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    return status;
+}
+#endif
+
+
+#ifdef HAVE_GETWD
 /* #include <unistd.h> */
 char * getwd (char *buf)
 {
@@ -1493,6 +1813,7 @@ char * getwd (char *buf)
     narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
     return cwd;
 }
+#endif
 
 
 #ifdef HAVE_GETXATTR
@@ -1742,6 +2063,20 @@ int mkdir (const char *pathname, mode_t mode)
 }
 
 
+#ifdef HAVE_MKDIRAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <sys/stat.h> */
+int mkdirat (int dirfd, const char *pathname, mode_t mode)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_mkdir == NULL) fakechroot_init();
+    return next_mkdirat(dirfd, pathname, mode);
+}
+#endif
+
+
 #ifdef HAVE_MKDTEMP
 /* #include <stdlib.h> */
 char *mkdtemp (char *template)
@@ -1905,7 +2240,8 @@ int nftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
-int open (const char *pathname, int flags, ...) {
+int open (const char *pathname, int flags, ...)
+{
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
@@ -1943,6 +2279,50 @@ int open64 (const char *pathname, int flags, ...)
 }
 
 
+#ifdef HAVE_OPENAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+int openat (int dirfd, const char *pathname, int flags, ...)
+{
+    int mode = 0;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
+    if (flags & O_CREAT) {
+        va_list arg;
+        va_start (arg, flags);
+        mode = va_arg (arg, int);
+        va_end (arg);
+    }
+
+    if (next_openat == NULL) fakechroot_init();
+    return next_openat(dirfd, pathname, flags, mode);
+}
+#endif
+
+
+#ifdef HAVE_OPENAT64
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+int openat64 (int dirfd, const char *pathname, int flags, ...)
+{
+    int mode = 0;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
+    if (flags & O_CREAT) {
+        va_list arg;
+        va_start (arg, flags);
+        mode = va_arg (arg, int);
+        va_end (arg);
+    }
+
+    if (next_openat64 == NULL) fakechroot_init();
+    return next_openat64(dirfd, pathname, flags, mode);
+}
+#endif
+
+
 #if !defined(HAVE___OPENDIR2)
 /* #include <sys/types.h> */
 /* #include <dirent.h> */
@@ -1967,7 +2347,7 @@ long pathconf (const char *path, int name)
 
 
 /* #include <unistd.h> */
-int readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
+READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
@@ -2051,6 +2431,23 @@ int rename (const char *oldpath, const char *newpath)
     if (next_rename == NULL) fakechroot_init();
     return next_rename(oldpath, newpath);
 }
+
+
+#ifdef HAVE_RENAMEAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+/* #include <stdio.h> */
+int renameat (int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_rename == NULL) fakechroot_init();
+    return next_renameat(olddirfd, oldpath, newdirfd, newpath);
+}
+#endif
 
 
 #ifdef HAVE_REVOKE
@@ -2221,6 +2618,19 @@ int unlink (const char *pathname)
     if (next_unlink == NULL) fakechroot_init();
     return next_unlink(pathname);
 }
+
+
+#ifdef HAVE_UNLINKAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+int unlinkat (int dirfd, const char *pathname, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_unlinkat == NULL) fakechroot_init();
+    return next_unlinkat(dirfd, pathname, flags);
+}
+#endif
 
 
 /* #include <sys/types.h> */

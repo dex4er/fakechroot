@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: /local/scripts/fakechroot.in 160 2005-09-08T15:35:16.405737Z dexter  $
+# $Id: /svn/trunk/scripts/fakechroot.in 160 2005-09-08T15:35:16.405737Z dexter  $
 
 usage () {
 cat - >&2 <<EOF

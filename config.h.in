@@ -54,6 +54,9 @@
 /* Define to 1 if you have the `dlopen' function. */
 #undef HAVE_DLOPEN
 
+/* Define to 1 if you have the `eaccess' function. */
+#undef HAVE_EACCESS
+
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS
 
@@ -74,6 +77,12 @@
 
 /* Define to 1 if you have the `execvp' function. */
 #undef HAVE_EXECVP
+
+/* Define to 1 if you have the `fchmodat' function. */
+#undef HAVE_FCHMODAT
+
+/* Define to 1 if you have the `fchownat' function. */
+#undef HAVE_FCHOWNAT
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -182,6 +191,9 @@
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
 
+/* Define to 1 if you have the `mkdirat' function. */
+#undef HAVE_MKDIRAT
+
 /* Define to 1 if you have the `mkdtemp' function. */
 #undef HAVE_MKDTEMP
 
@@ -215,6 +227,12 @@
 /* Define to 1 if you have the `open64' function. */
 #undef HAVE_OPEN64
 
+/* Define to 1 if you have the `openat' function. */
+#undef HAVE_OPENAT
+
+/* Define to 1 if you have the `openat64' function. */
+#undef HAVE_OPENAT64
+
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
 
@@ -235,6 +253,9 @@
 
 /* Define to 1 if you have the `rename' function. */
 #undef HAVE_RENAME
+
+/* Define to 1 if you have the `renameat' function. */
+#undef HAVE_RENAMEAT
 
 /* Define to 1 if you have the `revoke' function. */
 #undef HAVE_REVOKE
@@ -323,6 +344,9 @@
 /* Define to 1 if you have the `unlink' function. */
 #undef HAVE_UNLINK
 
+/* Define to 1 if you have the `unlinkat' function. */
+#undef HAVE_UNLINKAT
+
 /* Define to 1 if you have the `utime' function. */
 #undef HAVE_UTIME
 
@@ -340,6 +364,12 @@
 
 /* Define to 1 if you have the `_xftw64' function. */
 #undef HAVE__XFTW64
+
+/* Define to 1 if you have the `__fxstatat' function. */
+#undef HAVE___FXSTATAT
+
+/* Define to 1 if you have the `__fxstatat64' function. */
+#undef HAVE___FXSTATAT64
 
 /* Define to 1 if you have the `__lxstat' function. */
 #undef HAVE___LXSTAT
@@ -400,6 +430,9 @@
 /* Define to the type of arg 3 for `readlink'. */
 #undef READLINK_TYPE_ARG3
 
+/* Define to the type of return value for `readlink'. */
+#undef READLINK_TYPE_RETURN
+
 /* Define to the type of arg 1 for `scandir'. */
 #undef SCANDIR_TYPE_ARG1
 
@@ -412,9 +445,12 @@
 /* Define to the type of arg 4 for `scandir'. */
 #undef SCANDIR_TYPE_ARG4
 
+/* Define to the type of return value for `scandir'. */
+#undef SCANDIR_TYPE_RETURN
+
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
+   automatically deduced at runtime.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */
@@ -441,10 +477,10 @@
 /* Define to `int' if <sys/types.h> does not define. */
 #undef mode_t
 
-/* Define to `long' if <sys/types.h> does not define. */
+/* Define to `long int' if <sys/types.h> does not define. */
 #undef off_t
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
 /* Define to `int' if <sys/types.h> doesn't define. */

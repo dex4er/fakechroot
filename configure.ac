@@ -1,7 +1,7 @@
-# $Id: /local/configure.ac 186 2005-10-24T10:09:41.420717Z dexter  $
+# $Id: /svn/trunk/configure.ac 357 2008-07-17T11:53:43.382502Z dexter  $
 
 AC_PREREQ(2.59)
-AC_INIT([fakechroot], [2.5], [dexter@debian.org])
+AC_INIT([fakechroot], [2.7.1], [dexter@debian.org])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -63,6 +63,8 @@ AC_FUNC_MALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([ \
+__fxstatat \
+__fxstatat64 \
 __lxstat \
 __lxstat64 \
 __open \
@@ -84,6 +86,7 @@ creat \
 creat64 \
 dlmopen \
 dlopen \
+eaccess \
 euidaccess \
 execl \
 execle \
@@ -91,6 +94,8 @@ execlp \
 execv \
 execve \
 execvp \
+fchmodat \
+fchownat \
 fopen \
 fopen64 \
 freopen \
@@ -118,6 +123,7 @@ lstat \
 lstat64 \
 lutimes \
 mkdir \
+mkdirat \
 mkdtemp \
 mknod \
 mkfifo \
@@ -128,6 +134,8 @@ nftw \
 nftw64 \
 open \
 open64 \
+openat \
+openat64 \
 opendir \
 pathconf \
 readlink \
@@ -135,6 +143,7 @@ realpath \
 remove \
 removexattr \
 rename \
+renameat \
 revoke \
 rmdir \
 scandir \
@@ -150,6 +159,7 @@ tmpnam \
 truncate \
 truncate64 \
 unlink \
+unlinkat \
 ulckpwdf \
 utime \
 utimes \

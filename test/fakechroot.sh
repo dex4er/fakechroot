@@ -24,27 +24,51 @@ do
     ln -sf $d testtree/$d
 done
 
-for f in \
-    /bin/csh \
-    /bin/sh \
-    /bin/bash \
-    /bin/grep \
-    /bin/ls \
-    /bin/pwd \
-    /bin/sh \
-    /usr/bin/id \
-    /usr/bin/find \
-    /usr/bin/perl \
-    /usr/bin/ltrace \
-    /usr/bin/strace \
-    /usr/sbin/chroot \
-    /usr/local/bin/bash \
-    /usr/local/bin/strace
+for p in \
+    '/bin/bash' \
+    '/bin/busybox' \
+    '/bin/cat' \
+    '/bin/chmod' \
+    '/bin/csh' \
+    '/bin/cp' \
+    '/bin/grep' \
+    '/bin/sh' \
+    '/bin/ls' \
+    '/bin/mkdir' \
+    '/bin/ps' \
+    '/bin/pwd' \
+    '/bin/rm' \
+    '/bin/sh' \
+    '/lib/ld-linux.so.*' \
+    '/lib/ld-uClibc.so.*' \
+    '/lib/libacl.so.*' \
+    '/lib/libattr.so.*' \
+    '/lib/libc.so.*' \
+    '/lib/libcrypt.so.*' \
+    '/lib/libdl.so.*' \
+    '/lib/libgcc_s.so.*' \
+    '/lib/libpthread.so.*' \
+    '/lib/librt.so.*' \
+    '/lib/libselinux.so.*' \
+    '/lib/libm.so.*' \
+    '/usr/bin/basename' \
+    '/usr/bin/dirname' \
+    '/usr/bin/find' \
+    '/usr/bin/id' \
+    '/usr/bin/ltrace' \
+    '/usr/bin/perl' \
+    '/usr/bin/strace' \
+    '/usr/sbin/chroot' \
+    '/usr/local/bin/bash' \
+    '/usr/local/bin/strace'
 do
-    ln -sf $f testtree/$f
+    for f in $p; do
+	cp -pf $PREFIX$f testtree/$(dirname $f)
+    done
 done
 
-dir=`cd \`pwd\`/../src/.libs; pwd`
+dir=`cd \`pwd\`/../src/.libs 2>/dev/null && pwd`
+test -n "$dir" || dir=/usr/lib/fakechroot
 
 #if [ -n "$LD_LIBRARY_PATH" ]; then
 #    LD_LIBRARY_PATH="$dir:$LD_LIBRARY_PATH"
@@ -60,8 +84,10 @@ else
 fi
 export LD_PRELOAD
 
+echo "LD_PRELOAD=$LD_PRELOAD"
+
 if [ -n "$*" ]; then
-    HOME=/root /usr/sbin/chroot `pwd`/testtree "$@"
+    HOME=/root testtree/usr/sbin/chroot `pwd`/testtree "$@"
 else
-    HOME=/root /usr/sbin/chroot `pwd`/testtree /bin/sh
+    HOME=/root testtree/usr/sbin/chroot `pwd`/testtree /bin/bash
 fi
