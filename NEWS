@@ -1,0 +1,31 @@
+== Version 2.7.1 ==
+
+17 Jul 2008
+
+* Compiles with older libc: configure script detects readlink type of return value.
+
+== Version 2.7 ==
+
+15 Jul 2008
+
+* Stability and compatibility were improved for the latest libc.
+* Fixes were made for latest version of coreutils.
+* Fixed [=readlink](2) function to be ssize_t as it is in newer libc.
+* New functions: [=__fxstatat](2), [=__fxstatat64](2), [=fchmodat](2), [=fchownat](2), [=__openat(2)], [=__openat64](2), [=unlinkat](2).  It fixes last coreutils.
+* New functions: [=mkdirat(2)], [=renameat](2).
+* Fixed [=chroot](2) function to not change current working directory.
+* Fixed [=chroot](2) function to handle relative path.
+* Fixed [=execve](2) function to not expand argv0 and handle "#!" correctly.
+* New [=eaccess](3) function backported from Klik.
+* New functions: [=bind](2), [=connect](2), [=getpeername](2), [=getsockname](2). They support PF_UNIX sockets.
+* More memory allocation for fakechroot_init.
+
+== Version 2.6 ==
+
+5 May 2007
+
+* New environment variable FAKECHROOT_EXCLUDE_PATH.
+* Fixed [=getcwd](3).  Unbreaks "cd" command.
+* Fixed [=readlink](2) function.  Unbreaks "readlink" command.
+* Fixed [=mktemp](3) function.  Unbreaks "patch" and "ranlib" command.
+* The [=chroot](2) function is now recursive and allows nested chroots.
