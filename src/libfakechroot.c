@@ -1633,7 +1633,7 @@ FILE *fopen (const char *path, const char *mode)
 }
 
 
-#ifdev HAVE_FOPEN64
+#ifdef HAVE_FOPEN64
 /* #include <stdio.h> */
 FILE *fopen64 (const char *path, const char *mode)
 {
@@ -1655,7 +1655,7 @@ FILE *freopen (const char *path, const char *mode, FILE *stream)
 }
 
 
-#ifdev HAVE_FREOPEN64
+#ifdef HAVE_FREOPEN64
 /* #include <stdio.h> */
 FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 {
