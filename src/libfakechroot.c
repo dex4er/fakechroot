@@ -342,7 +342,9 @@ static int     (*next_chown) (const char *path, uid_t owner, gid_t group) = NULL
 static int     (*next_connect) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
 #endif
 static int     (*next_creat) (const char *pathname, mode_t mode) = NULL;
+#ifdef HAVE_CREAT64
 static int     (*next_creat64) (const char *pathname, mode_t mode) = NULL;
+#endif
 #ifdef HAVE_DLMOPEN
 static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag) = NULL;
 #endif
@@ -366,9 +368,13 @@ static int     (*next_fchmodat) (int dirfd, const char *path, mode_t mode, int f
 static int     (*next_fchownat) (int dirfd, const char *path, uid_t owner, gid_t group, int flag) = NULL;
 #endif
 static FILE *  (*next_fopen) (const char *path, const char *mode) = NULL;
+#ifdef HAVE_FOPEN64
 static FILE *  (*next_fopen64) (const char *path, const char *mode) = NULL;
+#endif
 static FILE *  (*next_freopen) (const char *path, const char *mode, FILE *stream) = NULL;
+#ifdef HAVE_FREOPEN64
 static FILE *  (*next_freopen64) (const char *path, const char *mode, FILE *stream) = NULL;
+#endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
 static FTS *   (*next_fts_open) (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) = NULL;
@@ -451,7 +457,9 @@ static char *  (*next_mkdtemp) (char *template) = NULL;
 static int     (*next_mknod) (const char *pathname, mode_t mode, dev_t dev) = NULL;
 static int     (*next_mkfifo) (const char *pathname, mode_t mode) = NULL;
 static int     (*next_mkstemp) (char *template) = NULL;
+#ifdef HAVE_MKSTEMP64
 static int     (*next_mkstemp64) (char *template) = NULL;
+#endif
 static char *  (*next_mktemp) (char *template) = NULL;
 #ifdef HAVE_NFTW
 static int     (*next_nftw) (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag, struct FTW *s), int nopenfd, int flags) = NULL;
@@ -460,7 +468,9 @@ static int     (*next_nftw) (const char *dir, int (*fn)(const char *file, const 
 static int     (*next_nftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag, struct FTW *s), int nopenfd, int flags) = NULL;
 #endif
 static int     (*next_open) (const char *pathname, int flags, ...) = NULL;
+#ifdef HAVE_OPEN64
 static int     (*next_open64) (const char *pathname, int flags, ...) = NULL;
+#endif
 #ifdef HAVE_OPENAT
 static int     (*next_openat) (int dirfd, const char *pathname, int flags, ...) = NULL;
 #endif
@@ -601,7 +611,9 @@ void fakechroot_init (void)
     nextsym(connect, "connect");
 #endif
     nextsym(creat, "creat");
+#ifdef HAVE_CREAT64
     nextsym(creat64, "creat64");
+#endif
 #ifdef HAVE_DLMOPEN
     nextsym(dlmopen, "dlmopen");
 #endif
@@ -625,9 +637,13 @@ void fakechroot_init (void)
     nextsym(fchownat, "fchownat");
 #endif
     nextsym(fopen, "fopen");
+#ifdef HAVE_FOPEN64
     nextsym(fopen64, "fopen64");
+#endif
     nextsym(freopen, "freopen");
+#ifdef HAVE_FREOPEN64
     nextsym(freopen64, "freopen64");
+#endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
     nextsym(fts_open, "fts_open");
@@ -710,7 +726,9 @@ void fakechroot_init (void)
     nextsym(mknod, "mknod");
     nextsym(mkfifo, "mkfifo");
     nextsym(mkstemp, "mkstemp");
+#ifdef HAVE_MKSTEMP64
     nextsym(mkstemp64, "mkstemp64");
+#endif
     nextsym(mktemp, "mktemp");
 #ifdef HAVE_NFTW
     nextsym(nftw, "nftw");
@@ -719,7 +737,9 @@ void fakechroot_init (void)
     nextsym(nftw64, "nftw64");
 #endif
     nextsym(open, "open");
+#ifdef HAVE_OPEN64
     nextsym(open64, "open64");
+#endif
 #ifdef HAVE_OPENAT
     nextsym(openat, "openat");
 #endif
@@ -832,7 +852,7 @@ int __fxstatat (int ver, int dirfd, const char *pathname, struct stat *buf, int 
 #endif
 
 
-#ifdef HAVE__FXSTATAT64
+#ifdef HAVE___FXSTATAT64
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
 /* #include <sys/stat.h> */
@@ -1231,6 +1251,7 @@ int creat (const char *pathname, mode_t mode)
 }
 
 
+#ifdef HAVE_CREAT64
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
@@ -1241,6 +1262,7 @@ int creat64 (const char *pathname, mode_t mode)
     if (next_creat64 == NULL) fakechroot_init();
     return next_creat64(pathname, mode);
 }
+#endif
 
 
 #ifdef HAVE_DLMOPEN
@@ -1611,6 +1633,7 @@ FILE *fopen (const char *path, const char *mode)
 }
 
 
+#ifdev HAVE_FOPEN64
 /* #include <stdio.h> */
 FILE *fopen64 (const char *path, const char *mode)
 {
@@ -1619,6 +1642,7 @@ FILE *fopen64 (const char *path, const char *mode)
     if (next_fopen64 == NULL) fakechroot_init();
     return next_fopen64(path, mode);
 }
+#endif
 
 
 /* #include <stdio.h> */
@@ -1631,6 +1655,7 @@ FILE *freopen (const char *path, const char *mode, FILE *stream)
 }
 
 
+#ifdev HAVE_FREOPEN64
 /* #include <stdio.h> */
 FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 {
@@ -1639,6 +1664,7 @@ FILE *freopen64 (const char *path, const char *mode, FILE *stream)
     if (next_freopen64 == NULL) fakechroot_init();
     return next_freopen64(path, mode, stream);
 }
+#endif
 
 
 #ifdef HAVE_FTS_OPEN
@@ -2155,6 +2181,7 @@ int mkstemp (char *template)
 }
 
 
+#ifdef HAVE_MKSTEMP64
 /* #include <stdlib.h> */
 int mkstemp64 (char *template)
 {
@@ -2179,6 +2206,7 @@ int mkstemp64 (char *template)
     }
     return fd;
 }
+#endif
 
 
 /* #include <stdlib.h> */
@@ -2258,6 +2286,7 @@ int open (const char *pathname, int flags, ...)
 }
 
 
+#ifdef HAVE_OPEN64
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
@@ -2277,6 +2306,7 @@ int open64 (const char *pathname, int flags, ...)
     if (next_open64 == NULL) fakechroot_init();
     return next_open64(pathname, flags, mode);
 }
+#endif
 
 
 #ifdef HAVE_OPENAT

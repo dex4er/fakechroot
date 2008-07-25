@@ -1,3 +1,12 @@
+fakechroot (2.8-1) unstable; urgency=medium
+
+  * src/libfakechroot.c:
+    - Fixed __fxstatat64(3) function which broke chown(1) command on i386
+      architecture.  Closes: #473682.
+    - Fixed FreeBSD port.  All *64(2) functions are optional.
+
+ -- Piotr Roszatycki <dexter@debian.org>  Fri, 25 Jul 2008 15:01:40 +0200
+
 fakechroot (2.7.1-1) unstable; urgency=low
 
   * src/libfakechroot.c:
