@@ -1,7 +1,7 @@
-# $Id: /trunk/fake/configure.ac 191 2005-10-24T10:09:41.420717Z dexter  $
+# $Id: /svn/trunk/fake/configure.ac 264 2008-06-06T09:27:54.581803Z dexter  $
 
 AC_PREREQ(2.59)
-AC_INIT([fakechroot], [2.5], [dexter@debian.org])
+AC_INIT([fakechroot], [2.7], [dexter@debian.org])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

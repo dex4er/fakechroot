@@ -1,0 +1,25 @@
+The fakechroot project was started as dirty hack because I've got an access
+to some system without root privileges. I really wanted to install additional
+software and I imagined that no access to the root account should be no
+problem at all.
+
+I'm glad to see that fakechroot had found another purposes:
+
+  * to be a part of Klik application installer (http://klik.atekon.de)
+  * to be a supporter for pbuilder building system
+    (http://pbuilder.alioth.debian.org/)
+  * to be a supporter for Apport retracer
+    (https://wiki.ubuntu.com/Apport)
+  * to be a part of Slind - a minimal Debian-based distro for embedded devices
+    (https://www.slind.org/Main_Page)
+
+I would like to thank to:
+
+  * Marcin Jakubowski <user@debian.pl>, for an inspiration
+  * joost witteveen <joost@rulcmc.leidenuniv.nl>, for its fakeroot
+  * Lionel Tricon <lionel.tricon@free.fr>, for an exclude path list feature
+  * Mark Eichin <eichin@metacarta.com>, for countless patches with bugfixes
+  * Martin Pitt <martin.pitt@ubuntu.com>, for great Ubuntu support
+  * Daniel Kahn Gillmor <dkg-debian.org@fifthhorseman.net>, for testing
+
+ -- Piotr Roszatycki <dexter@debian.org>  Tue, 15 Jul 2008 14:07:14 +0200

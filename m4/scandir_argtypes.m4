@@ -8,40 +8,41 @@ AC_DEFUN([AC_FUNC_SCANDIR_ARGTYPES],
 [AC_CHECK_HEADERS(dirent.h)
 AC_CACHE_CHECK([types of arguments for scandir],
 [ac_cv_func_scandir_args],
-[for ac_arg1 in 'const char *dir'; do
- for ac_arg2 in 'struct dirent ***namelist'; do
-  for ac_arg3 in 'int(*filter)(const struct dirent *)' 'int(*filter)(struct dirent *)'; do
-   for ac_arg4 in 'int(*compar)(const void *,const void *)'; do
-    AC_COMPILE_IFELSE(
+[for ac_return in 'int'; do
+ for ac_arg1 in 'const char *dir'; do
+  for ac_arg2 in 'struct dirent ***namelist'; do
+   for ac_arg3 in 'int(*filter)(const struct dirent *)' 'int(*filter)(struct dirent *)'; do
+    for ac_arg4 in 'int(*compar)(const void *,const void *)'; do
+     AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
 [AC_INCLUDES_DEFAULT
 #ifdef HAVE_UNISTD_H
 #include <dirent.h>
 #endif
 ],
-			[extern int scandir ($ac_arg1,
-					    $ac_arg2,
-					    $ac_arg3,
-					    $ac_arg4);])],
-	      [ac_cv_func_scandir_args="$ac_arg1;$ac_arg2;$ac_arg3;$ac_arg4"; break 3])
+  	    [extern $ac_return scandir ($ac_arg1, $ac_arg2, $ac_arg3, $ac_arg4);])],
+	    [ac_cv_func_scandir_args="$ac_return;$ac_arg1;$ac_arg2;$ac_arg3;$ac_arg4"; break 5])
+    done
    done
   done
  done
 done
 # Provide a safe default value.
-: ${ac_cv_func_scandir_args='(default) const char *dir;struct dirent ***namelist;int(*filter)(const struct dirent *);int(*compar)(const void *,const void *)'}
+: ${ac_cv_func_scandir_args='(default) int;const char *dir;struct dirent ***namelist;int(*filter)(const struct dirent *);int(*compar)(const void *,const void *)'}
 ])
 ac_save_IFS=$IFS; IFS=';'
 set dummy `echo "$ac_cv_func_scandir_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`
 IFS=$ac_save_IFS
 shift
-AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG1, $[1],
+AC_DEFINE_UNQUOTED(SCANDIR_TYPE_RETURN, $[1],
+		   [Define to the type of return value for `scandir'.])
+AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG1, $[2],
 		   [Define to the type of arg 1 for `scandir'.])
-AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG2, $[2],
+AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG2, $[3],
 		   [Define to the type of arg 2 for `scandir'.])
-AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG3, $[3],
+AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG3, $[4],
 		   [Define to the type of arg 3 for `scandir'.])
-AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG4, $[4],
+AC_DEFINE_UNQUOTED(SCANDIR_TYPE_ARG4, $[5],
 		   [Define to the type of arg 4 for `scandir'.])
 rm -f conftest*
 ])
