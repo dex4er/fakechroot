@@ -3,6 +3,8 @@ fakechroot (2.9-1) unstable; urgency=medium
   * src/libfakechroot.c:
     - Fixed getpeername(2) and getsockname(2).  Thanks to Axel Thimm and
       Fedora people.
+  * debian/packages:
+    - Autodetected biarch libdir for amd64 architecture on Debian and Ubuntu.
 
  -- Piotr Roszatycki <dexter@debian.org>  Sun, 19 Oct 2008 13:20:47 +0200
 

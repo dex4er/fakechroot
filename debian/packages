@@ -4,10 +4,18 @@
 #   $ yada rebuild rules
 
 
-%define libfakechroot_version %`grep '^AC_INIT' configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
-%define biarch_amd64_libdir /emul/ia32-linux/usr/lib
-# %define biarch_amd64_libdir /usr/lib32
+%define lsb_release_i %`lsb_release -s -i || echo Debian`
+%define distributor %{?lsb_release_i:%{lsb_release_i}}%{!?lsb_release_i:Debian}
 
+%define libfakechroot_version %`grep '^AC_INIT' configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
+
+%define biarch_amd64_libdir_Debian /emul/ia32-linux/usr/lib
+%define biarch_amd64_libdir_Ubuntu /usr/lib32
+%define biarch_amd64_libdir %{biarch_amd64_libdir_%{distributor}}
+
+# distributor=%{distributor}
+# biarch_amd64_libdir_%{distributor}=%{biarch_amd64_libdir_%{distributor}}
+# biarch_amd64_libdir=%{biarch_amd64_libdir}
 
 Source: fakechroot
 Section: utils
