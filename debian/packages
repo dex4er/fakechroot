@@ -19,6 +19,7 @@ Homepage: http://fakechroot.alioth.debian.org/
 Vcs-Browser: http://svn.debian.org/wsvn/fakechroot/trunk/
 Vcs-Svn: svn://svn.debian.org/fakechroot/trunk/
 %endif
+Upstream-Source: http://svn.debian.org/wsvn/fakechroot/tags/%{libfakechroot_version}-1/fakechroot_%{libfakechroot_version}.orig.tar.gz?op=file
 Description: gives a fake chroot environment
 Copyright: LGPL
  libfakechroot -- fake chroot environment

@@ -1770,6 +1770,7 @@ char * getcwd (char *buf, size_t size)
 
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
+/* #include <sys/un.h> */
 int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
 {
     int status;
@@ -1778,7 +1779,8 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getpeername == NULL) fakechroot_init();
-    memset(&newname, 0, sizeof(struct sockaddr_un));
+    newnamelen = sizeof(struct sockaddr_un);
+    memset(&newname, 0, newnamelen);
     status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
     if (status != 0) {
         return status;
@@ -1798,6 +1800,7 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
 
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
+/* #include <sys/un.h> */
 int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
 {
     int status;
@@ -1806,7 +1809,8 @@ int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getsockname == NULL) fakechroot_init();
-    memset(&newname, 0, sizeof(struct sockaddr_un));
+    newnamelen = sizeof(struct sockaddr_un);
+    memset(&newname, 0, newnamelen);
     status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
     if (status != 0) {
         return status;
