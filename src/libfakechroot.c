@@ -1466,11 +1466,17 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char hashbang[FAKECHROOT_MAXPATH];
     size_t argv_max = 1024;
     const char **newargv = alloca (argv_max * sizeof (const char *));
+    char **newenvp, **ep;
+    char *env;
     char tmp[FAKECHROOT_MAXPATH], newfilename[FAKECHROOT_MAXPATH], argv0[FAKECHROOT_MAXPATH];
     char *ptr;
     unsigned int i, j, n;
+    size_t sizeenvp;
     char c;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *envkey[] = { "FAKECHROOT", "FAKECHROOT_BASE",
+                       "FAKECHROOT_VERSION", "FAKECHROOT_EXCLUDE_PATH",
+                       "LD_LIBRARY_PATH", "LD_PRELOAD" };
 
     strncpy(argv0, filename, FAKECHROOT_MAXPATH);
 
@@ -1492,9 +1498,45 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 
     if (next_execve == NULL) fakechroot_init();
 
-    if (hashbang[0] != '#' || hashbang[1] != '!')
-        return next_execve(filename, argv, envp);
+    /* Scan envp and check its size */
+    sizeenvp = 0;
+    for (ep = envp; *ep != NULL; ++ep) {
+        sizeenvp++;
+    }
 
+    /* Copy envp to newenvp */
+    newenvp = malloc( sizeenvp * sizeof (char *) + sizeof(envkey) );
+    if (newenvp == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    for (ep = envp, i = 0; *ep != NULL; ++ep, ++i) {
+        newenvp[i] = *ep;
+    }
+
+    /* Add our variables to newenvp */
+    newenvp = realloc( newenvp, ((sizeenvp + 1) * sizeof(char *) + sizeof(envkey)) );
+    if (newenvp == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    for (j = 0; j < sizeof(envkey) / sizeof(char *); j++) {
+        env = getenv(envkey[j]);
+        if (env != NULL) {
+            newenvp[i] = malloc(strlen(envkey[j]) + strlen(env) + 3);
+            strcpy(newenvp[i], envkey[j]);
+            strcat(newenvp[i], "=");
+            strcat(newenvp[i], env);
+            i++;
+        }
+    }
+    newenvp[i] = NULL;
+
+    /* No hashbang in argv */
+    if (hashbang[0] != '#' || hashbang[1] != '!')
+        return next_execve(filename, argv, newenvp);
+
+    /* For hashbang we must fix argv[0] */
     hashbang[i] = hashbang[i+1] = 0;
     for (i = j = 2; (hashbang[i] == ' ' || hashbang[i] == '\t') && i < FAKECHROOT_MAXPATH; i++, j++);
     for (n = 0; i < FAKECHROOT_MAXPATH; i++) {
@@ -1523,7 +1565,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 
     newargv[n] = 0;
 
-    return next_execve(newfilename, (char *const *)newargv, envp);
+    return next_execve(newfilename, (char *const *)newargv, newenvp);
 }
 
 

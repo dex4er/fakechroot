@@ -4,6 +4,8 @@
 
 * Fixed were made for [=getpeername](2) and [=getsockname](2) functions.  Thanks to
   Axel Thimm and Fedora people.
+* Fixed were made for [=execve](2).  Always copy necessary variables to new
+  environment.
 * New function: [=futimesat](2).  Fixes "touch -m" command.
 * New function: [=bindtextdomain](2).
 
