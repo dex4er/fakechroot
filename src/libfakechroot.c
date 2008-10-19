@@ -26,6 +26,7 @@
 
 #include <config.h>
 
+#define _ATFILE_SOURCE
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
@@ -46,6 +47,9 @@
 #include <glob.h>
 #include <utime.h>
 #include <pwd.h>
+#ifdef HAVE_LIBINTL_H
+#include <libintl.h>
+#endif
 #ifdef HAVE_FTS_H
 #include <fts.h>
 #endif
@@ -331,6 +335,9 @@ static int     (*next_acct) (const char *filename) = NULL;
 #ifdef AF_UNIX
 static int     (*next_bind) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
 #endif
+#ifdef HAVE_BINDTEXTDOMAIN
+static char *  (*next_bindtextdomain) (const char *domainname, const char *dirname) = NULL;
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 static char *  (*next_canonicalize_file_name) (const char *name) = NULL;
 #endif
@@ -389,6 +396,9 @@ static int     (*next_ftw) (const char *dir, int (*fn)(const char *file, const s
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
 static int     (*next_ftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd) = NULL;
 #endif
+#endif
+#ifdef HAVE_FUTIMESAT
+static int     (*next_futimesat) (int fd, const char *filename, const struct timeval tv[2]) = NULL;
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 static char *  (*next_get_current_dir_name) (void) = NULL;
@@ -600,6 +610,9 @@ void fakechroot_init (void)
 #ifdef AF_UNIX
     nextsym(bind, "bind");
 #endif
+#ifdef HAVE_BINDTEXTDOMAIN
+    nextsym(bindtextdomain, "bindtextdomain");
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
     nextsym(canonicalize_file_name, "canonicalize_file_name");
 #endif
@@ -658,6 +671,9 @@ void fakechroot_init (void)
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
     nextsym(ftw64, "ftw64");
 #endif
+#endif
+#ifdef HAVE_FUTIMESAT
+    nextsym(futimesat, "futimesat");
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
     nextsym(get_current_dir_name, "get_current_dir_name");
@@ -1057,6 +1073,18 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
         return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_bind(sockfd, addr, addrlen);
+}
+#endif
+
+
+#ifdef HAVE_BINDTEXTDOMAIN
+/* #include <libintl.h> */
+char * bindtextdomain (const char *domainname, const char *dirname)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dirname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_bindtextdomain == NULL) fakechroot_init();
+    return next_bindtextdomain(domainname, dirname);
 }
 #endif
 
@@ -1721,6 +1749,19 @@ int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb,
     return next_ftw64(dir, fn, nopenfd);
 }
 #endif
+#endif
+
+
+#ifdef HAVE_FUTIMESAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+int futimesat (int fd, const char *filename, const struct timeval tv[2])
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_futimesat == NULL) fakechroot_init();
+    return next_futimesat(fd, filename, tv);
+}
 #endif
 
 

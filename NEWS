@@ -2,14 +2,16 @@
 
 19 Oct 2008
 
-* Fixed were made for getpeername(2) and getsockname(2) functions.  Thanks to
+* Fixed were made for [=getpeername](2) and [=getsockname](2) functions.  Thanks to
   Axel Thimm and Fedora people.
+* New function: [=futimesat](2).  Fixes "touch -m" command.
+* New function: [=bindtextdomain](2).
 
 == Version 2.8 ==
 
 25 Jul 2008
 
-* Fixes were made for __fxstatat64(3) function which broke chown(1) command
+* Fixes were made for [=__fxstatat64](3) function which broke "chown" command
   on i386 architecture.
 * Better support for FreeBSD was made.
 

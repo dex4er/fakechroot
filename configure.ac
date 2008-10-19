@@ -31,6 +31,11 @@ AC_PROG_LN_S
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
 
+# Additional C macros
+AC_DEFINE([_ATFILE_SOURCE], [], [_ATFILE_SOURCE])
+AC_DEFINE([_GNU_SOURCE], [], [_GNU_SOURCE])
+AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -38,6 +43,7 @@ AC_CHECK_HEADERS([ \
 fcntl.h \
 fts.h \
 ftw.h \
+libintl.h \
 shadow.h \
 stdlib.h \
 string.h \
@@ -77,6 +83,7 @@ _xftw \
 _xftw64 \
 access \
 acct \
+bindtextdomain \
 canonicalize_file_name \
 chdir \
 chmod \
@@ -103,6 +110,7 @@ freopen64 \
 fts_open \
 ftw \
 ftw64 \
+futimesat \
 get_current_dir_name \
 getcwd \
 getwd \
