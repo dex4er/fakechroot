@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Depends: libtool (>= 2.0), automake1.10
+
 autogen () {
     automake_version=1.10
 
