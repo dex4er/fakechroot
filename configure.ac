@@ -49,6 +49,7 @@ stdlib.h \
 string.h \
 unistd.h \
 utime.h \
+sys/inotify.h \
 sys/xattr.h \
 ])
 
@@ -118,6 +119,7 @@ getxattr \
 glob \
 glob64 \
 glob_pattern_p \
+inotify_add_watch \
 lchmod \
 lchown \
 lckpwdf \

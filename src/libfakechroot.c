@@ -423,6 +423,9 @@ static int     (*next_glob64) (const char *pattern, int flags, int (*errfunc) (c
 #ifdef HAVE_GLOB_PATTERN_P
 static int     (*next_glob_pattern_p) (const char *pattern, int quote) = NULL;
 #endif
+#ifdef HAVE_INOTIFY_ADD_WATCH
+static int     (*next_inotify_add_watch) (int fd, const char *pathname, uint32_t mask) = NULL;
+#endif
 #ifdef HAVE_LCHMOD
 static int     (*next_lchmod) (const char *path, mode_t mode) = NULL;
 #endif
@@ -697,6 +700,9 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
     nextsym(glob_pattern_p, "glob_pattern_p");
+#endif
+#ifdef HAVE_INOTIFY_ADD_WATCH
+    nextsym(inotify_add_watch, "inotify_add_watch");
 #endif
 #ifdef HAVE_LCHMOD
     nextsym(lchmod, "lchmod");
@@ -2015,6 +2021,18 @@ int glob_pattern_p (const char *pattern, int quote)
     expand_chroot_path(pattern, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_glob_pattern_p == NULL) fakechroot_init();
     return next_glob_pattern_p(pattern, quote);
+}
+#endif
+
+
+#ifdef HAVE_
+/* #include <sys/inotify.h> */
+int inotify_add_watch (int fd, const char *pathname, uint32_t mask)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_inotify_add_watch == NULL) fakechroot_init();
+    return next_inotify_add_watch(fd, pathname, mask);
 }
 #endif
 

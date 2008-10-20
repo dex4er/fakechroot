@@ -7,7 +7,7 @@
 * Fixed were made for [=execve](2).  Always copy necessary variables to new
   environment.
 * New function: [=futimesat](2).  Fixes "touch -m" command.
-* New function: [=bindtextdomain](2).
+* New functions: [=bindtextdomain](3), [=inotify_add_watch](2).
 
 == Version 2.8 ==
 

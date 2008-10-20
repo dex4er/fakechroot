@@ -6,7 +6,7 @@ fakechroot (2.9-1) unstable; urgency=medium
     - Fixed were made for execve(2).  Always copy necessary variables to new
       environment.
     - New function: futimesat(2).  Fixes "touch -m" command.
-    - New function: bindtextdomain(3).
+    - New functions: bindtextdomain(3), notify_add_watch(2).
   * debian/packages:
     - Autodetected biarch libdir for amd64 architecture on Debian and Ubuntu.
     - Build-Depends: lsb-release
