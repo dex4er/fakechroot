@@ -56,6 +56,9 @@
 #ifdef HAVE_FTW_H
 #include <ftw.h>
 #endif
+#ifdef HAVE_SYS_INOTIFY_H
+#include <sys/inotify.h>
+#endif
 #ifdef HAVE_SHADOW_H
 #include <shadow.h>
 #endif
