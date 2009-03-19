@@ -184,5 +184,6 @@ man/Makefile \
 src/Makefile \
 scripts/Makefile \
 test/Makefile \
+test/src/Makefile \
 ])
 AC_OUTPUT
