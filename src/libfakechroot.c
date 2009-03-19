@@ -56,11 +56,11 @@
 #ifdef HAVE_FTW_H
 #include <ftw.h>
 #endif
-#ifdef HAVE_SYS_INOTIFY_H
-#include <sys/inotify.h>
-#endif
 #ifdef HAVE_SHADOW_H
 #include <shadow.h>
+#endif
+#ifdef HAVE_SYS_INOTIFY_H
+#include <sys/inotify.h>
 #endif
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
@@ -547,7 +547,7 @@ static int     (*next_utimes) (const char *filename, const struct timeval tv[2])
 
 
 /* Bootstrap the library */
-void fakechroot_init (void) __attribute((constructor));
+void fakechroot_init (void) __attribute__((constructor));
 void fakechroot_init (void)
 {
     int i,j;
