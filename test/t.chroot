@@ -1,0 +1,51 @@
+#!/bin/sh
+
+ret=0
+
+not () {
+    printf "not "
+    ret=1
+}
+
+echo 1..6
+
+n=1
+
+rm -rf testtree
+
+./testtree.sh testtree
+test "`cat testtree/CHROOT`" = "testtree" || not
+echo "ok $n testtree"
+n=$(($n+1))
+
+./testtree.sh testtree/testtree
+test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || not
+echo "ok $n testtree/testtree"
+n=$(($n+1))
+
+for chroot in chroot fakechroot; do
+
+    if [ $chroot = "chroot" ] && [ `id -u` != 0 ]; then
+        for i in `seq 1 2`; do
+            echo "ok $n # SKIP not root"
+            n=$(($n+1))
+        done
+    else
+
+        t=`./$chroot.sh testtree /usr/sbin/chroot testtree /bin/cat /CHROOT`
+        test "$t" = "testtree/testtree" || not
+        echo "ok $n $chroot chroot testtree"
+        n=$(($n+1))
+
+        t=`./$chroot.sh testtree /usr/sbin/chroot /testtree /bin/cat /CHROOT`
+        test "$t" = "testtree/testtree" || not
+        echo "ok $n $chroot chroot /testtree"
+        n=$(($n+1))
+
+    fi    
+
+done
+
+rm -rf testtree
+
+exit $ret
