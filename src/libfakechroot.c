@@ -1147,7 +1147,7 @@ int chroot (const char *path)
 {
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
-    char dir[FAKECHROOT_MAXPATH], cwd[FAKECHROOT_MAXPATH], full_path[FAKECHROOT_MAXPATH];
+    char dir[FAKECHROOT_MAXPATH], cwd[FAKECHROOT_MAXPATH];
 #if !defined(HAVE_SETENV)
     char *envbuf;
 #endif
@@ -1162,7 +1162,9 @@ int chroot (const char *path)
         return -1;
     }
     if (*path != '/') {
-        if (getcwd(cwd, FAKECHROOT_MAXPATH) == NULL) {
+        if (next_getcwd == NULL) fakechroot_init();
+
+        if (next_getcwd(cwd, FAKECHROOT_MAXPATH) == NULL) {
             errno = ENAMETOOLONG;
             return -1;
         }
@@ -1171,23 +1173,21 @@ int chroot (const char *path)
             return -1;
         }
         if (strcmp(cwd, "/") == 0) {
-            snprintf(full_path, FAKECHROOT_MAXPATH, "/%s", path);
+            snprintf(dir, FAKECHROOT_MAXPATH, "/%s", path);
         }
         else {
-            snprintf(full_path, FAKECHROOT_MAXPATH, "%s/%s", cwd, path);
+            snprintf(dir, FAKECHROOT_MAXPATH, "%s/%s", cwd, path);
         }
     }
     else {
-        snprintf(full_path, FAKECHROOT_MAXPATH, "%s", path);
-    }
+        fakechroot_path = getenv("FAKECHROOT_BASE");
 
-    fakechroot_path = getenv("FAKECHROOT_BASE");
-
-    if (fakechroot_path != NULL) {
-        snprintf(dir, FAKECHROOT_MAXPATH, "%s%s", fakechroot_path, full_path);
-    }
-    else {
-        snprintf(dir, FAKECHROOT_MAXPATH, "%s", full_path);
+        if (fakechroot_path != NULL) {
+            snprintf(dir, FAKECHROOT_MAXPATH, "%s%s", fakechroot_path, path);
+        }
+        else {
+            snprintf(dir, FAKECHROOT_MAXPATH, "%s", path);
+        }
     }
 
 #if defined(HAVE___XSTAT) && defined(_STAT_VER)
@@ -1520,13 +1520,13 @@ int execve (const char *filename, char *const argv [], char *const envp[])
         return -1;
     }
     for (ep = envp, i = 0; *ep != NULL; ++ep) {
-	for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
-	    len = strlen (envkey[j]);
-	    if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
-		goto skip;
-	}
-	newenvp[i] = *ep;
-	i++;
+        for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
+            len = strlen (envkey[j]);
+            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+                goto skip;
+        }
+        newenvp[i] = *ep;
+        i++;
     skip: ;
     }
 
