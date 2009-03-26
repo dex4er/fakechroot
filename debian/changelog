@@ -9,6 +9,8 @@ fakechroot (2.9-1) unstable; urgency=medium
         W.M. Jones.
     - Fixed were made for chroot(2).  It is possible to escape chroot.
       Thanks to Richard W.M. Jones.
+    - Fixed were made for mktemp(2).  There was a buffer overflow.  Thanks to
+      Mikhail Gusarov.
     - New function: futimesat(2).  Fixes "touch -m" command.
     - New functions: bindtextdomain(3), notify_add_watch(2).
   * debian/packages:

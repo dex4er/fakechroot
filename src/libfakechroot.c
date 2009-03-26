@@ -2331,8 +2331,8 @@ char *mktemp (char *template)
     char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
     int localdir = 0;
 
-    tmp[FAKECHROOT_MAXPATH] = '\0';
-    strncpy(tmp, template, FAKECHROOT_MAXPATH-1);
+    tmp[FAKECHROOT_MAXPATH-1] = '\0';
+    strncpy(tmp, template, FAKECHROOT_MAXPATH-2);
     ptr = tmp;
 
     if (!fakechroot_localdir(ptr)) {
