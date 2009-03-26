@@ -1479,7 +1479,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char *env;
     char tmp[FAKECHROOT_MAXPATH], newfilename[FAKECHROOT_MAXPATH], argv0[FAKECHROOT_MAXPATH];
     char *ptr;
-    unsigned int i, j, n;
+    unsigned int i, j, n, len;
     size_t sizeenvp;
     char c;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
@@ -1519,12 +1519,19 @@ int execve (const char *filename, char *const argv [], char *const envp[])
         errno = ENOMEM;
         return -1;
     }
-    for (ep = envp, i = 0; *ep != NULL; ++ep, ++i) {
-        newenvp[i] = *ep;
+    for (ep = envp, i = 0; *ep != NULL; ++ep) {
+	for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
+	    len = strlen (envkey[j]);
+	    if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+		goto skip;
+	}
+	newenvp[i] = *ep;
+	i++;
+    skip: ;
     }
 
     /* Add our variables to newenvp */
-    newenvp = realloc( newenvp, ((sizeenvp + 1) * sizeof(char *) + sizeof(envkey)) );
+    newenvp = realloc( newenvp, i * sizeof(char *) + sizeof(envkey) );
     if (newenvp == NULL) {
         errno = ENOMEM;
         return -1;

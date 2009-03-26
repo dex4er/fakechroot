@@ -3,8 +3,10 @@ fakechroot (2.9-1) unstable; urgency=medium
   * src/libfakechroot.c:
     - Fixed getpeername(2) and getsockname(2).  Thanks to Axel Thimm and
       Fedora people.
-    - Fixed were made for execve(2).  Always copy necessary variables to new
-      environment.
+    - Fixed were made for execve(2):
+      . Always copy necessary variables to new environment.
+      . Do not make duplicates of environment variables.  Thanks to Richard
+        W.M. Jones.
     - New function: futimesat(2).  Fixes "touch -m" command.
     - New functions: bindtextdomain(3), notify_add_watch(2).
   * debian/packages:
