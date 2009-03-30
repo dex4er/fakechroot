@@ -17,6 +17,7 @@ for d in \
     /lib64 \
     /root \
     /sbin \
+    /tmp \
     /usr/bin \
     /usr/lib \
     /usr/sbin \
@@ -55,6 +56,7 @@ for p in \
     '/usr/bin/ltrace' \
     '/usr/bin/perl' \
     '/usr/bin/strace' \
+    '/usr/bin/touch' \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \
     '/usr/local/bin/strace'

@@ -1,41 +1,30 @@
 #!/bin/sh
 
-ret=0
+. ./tap.sh
 
-not () {
-    printf "not "
-    ret=1
-}
-
-echo 1..5
-
-n=1
+plan 5
 
 rm -rf testtree
 
 ./testtree.sh testtree
 test "`cat testtree/CHROOT`" = "testtree" || not
-echo "ok $n testtree"
-n=$(($n+1))
+ok "testtree"
 
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && [ `id -u` != 0 ]; then
         for i in `seq 1 2`; do
-            echo "ok $n # SKIP not root"
-            n=$(($n+1))
+            skip "not root"
         done
     else
 
         t=`./$chroot.sh testtree /bin/pwd`
         test "$t" = "/" || not
-        echo "ok $n $chroot pwd is /"
-        n=$(($n+1))
+        ok "$chroot pwd is /"
 
         t=`./$chroot.sh testtree /bin/cat CHROOT`
         test "$t" = "testtree" || not
-        echo "ok $n $chroot CHROOT is testtree"
-        n=$(($n+1))
+        ok "$chroot CHROOT is testtree"
 
     fi    
 
@@ -43,4 +32,4 @@ done
 
 rm -rf testtree
 
-exit $ret
+end
