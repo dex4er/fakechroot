@@ -11,7 +11,7 @@ test "`cat testtree/CHROOT`" = "testtree" || not
 ok "testtree"
 
 if [ ! -x testtree/usr/bin/touch ]; then
-    skip x "/usr/bin/touch not found"
+    skip 16 "/usr/bin/touch not found"
 else
 
     for chroot in chroot fakechroot; do

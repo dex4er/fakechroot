@@ -17,9 +17,7 @@ ok "testtree/testtree"
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && [ `id -u` != 0 ]; then
-        for i in `seq 1 4`; do
-            skip "not root"
-        done
+        skip 4 "not root"
     else
 
         t=`./$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / / 'ls -id /' 2>/dev/null`
