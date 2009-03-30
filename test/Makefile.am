@@ -1,6 +1,6 @@
 SUBDIRS = src
 
-TESTS = t.chroot t.pwd t.escape-nested-chroot
+TESTS = chroot.t escape-nested-chroot.t pwd.t touch.t
 
 suffix =
 
