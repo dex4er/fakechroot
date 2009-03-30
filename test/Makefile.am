@@ -6,5 +6,5 @@ suffix =
 
 CLEANFILES = testtree
 
-check_SCRIPTS = $(TESTS) chroot.sh fakechroot.sh testtree.sh
+check_SCRIPTS = $(TESTS) chroot.sh fakechroot.sh tap.sh testtree.sh
 EXTRA_DIST = $(check_SCRIPTS)
