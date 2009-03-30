@@ -193,7 +193,6 @@ Build: bash
          amd64|i386|ppc64|s390|sparc)
              pushd build-tree-lib-biarch
                  make
-                 make check
              popd
              pushd build-tree-fake-biarch
                  make
