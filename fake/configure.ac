@@ -1,4 +1,4 @@
-# $Id: /svn/trunk/fake/configure.ac 264 2008-06-06T09:27:54.581803Z dexter  $
+# $Id: /local/trunk/fake/configure.ac 264 2008-06-06T09:27:54.581803Z dexter  $
 
 AC_PREREQ(2.59)
 AC_INIT([fakechroot], [2.7], [dexter@debian.org])

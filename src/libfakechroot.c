@@ -21,11 +21,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-/* $Id: /svn/trunk/src/libfakechroot.c 377 2008-07-25T13:50:50.340980Z dexter  $ */
+/* $Id: /local/trunk/src/libfakechroot.c 443 2009-03-31T10:20:41.212229Z dexter  $ */
 
 
 #include <config.h>
 
+#define _ATFILE_SOURCE
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
@@ -46,6 +47,9 @@
 #include <glob.h>
 #include <utime.h>
 #include <pwd.h>
+#ifdef HAVE_LIBINTL_H
+#include <libintl.h>
+#endif
 #ifdef HAVE_FTS_H
 #include <fts.h>
 #endif
@@ -54,6 +58,9 @@
 #endif
 #ifdef HAVE_SHADOW_H
 #include <shadow.h>
+#endif
+#ifdef HAVE_SYS_INOTIFY_H
+#include <sys/inotify.h>
 #endif
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
@@ -331,6 +338,9 @@ static int     (*next_acct) (const char *filename) = NULL;
 #ifdef AF_UNIX
 static int     (*next_bind) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
 #endif
+#ifdef HAVE_BINDTEXTDOMAIN
+static char *  (*next_bindtextdomain) (const char *domainname, const char *dirname) = NULL;
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 static char *  (*next_canonicalize_file_name) (const char *name) = NULL;
 #endif
@@ -390,6 +400,9 @@ static int     (*next_ftw) (const char *dir, int (*fn)(const char *file, const s
 static int     (*next_ftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd) = NULL;
 #endif
 #endif
+#ifdef HAVE_FUTIMESAT
+static int     (*next_futimesat) (int fd, const char *filename, const struct timeval tv[2]) = NULL;
+#endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
@@ -412,6 +425,9 @@ static int     (*next_glob64) (const char *pattern, int flags, int (*errfunc) (c
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
 static int     (*next_glob_pattern_p) (const char *pattern, int quote) = NULL;
+#endif
+#ifdef HAVE_INOTIFY_ADD_WATCH
+static int     (*next_inotify_add_watch) (int fd, const char *pathname, uint32_t mask) = NULL;
 #endif
 #ifdef HAVE_LCHMOD
 static int     (*next_lchmod) (const char *path, mode_t mode) = NULL;
@@ -531,7 +547,7 @@ static int     (*next_utimes) (const char *filename, const struct timeval tv[2])
 
 
 /* Bootstrap the library */
-void fakechroot_init (void) __attribute((constructor));
+void fakechroot_init (void) __attribute__((constructor));
 void fakechroot_init (void)
 {
     int i,j;
@@ -600,6 +616,9 @@ void fakechroot_init (void)
 #ifdef AF_UNIX
     nextsym(bind, "bind");
 #endif
+#ifdef HAVE_BINDTEXTDOMAIN
+    nextsym(bindtextdomain, "bindtextdomain");
+#endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
     nextsym(canonicalize_file_name, "canonicalize_file_name");
 #endif
@@ -659,6 +678,9 @@ void fakechroot_init (void)
     nextsym(ftw64, "ftw64");
 #endif
 #endif
+#ifdef HAVE_FUTIMESAT
+    nextsym(futimesat, "futimesat");
+#endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
     nextsym(get_current_dir_name, "get_current_dir_name");
 #endif
@@ -681,6 +703,9 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
     nextsym(glob_pattern_p, "glob_pattern_p");
+#endif
+#ifdef HAVE_INOTIFY_ADD_WATCH
+    nextsym(inotify_add_watch, "inotify_add_watch");
 #endif
 #ifdef HAVE_LCHMOD
     nextsym(lchmod, "lchmod");
@@ -1061,6 +1086,18 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 #endif
 
 
+#ifdef HAVE_BINDTEXTDOMAIN
+/* #include <libintl.h> */
+char * bindtextdomain (const char *domainname, const char *dirname)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dirname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_bindtextdomain == NULL) fakechroot_init();
+    return next_bindtextdomain(domainname, dirname);
+}
+#endif
+
+
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 /* #include <stdlib.h> */
 char *canonicalize_file_name (const char *name)
@@ -1110,7 +1147,7 @@ int chroot (const char *path)
 {
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
-    char dir[FAKECHROOT_MAXPATH], cwd[FAKECHROOT_MAXPATH], full_path[FAKECHROOT_MAXPATH];
+    char dir[FAKECHROOT_MAXPATH], cwd[FAKECHROOT_MAXPATH];
 #if !defined(HAVE_SETENV)
     char *envbuf;
 #endif
@@ -1125,7 +1162,9 @@ int chroot (const char *path)
         return -1;
     }
     if (*path != '/') {
-        if (getcwd(cwd, FAKECHROOT_MAXPATH) == NULL) {
+        if (next_getcwd == NULL) fakechroot_init();
+
+        if (next_getcwd(cwd, FAKECHROOT_MAXPATH) == NULL) {
             errno = ENAMETOOLONG;
             return -1;
         }
@@ -1134,23 +1173,21 @@ int chroot (const char *path)
             return -1;
         }
         if (strcmp(cwd, "/") == 0) {
-            snprintf(full_path, FAKECHROOT_MAXPATH, "/%s", path);
+            snprintf(dir, FAKECHROOT_MAXPATH, "/%s", path);
         }
         else {
-            snprintf(full_path, FAKECHROOT_MAXPATH, "%s/%s", cwd, path);
+            snprintf(dir, FAKECHROOT_MAXPATH, "%s/%s", cwd, path);
         }
     }
     else {
-        snprintf(full_path, FAKECHROOT_MAXPATH, "%s", path);
-    }
+        fakechroot_path = getenv("FAKECHROOT_BASE");
 
-    fakechroot_path = getenv("FAKECHROOT_BASE");
-
-    if (fakechroot_path != NULL) {
-        snprintf(dir, FAKECHROOT_MAXPATH, "%s%s", fakechroot_path, full_path);
-    }
-    else {
-        snprintf(dir, FAKECHROOT_MAXPATH, "%s", full_path);
+        if (fakechroot_path != NULL) {
+            snprintf(dir, FAKECHROOT_MAXPATH, "%s%s", fakechroot_path, path);
+        }
+        else {
+            snprintf(dir, FAKECHROOT_MAXPATH, "%s", path);
+        }
     }
 
 #if defined(HAVE___XSTAT) && defined(_STAT_VER)
@@ -1438,11 +1475,17 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char hashbang[FAKECHROOT_MAXPATH];
     size_t argv_max = 1024;
     const char **newargv = alloca (argv_max * sizeof (const char *));
+    char **newenvp, **ep;
+    char *env;
     char tmp[FAKECHROOT_MAXPATH], newfilename[FAKECHROOT_MAXPATH], argv0[FAKECHROOT_MAXPATH];
     char *ptr;
-    unsigned int i, j, n;
+    unsigned int i, j, n, len;
+    size_t sizeenvp;
     char c;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *envkey[] = { "FAKECHROOT", "FAKECHROOT_BASE",
+                       "FAKECHROOT_VERSION", "FAKECHROOT_EXCLUDE_PATH",
+                       "LD_LIBRARY_PATH", "LD_PRELOAD" };
 
     strncpy(argv0, filename, FAKECHROOT_MAXPATH);
 
@@ -1464,9 +1507,52 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 
     if (next_execve == NULL) fakechroot_init();
 
-    if (hashbang[0] != '#' || hashbang[1] != '!')
-        return next_execve(filename, argv, envp);
+    /* Scan envp and check its size */
+    sizeenvp = 0;
+    for (ep = (char **)envp; *ep != NULL; ++ep) {
+        sizeenvp++;
+    }
 
+    /* Copy envp to newenvp */
+    newenvp = malloc( sizeenvp * sizeof (char *) + sizeof(envkey) );
+    if (newenvp == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    for (ep = (char **)envp, i = 0; *ep != NULL; ++ep) {
+        for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
+            len = strlen (envkey[j]);
+            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+                goto skip;
+        }
+        newenvp[i] = *ep;
+        i++;
+    skip: ;
+    }
+
+    /* Add our variables to newenvp */
+    newenvp = realloc( newenvp, i * sizeof(char *) + sizeof(envkey) );
+    if (newenvp == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    for (j = 0; j < sizeof(envkey) / sizeof(char *); j++) {
+        env = getenv(envkey[j]);
+        if (env != NULL) {
+            newenvp[i] = malloc(strlen(envkey[j]) + strlen(env) + 3);
+            strcpy(newenvp[i], envkey[j]);
+            strcat(newenvp[i], "=");
+            strcat(newenvp[i], env);
+            i++;
+        }
+    }
+    newenvp[i] = NULL;
+
+    /* No hashbang in argv */
+    if (hashbang[0] != '#' || hashbang[1] != '!')
+        return next_execve(filename, argv, newenvp);
+
+    /* For hashbang we must fix argv[0] */
     hashbang[i] = hashbang[i+1] = 0;
     for (i = j = 2; (hashbang[i] == ' ' || hashbang[i] == '\t') && i < FAKECHROOT_MAXPATH; i++, j++);
     for (n = 0; i < FAKECHROOT_MAXPATH; i++) {
@@ -1495,7 +1581,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 
     newargv[n] = 0;
 
-    return next_execve(newfilename, (char *const *)newargv, envp);
+    return next_execve(newfilename, (char *const *)newargv, newenvp);
 }
 
 
@@ -1724,6 +1810,19 @@ int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb,
 #endif
 
 
+#ifdef HAVE_FUTIMESAT
+/* #define _ATFILE_SOURCE */
+/* #include <fcntl.h> */
+int futimesat (int fd, const char *filename, const struct timeval tv[2])
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_futimesat == NULL) fakechroot_init();
+    return next_futimesat(fd, filename, tv);
+}
+#endif
+
+
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 /* #include <unistd.h> */
 char * get_current_dir_name (void)
@@ -1770,6 +1869,7 @@ char * getcwd (char *buf, size_t size)
 
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
+/* #include <sys/un.h> */
 int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
 {
     int status;
@@ -1778,7 +1878,8 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getpeername == NULL) fakechroot_init();
-    memset(&newname, 0, sizeof(struct sockaddr_un));
+    newnamelen = sizeof(struct sockaddr_un);
+    memset(&newname, 0, newnamelen);
     status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
     if (status != 0) {
         return status;
@@ -1798,6 +1899,7 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
 
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
+/* #include <sys/un.h> */
 int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
 {
     int status;
@@ -1806,7 +1908,8 @@ int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getsockname == NULL) fakechroot_init();
-    memset(&newname, 0, sizeof(struct sockaddr_un));
+    newnamelen = sizeof(struct sockaddr_un);
+    memset(&newname, 0, newnamelen);
     status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
     if (status != 0) {
         return status;
@@ -1928,6 +2031,18 @@ int glob_pattern_p (const char *pattern, int quote)
     expand_chroot_path(pattern, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_glob_pattern_p == NULL) fakechroot_init();
     return next_glob_pattern_p(pattern, quote);
+}
+#endif
+
+
+#ifdef HAVE_
+/* #include <sys/inotify.h> */
+int inotify_add_watch (int fd, const char *pathname, uint32_t mask)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    if (next_inotify_add_watch == NULL) fakechroot_init();
+    return next_inotify_add_watch(fd, pathname, mask);
 }
 #endif
 
@@ -2216,8 +2331,8 @@ char *mktemp (char *template)
     char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
     int localdir = 0;
 
-    tmp[FAKECHROOT_MAXPATH] = '\0';
-    strncpy(tmp, template, FAKECHROOT_MAXPATH-1);
+    tmp[FAKECHROOT_MAXPATH-1] = '\0';
+    strncpy(tmp, template, FAKECHROOT_MAXPATH-2);
     ptr = tmp;
 
     if (!fakechroot_localdir(ptr)) {

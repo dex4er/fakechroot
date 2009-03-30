@@ -21,6 +21,9 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* Define to 1 if you have the `bindtextdomain' function. */
+#undef HAVE_BINDTEXTDOMAIN
+
 /* Define to 1 if you have the `canonicalize_file_name' function. */
 #undef HAVE_CANONICALIZE_FILE_NAME
 
@@ -114,6 +117,9 @@
 /* Define to 1 if you have the <ftw.h> header file. */
 #undef HAVE_FTW_H
 
+/* Define to 1 if you have the `futimesat' function. */
+#undef HAVE_FUTIMESAT
+
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
@@ -135,6 +141,9 @@
 /* Define to 1 if you have the `glob_pattern_p' function. */
 #undef HAVE_GLOB_PATTERN_P
 
+/* Define to 1 if you have the `inotify_add_watch' function. */
+#undef HAVE_INOTIFY_ADD_WATCH
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -152,6 +161,9 @@
 
 /* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
+
+/* Define to 1 if you have the <libintl.h> header file. */
+#undef HAVE_LIBINTL_H
 
 /* Define to 1 if you have the `link' function. */
 #undef HAVE_LINK
@@ -310,6 +322,9 @@
    */
 #undef HAVE_SYS_DIR_H
 
+/* Define to 1 if you have the <sys/inotify.h> header file. */
+#undef HAVE_SYS_INOTIFY_H
+
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_NDIR_H
@@ -464,6 +479,15 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* _ATFILE_SOURCE */
+#undef _ATFILE_SOURCE
+
+/* _GNU_SOURCE */
+#undef _GNU_SOURCE
+
+/* __BSD_VISIBLE */
+#undef __BSD_VISIBLE
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const

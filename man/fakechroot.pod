@@ -1,6 +1,6 @@
 # pod2man --section=1 --release="Debian" --center=" " --date="17 Jul 2008"
 #
-# $Id: /svn/trunk/man/fakechroot.pod 334 2008-07-15T12:55:31.678543Z dexter  $
+# $Id: /local/trunk/man/fakechroot.pod 334 2008-07-15T12:55:31.678543Z dexter  $
 
 =head1 NAME
 
