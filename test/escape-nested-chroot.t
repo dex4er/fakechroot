@@ -1,16 +1,17 @@
 #!/bin/sh
 
-. ./tap.sh
+srcdir=${srcdir:-.}
+. $srcdir/tap.sh
 
 plan 10
 
 rm -rf testtree
 
-./testtree.sh testtree
+$srcdir/testtree.sh testtree
 test "`cat testtree/CHROOT`" = "testtree" || not
 ok "testtree"
 
-./testtree.sh testtree/testtree
+$srcdir/testtree.sh testtree/testtree
 test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || not
 ok "testtree/testtree"
 
@@ -20,7 +21,7 @@ for chroot in chroot fakechroot; do
         skip 4 "not root"
     else
 
-        t=`./$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / / 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / / 'ls -id /' 2>/dev/null`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
@@ -28,7 +29,7 @@ for chroot in chroot fakechroot; do
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" = "$f3" || not
         ok "$chroot test-chroot . (not escaped)"
 
-        t=`./$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / . 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / . 'ls -id /' 2>/dev/null`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
@@ -36,7 +37,7 @@ for chroot in chroot fakechroot; do
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" = "$f3" || not
         ok "$chroot test-chroot . (not escaped)"
 
-        t=`./$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . / 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . / 'ls -id /' 2>/dev/null`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
@@ -44,7 +45,7 @@ for chroot in chroot fakechroot; do
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" = "$f3" || not
         ok "$chroot test-chroot . (not escaped)"
 
-        t=`./$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . . 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . . 'ls -id /' 2>/dev/null`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`

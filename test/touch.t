@@ -1,12 +1,13 @@
 #!/bin/sh
 
-. ./tap.sh
+srcdir=${srcdir:-.}
+. $srcdir/tap.sh
 
 plan 17
 
 rm -rf testtree
 
-./testtree.sh testtree
+$srcdir/testtree.sh testtree
 test "`cat testtree/CHROOT`" = "testtree" || not
 ok "testtree"
 
@@ -20,7 +21,7 @@ else
             skip 8 "not root"
         else
 
-            t=`./$chroot.sh testtree /usr/bin/touch /tmp/touch.txt 2>&1`
+            t=`$srcdir/$chroot.sh testtree /usr/bin/touch /tmp/touch.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch"
             test -f testtree/tmp/touch.txt || not
@@ -28,7 +29,7 @@ else
 
             sleep 1
 
-            t=`./$chroot.sh testtree /usr/bin/touch -r /tmp/touch.txt /tmp/touch2.txt 2>&1`
+            t=`$srcdir/$chroot.sh testtree /usr/bin/touch -r /tmp/touch.txt /tmp/touch2.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch -r"
             test -f testtree/tmp/touch2.txt || not
@@ -40,7 +41,7 @@ else
 
             sleep 1
 
-            t=`./$chroot.sh testtree /usr/bin/touch -m /tmp/touch.txt 2>&1`
+            t=`$srcdir/$chroot.sh testtree /usr/bin/touch -m /tmp/touch.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch -m"
 

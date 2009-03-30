@@ -7,8 +7,6 @@ else
     destdir=testtree
 fi
 
-VERSION=`grep '^AC_INIT' ../configure.ac | sed 's/.*\[\([0-9][0-9.]*\)\].*/\1/'`
-
 for d in \
     /bin \
     /etc \

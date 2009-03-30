@@ -1,12 +1,13 @@
 #!/bin/sh
 
-. ./tap.sh
+srcdir=${srcdir:-.}
+. $srcdir/tap.sh
 
 plan 5
 
 rm -rf testtree
 
-./testtree.sh testtree
+$srcdir/testtree.sh testtree
 test "`cat testtree/CHROOT`" = "testtree" || not
 ok "testtree"
 
@@ -16,11 +17,11 @@ for chroot in chroot fakechroot; do
         skip 2 "not root"
     else
 
-        t=`./$chroot.sh testtree /bin/pwd`
+        t=`$srcdir/$chroot.sh testtree /bin/pwd`
         test "$t" = "/" || not
         ok "$chroot pwd is /"
 
-        t=`./$chroot.sh testtree /bin/cat CHROOT`
+        t=`$srcdir/$chroot.sh testtree /bin/cat CHROOT`
         test "$t" = "testtree" || not
         ok "$chroot CHROOT is testtree"
 
