@@ -184,6 +184,7 @@ Build: bash
  if ! [ build-stamp -nt configure-stamp ]; then
      pushd build-tree-lib
          make
+         make check
      popd
      pushd build-tree-fake
          make
@@ -192,6 +193,7 @@ Build: bash
          amd64|i386|ppc64|s390|sparc)
              pushd build-tree-lib-biarch
                  make
+                 make check
              popd
              pushd build-tree-fake-biarch
                  make
