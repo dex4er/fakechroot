@@ -14,6 +14,7 @@
   Mikhail Gusarov.
 * New function: [=futimesat](2).  Fixes "touch -m" command.
 * New functions: [=bindtextdomain](3), [=inotify_add_watch](2).
+* More test units was added, "make check" works as expected.
 
 == Version 2.8 ==
 

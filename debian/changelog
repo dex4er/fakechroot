@@ -13,11 +13,13 @@ fakechroot (2.9-1) unstable; urgency=medium
       Mikhail Gusarov.
     - New function: futimesat(2).  Fixes "touch -m" command.
     - New functions: bindtextdomain(3), notify_add_watch(2).
+  * test/*:
+    - More test units was added, "make check" works as expected.
   * debian/packages:
     - Autodetected biarch libdir for amd64 architecture on Debian and Ubuntu.
     - Build-Depends: lsb-release
 
- -- Piotr Roszatycki <dexter@debian.org>  Sun, 19 Oct 2008 13:20:47 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Mon, 30 Mar 2009 14:55:26 +0200
 
 fakechroot (2.8-1) unstable; urgency=medium
 
