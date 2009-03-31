@@ -1,7 +1,7 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/tap.sh
+. $srcdir/common.sh
 
 plan 17
 
@@ -17,7 +17,7 @@ else
 
     for chroot in chroot fakechroot; do
 
-        if [ $chroot = "chroot" ] && [ `id -u` != 0 ]; then
+        if [ $chroot = "chroot" ] && ! is_root; then
             skip 8 "not root"
         else
 

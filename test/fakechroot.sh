@@ -16,7 +16,7 @@ else
 fi
 
 if [ -n "$LD_PRELOAD" ]; then
-    LD_PRELOAD="$LD_PRELOAD libfakechroot.so"
+    LD_PRELOAD="$LD_PRELOAD $dir/libfakechroot.so"
 else
     LD_PRELOAD="$dir/libfakechroot.so"
 fi
