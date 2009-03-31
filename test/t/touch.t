@@ -11,8 +11,16 @@ $srcdir/testtree.sh testtree
 test "`cat testtree/CHROOT`" = "testtree" || not
 ok "testtree"
 
-if [ ! -x testtree/usr/bin/touch ]; then
-    skip 16 "/usr/bin/touch not found"
+if [ -x testtree/usr/bin/touch ]; then
+    touch=/usr/bin/touch
+elif [ -x testtree/bin/touch ]; then
+    touch=/bin/touch
+else
+    touch=
+fi
+
+if [ -z "$touch" ]; then
+    skip 16 "touch not found"
 else
 
     for chroot in chroot fakechroot; do
@@ -21,7 +29,7 @@ else
             skip 8 "not root"
         else
 
-            t=`$srcdir/$chroot.sh testtree /usr/bin/touch /tmp/touch.txt 2>&1`
+            t=`$srcdir/$chroot.sh testtree $touch /tmp/touch.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch"
             test -f testtree/tmp/touch.txt || not
@@ -29,7 +37,7 @@ else
 
             sleep 1
 
-            t=`$srcdir/$chroot.sh testtree /usr/bin/touch -r /tmp/touch.txt /tmp/touch2.txt 2>&1`
+            t=`$srcdir/$chroot.sh testtree $touch -r /tmp/touch.txt /tmp/touch2.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch -r"
             test -f testtree/tmp/touch2.txt || not
@@ -41,7 +49,7 @@ else
 
             sleep 1
 
-            t=`$srcdir/$chroot.sh testtree /usr/bin/touch -m /tmp/touch.txt 2>&1`
+            t=`$srcdir/$chroot.sh testtree $touch -m /tmp/touch.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch -m"
 

@@ -47,6 +47,7 @@ for p in \
     '/bin/pwd' \
     '/bin/rm' \
     '/bin/sh' \
+    '/bin/touch' \
     '/usr/bin/basename' \
     '/usr/bin/dirname' \
     '/usr/bin/find' \
