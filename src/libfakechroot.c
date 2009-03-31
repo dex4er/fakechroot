@@ -1509,7 +1509,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 
     /* Scan envp and check its size */
     sizeenvp = 0;
-    for (ep = envp; *ep != NULL; ++ep) {
+    for (ep = (char **)envp; *ep != NULL; ++ep) {
         sizeenvp++;
     }
 
@@ -1519,7 +1519,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
         errno = ENOMEM;
         return -1;
     }
-    for (ep = envp, i = 0; *ep != NULL; ++ep) {
+    for (ep = (char **)envp, i = 0; *ep != NULL; ++ep) {
         for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
             len = strlen (envkey[j]);
             if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
