@@ -1467,6 +1467,37 @@ int execv (const char *path, char *const argv [])
     return execve (path, argv, environ);
 }
 
+/* Parse the FAKECHROOT_CMD_SUBST environment variable (the first
+ * parameter) and if there is a match with filename, return the
+ * substitution in cmd_subst.  Returns non-zero if there was a match.
+ *
+ * FAKECHROOT_CMD_SUBST=cmd=subst:cmd=subst:...
+ */
+static int
+try_cmd_subst (char *env, const char *filename, char *cmd_subst)
+{
+    int len = strlen (filename), len2;
+    char *p;
+
+    if (env == NULL) return 0;
+
+    do {
+	p = strchrnul (env, ':');
+
+	if (strncmp (env, filename, len) == 0 && env[len] == '=') {
+	    len2 = p - &env[len+1];
+	    if (len2 >= FAKECHROOT_MAXPATH)
+		len2 = FAKECHROOT_MAXPATH - 1;
+	    strncpy (cmd_subst, &env[len+1], len2);
+	    cmd_subst[len2] = '\0';
+	    return 1;
+	}
+
+	env = p;
+    } while (*env++ != '\0');
+
+    return 0;
+}
 
 /* #include <unistd.h> */
 int execve (const char *filename, char *const argv [], char *const envp[])
@@ -1479,15 +1510,54 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char *env;
     char tmp[FAKECHROOT_MAXPATH], newfilename[FAKECHROOT_MAXPATH], argv0[FAKECHROOT_MAXPATH];
     char *ptr;
-    unsigned int i, j, n, len;
+    unsigned int i, j, n, len, r, newenvppos;
     size_t sizeenvp;
     char c;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *envkey[] = { "FAKECHROOT", "FAKECHROOT_BASE",
                        "FAKECHROOT_VERSION", "FAKECHROOT_EXCLUDE_PATH",
+                       "FAKECHROOT_CMD_SUBST",
                        "LD_LIBRARY_PATH", "LD_PRELOAD" };
+    const int nr_envkey = sizeof envkey / sizeof envkey[0];
+
+    if (next_execve == NULL) fakechroot_init();
+
+    /* Scan envp and check its size */
+    sizeenvp = 0;
+    for (ep = (char **)envp; *ep != NULL; ++ep) {
+        sizeenvp++;
+    }
+
+    /* Copy envp to newenvp */
+    newenvp = malloc( (sizeenvp + 1) * sizeof (char *) );
+    if (newenvp == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    for (ep = (char **) envp, newenvppos = 0; *ep != NULL; ++ep) {
+        for (j = 0; j < nr_envkey; j++) {
+            len = strlen (envkey[j]);
+            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+                goto skip;
+        }
+        newenvp[newenvppos] = *ep;
+        newenvppos++;
+    skip: ;
+    }
+    newenvp[newenvppos] = NULL;
 
     strncpy(argv0, filename, FAKECHROOT_MAXPATH);
+
+    r = try_cmd_subst (getenv ("FAKECHROOT_CMD_SUBST"), filename, tmp);
+    if (r) {
+        filename = tmp;
+
+        /* FAKECHROOT_CMD_SUBST escapes the chroot.  newenvp here does
+         * not contain LD_PRELOAD and the other special environment
+         * variables.
+         */
+        return next_execve(filename, argv, newenvp);
+    }
 
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     strcpy(tmp, filename);
@@ -1505,48 +1575,23 @@ int execve (const char *filename, char *const argv [], char *const envp[])
         return -1;
     }
 
-    if (next_execve == NULL) fakechroot_init();
-
-    /* Scan envp and check its size */
-    sizeenvp = 0;
-    for (ep = (char **)envp; *ep != NULL; ++ep) {
-        sizeenvp++;
-    }
-
-    /* Copy envp to newenvp */
-    newenvp = malloc( sizeenvp * sizeof (char *) + sizeof(envkey) );
-    if (newenvp == NULL) {
-        errno = ENOMEM;
-        return -1;
-    }
-    for (ep = (char **)envp, i = 0; *ep != NULL; ++ep) {
-        for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
-            len = strlen (envkey[j]);
-            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
-                goto skip;
-        }
-        newenvp[i] = *ep;
-        i++;
-    skip: ;
-    }
-
     /* Add our variables to newenvp */
-    newenvp = realloc( newenvp, i * sizeof(char *) + sizeof(envkey) );
+    newenvp = realloc( newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *) );
     if (newenvp == NULL) {
         errno = ENOMEM;
         return -1;
     }
-    for (j = 0; j < sizeof(envkey) / sizeof(char *); j++) {
+    for (j = 0; j < nr_envkey; j++) {
         env = getenv(envkey[j]);
         if (env != NULL) {
-            newenvp[i] = malloc(strlen(envkey[j]) + strlen(env) + 3);
-            strcpy(newenvp[i], envkey[j]);
-            strcat(newenvp[i], "=");
-            strcat(newenvp[i], env);
-            i++;
+            newenvp[newenvppos] = malloc(strlen(envkey[j]) + strlen(env) + 3);
+            strcpy(newenvp[newenvppos], envkey[j]);
+            strcat(newenvp[newenvppos], "=");
+            strcat(newenvp[newenvppos], env);
+            newenvppos++;
         }
     }
-    newenvp[i] = NULL;
+    newenvp[newenvppos] = NULL;
 
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!')

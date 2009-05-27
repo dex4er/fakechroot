@@ -2,6 +2,7 @@ SUBDIRS = src
 
 TESTS = \
     t/chroot.t \
+    t/cmd-subst.t \
     t/escape-nested-chroot.t \
     t/pwd.t \
     t/touch.t \

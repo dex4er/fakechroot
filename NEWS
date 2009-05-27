@@ -1,3 +1,10 @@
+== Version 2.10 ==
+
+27 May 2009
+
+* New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
+  commands.  Thanks to Richard W.M. Jones.
+
 == Version 2.9 ==
 
 19 Oct 2008

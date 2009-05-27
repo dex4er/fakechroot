@@ -139,6 +139,21 @@ The root directory for fake chroot environment.
 The list of directories which are excluded from being chrooted.  The elements
 of list are separated with colon.
 
+=item B<FAKECHROOT_CMD_SUBST>
+
+A list of command substitutions.  If a program tries to execute one of
+the commands given (path relative to the chroot) then the substitute
+command runs instead (path to substitute command is not chrooted).
+
+For example:
+
+ FAKECHROOT_CMD_SUBST=/sbin/ldconfig=/tmp/ldconfig-wrapper
+
+will substitute C</tmp/ldconfig-wrapper> for C</sbin/ldconfig>.
+
+Give as many substitute commands as you want, separated by C<:>
+(colon) characters.
+
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
 Fakechroot is implemented by wrapping system calls.  This is accomplished by
