@@ -2,6 +2,8 @@
 
 27 May 2009
 
+* Compatibility were improved for [=scandir](3) and [=scandir64](3) functions
+  on the latest GNU libc.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
   commands.  Thanks to Richard W.M. Jones.
 

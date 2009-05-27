@@ -12,7 +12,7 @@ AC_CACHE_CHECK([types of arguments for scandir],
  for ac_arg1 in 'const char *dir'; do
   for ac_arg2 in 'struct dirent ***namelist'; do
    for ac_arg3 in 'int(*filter)(const struct dirent *)' 'int(*filter)(struct dirent *)'; do
-    for ac_arg4 in 'int(*compar)(const void *,const void *)'; do
+    for ac_arg4 in 'int(*compar)(const void *,const void *)' 'int(*compar)(const struct dirent **, const struct dirent **)'; do
      AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
 [AC_INCLUDES_DEFAULT

@@ -3,6 +3,8 @@ fakechroot (2.10-1) unstable; urgency=low
   * src/libfakechroot.c:
     - New FAKECHROOT_CMD_SUBST environment variable handles a list of
       substituted commands.  Thanks to Richard W.M. Jones.
+  * configure.ac, m4/scandir*:
+    - Check all scandir(3) and scandir64(3) arguments.
 
  -- Piotr Roszatycki <dexter@debian.org>  Wed, 27 May 2009 21:55:57 +0200
 
