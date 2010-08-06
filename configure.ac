@@ -75,7 +75,11 @@ __fxstatat64 \
 __lxstat \
 __lxstat64 \
 __open \
+__open_2 \
 __open64 \
+__open64_2 \
+__openat_2 \
+__openat64_2 \
 __opendir2 \
 __xmknod \
 __xstat \

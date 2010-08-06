@@ -1,7 +1,9 @@
 == Version 2.10 ==
 
-27 May 2009
+7 Aug 2010
 
+* Handle properly GNU libc [=open](2), [=open64](2), [=openat](2) and
+  [=openat64](2) inline functions.
 * Compatibility were improved for [=scandir](3) and [=scandir64](3) functions
   on the latest GNU libc.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted

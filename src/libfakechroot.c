@@ -80,6 +80,13 @@
 #define UNIX_PATH_MAX 108
 #endif
 
+#if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
+#define USE_ALIAS 1
+#define ALIAS(function) __##function##_alias
+#else
+#define ALIAS(function) function
+#endif
+
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -312,8 +319,20 @@ static int     (*next___lxstat64) (int ver, const char *filename, struct stat64 
 #ifdef HAVE___OPEN
 static int     (*next___open) (const char *pathname, int flags, ...) = NULL;
 #endif
+#ifdef HAVE___OPEN_2
+static int     (*next___open_2) (const char *pathname, int flags) = NULL;
+#endif
 #ifdef HAVE___OPEN64
 static int     (*next___open64) (const char *pathname, int flags, ...) = NULL;
+#endif
+#ifdef HAVE___OPEN64_2
+static int     (*next___open64_2) (const char *pathname, int flags) = NULL;
+#endif
+#ifdef HAVE___OPENAT_2
+static int     (*next___openat_2) (int dirfd, const char *pathname, int flags) = NULL;
+#endif
+#ifdef HAVE___OPENAT64_2
+static int     (*next___openat64_2) (int dirfd, const char *pathname, int flags) = NULL;
 #endif
 #ifdef HAVE___OPENDIR2
 static DIR *   (*next___opendir2) (const char *name, int flags) = NULL;
@@ -596,8 +615,20 @@ void fakechroot_init (void)
 #ifdef HAVE___OPEN
     nextsym(__open, "__open");
 #endif
+#ifdef HAVE___OPEN_2
+    nextsym(__open_2, "__open_2");
+#endif
 #ifdef HAVE___OPEN64
     nextsym(__open64, "__open64");
+#endif
+#ifdef HAVE___OPEN64_2
+    nextsym(__open64_2, "__open64_2");
+#endif
+#ifdef HAVE___OPENAT_2
+    nextsym(__openat_2, "__openat_2");
+#endif
+#ifdef HAVE___OPENAT64_2
+    nextsym(__openat64_2, "__openat64_2");
 #endif
 #ifdef HAVE___OPENDIR2
     nextsym(__opendir2, "__opendir2");
@@ -939,6 +970,20 @@ int __open (const char *pathname, int flags, ...)
 #endif
 
 
+#ifdef HAVE___OPEN_2
+/* Internal libc function */
+int __open_2 (const char *pathname, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
+    if (next___open_2 == NULL) fakechroot_init();
+    return next___open_2(pathname, flags);
+}
+#endif
+
+
 #ifdef HAVE___OPEN64
 /* Internal libc function */
 int __open64 (const char *pathname, int flags, ...)
@@ -957,6 +1002,48 @@ int __open64 (const char *pathname, int flags, ...)
 
     if (next___open64 == NULL) fakechroot_init();
     return next___open64(pathname, flags, mode);
+}
+#endif
+
+
+#ifdef HAVE___OPEN64_2
+/* Internal libc function */
+int __open64_2 (const char *pathname, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
+    if (next___open64_2 == NULL) fakechroot_init();
+    return next___open64_2(pathname, flags);
+}
+#endif
+
+
+#ifdef HAVE___OPENAT_2
+/* Internal libc function */
+int __openat_2 (int dirfd, const char *pathname, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
+    if (next___openat_2 == NULL) fakechroot_init();
+    return next___openat_2(dirfd, pathname, flags);
+}
+#endif
+
+
+#ifdef HAVE___OPENAT64_2
+/* Internal libc function */
+int __openat64_2 (int dirfd, const char *pathname, int flags)
+{
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+
+    if (next___openat64_2 == NULL) fakechroot_init();
+    return next___openat64_2(dirfd, pathname, flags);
 }
 #endif
 
@@ -2425,10 +2512,15 @@ int nftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb
 #endif
 
 
+#ifdef USE_ALIAS
+extern int __REDIRECT (__open_alias, (const char *pathname, int flags, ...), open);
+#else
+#define __open_alias open
+#endif
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
-int open (const char *pathname, int flags, ...)
+int __open_alias (const char *pathname, int flags, ...)
 {
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
@@ -2447,10 +2539,15 @@ int open (const char *pathname, int flags, ...)
 
 
 #ifdef HAVE_OPEN64
+#ifdef USE_ALIAS
+extern int __REDIRECT (__open64_alias, (const char *pathname, int flags, ...), open64);
+#else
+#define __open64_alias open64
+#endif
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
-int open64 (const char *pathname, int flags, ...)
+int __open64_alias (const char *pathname, int flags, ...)
 {
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
@@ -2470,9 +2567,14 @@ int open64 (const char *pathname, int flags, ...)
 
 
 #ifdef HAVE_OPENAT
+#ifdef USE_ALIAS
+extern int __REDIRECT (__openat_alias, (int dirfd, const char *pathname, int flags, ...), openat);
+#else
+#define __openat_alias openat
+#endif
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
-int openat (int dirfd, const char *pathname, int flags, ...)
+int __openat_alias (int dirfd, const char *pathname, int flags, ...)
 {
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
@@ -2492,9 +2594,14 @@ int openat (int dirfd, const char *pathname, int flags, ...)
 
 
 #ifdef HAVE_OPENAT64
+#ifdef USE_ALIAS
+extern int __REDIRECT (__openat64_alias, (int dirfd, const char *pathname, int flags, ...), openat64);
+#else
+#define __openat64_alias openat64
+#endif
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
-int openat64 (int dirfd, const char *pathname, int flags, ...)
+int __openat64_alias (int dirfd, const char *pathname, int flags, ...)
 {
     int mode = 0;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
