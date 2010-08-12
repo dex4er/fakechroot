@@ -19,12 +19,12 @@ rm -rf testtree
 
 # make first-level testtree
 $srcdir/testtree.sh testtree
-test "`cat testtree/CHROOT`" = "testtree" || not
+test "`cat testtree/CHROOT 2>&1`" = "testtree" || not
 ok "testtree"
 
 # make deeper test tree
 $srcdir/testtree.sh testtree/testtree
-test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || not
+test "`cat testtree/testtree/CHROOT 2>&1`" = "testtree/testtree" || not
 ok "testtree/testtree"
 
 # the same tests for real chroot and fakechroot
@@ -35,8 +35,8 @@ for chroot in chroot fakechroot; do
         skip 1 "not root"
     else
 
-	# do something
-        t=`echo something`
+        # do something
+        t=`echo something 2>&1`
         # check if it is ok or print "not"
         test "$t" = "something" || not
         # print "ok" message
