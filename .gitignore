@@ -30,4 +30,5 @@ missing
 scripts/fakechroot
 stamp-h1
 test/src/test-chroot
+test/src/test-lstat
 test/src/test-scandir

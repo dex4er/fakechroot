@@ -40,11 +40,12 @@ for p in \
     '/bin/csh' \
     '/bin/cp' \
     '/bin/grep' \
-    '/bin/sh' \
+    '/bin/ln' \
     '/bin/ls' \
     '/bin/mkdir' \
     '/bin/ps' \
     '/bin/pwd' \
+    '/bin/readlink' \
     '/bin/rm' \
     '/bin/sh' \
     '/bin/touch' \

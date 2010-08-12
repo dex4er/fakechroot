@@ -1,1 +1,6 @@
-check_PROGRAMS = test-chroot test-scandir
+check_PROGRAMS = \
+    test-chroot \
+    test-lstat \
+    test-scandir \
+    #
+
