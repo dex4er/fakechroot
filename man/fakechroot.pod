@@ -106,7 +106,11 @@ An example session with fakechroot:
 =head1 SECURITY ASPECTS
 
 fakechroot is a regular, non-setuid program.  It does not enhance a user's
-privileges, or decrease the system's security.
+privileges, or decrease the host's system security.
+
+fakechroot should not be used as a tool for enhancing system security i.e. by
+separating (sandboxing) applications.  It is very easy to escape from a fake
+chroot environment.
 
 =head1 FILES
 
