@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# $Id$
-
 usage () {
 cat - >&2 <<EOF
 fakechroot, create a fake chroot environment.

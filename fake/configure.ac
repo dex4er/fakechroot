@@ -1,5 +1,3 @@
-# $Id$
-
 AC_PREREQ(2.59)
 AC_INIT([fakechroot], [2.7], [dexter@debian.org])
 AC_CANONICAL_TARGET

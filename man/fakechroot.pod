@@ -1,7 +1,5 @@
 # pod2man --section=1 --release="Debian" --center=" " --date="17 Jul 2008"
 #
-# $Id$
-
 =head1 NAME
 
 fakechroot - gives a fake chroot environment
