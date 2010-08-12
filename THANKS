@@ -12,6 +12,8 @@ I'm glad to see that fakechroot had found another purposes:
     (https://wiki.ubuntu.com/Apport)
   * to be a part of Slind - a minimal Debian-based distro for embedded devices
     (https://www.slind.org/Main_Page)
+  * to be a part of scratchbox - the cross-compilation toolkit project
+    (http://freedesktop.org/wiki/Software/sbox2)
 
 I would like to thank to:
 
@@ -22,4 +24,4 @@ I would like to thank to:
   * Martin Pitt <martin.pitt@ubuntu.com>, for great Ubuntu support
   * Daniel Kahn Gillmor <dkg-debian.org@fifthhorseman.net>, for testing
 
- -- Piotr Roszatycki <dexter@debian.org>  Tue, 15 Jul 2008 14:07:14 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Thu, 12 Aug 2010 16:06:38 +0200
