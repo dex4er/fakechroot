@@ -924,10 +924,19 @@ int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, 
 /* #include <unistd.h> */
 int __lxstat (int ver, const char *filename, struct stat *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = filename;
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next___lxstat == NULL) fakechroot_init();
-    return next___lxstat(ver, filename, buf);
+    retval = next___lxstat(ver, filename, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 
@@ -937,10 +946,19 @@ int __lxstat (int ver, const char *filename, struct stat *buf)
 /* #include <unistd.h> */
 int __lxstat64 (int ver, const char *filename, struct stat64 *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = filename;
     expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next___lxstat64 == NULL) fakechroot_init();
-    return next___lxstat64(ver, filename, buf);
+    retval = next___lxstat64(ver, filename, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 
@@ -2287,10 +2305,19 @@ int lsetxattr (const char *path, const char *name, const void *value, size_t siz
 /* #include <unistd.h> */
 int lstat (const char *file_name, struct stat *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = file_name;
     expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_lstat == NULL) fakechroot_init();
-    return next_lstat(file_name, buf);
+    retval = next_lstat(file_name, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 
@@ -2301,10 +2328,19 @@ int lstat (const char *file_name, struct stat *buf)
 /* #include <unistd.h> */
 int lstat64 (const char *file_name, struct stat64 *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = file_name;
     expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
     if (next_lstat64 == NULL) fakechroot_init();
-    return next_lstat64(file_name, buf);
+    retval = next_lstat64(file_name, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 #endif

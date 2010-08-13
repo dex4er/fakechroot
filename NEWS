@@ -6,6 +6,8 @@
   [=openat64](2) inline functions.
 * Compatibility were improved for [=scandir](3) and [=scandir64](3) functions
   on the latest GNU libc.
+* Fixed [=lstat(2)] function returns correct [=st_size].  Thanks to Daniel
+  Baumann.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
   commands.  Thanks to Richard W.M. Jones.
 
