@@ -6,6 +6,7 @@ TESTS = \
     t/cmd-subst.t \
     t/escape-nested-chroot.t \
     t/pwd.t \
+    t/readlink.t \
     t/symlink.t \
     t/touch.t \
     #
