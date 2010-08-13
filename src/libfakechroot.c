@@ -1584,18 +1584,18 @@ try_cmd_subst (char *env, const char *filename, char *cmd_subst)
     if (env == NULL) return 0;
 
     do {
-	p = strchrnul (env, ':');
+        p = strchrnul (env, ':');
 
-	if (strncmp (env, filename, len) == 0 && env[len] == '=') {
-	    len2 = p - &env[len+1];
-	    if (len2 >= FAKECHROOT_MAXPATH)
-		len2 = FAKECHROOT_MAXPATH - 1;
-	    strncpy (cmd_subst, &env[len+1], len2);
-	    cmd_subst[len2] = '\0';
-	    return 1;
-	}
+        if (strncmp (env, filename, len) == 0 && env[len] == '=') {
+            len2 = p - &env[len+1];
+            if (len2 >= FAKECHROOT_MAXPATH)
+                len2 = FAKECHROOT_MAXPATH - 1;
+            strncpy (cmd_subst, &env[len+1], len2);
+            cmd_subst[len2] = '\0';
+            return 1;
+        }
 
-	env = p;
+        env = p;
     } while (*env++ != '\0');
 
     return 0;
