@@ -10,6 +10,8 @@
   Baumann.
 * Fixed [=readlink(2)] function.  Correctly truncates content if buffer is too
   small.
+* Fixed [=undefined symbol: rpl_malloc] error for compiled 32-bit library on
+  64-bit architecture by dropping AC_FUNC_MALLOC in configure.ac.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
   commands.  Thanks to Richard W.M. Jones.
 
