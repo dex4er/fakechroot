@@ -2702,8 +2702,7 @@ READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
             status -= strlen(fakechroot_path);
         }
         if (strlen(tmpptr) > bufsiz) {
-            errno = EFAULT;
-            return -1;
+            status = bufsiz;
         }
         strncpy(buf, tmpptr, status);
     } else {

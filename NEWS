@@ -8,6 +8,8 @@
   on the latest GNU libc.
 * Fixed [=lstat(2)] function returns correct [=st_size].  Thanks to Daniel
   Baumann.
+* Fixed [=readlink(2)] function.  Correctly truncates content if buffer is too
+  small.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
   commands.  Thanks to Richard W.M. Jones.
 
