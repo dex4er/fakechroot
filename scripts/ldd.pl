@@ -88,6 +88,11 @@ if ($#ARGV < 0) {
     exit 1;
 }
 
+if (not `which objdump`) {
+    print STDERR "fakeldd: objdump: command not found: install binutils package\n";
+    exit 1;
+}
+
 while ($ARGV[0] =~ /^-/) {
     my $arg = $ARGV[0];
     shift @ARGV;
