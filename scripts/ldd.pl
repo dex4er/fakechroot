@@ -13,10 +13,9 @@ my %Libs = ();
 my $Status = 0;
 my $Dynamic = 0;
 my $Format = '';
-my $Unamearch = '';
 
 my $Ldlinuxsodir = "/lib";
-my @Ld_library_path = qw(/usr/lib /lib /usr/lib64 /lib32 /usr/lib32 /lib32);
+my @Ld_library_path = qw(/usr/lib /lib /usr/lib64 /lib32 /usr/lib64 /lib64);
 
 
 sub ldso($) {
@@ -103,9 +102,6 @@ while (my $line = <$fh>) {
 close $fh;
 
 unshift @Ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
-
-$Unamearch = `/bin/uname -m`;
-chomp $Unamearch;
 
 foreach my $file (@ARGV) {
     my $address;
