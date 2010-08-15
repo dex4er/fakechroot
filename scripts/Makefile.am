@@ -1,5 +1,5 @@
 bin_SCRIPTS = fakechroot
-EXTRA_DIST = fakechroot.in ldd.fake restoremode.sh savemode.sh
+EXTRA_DIST = fakechroot.in ldd.pl restoremode.sh savemode.sh
 CLEANFILES = fakechroot
 
 do_subst = sed -e 's,[@]prefix[@],$(prefix),g' \

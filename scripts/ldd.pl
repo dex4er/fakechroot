@@ -8,7 +8,7 @@
 
 use strict;
 
-my %libs = ();
+my %Libs = ();
 
 my $Status = 0;
 my $Dynamic = 0;
@@ -16,7 +16,7 @@ my $Format = '';
 my $Unamearch = '';
 
 my $Ldlinuxsodir = "/lib";
-my @Ld_library_path = qw(/usr/lib /lib);
+my @Ld_library_path = qw(/usr/lib /lib /usr/lib64 /lib32 /usr/lib32 /lib32);
 
 
 sub ldso($) {
@@ -24,7 +24,7 @@ sub ldso($) {
     my @files = ();
 
     if ($lib =~ /^\//) {
-        $libs{$lib} = $lib;
+        $Libs{$lib} = $lib;
         push @files, $lib;
     } else {
         foreach my $ld_path (@Ld_library_path) {
@@ -39,7 +39,7 @@ sub ldso($) {
             }
             close OBJDUMP;
             next if $badformat;
-            $libs{$lib} = "$ld_path/$lib";
+            $Libs{$lib} = "$ld_path/$lib";
             push @files, "$ld_path/$lib";
         }
         objdump(@files);
@@ -70,8 +70,8 @@ sub objdump(@) {
             if ($f[1] =~ /^ld-linux(\.|-)/) {
                 $f[1] = "$Ldlinuxsodir/" . $f[1];
             }
-            if (not defined $libs{$f[1]}) {
-                $libs{$f[1]} = undef;
+            if (not defined $Libs{$f[1]}) {
+                $Libs{$f[1]} = undef;
                 push @libs, $f[1];
             }
         }
@@ -103,14 +103,13 @@ while (my $line = <LD_SO_CONF>) {
 close LD_SO_CONF;
 
 unshift @Ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
-push @Ld_library_path, "/usr/lib32", "/lib32", "/usr/lib64", "/lib64";
 
 $Unamearch = `/bin/uname -m`;
 chomp $Unamearch;
 
 foreach my $file (@ARGV) {
     my $address;
-    %libs = ();
+    %Libs = ();
     $Dynamic = 0;
 
     if ($#ARGV > 0) {
@@ -128,7 +127,7 @@ foreach my $file (@ARGV) {
     if ($Dynamic == 0) {
         print "\tnot a dynamic executable\n";
         $Status = 1;
-    } elsif (scalar %libs eq "0") {
+    } elsif (scalar %Libs eq "0") {
         print "\tstatically linked\n";
     }
 
@@ -138,9 +137,9 @@ foreach my $file (@ARGV) {
         $address = "0x00000000";
     }
 
-    foreach my $lib (keys %libs) {
-        if ($libs{$lib}) {
-            printf "\t%s => %s (%s)\n", $lib, $libs{$lib}, $address;
+    foreach my $lib (keys %Libs) {
+        if ($Libs{$lib}) {
+            printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
         } else {
             printf "\t%s => not found\n", $lib;
         }
