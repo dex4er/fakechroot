@@ -30,14 +30,14 @@ sub ldso($) {
         foreach my $ld_path (@Ld_library_path) {
             next unless -f "$ld_path/$lib";
             my $badformat = 0;
-            open OBJDUMP, "objdump -p $ld_path/$lib 2>/dev/null |";
-            while (my $line = <OBJDUMP>) {
+            open my $pipe, "objdump -p '$ld_path/$lib' 2>/dev/null |";
+            while (my $line = <$pipe>) {
                 if ($line =~ /file format (\S*)$/) {
                     $badformat = 1 unless $Format eq $1;
                     last;
                 }
             }
-            close OBJDUMP;
+            close $pipe;
             next if $badformat;
             $Libs{$lib} = "$ld_path/$lib";
             push @files, "$ld_path/$lib";
@@ -52,8 +52,8 @@ sub objdump(@) {
     my @libs = ();
 
     foreach my $file (@files) {
-        open OBJDUMP, "objdump -p $file 2>/dev/null |";
-        while (my $line = <OBJDUMP>) {
+        open my $pipe, "objdump -p '$file' 2>/dev/null |";
+        while (my $line = <$pipe>) {
             $line =~ s/^\s+//;
             my @f = split (/\s+/, $line);
             if ($line =~ /file format (\S*)$/) {
@@ -75,7 +75,7 @@ sub objdump(@) {
                 push @libs, $f[1];
             }
         }
-        close OBJDUMP;
+        close $pipe;
     }
 
     foreach my $lib (@libs) {
@@ -95,12 +95,12 @@ while ($ARGV[0] =~ /^-/) {
     last if $arg eq "--";
 }
 
-open LD_SO_CONF, "/etc/ld.so.conf";
-while (my $line = <LD_SO_CONF>) {
+open my $fh, "/etc/ld.so.conf";
+while (my $line = <$fh>) {
     chomp $line;
     unshift @Ld_library_path, $line;
 }
-close LD_SO_CONF;
+close $fh;
 
 unshift @Ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
 
