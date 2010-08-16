@@ -92,6 +92,7 @@ sub objdump {
     }
 }
 
+
 sub load_ldsoconf {
     my ($file) = @_;
 
@@ -113,6 +114,7 @@ sub load_ldsoconf {
     }
     close $fh;
 }
+
 
 MAIN: {
     my @args = @ARGV;
@@ -172,6 +174,8 @@ MAIN: {
         }
 
     }
+}
 
-    exit $Status;
+END {
+	$? = $Status;
 }
