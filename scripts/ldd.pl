@@ -7,6 +7,7 @@
 # (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 use strict;
+#use warnings;
 
 my %Libs = ();
 
@@ -82,70 +83,71 @@ sub objdump(@) {
     }
 }
 
-
-if ($#ARGV < 0) {
-    print STDERR "fakeldd: missing file arguments\n";
-    exit 1;
-}
-
-if (not `which objdump`) {
-    print STDERR "fakeldd: objdump: command not found: install binutils package\n";
-    exit 1;
-}
-
-while ($ARGV[0] =~ /^-/) {
-    my $arg = $ARGV[0];
-    shift @ARGV;
-    last if $arg eq "--";
-}
-
-open my $fh, "/etc/ld.so.conf";
-while (my $line = <$fh>) {
-    chomp $line;
-    unshift @Ld_library_path, $line;
-}
-close $fh;
-
-unshift @Ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
-
-foreach my $file (@ARGV) {
-    my $address;
-    %Libs = ();
-    $Dynamic = 0;
-
-    if ($#ARGV > 0) {
-        print "$file:\n";
+MAIN: {
+    if (not @ARGV) {
+        print STDERR "fakeldd: missing file arguments\n";
+        exit 1;
     }
-
-    if (not -f $file) {
-        print STDERR "ldd: $file: No such file or directory\n";
-        $Status = 1;
-        next;
+    
+    if (not `which objdump`) {
+        print STDERR "fakeldd: objdump: command not found: install binutils package\n";
+        exit 1;
     }
-
-    objdump($file);
-
-    if ($Dynamic == 0) {
-        print "\tnot a dynamic executable\n";
-        $Status = 1;
-    } elsif (scalar %Libs eq "0") {
-        print "\tstatically linked\n";
+    
+    while ($ARGV[0] =~ /^-/) {
+        my $arg = $ARGV[0];
+        shift @ARGV;
+        last if $arg eq "--";
     }
-
-    if ($Format =~ /^elf64-/) {
-        $address = "0x0000000000000000";
-    } else {
-        $address = "0x00000000";
+    
+    open my $fh, "/etc/ld.so.conf";
+    while (my $line = <$fh>) {
+        chomp $line;
+        unshift @Ld_library_path, $line;
     }
-
-    foreach my $lib (keys %Libs) {
-        if ($Libs{$lib}) {
-            printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
-        } else {
-            printf "\t%s => not found\n", $lib;
+    close $fh;
+    
+    unshift @Ld_library_path, split(/:/, $ENV{LD_LIBRARY_PATH});
+    
+    foreach my $file (@ARGV) {
+        my $address;
+        %Libs = ();
+        $Dynamic = 0;
+    
+        if ($#ARGV > 0) {
+            print "$file:\n";
         }
+    
+        if (not -f $file) {
+            print STDERR "ldd: $file: No such file or directory\n";
+            $Status = 1;
+            next;
+        }
+    
+        objdump($file);
+    
+        if ($Dynamic == 0) {
+            print "\tnot a dynamic executable\n";
+            $Status = 1;
+        } elsif (scalar %Libs eq "0") {
+            print "\tstatically linked\n";
+        }
+    
+        if ($Format =~ /^elf64-/) {
+            $address = "0x0000000000000000";
+        } else {
+            $address = "0x00000000";
+        }
+    
+        foreach my $lib (keys %Libs) {
+            if ($Libs{$lib}) {
+                printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
+            } else {
+                printf "\t%s => not found\n", $lib;
+            }
+        }
+    
     }
-
+    
+    exit $Status;
 }
-
-exit $Status;
