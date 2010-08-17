@@ -24,7 +24,7 @@ sub ldso {
 
     return if $Libs{$lib};
 
-        my $path;
+    my $path;
 
     if ($lib =~ /^\//) {
         $path = $lib;
@@ -45,14 +45,14 @@ sub ldso {
 
             next if $badformat;
 
-                        $path = "$dir/$lib";
+            $path = "$dir/$lib";
             last;
         }
     }
 
     push @Libs, $lib;
     if (-f $path) {
-            $Libs{$lib} = $path;
+        $Libs{$lib} = $path;
         objdump($path);
     }
 }
@@ -72,12 +72,12 @@ sub objdump {
 
                     if ($^O eq 'linux') {
                         if ($Format =~ /^elf64-/) {
-                                push @Libs, 'linux-vdso.so.1';
-                                $Libs{'linux-vdso.so.1'} = '';
+                            push @Libs, 'linux-vdso.so.1';
+                            $Libs{'linux-vdso.so.1'} = '';
                         }
                         else {
-                                push @Libs, 'linux-gate.so.1';
-                                $Libs{'linux-gate.so.1'} = '';
+                            push @Libs, 'linux-gate.so.1';
+                            $Libs{'linux-gate.so.1'} = '';
                         }
                     }
 
@@ -191,5 +191,5 @@ MAIN: {
 }
 
 END {
-        $? = $Status;
+    $? = $Status;
 }
