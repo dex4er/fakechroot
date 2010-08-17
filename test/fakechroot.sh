@@ -23,8 +23,8 @@ fi
 export LD_PRELOAD
 
 if [ $# -gt 0 ]; then
-    HOME=/root $destdir/usr/sbin/chroot `pwd`/$destdir "$@"
+    HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir "$@"
 else
     echo "LD_PRELOAD=$LD_PRELOAD"
-    HOME=/root $destdir/usr/sbin/chroot `pwd`/$destdir /bin/bash
+    HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir /bin/bash
 fi
