@@ -27,6 +27,7 @@
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
+#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -38,7 +39,6 @@
 #include <sys/times.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <stdarg.h>
 #include <dirent.h>
 #include <string.h>
 #include <glob.h>
