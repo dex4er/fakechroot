@@ -29,7 +29,3 @@ autogen -I m4
 pushd fake
     autogen
 popd
-
-pushd man
-    ./makeman.sh
-popd
