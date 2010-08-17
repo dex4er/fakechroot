@@ -24,10 +24,10 @@ sub ldso {
 
     return if $Libs{$lib};
 
+        my $path;
+
     if ($lib =~ /^\//) {
-        $Libs{$lib} = $lib;
-        objdump($lib);
-        push @Libs, $lib;
+        $path = $lib;
     }
     else {
         foreach my $dir (@Ld_Library_Path) {
@@ -45,12 +45,15 @@ sub ldso {
 
             next if $badformat;
 
-            $Libs{$lib} = "$dir/$lib";
-            objdump("$dir/$lib");
-            push @Libs, $lib;
-
+                        $path = "$dir/$lib";
             last;
         }
+    }
+
+    push @Libs, $lib;
+    if (-f $path) {
+            $Libs{$lib} = $path;
+        objdump($path);
     }
 }
 
@@ -66,6 +69,17 @@ sub objdump {
             if ($line =~ /file format (\S*)$/) {
                 if (not $Format) {
                     $Format = $1;
+
+                    if ($^O eq 'linux') {
+                        if ($Format =~ /^elf64-/) {
+                                push @Libs, 'linux-vdso.so.1';
+                                $Libs{'linux-vdso.so.1'} = '';
+                        }
+                        else {
+                                push @Libs, 'linux-gate.so.1';
+                                $Libs{'linux-gate.so.1'} = '';
+                        }
+                    }
 
                     foreach my $lib (split /:/, $ENV{LD_PRELOAD}||'') {
                         ldso($lib);
@@ -165,7 +179,7 @@ MAIN: {
         my $address = '0x' . '0' x ($Format =~ /^elf64-/ ? 16 : 8);
 
         foreach my $lib (@Libs) {
-            if ($Libs{$lib}) {
+            if (defined $Libs{$lib}) {
                 printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
             }
             else {
@@ -177,5 +191,5 @@ MAIN: {
 }
 
 END {
-	$? = $Status;
+        $? = $Status;
 }
