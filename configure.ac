@@ -7,6 +7,10 @@ AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
 
+# Makefile's ifeq/else/endif
+MK=''
+AC_SUBST(MK)
+
 # --with-libpath
 AC_ARG_WITH([libpath],
 	    AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
@@ -25,6 +29,7 @@ AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_LN_S
+AC_CHECK_PROGS([PROVE], [prove])
 
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])

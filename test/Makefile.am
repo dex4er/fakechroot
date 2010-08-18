@@ -25,3 +25,10 @@ check_SCRIPTS = $(TESTS) \
     #
 
 EXTRA_DIST = $(check_SCRIPTS)
+
+test:
+@MK@ifneq (,$(PROVE))
+	$(PROVE) t
+@MK@else
+	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
+@MK@endif

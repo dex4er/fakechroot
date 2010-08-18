@@ -14,6 +14,7 @@
   64-bit architecture by dropping AC_FUNC_MALLOC in configure.ac.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
   commands.  Thanks to Richard W.M. Jones.
+* New "make test" target uses Perl's "prove" tool to run test units.
 
 == Version 2.9 ==
 
