@@ -510,6 +510,9 @@ static int     (*next_openat64) (int dirfd, const char *pathname, int flags, ...
 static DIR *   (*next_opendir) (const char *name) = NULL;
 #endif
 static long    (*next_pathconf) (const char *path, int name) = NULL;
+#ifdef __GNUC__
+/* static FILE *  (*next_popen) (const char *command, const char *type) = NULL; */
+#endif
 static READLINK_TYPE_RETURN (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
@@ -798,6 +801,9 @@ void fakechroot_init (void)
 #endif
 #if !defined(HAVE___OPENDIR2)
     nextsym(opendir, "opendir");
+#endif
+#ifdef __GNUC__
+/*    nextsym(popen, "popen"); */
 #endif
     nextsym(pathconf, "pathconf");
     nextsym(readlink, "readlink");
@@ -2671,6 +2677,100 @@ long pathconf (const char *path, int name)
     if (next_pathconf == NULL) fakechroot_init();
     return next_pathconf(path, name);
 }
+
+
+#ifdef __GNUC__
+/*
+   popen reimplementation taken from bionic. glibc uses internal weak aliases
+   which cannot be overriden.
+ */
+static struct pid {
+    struct pid *next;
+    FILE *fp;
+    pid_t pid;
+} *pidlist;
+
+/* #include <stdio.h> */
+FILE *popen (const char *program, const char *type) {
+    struct pid * volatile cur;
+    FILE *iop;
+    int pdes[2];
+    pid_t pid;
+
+    if ((*type != 'r' && *type != 'w') || type[1] != '\0') {
+        errno = EINVAL;
+        return (NULL);
+    }
+
+    if ((cur = malloc(sizeof(struct pid))) == NULL)
+        return (NULL);
+
+    if (pipe(pdes) < 0) {
+        free(cur);
+        return (NULL);
+    }
+
+    switch (pid = vfork()) {
+    case -1: /* Error. */
+        (void) close(pdes[0]);
+        (void) close(pdes[1]);
+        free(cur);
+        return (NULL);
+        /* NOTREACHED */
+    case 0: /* Child. */
+    {
+        struct pid *pcur;
+        /*
+         * because vfork() instead of fork(), must leak FILE *,
+         * but luckily we are terminally headed for an execl()
+         */
+        for (pcur = pidlist; pcur; pcur = pcur->next)
+            close(fileno(pcur->fp));
+
+        if (*type == 'r') {
+            int tpdes1 = pdes[1];
+
+            (void) close(pdes[0]);
+            /*
+             * We must NOT modify pdes, due to the
+             * semantics of vfork.
+             */
+            if (tpdes1 != STDOUT_FILENO) {
+                (void) dup2(tpdes1, STDOUT_FILENO);
+                (void) close(tpdes1);
+                tpdes1 = STDOUT_FILENO;
+            }
+        } else {
+            (void) close(pdes[1]);
+            if (pdes[0] != STDIN_FILENO) {
+                (void) dup2(pdes[0], STDIN_FILENO);
+                (void) close(pdes[0]);
+            }
+        }
+        execl("/bin/sh", "sh", "-c", program, (char *) NULL);
+        _exit(127);
+        /* NOTREACHED */
+    }
+    }
+
+    /* Parent; assume fdopen can't fail. */
+    if (*type == 'r') {
+        iop = fdopen(pdes[0], type);
+        (void) close(pdes[1]);
+    } else {
+        iop = fdopen(pdes[1], type);
+        (void) close(pdes[0]);
+    }
+
+    /* Link into list of file descriptors. */
+    cur->fp = iop;
+    cur->pid = pid;
+    cur->next = pidlist;
+    pidlist = cur;
+
+    return (iop);
+}
+#endif
 
 
 /* #include <unistd.h> */

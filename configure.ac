@@ -149,6 +149,7 @@ openat \
 openat64 \
 opendir \
 pathconf \
+popen \
 readlink \
 realpath \
 remove \
