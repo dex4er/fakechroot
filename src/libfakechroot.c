@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
+    Copyright (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>, LGPL
     Copyright (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
 
     klik2 support -- give direct access to a list of directories

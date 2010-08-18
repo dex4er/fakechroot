@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="17 Jul 2008"
+# pod2man --section=1 --release="Debian" --center=" " --date="18 Aug 2010"
 #
 =head1 NAME
 
@@ -234,7 +234,7 @@ fakechroot is distributed under the GNU Lesser General Public License (LGPL
 
 =head1 AUTHORS
 
-Copyright (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>
+Copyright (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>
 
 Copyright (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>
 
