@@ -79,9 +79,6 @@
 
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
 #define USE_ALIAS 1
-#define ALIAS(function) __##function##_alias
-#else
-#define ALIAS(function) function
 #endif
 
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
