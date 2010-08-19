@@ -28,6 +28,7 @@ check_SCRIPTS = $(TESTS) \
 EXTRA_DIST = $(check_SCRIPTS)
 
 test:
+	$(MAKE) $(AM_MAKEFLAGS) -C src check
 @MK@ifneq (,$(PROVE))
 	$(PROVE) t
 @MK@else

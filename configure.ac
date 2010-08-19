@@ -7,9 +7,8 @@ AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
 
-# Makefile's ifeq/else/endif
-MK=''
-AC_SUBST(MK)
+# @MK@ifeq/else/endif
+AC_SUBST([MK], [])
 
 # --with-libpath
 AC_ARG_WITH([libpath],
