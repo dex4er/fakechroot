@@ -2,7 +2,7 @@
 
 srcdir=${srcdir:-.}
 
-. $srcdir/common.sh
+. $srcdir/common.inc
 
 plan 15
 
