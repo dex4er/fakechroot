@@ -21,37 +21,37 @@ for chroot in chroot fakechroot; do
         skip 4 "not root"
     else
 
-        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / / 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / / 'ls -id /' 2>&1`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
         f4=`echo $t | awk '{print $4}'`
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" = "$f3" || not
-        ok "$chroot test-chroot . (not escaped)"
+        ok "$chroot test-chroot / / (not escaped):" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / . 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' / . 'ls -id /' 2>&1`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
         f4=`echo $t | awk '{print $4}'`
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" = "$f3" || not
-        ok "$chroot test-chroot . (not escaped)"
+        ok "$chroot test-chroot / . (not escaped):" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . / 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . / 'ls -id /' 2>&1`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
         f4=`echo $t | awk '{print $4}'`
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" = "$f3" || not
-        ok "$chroot test-chroot . (not escaped)"
+        ok "$chroot test-chroot . / (not escaped):" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . . 'ls -id /' 2>/dev/null`
+        t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' . . 'ls -id /' 2>&1`
         f1=`echo $t | awk '{print $1}'`
         f2=`echo $t | awk '{print $2}'`
         f3=`echo $t | awk '{print $3}'`
         f4=`echo $t | awk '{print $4}'`
         test "$f2" = "/" -a "$f4" = "/" -a "$f1" != "$f3" || not
-        ok "$chroot test-chroot . (escaped)"
+        ok "$chroot test-chroot . . (escaped):" $t
 
     fi    
 
