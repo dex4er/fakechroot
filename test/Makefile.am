@@ -18,9 +18,9 @@ CLEANFILES = testtree
 
 check_SCRIPTS = $(TESTS) \
     chroot.sh \
-    common.sh \
+    common.inc \
     fakechroot.sh \
-    tap.sh \
+    tap.inc \
     testtree.sh \
     t/cmd-subst-pwd.sh \
     #

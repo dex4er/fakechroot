@@ -2,7 +2,7 @@
 
 srcdir=${srcdir:-.}
 
-. $srcdir/common.sh
+. $srcdir/common.inc
 
 imax=$((180-$(pwd | wc -c)))
 
