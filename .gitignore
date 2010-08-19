@@ -4,8 +4,11 @@
 *.la
 *.lo
 *.o
+.autotools
+.cproject
 .deps
 .libs
+.project
 Makefile
 Makefile.in
 aclocal.m4
@@ -28,6 +31,7 @@ libtool
 ltmain.sh
 missing
 scripts/fakechroot
+scripts/*.fakechroot
 stamp-h1
 test/src/test-*
 !test/src/test-*.c

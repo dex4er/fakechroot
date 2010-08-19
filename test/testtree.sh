@@ -48,6 +48,7 @@ for p in \
     '/bin/readlink' \
     '/bin/rm' \
     '/bin/sh' \
+    '/bin/sleep' \
     '/bin/touch' \
     '/usr/bin/basename' \
     '/usr/bin/dirname' \
@@ -55,6 +56,7 @@ for p in \
     '/usr/bin/id' \
     '/usr/bin/ltrace' \
     '/usr/bin/perl' \
+    '/usr/bin/seq' \
     '/usr/bin/strace' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \

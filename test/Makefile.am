@@ -5,6 +5,7 @@ TESTS = \
     t/chroot.t \
     t/cmd-subst.t \
     t/escape-nested-chroot.t \
+    t/popen.t \
     t/pwd.t \
     t/readlink.t \
     t/symlink.t \
