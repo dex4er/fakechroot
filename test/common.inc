@@ -27,4 +27,6 @@ prepare_env () {
         LD_PRELOAD="$dir/libfakechroot.so"
     fi
     export LD_PRELOAD
+
+    export FAKECHROOT=true
 }
