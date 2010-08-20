@@ -3,5 +3,6 @@ check_PROGRAMS = \
     test-lstat \
     test-popen \
     test-scandir \
+    test-system \
     #
 

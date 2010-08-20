@@ -170,6 +170,7 @@ stat \
 stat64 \
 strchrnul \
 symlink \
+system \
 tempnam \
 tmpnam \
 truncate \
