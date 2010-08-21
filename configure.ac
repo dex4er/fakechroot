@@ -130,6 +130,7 @@ lchown \
 lckpwdf \
 lgetxattr \
 link \
+linkat \
 listxattr \
 llistxattr \
 lremovexattr \

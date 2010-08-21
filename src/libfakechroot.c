@@ -449,6 +449,9 @@ static int     (*next_lchown) (const char *path, uid_t owner, gid_t group) = NUL
 static ssize_t (*next_lgetxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
 #endif
 static int     (*next_link) (const char *oldpath, const char *newpath) = NULL;
+#ifdef HAVE_LINKAT
+static int     (*next_linkat) (int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags) = NULL;
+#endif
 #ifdef HAVE_LISTXATTR
 static ssize_t (*next_listxattr) (const char *path, char *list, size_t size) = NULL;
 #endif
@@ -752,6 +755,9 @@ void fakechroot_init (void)
     nextsym(lgetxattr, "lgetxattr");
 #endif
     nextsym(link, "link");
+#ifdef HAVE_LINKAT
+    nextsym(linkat, "linkat");
+#endif
 #ifdef HAVE_LISTXATTR
     nextsym(listxattr, "listxattr");
 #endif
@@ -2250,6 +2256,21 @@ int link (const char *oldpath, const char *newpath)
     if (next_link == NULL) fakechroot_init();
     return next_link(oldpath, newpath);
 }
+
+
+#ifdef HAVE_LINKAT
+/* #include <unistd.h> */
+int linkat (int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
+    if (next_linkat == NULL) fakechroot_init();
+    return next_linkat(olddirfd, oldpath, newdirfd, newpath, flags);
+}
+#endif
 
 
 #ifdef HAVE_LISTXATTR
