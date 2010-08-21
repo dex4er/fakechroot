@@ -2377,7 +2377,7 @@ int mkdirat (int dirfd, const char *pathname, mode_t mode)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-    if (next_mkdir == NULL) fakechroot_init();
+    if (next_mkdirat == NULL) fakechroot_init();
     return next_mkdirat(dirfd, pathname, mode);
 }
 #endif
