@@ -39,6 +39,7 @@ for p in \
     '/bin/chmod' \
     '/bin/csh' \
     '/bin/cp' \
+    '/bin/echo' \
     '/bin/grep' \
     '/bin/ln' \
     '/bin/ls' \

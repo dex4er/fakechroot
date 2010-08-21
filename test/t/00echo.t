@@ -7,7 +7,7 @@ srcdir=${srcdir:-.}
 . $srcdir/common.inc
 
 # how many tests will be?
-plan 4
+plan 3
 
 # clean up temporary directory before tests
 rm -rf testtree
@@ -22,11 +22,6 @@ $srcdir/testtree.sh testtree
 test "`cat testtree/CHROOT 2>&1`" = "testtree" || not
 ok "testtree"
 
-# make deeper test tree
-$srcdir/testtree.sh testtree/testtree
-test "`cat testtree/testtree/CHROOT 2>&1`" = "testtree/testtree" || not
-ok "testtree/testtree"
-
 # the same tests for real chroot and fakechroot
 for chroot in chroot fakechroot; do
 
@@ -35,12 +30,12 @@ for chroot in chroot fakechroot; do
         skip 1 "not root"
     else
 
-        # do something
-        t=`echo something 2>&1`
+        # echo something
+        t=`$srcdir/$chroot.sh testtree /bin/echo something 2>&1`
         # check if it is ok or print "not"
         test "$t" = "something" || not
-        # print "ok" message
-        ok "$chroot something"
+        # print "ok" message with unquoted test output
+        ok "$chroot echo:" $t
 
     fi
 
