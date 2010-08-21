@@ -1,8 +1,9 @@
 
 plan () {
+    tap_plan=$1
     tap_ret=0
     tap_n=1
-    echo "1..$1"
+    echo "1..$tap_plan"
 }
 
 not () {
@@ -25,4 +26,10 @@ skip () {
 
 end () {
     exit $tap_ret
+}
+
+bail_out () {
+    echo "Bail out!  $@"
+    tap_ret=255
+    end
 }
