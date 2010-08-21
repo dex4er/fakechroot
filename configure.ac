@@ -173,6 +173,7 @@ stat \
 stat64 \
 strchrnul \
 symlink \
+symlinkat \
 system \
 tempnam \
 tmpnam \

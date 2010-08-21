@@ -550,6 +550,9 @@ static int     (*next_stat64) (const char *file_name, struct stat64 *buf) = NULL
 #endif
 #endif
 static int     (*next_symlink) (const char *oldpath, const char *newpath) = NULL;
+#ifdef HAVE_SYMLINKAT
+static int     (*next_symlinkat) (const char *oldpath, int newdirfd, const char *newpath) = NULL;
+#endif
 /* static int     (*next_system) (const char *command) = NULL; */
 static char *  (*next_tempnam) (const char *dir, const char *pfx) = NULL;
 static char *  (*next_tmpnam) (char *s) = NULL;
@@ -856,6 +859,9 @@ void fakechroot_init (void)
 #endif
 #endif
     nextsym(symlink, "symlink");
+#ifdef HAVE_SYMLINKAT
+    nextsym(symlinkat, "symlinkat");
+#endif
 /*    nextsym(symlink, "system"); */
     nextsym(tempnam, "tempnam");
     nextsym(tmpnam, "tmpnam");
@@ -3016,6 +3022,21 @@ int symlink (const char *oldpath, const char *newpath)
     if (next_symlink == NULL) fakechroot_init();
     return next_symlink(oldpath, newpath);
 }
+
+
+#ifdef HAVE_SYMLINKAT
+/* #include <stdio.h> */
+int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
+    if (next_symlinkat == NULL) fakechroot_init();
+    return next_symlinkat(oldpath, newdirfd, newpath);
+}
+#endif
 
 
 #ifdef __GNUC__
