@@ -143,6 +143,7 @@ mkdtemp \
 mknod \
 mknodat \
 mkfifo \
+mkfifoat \
 mkstemp \
 mkstemp64 \
 mktemp \

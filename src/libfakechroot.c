@@ -484,6 +484,9 @@ static int     (*next_mknod) (const char *pathname, mode_t mode, dev_t dev) = NU
 static int     (*next_mknodat) (int dirfd, const char *pathname, mode_t mode, dev_t dev) = NULL;
 #endif
 static int     (*next_mkfifo) (const char *pathname, mode_t mode) = NULL;
+#ifdef HAVE_MKFIFOAT
+static int     (*next_mkfifoat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+#endif
 static int     (*next_mkstemp) (char *template) = NULL;
 #ifdef HAVE_MKSTEMP64
 static int     (*next_mkstemp64) (char *template) = NULL;
@@ -784,6 +787,9 @@ void fakechroot_init (void)
     nextsym(mknod, "mknodat");
 #endif
     nextsym(mkfifo, "mkfifo");
+#ifdef HAVE_MKFIFOAT
+    nextsym(mkfifoat, "mkfifoat");
+#endif
     nextsym(mkstemp, "mkstemp");
 #ifdef HAVE_MKSTEMP64
     nextsym(mkstemp64, "mkstemp64");
@@ -2414,6 +2420,18 @@ int mkfifo (const char *pathname, mode_t mode)
     if (next_mkfifo == NULL) fakechroot_init();
     return next_mkfifo(pathname, mode);
 }
+
+
+#ifdef HAVE_MKFIFOAT
+/* #include <sys/stat.h> */
+int mkfifoat (int dirfd, const char *pathname, mode_t mode)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    if (next_mkfifoat == NULL) fakechroot_init();
+    return next_mkfifoat(int dirfd, pathname, mode);
+}
+#endif
 
 
 /* #include <sys/types.h> */
