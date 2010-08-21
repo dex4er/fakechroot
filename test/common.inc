@@ -34,3 +34,17 @@ prepare_env () {
 
     export FAKECHROOT=true
 }
+
+cleanup () {
+    rm -rf testtree
+
+    end
+}
+
+prepare () {
+    plan $1
+
+    rm -rf testtree
+    $srcdir/testtree.sh testtree
+    test "`cat testtree/CHROOT 2>&1`" = "testtree" || bail_out "cannot create testtree"
+}

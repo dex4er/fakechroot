@@ -6,28 +6,22 @@ srcdir=${srcdir:-.}
 # include common script
 . $srcdir/common.inc
 
-# how many tests will be?
-plan 3
-
-# clean up temporary directory before tests
-rm -rf testtree
+# prepare tests. how many tests will be?
+prepare 2
 
 # general testing rule:
-#   do_something
-#   check_if_it_is_ok || not
-#   ok "message"
-
-# make first-level testtree
-$srcdir/testtree.sh testtree
-test "`cat testtree/CHROOT 2>&1`" = "testtree" || not
-ok "testtree"
+#   for chroot and fakechroot
+#     skip if not root for real chroot
+#     do_something
+#     check_if_it_is_ok || not
+#     ok "message"
 
 # the same tests for real chroot and fakechroot
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
-        # how many tests we need to skip?
-        skip 1 "not root"
+        # how many tests we need to skip? usually it is plan/2
+        skip $(( $tap_plan / 2 )) "not root"
     else
 
         # echo something
@@ -41,8 +35,5 @@ for chroot in chroot fakechroot; do
 
 done
 
-# clean up temporary directory after tests
-rm -rf testtree
-
-# end message
-end
+# clean up temporary directory after tests and end tests
+cleanup
