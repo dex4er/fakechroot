@@ -2475,8 +2475,8 @@ int mknodat (int dirfd, const char *pathname, mode_t mode, dev_t dev)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-    if (next_mknod == NULL) fakechroot_init();
-    return next_mknod(dirfd, pathname, mode, dev);
+    if (next_mknodat == NULL) fakechroot_init();
+    return next_mknodat(dirfd, pathname, mode, dev);
 }
 #endif
 
