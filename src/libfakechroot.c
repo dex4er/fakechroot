@@ -519,6 +519,9 @@ static long    (*next_pathconf) (const char *path, int name) = NULL;
 /* static FILE *  (*next_popen) (const char *command, const char *type) = NULL; */
 #endif
 static READLINK_TYPE_RETURN (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+#ifdef HAVE_READLINKAT
+static READLINK_TYPE_RETURN (*next_readlinkat) (int dirfd, const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+#endif
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
 #ifdef HAVE_REMOVEXATTR
@@ -828,6 +831,9 @@ void fakechroot_init (void)
 #endif
     nextsym(pathconf, "pathconf");
     nextsym(readlink, "readlink");
+#ifdef HAVE_READLINKAT
+    nextsym(readlinkat, "readlinkat");
+#endif
     nextsym(realpath, "realpath");
     nextsym(remove, "remove");
 #ifdef HAVE_REMOVEXATTR
@@ -2856,6 +2862,44 @@ READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
     }
     return status;
 }
+
+
+#ifdef HAVE_READLINKAT
+/* #include <unistd.h> */
+READLINK_TYPE_RETURN readlinkat (int dirfd, const char *path, char *buf, READLINK_TYPE_ARG3)
+{
+    int status;
+    char tmp[FAKECHROOT_MAXPATH], *tmpptr;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (next_readlink == NULL) fakechroot_init();
+
+    if ((status = next_readlinkat(dirfd, path, tmp, FAKECHROOT_MAXPATH-1)) == -1) {
+        return -1;
+    }
+    tmp[status] = '\0';
+
+    fakechroot_path = getenv("FAKECHROOT_BASE");
+    if (fakechroot_path != NULL) {
+        fakechroot_ptr = strstr(tmp, fakechroot_path);
+        if (fakechroot_ptr != tmp) {
+            tmpptr = tmp;
+        } else {
+            tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
+        }
+        if (strlen(tmpptr) > bufsiz) {
+            status = bufsiz;
+        }
+        strncpy(buf, tmpptr, status);
+    } else {
+        strncpy(buf, tmp, status);
+    }
+    return status;
+}
+#endif
 
 
 /* #include <stdlib.h> */

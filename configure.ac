@@ -158,6 +158,7 @@ opendir \
 pathconf \
 popen \
 readlink \
+readlinkat \
 realpath \
 remove \
 removexattr \
