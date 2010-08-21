@@ -556,6 +556,9 @@ static int     (*next_unlinkat) (int dirfd, const char *pathname, int flags) = N
 /* static int     (*next_ulckpwdf) (void) = NULL; */
 #endif
 static int     (*next_utime) (const char *filename, const struct utimbuf *buf) = NULL;
+#ifdef HAVE_UTIMENSAT
+static int     (*next_utimensat) (int dirfd, const char *pathname, const struct timespec times[2], int flags) = NULL;
+#endif
 static int     (*next_utimes) (const char *filename, const struct timeval tv[2]) = NULL;
 
 
@@ -850,6 +853,9 @@ void fakechroot_init (void)
 /*    nextsym(ulckpwdf, "ulckpwdf"); */
 #endif
     nextsym(utime, "utime");
+#ifdef HAVE_UTIMENSAT
+    nextsym(utimensat, "utimensat");
+#endif
     nextsym(utimes, "utimes");
 }
 
@@ -3095,6 +3101,18 @@ int utime (const char *filename, const struct utimbuf *buf)
     if (next_utime == NULL) fakechroot_init();
     return next_utime(filename, buf);
 }
+
+
+#ifdef HAVE_UTIMENSAT
+/* #include <sys/stat.h> */
+int utimensat (int dirfd, const char *pathname, const struct timespec times[2], int flags)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    if (next_utimensat == NULL) fakechroot_init();
+    return next_utimensat(dirfd, pathname, times, flags);
+}
+#endif
 
 
 /* #include <sys/time.h> */

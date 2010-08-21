@@ -179,6 +179,7 @@ unlink \
 unlinkat \
 ulckpwdf \
 utime \
+utimensat \
 utimes \
 ])
 
