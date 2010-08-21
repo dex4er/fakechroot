@@ -141,6 +141,7 @@ mkdir \
 mkdirat \
 mkdtemp \
 mknod \
+mknodat \
 mkfifo \
 mkstemp \
 mkstemp64 \

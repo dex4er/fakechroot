@@ -13,6 +13,7 @@
 * Fixed [=undefined symbol: rpl_malloc] error for compiled 32-bit library on
   64-bit architecture by dropping AC_FUNC_MALLOC in configure.ac.
 * New function [=utimensat(2)] fixes "cp" command on Debian sid.
+* New functions [=mknodat(2)].
 * New functions [=popen(3)] and [=system(3)] for GNU libc.
 * [=dpkg-shlibdeps(1)] works again because [=cd $FAKECHROOT_BASE] does not
   change current working directory to root directory.
