@@ -3,13 +3,7 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
 
-plan 17
-
-rm -rf testtree
-
-$srcdir/testtree.sh testtree
-test "`cat testtree/CHROOT`" = "testtree" || not
-ok "testtree"
+prepare 16
 
 if [ -x testtree/usr/bin/touch ]; then
     touch=/usr/bin/touch
@@ -26,12 +20,12 @@ else
     for chroot in chroot fakechroot; do
 
         if [ $chroot = "chroot" ] && ! is_root; then
-            skip 8 "not root"
+            skip $(( $tap_plan / 2 )) "not root"
         else
 
             t=`$srcdir/$chroot.sh testtree $touch /tmp/touch.txt 2>&1`
             test "$t" = "" || not
-            ok "$chroot touch"
+            ok "$chroot touch" $t
             test -f testtree/tmp/touch.txt || not
             ok "$chroot touch.txt exists"
 
@@ -39,7 +33,7 @@ else
 
             t=`$srcdir/$chroot.sh testtree $touch -r /tmp/touch.txt /tmp/touch2.txt 2>&1`
             test "$t" = "" || not
-            ok "$chroot touch -r"
+            ok "$chroot touch -r" $t
             test -f testtree/tmp/touch2.txt || not
             ok "$chroot touch2.txt exists"
             test testtree/tmp/touch2.txt -nt testtree/tmp/touch.txt && not
@@ -51,16 +45,14 @@ else
 
             t=`$srcdir/$chroot.sh testtree $touch -m /tmp/touch.txt 2>&1`
             test "$t" = "" || not
-            ok "$chroot touch -m"
+            ok "$chroot touch -m" $t
 
             test testtree/tmp/touch.txt -nt testtree/tmp/touch2.txt || not
             ok "$chroot touch.txt is newer than touch2.txt"
-        fi    
+        fi
 
     done
 
 fi
 
-rm -rf testtree
-
-end
+cleanup
