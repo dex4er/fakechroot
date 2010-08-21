@@ -2450,7 +2450,7 @@ int mkfifoat (int dirfd, const char *pathname, mode_t mode)
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_mkfifoat == NULL) fakechroot_init();
-    return next_mkfifoat(int dirfd, pathname, mode);
+    return next_mkfifoat(dirfd, pathname, mode);
 }
 #endif
 
