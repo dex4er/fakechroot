@@ -1351,6 +1351,19 @@ int chroot (const char *path)
         }
     }
 
+    ptr = tmp = dir;
+    for (ptr=tmp=dir; *ptr; ptr++) {
+        if (*ptr == '/' &&
+                *(ptr+1) && *(ptr+1) == '.' &&
+                (!*(ptr+2) || (*(ptr+2) == '/'))
+        ) {
+            ptr++;
+        } else {
+            *(tmp++) = *ptr;
+        }
+    }
+    *tmp = 0;
+
 #if defined(HAVE_SETENV)
     setenv("FAKECHROOT_BASE", dir, 1);
 #else

@@ -12,6 +12,8 @@
   small.
 * Fixed [=undefined symbol: rpl_malloc] error for compiled 32-bit library on
   64-bit architecture by dropping AC_FUNC_MALLOC in configure.ac.
+* Fixed [=chroot(2)] function for path which contains dot character.  Thanks to
+  Robie Basak.
 * New function [=utimensat(2)] fixes "cp" command on Debian sid.
 * New functions [=linkat(2)], [=mknodat(2)], [=mkfifoat(2)], [=readlinkat(2)]
   and [=symlinkat(2)].
