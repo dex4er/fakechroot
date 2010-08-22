@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="18 Aug 2010"
+# pod2man --section=1 --release="Debian" --center=" " --date="22 Aug 2010"
 #
 =head1 NAME
 
@@ -82,12 +82,11 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
- $ fakeroot -s fakechroot.save fakechroot debootstrap --variant=fakech
- root lenny /tmp/lenny
+ $ fakeroot fakechroot debootstrap --variant=fakechroot lenny /tmp/len
+ ny
 
- $ fakeroot -i fakechroot.save fakechroot chroot /tmp/lenny /bin/bash
+ $ fakeroot fakechroot chroot /tmp/lenny /bin/bash
  # cd /
- # sh /usr/share/doc/fakechroot/examples/savemode.sh
  # echo deb http://ftp.debian.org/debian lenny main contrib non-free >
  /etc/apt/sources.list
  # echo deb-src http://ftp.debian.org/debian lenny main contrib non-fr
