@@ -15,9 +15,7 @@ AC_CACHE_CHECK([types of arguments for readlink],
    AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
 [AC_INCLUDES_DEFAULT
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 ],
             [
 #define ac_arg1(name) $ac_arg1
