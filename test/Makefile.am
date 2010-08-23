@@ -19,7 +19,8 @@ suffix =
 
 CLEANFILES = testtree
 
-check_SCRIPTS = $(TESTS) \
+EXTRA_DIST = $(TESTS) \
+    .proverc \
     chroot.sh \
     common.inc \
     debootstrap.sh \
@@ -28,8 +29,6 @@ check_SCRIPTS = $(TESTS) \
     testtree.sh \
     t/cmd-subst-pwd.sh \
     #
-
-EXTRA_DIST = $(check_SCRIPTS)
 
 test:
 	$(MAKE) $(AM_MAKEFLAGS) -C src check

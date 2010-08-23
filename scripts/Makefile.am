@@ -1,6 +1,6 @@
-bin_SCRIPTS = fakechroot ldd.fakechroot
-EXTRA_DIST = fakechroot.sh ldd.pl restoremode.sh savemode.sh
-CLEANFILES = fakechroot ldd.fakechroot
+bin_SCRIPTS = fakechroot ldconfig.fakechroot ldd.fakechroot
+EXTRA_DIST = fakechroot.sh ldconfig.sh ldd.pl restoremode.sh savemode.sh
+CLEANFILES = $(bin_SCRIPTS)
 
 do_subst = sed -e 's,[@]prefix[@],$(prefix),g' \
 	       -e 's,[@]bindir[@],$(bindir),g' \
@@ -15,5 +15,9 @@ fakechroot: $(srcdir)/fakechroot.sh
 	chmod +x $@
 
 ldd.fakechroot: ldd.pl
+	cp $< $@
+	chmod +x $@
+
+ldconfig.fakechroot: ldconfig.sh
 	cp $< $@
 	chmod +x $@
