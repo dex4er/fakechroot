@@ -518,9 +518,9 @@ static long    (*next_pathconf) (const char *path, int name) = NULL;
 #ifdef __GNUC__
 /* static FILE *  (*next_popen) (const char *command, const char *type) = NULL; */
 #endif
-static READLINK_TYPE_RETURN (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(), READLINK_TYPE_ARG2(), READLINK_TYPE_ARG3()) = NULL;
 #ifdef HAVE_READLINKAT
-static READLINKAT_TYPE_RETURN (*next_readlinkat) (int dirfd, const char *path, char *buf, READLINKAT_TYPE_ARG4 bufsiz) = NULL;
+static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(), READLINKAT_TYPE_ARG2(), READLINKAT_TYPE_ARG3(), READLINKAT_TYPE_ARG4()) = NULL;
 #endif
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
@@ -536,10 +536,10 @@ static int     (*next_revoke) (const char *file) = NULL;
 #endif
 static int     (*next_rmdir) (const char *pathname) = NULL;
 #ifdef HAVE_SCANDIR
-static int     (*next_scandir) (SCANDIR_TYPE_ARG1, SCANDIR_TYPE_ARG2, SCANDIR_TYPE_ARG3, SCANDIR_TYPE_ARG4) = NULL;
+static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(), SCANDIR_TYPE_ARG2(), SCANDIR_TYPE_ARG3(), SCANDIR_TYPE_ARG4()) = NULL;
 #endif
 #ifdef HAVE_SCANDIR64
-static int     (*next_scandir64) (SCANDIR64_TYPE_ARG1, SCANDIR64_TYPE_ARG2, SCANDIR64_TYPE_ARG3, SCANDIR64_TYPE_ARG4) = NULL;
+static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(), SCANDIR64_TYPE_ARG2(), SCANDIR64_TYPE_ARG3(), SCANDIR64_TYPE_ARG4()) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *path, const char *name, const void *value, size_t size, int flags) = NULL;
@@ -2842,7 +2842,7 @@ FILE *popen (const char *program, const char *type) {
 
 
 /* #include <unistd.h> */
-READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
+READLINK_TYPE_RETURN readlink (READLINK_TYPE_ARG1(path), READLINK_TYPE_ARG2(buf), READLINK_TYPE_ARG3(bufsiz))
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
@@ -2879,7 +2879,7 @@ READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 
 #ifdef HAVE_READLINKAT
 /* #include <unistd.h> */
-READLINKAT_TYPE_RETURN readlinkat (int dirfd, const char *path, char *buf, READLINKAT_TYPE_ARG4 bufsiz)
+READLINKAT_TYPE_RETURN readlinkat (READLINKAT_TYPE_ARG1(dirfd), READLINKAT_TYPE_ARG2(path), READLINKAT_TYPE_ARG3(buf), READLINKAT_TYPE_ARG4(bufsiz))
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
@@ -3006,7 +3006,7 @@ int rmdir (const char *pathname)
 
 #ifdef HAVE_SCANDIR
 /* #include <dirent.h> */
-int scandir (SCANDIR_TYPE_ARG1, SCANDIR_TYPE_ARG2, SCANDIR_TYPE_ARG3, SCANDIR_TYPE_ARG4)
+SCANDIR_TYPE_RETURN scandir (SCANDIR_TYPE_ARG1(dir), SCANDIR_TYPE_ARG2(namelist), SCANDIR_TYPE_ARG3(filter), SCANDIR_TYPE_ARG4(compar))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
@@ -3018,7 +3018,7 @@ int scandir (SCANDIR_TYPE_ARG1, SCANDIR_TYPE_ARG2, SCANDIR_TYPE_ARG3, SCANDIR_TY
 
 #ifdef HAVE_SCANDIR64
 /* #include <dirent.h> */
-int scandir64 (SCANDIR64_TYPE_ARG1, SCANDIR64_TYPE_ARG2, SCANDIR64_TYPE_ARG3, SCANDIR64_TYPE_ARG4)
+SCANDIR64_TYPE_RETURN scandir64 (SCANDIR64_TYPE_ARG1(dir), SCANDIR64_TYPE_ARG2(namelist), SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
