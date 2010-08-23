@@ -2,6 +2,7 @@ SUBDIRS = src
 
 TESTS = \
     t/00echo.t \
+    t/chdir.t \
     t/chroot.t \
     t/cmd-subst.t \
     t/cp.t \
@@ -21,6 +22,7 @@ CLEANFILES = testtree
 check_SCRIPTS = $(TESTS) \
     chroot.sh \
     common.inc \
+    debootstrap.sh \
     fakechroot.sh \
     tap.inc \
     testtree.sh \
