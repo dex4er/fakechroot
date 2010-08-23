@@ -295,246 +295,246 @@ static char *strchrnul (const char *s, int c_in)
 #endif
 
 #ifdef HAVE___FXSTATAT
-static int     (*next___fxstatat) (int ver, int dirfd, const char *pathname, struct stat *buf, int flags) = NULL;
+static int     (*next___fxstatat) (int, int, const char *, struct stat *, int) = NULL;
 #endif
 #ifdef HAVE___FXSTATAT64
-static int     (*next___fxstatat64) (int ver, int dirfd, const char *pathname, struct stat64 *buf, int flags) = NULL;
+static int     (*next___fxstatat64) (int, int, const char *, struct stat64 *, int) = NULL;
 #endif
 #ifdef HAVE___LXSTAT
-static int     (*next___lxstat) (int ver, const char *filename, struct stat *buf) = NULL;
+static int     (*next___lxstat) (int, const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE___LXSTAT64
-static int     (*next___lxstat64) (int ver, const char *filename, struct stat64 *buf) = NULL;
+static int     (*next___lxstat64) (int, const char *, struct stat64 *) = NULL;
 #endif
 #ifdef HAVE___OPEN
-static int     (*next___open) (const char *pathname, int flags, ...) = NULL;
+static int     (*next___open) (const char *, int, ...) = NULL;
 #endif
 #ifdef HAVE___OPEN_2
-static int     (*next___open_2) (const char *pathname, int flags) = NULL;
+static int     (*next___open_2) (const char *, int) = NULL;
 #endif
 #ifdef HAVE___OPEN64
-static int     (*next___open64) (const char *pathname, int flags, ...) = NULL;
+static int     (*next___open64) (const char *, int, ...) = NULL;
 #endif
 #ifdef HAVE___OPEN64_2
-static int     (*next___open64_2) (const char *pathname, int flags) = NULL;
+static int     (*next___open64_2) (const char *, int) = NULL;
 #endif
 #ifdef HAVE___OPENAT_2
-static int     (*next___openat_2) (int dirfd, const char *pathname, int flags) = NULL;
+static int     (*next___openat_2) (int, const char *, int) = NULL;
 #endif
 #ifdef HAVE___OPENAT64_2
-static int     (*next___openat64_2) (int dirfd, const char *pathname, int flags) = NULL;
+static int     (*next___openat64_2) (int, const char *, int) = NULL;
 #endif
 #ifdef HAVE___OPENDIR2
-static DIR *   (*next___opendir2) (const char *name, int flags) = NULL;
+static DIR *   (*next___opendir2) (const char *, int) = NULL;
 #endif
 #ifdef HAVE___XMKNOD
-static int     (*next___xmknod) (int ver, const char *path, mode_t mode, dev_t *dev) = NULL;
+static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
 #endif
 #ifdef HAVE___XSTAT
-static int     (*next___xstat) (int ver, const char *filename, struct stat *buf) = NULL;
+static int     (*next___xstat) (int, const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE___XSTAT64
-static int     (*next___xstat64) (int ver, const char *filename, struct stat64 *buf) = NULL;
+static int     (*next___xstat64) (int, const char *, struct stat64 *) = NULL;
 #endif
 #ifdef HAVE__XFTW
-static int     (*next__xftw) (int mode, const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd) = NULL;
+static int     (*next__xftw) (int, const char *, int (*)(const char *, const struct stat *, int), int) = NULL;
 #endif
 #ifdef HAVE__XFTW64
-static int     (*next__xftw64) (int mode, const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd) = NULL;
+static int     (*next__xftw64) (int, const char *, int (*)(const char *, const struct stat64 *, int), int) = NULL;
 #endif
-static int     (*next_access) (const char *pathname, int mode) = NULL;
-static int     (*next_acct) (const char *filename) = NULL;
+static int     (*next_access) (const char *, int) = NULL;
+static int     (*next_acct) (const char *) = NULL;
 #ifdef AF_UNIX
-static int     (*next_bind) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+static int     (*next_bind) (int, const struct sockaddr *, socklen_t) = NULL;
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
-static char *  (*next_bindtextdomain) (const char *domainname, const char *dirname) = NULL;
+static char *  (*next_bindtextdomain) (const char *, const char *) = NULL;
 #endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
-static char *  (*next_canonicalize_file_name) (const char *name) = NULL;
+static char *  (*next_canonicalize_file_name) (const char *) = NULL;
 #endif
-static int     (*next_chdir) (const char *path) = NULL;
-static int     (*next_chmod) (const char *path, mode_t mode) = NULL;
-static int     (*next_chown) (const char *path, uid_t owner, gid_t group) = NULL;
-/* static int     (*next_chroot) (const char *path) = NULL; */
+static int     (*next_chdir) (const char *) = NULL;
+static int     (*next_chmod) (const char *, mode_t) = NULL;
+static int     (*next_chown) (const char *, uid_t, gid_t) = NULL;
+/* static int     (*next_chroot) (const char *) = NULL; */
 #ifdef AF_UNIX
-static int     (*next_connect) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+static int     (*next_connect) (int, const struct sockaddr *, socklen_t) = NULL;
 #endif
-static int     (*next_creat) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_creat) (const char *, mode_t) = NULL;
 #ifdef HAVE_CREAT64
-static int     (*next_creat64) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_creat64) (const char *, mode_t) = NULL;
 #endif
 #ifdef HAVE_DLMOPEN
-static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag) = NULL;
+static void *  (*next_dlmopen) (Lmid_t, const char *, int) = NULL;
 #endif
-static void *  (*next_dlopen) (const char *filename, int flag) = NULL;
+static void *  (*next_dlopen) (const char *, int) = NULL;
 #ifdef HAVE_EACCESS
-static int     (*next_eaccess) (const char *pathname, int mode) = NULL;
+static int     (*next_eaccess) (const char *, int) = NULL;
 #endif
 #ifdef HAVE_EUIDACCESS
-static int     (*next_euidaccess) (const char *pathname, int mode) = NULL;
+static int     (*next_euidaccess) (const char *, int) = NULL;
 #endif
-/* static int     (*next_execl) (const char *path, const char *arg, ...) = NULL; */
-/* static int     (*next_execle) (const char *path, const char *arg, ...) = NULL; */
-/* static int     (*next_execlp) (const char *file, const char *arg, ...) = NULL; */
-/* static int     (*next_execv) (const char *path, char *const argv []) = NULL; */
-static int     (*next_execve) (const char *filename, char *const argv [], char *const envp[]) = NULL;
-static int     (*next_execvp) (const char *file, char *const argv []) = NULL;
+/* static int     (*next_execl) (const char *, const char *, ...) = NULL; */
+/* static int     (*next_execle) (const char *, const char *, ...) = NULL; */
+/* static int     (*next_execlp) (const char *, const char *, ...) = NULL; */
+/* static int     (*next_execv) (const char *, char *const []) = NULL; */
+static int     (*next_execve) (const char *, char *const [], char *const []) = NULL;
+static int     (*next_execvp) (const char *, char *const []) = NULL;
 #ifdef HAVE_FCHMODAT
-static int     (*next_fchmodat) (int dirfd, const char *path, mode_t mode, int flag) = NULL;
+static int     (*next_fchmodat) (int, const char *, mode_t, int) = NULL;
 #endif
 #ifdef HAVE_FCHOWNAT
-static int     (*next_fchownat) (int dirfd, const char *path, uid_t owner, gid_t group, int flag) = NULL;
+static int     (*next_fchownat) (int, const char *, uid_t, gid_t, int) = NULL;
 #endif
-static FILE *  (*next_fopen) (const char *path, const char *mode) = NULL;
+static FILE *  (*next_fopen) (const char *, const char *) = NULL;
 #ifdef HAVE_FOPEN64
-static FILE *  (*next_fopen64) (const char *path, const char *mode) = NULL;
+static FILE *  (*next_fopen64) (const char *, const char *) = NULL;
 #endif
-static FILE *  (*next_freopen) (const char *path, const char *mode, FILE *stream) = NULL;
+static FILE *  (*next_freopen) (const char *, const char *, FILE *) = NULL;
 #ifdef HAVE_FREOPEN64
-static FILE *  (*next_freopen64) (const char *path, const char *mode, FILE *stream) = NULL;
+static FILE *  (*next_freopen64) (const char *, const char *, FILE *) = NULL;
 #endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
-static FTS *   (*next_fts_open) (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) = NULL;
+static FTS *   (*next_fts_open) (char * const *, int, int (*)(const FTSENT **, const FTSENT **)) = NULL;
 #endif
 #endif
 #ifdef HAVE_FTW
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-static int     (*next_ftw) (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd) = NULL;
+static int     (*next_ftw) (const char *, int (*)(const char *, const struct stat *, int), int) = NULL;
 #endif
 #endif
 #ifdef HAVE_FTW64
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-static int     (*next_ftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd) = NULL;
+static int     (*next_ftw64) (const char *, int (*)(const char *, const struct stat64 *, int), int) = NULL;
 #endif
 #endif
 #ifdef HAVE_FUTIMESAT
-static int     (*next_futimesat) (int fd, const char *filename, const struct timeval tv[2]) = NULL;
+static int     (*next_futimesat) (int, const char *, const struct timeval [2]) = NULL;
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
-static char *  (*next_getcwd) (char *buf, size_t size) = NULL;
+static char *  (*next_getcwd) (char *, size_t) = NULL;
 #ifdef AF_UNIX
-static int     (*next_getpeername) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+static int     (*next_getpeername) (int, struct sockaddr *, socklen_t *) = NULL;
 #endif
 #ifdef AF_UNIX
-static int     (*next_getsockname) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+static int     (*next_getsockname) (int, struct sockaddr *, socklen_t *) = NULL;
 #endif
 #ifdef HAVE_GETWD
-static char *  (*next_getwd) (char *buf) = NULL;
+static char *  (*next_getwd) (char *) = NULL;
 #endif
 #ifdef HAVE_GETXATTR
-static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
+static ssize_t (*next_getxattr) (const char *, const char *, void *, size_t) = NULL;
 #endif
-static int     (*next_glob) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob_t *pglob) = NULL;
+static int     (*next_glob) (const char *, int , int (*) (const char *, int), glob_t *) = NULL;
 #ifdef HAVE_GLOB64
-static int     (*next_glob64) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob64_t *pglob) = NULL;
+static int     (*next_glob64) (const char *, int , int (*) (const char *, int), glob64_t *) = NULL;
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
-static int     (*next_glob_pattern_p) (const char *pattern, int quote) = NULL;
+static int     (*next_glob_pattern_p) (const char *, int) = NULL;
 #endif
 #ifdef HAVE_INOTIFY_ADD_WATCH
-static int     (*next_inotify_add_watch) (int fd, const char *pathname, uint32_t mask) = NULL;
+static int     (*next_inotify_add_watch) (int, const char *, uint32_t) = NULL;
 #endif
 #ifdef HAVE_LCHMOD
-static int     (*next_lchmod) (const char *path, mode_t mode) = NULL;
+static int     (*next_lchmod) (const char *, mode_t) = NULL;
 #endif
-static int     (*next_lchown) (const char *path, uid_t owner, gid_t group) = NULL;
+static int     (*next_lchown) (const char *, uid_t, gid_t) = NULL;
 #ifdef HAVE_LCKPWDF
 /* static int     (*next_lckpwdf) (void) = NULL; */
 #endif
 #ifdef HAVE_LGETXATTR
-static ssize_t (*next_lgetxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
+static ssize_t (*next_lgetxattr) (const char *, const char *, void *, size_t) = NULL;
 #endif
-static int     (*next_link) (const char *oldpath, const char *newpath) = NULL;
+static int     (*next_link) (const char *, const char *) = NULL;
 #ifdef HAVE_LINKAT
-static int     (*next_linkat) (int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags) = NULL;
+static int     (*next_linkat) (int, const char *, int, const char *, int) = NULL;
 #endif
 #ifdef HAVE_LISTXATTR
-static ssize_t (*next_listxattr) (const char *path, char *list, size_t size) = NULL;
+static ssize_t (*next_listxattr) (const char *, char *, size_t) = NULL;
 #endif
 #ifdef HAVE_LLISTXATTR
-static ssize_t (*next_llistxattr) (const char *path, char *list, size_t size) = NULL;
+static ssize_t (*next_llistxattr) (const char *, char *, size_t) = NULL;
 #endif
 #ifdef HAVE_LREMOVEXATTR
-static int     (*next_lremovexattr) (const char *path, const char *name) = NULL;
+static int     (*next_lremovexattr) (const char *, const char *) = NULL;
 #endif
 #ifdef HAVE_LSETXATTR
-static int     (*next_lsetxattr) (const char *path, const char *name, const void *value, size_t size, int flags) = NULL;
+static int     (*next_lsetxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
 #if !defined(HAVE___LXSTAT)
-static int     (*next_lstat) (const char *file_name, struct stat *buf) = NULL;
+static int     (*next_lstat) (const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE_LSTAT64
 #if !defined(HAVE___LXSTAT64)
-static int     (*next_lstat64) (const char *file_name, struct stat64 *buf) = NULL;
+static int     (*next_lstat64) (const char *, struct stat64 *) = NULL;
 #endif
 #endif
 #ifdef HAVE_LUTIMES
-static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]) = NULL;
+static int     (*next_lutimes) (const char *, const struct timeval [2]) = NULL;
 #endif
-static int     (*next_mkdir) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkdir) (const char *, mode_t) = NULL;
 #ifdef HAVE_MKDIRAT
-static int     (*next_mkdirat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkdirat) (int, const char *, mode_t) = NULL;
 #endif
 #ifdef HAVE_MKDTEMP
-static char *  (*next_mkdtemp) (char *template) = NULL;
+static char *  (*next_mkdtemp) (char *) = NULL;
 #endif
-static int     (*next_mknod) (const char *pathname, mode_t mode, dev_t dev) = NULL;
+static int     (*next_mknod) (const char *, mode_t, dev_t) = NULL;
 #ifdef HAVE_MKNODAT
-static int     (*next_mknodat) (int dirfd, const char *pathname, mode_t mode, dev_t dev) = NULL;
+static int     (*next_mknodat) (int, const char *, mode_t, dev_t) = NULL;
 #endif
-static int     (*next_mkfifo) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkfifo) (const char *, mode_t) = NULL;
 #ifdef HAVE_MKFIFOAT
-static int     (*next_mkfifoat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkfifoat) (int, const char *, mode_t) = NULL;
 #endif
-static int     (*next_mkstemp) (char *template) = NULL;
+static int     (*next_mkstemp) (char *) = NULL;
 #ifdef HAVE_MKSTEMP64
-static int     (*next_mkstemp64) (char *template) = NULL;
+static int     (*next_mkstemp64) (char *) = NULL;
 #endif
-static char *  (*next_mktemp) (char *template) = NULL;
+static char *  (*next_mktemp) (char *) = NULL;
 #ifdef HAVE_NFTW
-static int     (*next_nftw) (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag, struct FTW *s), int nopenfd, int flags) = NULL;
+static int     (*next_nftw) (const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int) = NULL;
 #endif
 #ifdef HAVE_NFTW64
-static int     (*next_nftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag, struct FTW *s), int nopenfd, int flags) = NULL;
+static int     (*next_nftw64) (const char *, int (*)(const char *, const struct stat64 *, int, struct FTW *), int, int) = NULL;
 #endif
-static int     (*next_open) (const char *pathname, int flags, ...) = NULL;
+static int     (*next_open) (const char *, int, ...) = NULL;
 #ifdef HAVE_OPEN64
-static int     (*next_open64) (const char *pathname, int flags, ...) = NULL;
+static int     (*next_open64) (const char *, int, ...) = NULL;
 #endif
 #ifdef HAVE_OPENAT
-static int     (*next_openat) (int dirfd, const char *pathname, int flags, ...) = NULL;
+static int     (*next_openat) (int, const char *, int, ...) = NULL;
 #endif
 #ifdef HAVE_OPENAT64
-static int     (*next_openat64) (int dirfd, const char *pathname, int flags, ...) = NULL;
+static int     (*next_openat64) (int, const char *, int, ...) = NULL;
 #endif
 #if !defined(HAVE___OPENDIR2)
-static DIR *   (*next_opendir) (const char *name) = NULL;
+static DIR *   (*next_opendir) (const char *) = NULL;
 #endif
-static long    (*next_pathconf) (const char *path, int name) = NULL;
+static long    (*next_pathconf) (const char *, int) = NULL;
 #ifdef __GNUC__
-/* static FILE *  (*next_popen) (const char *command, const char *type) = NULL; */
+/* static FILE *  (*next_popen) (const char *, const char *) = NULL; */
 #endif
 static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(), READLINK_TYPE_ARG2(), READLINK_TYPE_ARG3()) = NULL;
 #ifdef HAVE_READLINKAT
 static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(), READLINKAT_TYPE_ARG2(), READLINKAT_TYPE_ARG3(), READLINKAT_TYPE_ARG4()) = NULL;
 #endif
-static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
-static int     (*next_remove) (const char *pathname) = NULL;
+static char *  (*next_realpath) (const char *, char *) = NULL;
+static int     (*next_remove) (const char *) = NULL;
 #ifdef HAVE_REMOVEXATTR
-static int     (*next_removexattr) (const char *path, const char *name) = NULL;
+static int     (*next_removexattr) (const char *, const char *) = NULL;
 #endif
-static int     (*next_rename) (const char *oldpath, const char *newpath) = NULL;
+static int     (*next_rename) (const char *, const char *) = NULL;
 #ifdef HAVE_RENAMEAT
-static int     (*next_renameat) (int olddirfd, const char *oldpath, int newdirfd, const char *newpath) = NULL;
+static int     (*next_renameat) (int, const char *, int, const char *) = NULL;
 #endif
 #ifdef HAVE_REVOKE
-static int     (*next_revoke) (const char *file) = NULL;
+static int     (*next_revoke) (const char *) = NULL;
 #endif
-static int     (*next_rmdir) (const char *pathname) = NULL;
+static int     (*next_rmdir) (const char *) = NULL;
 #ifdef HAVE_SCANDIR
 static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(), SCANDIR_TYPE_ARG2(), SCANDIR_TYPE_ARG3(), SCANDIR_TYPE_ARG4()) = NULL;
 #endif
@@ -542,39 +542,39 @@ static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(), SCANDIR_TYPE_AR
 static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(), SCANDIR64_TYPE_ARG2(), SCANDIR64_TYPE_ARG3(), SCANDIR64_TYPE_ARG4()) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
-static int     (*next_setxattr) (const char *path, const char *name, const void *value, size_t size, int flags) = NULL;
+static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
 #if !defined(HAVE___XSTAT)
-static int     (*next_stat) (const char *file_name, struct stat *buf) = NULL;
+static int     (*next_stat) (const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE_STAT64
 #if !defined(HAVE___XSTAT64)
-static int     (*next_stat64) (const char *file_name, struct stat64 *buf) = NULL;
+static int     (*next_stat64) (const char *, struct stat64 *) = NULL;
 #endif
 #endif
-static int     (*next_symlink) (const char *oldpath, const char *newpath) = NULL;
+static int     (*next_symlink) (const char *, const char *) = NULL;
 #ifdef HAVE_SYMLINKAT
-static int     (*next_symlinkat) (const char *oldpath, int newdirfd, const char *newpath) = NULL;
+static int     (*next_symlinkat) (const char *, int, const char *) = NULL;
 #endif
-/* static int     (*next_system) (const char *command) = NULL; */
-static char *  (*next_tempnam) (const char *dir, const char *pfx) = NULL;
-static char *  (*next_tmpnam) (char *s) = NULL;
-static int     (*next_truncate) (const char *path, off_t length) = NULL;
+/* static int     (*next_system) (const char *) = NULL; */
+static char *  (*next_tempnam) (const char *, const char *) = NULL;
+static char *  (*next_tmpnam) (char *) = NULL;
+static int     (*next_truncate) (const char *, off_t) = NULL;
 #ifdef HAVE_TRUNCATE64
-static int     (*next_truncate64) (const char *path, off64_t length) = NULL;
+static int     (*next_truncate64) (const char *, off64_t) = NULL;
 #endif
-static int     (*next_unlink) (const char *pathname) = NULL;
+static int     (*next_unlink) (const char *) = NULL;
 #ifdef HAVE_UNLINKAT
-static int     (*next_unlinkat) (int dirfd, const char *pathname, int flags) = NULL;
+static int     (*next_unlinkat) (int, const char *, int) = NULL;
 #endif
 #ifdef HAVE_ULCKPWDF
 /* static int     (*next_ulckpwdf) (void) = NULL; */
 #endif
-static int     (*next_utime) (const char *filename, const struct utimbuf *buf) = NULL;
+static int     (*next_utime) (const char *, const struct utimbuf *) = NULL;
 #ifdef HAVE_UTIMENSAT
-static int     (*next_utimensat) (int dirfd, const char *pathname, const struct timespec times[2], int flags) = NULL;
+static int     (*next_utimensat) (int, const char *, const struct timespec [2], int) = NULL;
 #endif
-static int     (*next_utimes) (const char *filename, const struct timeval tv[2]) = NULL;
+static int     (*next_utimes) (const char *, const struct timeval [2]) = NULL;
 
 
 /* Bootstrap the library */
