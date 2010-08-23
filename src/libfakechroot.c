@@ -520,7 +520,7 @@ static long    (*next_pathconf) (const char *path, int name) = NULL;
 #endif
 static READLINK_TYPE_RETURN (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
 #ifdef HAVE_READLINKAT
-static READLINK_TYPE_RETURN (*next_readlinkat) (int dirfd, const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
+static READLINKAT_TYPE_RETURN (*next_readlinkat) (int dirfd, const char *path, char *buf, READLINKAT_TYPE_ARG4 bufsiz) = NULL;
 #endif
 static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
 static int     (*next_remove) (const char *pathname) = NULL;
@@ -2879,7 +2879,7 @@ READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
 
 #ifdef HAVE_READLINKAT
 /* #include <unistd.h> */
-READLINK_TYPE_RETURN readlinkat (int dirfd, const char *path, char *buf, READLINK_TYPE_ARG3)
+READLINKAT_TYPE_RETURN readlinkat (int dirfd, const char *path, char *buf, READLINKAT_TYPE_ARG4 bufsiz)
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
