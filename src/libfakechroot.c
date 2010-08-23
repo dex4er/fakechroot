@@ -137,7 +137,7 @@
     { \
         char *msg; \
         if (next_##function == NULL) { \
-            *(void **)(&next_##function) = dlsym(RTLD_NEXT, name); \
+            (next_##function) = dlsym(RTLD_NEXT, name); \
             if ((msg = dlerror()) != NULL) { \
                 fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
             } \
