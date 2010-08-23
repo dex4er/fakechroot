@@ -1,14 +1,16 @@
 SUBDIRS = src
 
 TESTS = \
-    t/00empty.t \
+    t/00echo.t \
     t/chroot.t \
     t/cmd-subst.t \
+    t/cp.t \
     t/escape-nested-chroot.t \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \
     t/symlink.t \
+    t/system.t \
     t/touch.t \
     #
 
