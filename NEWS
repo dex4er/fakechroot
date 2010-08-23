@@ -22,6 +22,7 @@
   change current working directory to root directory.
 * New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
   commands.  Thanks to Richard W.M. Jones.
+* New scripts ldd and ldconfig with .fakechroot suffix are installed.
 * New "make test" target uses Perl's "prove" tool to run test units.
 
 == Version 2.9 ==
