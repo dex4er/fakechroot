@@ -8,10 +8,14 @@
 .cproject
 .deps
 .libs
+.pc
 .project
 Makefile
 Makefile.in
 aclocal.m4
+build-tree-*
+config.*.cache
+config.cache
 config.guess
 config.h
 config.h.in
@@ -19,6 +23,7 @@ config.log
 config.status
 config.sub
 configure
+debian
 depcomp
 fake/Makefile.in
 fake/aclocal.m4
@@ -33,5 +38,7 @@ missing
 scripts/fakechroot
 scripts/*.fakechroot
 stamp-h1
+test/*.debs.tgz
 test/src/test-*
 !test/src/test-*.c
+test/testtree
