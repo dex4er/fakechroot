@@ -1,7 +1,6 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-
 . $srcdir/common.inc
 
 prepare 4
