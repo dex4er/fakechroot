@@ -518,9 +518,9 @@ static long    (*next_pathconf) (const char *, int) = NULL;
 #ifdef __GNUC__
 /* static FILE *  (*next_popen) (const char *, const char *) = NULL; */
 #endif
-static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(), READLINK_TYPE_ARG2(), READLINK_TYPE_ARG3()) = NULL;
+static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(/**/), READLINK_TYPE_ARG2(/**/), READLINK_TYPE_ARG3(/**/)) = NULL;
 #ifdef HAVE_READLINKAT
-static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(), READLINKAT_TYPE_ARG2(), READLINKAT_TYPE_ARG3(), READLINKAT_TYPE_ARG4()) = NULL;
+static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(/**/), READLINKAT_TYPE_ARG2(/**/), READLINKAT_TYPE_ARG3(/**/), READLINKAT_TYPE_ARG4(/**/)) = NULL;
 #endif
 static char *  (*next_realpath) (const char *, char *) = NULL;
 static int     (*next_remove) (const char *) = NULL;
@@ -536,10 +536,10 @@ static int     (*next_revoke) (const char *) = NULL;
 #endif
 static int     (*next_rmdir) (const char *) = NULL;
 #ifdef HAVE_SCANDIR
-static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(), SCANDIR_TYPE_ARG2(), SCANDIR_TYPE_ARG3(), SCANDIR_TYPE_ARG4()) = NULL;
+static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(/**/), SCANDIR_TYPE_ARG2(/**/), SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SCANDIR64
-static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(), SCANDIR64_TYPE_ARG2(), SCANDIR64_TYPE_ARG3(), SCANDIR64_TYPE_ARG4()) = NULL;
+static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(/**/), SCANDIR64_TYPE_ARG2(/**/), SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
