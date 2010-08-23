@@ -34,14 +34,15 @@ sub ldso {
             next unless -f "$dir/$lib";
 
             my $badformat = 0;
-            open my ($pipe), "objdump -p '$dir/$lib' 2>/dev/null |";
-            while (my $line = <$pipe>) {
+            local *PIPE;
+            open PIPE, "objdump -p '$dir/$lib' 2>/dev/null |";
+            while (my $line = <PIPE>) {
                 if ($line =~ /file format (\S*)$/) {
                     $badformat = 1 unless $1 eq $Format;
                     last;
                 }
             }
-            close $pipe;
+            close PIPE;
 
             next if $badformat;
 
@@ -62,8 +63,9 @@ sub objdump {
     my (@files) = @_;
 
     foreach my $file (@files) {
-        open my ($pipe), "objdump -p '$file' 2>/dev/null |";
-        while (my $line = <$pipe>) {
+        local *PIPE;
+        open PIPE, "objdump -p '$file' 2>/dev/null |";
+        while (my $line = <PIPE>) {
             $line =~ s/^\s+//;
 
             if ($line =~ /file format (\S*)$/) {
@@ -102,7 +104,7 @@ sub objdump {
 
             ldso($needed);
         }
-        close $pipe;
+        close PIPE;
     }
 }
 
@@ -110,8 +112,9 @@ sub objdump {
 sub load_ldsoconf {
     my ($file) = @_;
 
-    open my ($fh), $file;
-    while (my $line = <$fh>) {
+    local *FH;
+    open FH, $file;
+    while (my $line = <FH>) {
         chomp $line;
         $line =~ s/#.*//;
         next if $line =~ /^\s*$/;
@@ -126,7 +129,7 @@ sub load_ldsoconf {
 
         unshift @Ld_Library_Path, $line;
     }
-    close $fh;
+    close FH;
 }
 
 
