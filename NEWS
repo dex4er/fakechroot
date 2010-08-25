@@ -1,6 +1,6 @@
 == Version 2.10 ==
 
-18 Aug 2010
+25 Aug 2010
 
 * Handle properly GNU libc [=open](2), [=open64](2), [=openat](2) and
   [=openat64](2) inline functions.
