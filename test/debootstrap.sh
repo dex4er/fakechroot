@@ -7,9 +7,9 @@ run () {
     HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir "$@"
 }
 
-vendor=`lsb_release -s -i`
-release=`lsb_release -s -c`
-arch=`dpkg-architecture -t$(arch)-linux-gnu -qDEB_HOST_ARCH 2>/dev/null`
+vendor=${VENDOR:-`lsb_release -s -i`}
+release=${RELEASE:-`lsb_release -s -c`}
+arch=${ARCH:-`dpkg-architecture -t$(arch)-linux-gnu -qDEB_HOST_ARCH 2>/dev/null`}
 
 if [ $# -gt 0 ]; then
     destdir=$1
