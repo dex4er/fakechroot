@@ -1,13 +1,8 @@
 #!/bin/bash
 
-if [ ! -x configure ] || [ ! -x fake/configure ]; then
-    ./autogen.sh
-fi
+./autogen.sh
 
 ./configure
-
-pushd fake
-    ./configure
-popd
+( cd fake && ./configure )
 
 make dist
