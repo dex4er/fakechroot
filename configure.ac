@@ -3,6 +3,7 @@ AC_INIT([fakechroot], [2.10], [dexter@debian.org])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
