@@ -26,12 +26,6 @@ config.sub
 configure
 debian
 depcomp
-fake/Makefile.in
-fake/aclocal.m4
-fake/config.h.in
-fake/configure
-fake/doc/Makefile
-fake/doc/Makefile.in
 install-sh
 libtool
 ltmain.sh
