@@ -168,6 +168,9 @@
 /* Define to 1 if you have the `link' function. */
 #undef HAVE_LINK
 
+/* Define to 1 if you have the `linkat' function. */
+#undef HAVE_LINKAT
+
 /* Define to 1 if you have the `listxattr' function. */
 #undef HAVE_LISTXATTR
 
@@ -193,10 +196,6 @@
 /* Define to 1 if you have the `lutimes' function. */
 #undef HAVE_LUTIMES
 
-/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
-   to 0 otherwise. */
-#undef HAVE_MALLOC
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -212,8 +211,14 @@
 /* Define to 1 if you have the `mkfifo' function. */
 #undef HAVE_MKFIFO
 
+/* Define to 1 if you have the `mkfifoat' function. */
+#undef HAVE_MKFIFOAT
+
 /* Define to 1 if you have the `mknod' function. */
 #undef HAVE_MKNOD
+
+/* Define to 1 if you have the `mknodat' function. */
+#undef HAVE_MKNODAT
 
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
@@ -251,8 +256,14 @@
 /* Define to 1 if you have the `pathconf' function. */
 #undef HAVE_PATHCONF
 
+/* Define to 1 if you have the `popen' function. */
+#undef HAVE_POPEN
+
 /* Define to 1 if you have the `readlink' function. */
 #undef HAVE_READLINK
+
+/* Define to 1 if you have the `readlinkat' function. */
+#undef HAVE_READLINKAT
 
 /* Define to 1 if you have the `realpath' function. */
 #undef HAVE_REALPATH
@@ -318,6 +329,12 @@
 /* Define to 1 if you have the `symlink' function. */
 #undef HAVE_SYMLINK
 
+/* Define to 1 if you have the `symlinkat' function. */
+#undef HAVE_SYMLINKAT
+
+/* Define to 1 if you have the `system' function. */
+#undef HAVE_SYSTEM
+
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H
@@ -365,6 +382,9 @@
 /* Define to 1 if you have the `utime' function. */
 #undef HAVE_UTIME
 
+/* Define to 1 if you have the `utimensat' function. */
+#undef HAVE_UTIMENSAT
+
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
@@ -398,8 +418,20 @@
 /* Define to 1 if you have the `__open64' function. */
 #undef HAVE___OPEN64
 
+/* Define to 1 if you have the `__open64_2' function. */
+#undef HAVE___OPEN64_2
+
+/* Define to 1 if you have the `__openat64_2' function. */
+#undef HAVE___OPENAT64_2
+
+/* Define to 1 if you have the `__openat_2' function. */
+#undef HAVE___OPENAT_2
+
 /* Define to 1 if you have the `__opendir2' function. */
 #undef HAVE___OPENDIR2
+
+/* Define to 1 if you have the `__open_2' function. */
+#undef HAVE___OPEN_2
 
 /* Define to 1 if you have the `__xmknod' function. */
 #undef HAVE___XMKNOD
@@ -433,8 +465,26 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Define to the type of arg 1 for `readlinkat'. */
+#undef READLINKAT_TYPE_ARG1
+
+/* Define to the type of arg 2 for `readlinkat'. */
+#undef READLINKAT_TYPE_ARG2
+
+/* Define to the type of arg 3 for `readlinkat'. */
+#undef READLINKAT_TYPE_ARG3
+
+/* Define to the type of arg 4 for `readlinkat'. */
+#undef READLINKAT_TYPE_ARG4
+
+/* Define to the type of return value for `readlinkat'. */
+#undef READLINKAT_TYPE_RETURN
 
 /* Define to the type of arg 1 for `readlink'. */
 #undef READLINK_TYPE_ARG1
@@ -447,6 +497,21 @@
 
 /* Define to the type of return value for `readlink'. */
 #undef READLINK_TYPE_RETURN
+
+/* Define to the type of arg 1 for `scandir64'. */
+#undef SCANDIR64_TYPE_ARG1
+
+/* Define to the type of arg 2 for `scandir64'. */
+#undef SCANDIR64_TYPE_ARG2
+
+/* Define to the type of arg 3 for `scandir64'. */
+#undef SCANDIR64_TYPE_ARG3
+
+/* Define to the type of arg 4 for `scandir64'. */
+#undef SCANDIR64_TYPE_ARG4
+
+/* Define to the type of return value for `scandir64'. */
+#undef SCANDIR64_TYPE_RETURN
 
 /* Define to the type of arg 1 for `scandir'. */
 #undef SCANDIR_TYPE_ARG1
@@ -494,9 +559,6 @@
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
-
-/* Define to rpl_malloc if the replacement function should be used. */
-#undef malloc
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef mode_t

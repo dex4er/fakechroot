@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003-2008 Piotr Roszatycki <dexter@debian.org>, LGPL
+    Copyright (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>, LGPL
     Copyright (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
 
     klik2 support -- give direct access to a list of directories
@@ -21,15 +21,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-/* $Id: /local/trunk/src/libfakechroot.c 443 2009-03-31T10:20:41.212229Z dexter  $ */
-
-
 #include <config.h>
 
 #define _ATFILE_SOURCE
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
+#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -41,12 +39,12 @@
 #include <sys/times.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <stdarg.h>
 #include <dirent.h>
 #include <string.h>
 #include <glob.h>
 #include <utime.h>
 #include <pwd.h>
+#include <signal.h>
 #ifdef HAVE_LIBINTL_H
 #include <libintl.h>
 #endif
@@ -59,6 +57,7 @@
 #ifdef HAVE_SHADOW_H
 #include <shadow.h>
 #endif
+#include <sys/wait.h>
 #ifdef HAVE_SYS_INOTIFY_H
 #include <sys/inotify.h>
 #endif
@@ -80,6 +79,10 @@
 #define UNIX_PATH_MAX 108
 #endif
 
+#if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
+#define USE_ALIAS 1
+#endif
+
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -98,39 +101,33 @@
         } \
     }
 
-#define expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
+#define expand_chroot_path(path, fakechroot_path, fakechroot_buf) \
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL && *((char *)(path)) == '/') { \
                 fakechroot_path = getenv("FAKECHROOT_BASE"); \
                 if (fakechroot_path != NULL) { \
-                    fakechroot_ptr = strstr((path), fakechroot_path); \
-                    if (fakechroot_ptr != (path)) { \
-                        strcpy(fakechroot_buf, fakechroot_path); \
-                        strcat(fakechroot_buf, (path)); \
-                        (path) = fakechroot_buf; \
-                    } \
+                    strcpy(fakechroot_buf, fakechroot_path); \
+                    strcat(fakechroot_buf, (path)); \
+                    (path) = fakechroot_buf; \
                 } \
             } \
         } \
     }
 
-#define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf) \
+#define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_buf) \
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL && *((char *)(path)) == '/') { \
                 fakechroot_path = getenv("FAKECHROOT_BASE"); \
                 if (fakechroot_path != NULL) { \
-                    fakechroot_ptr = strstr((path), fakechroot_path); \
-                    if (fakechroot_ptr != (path)) { \
-                        if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
-                            errno = ENOMEM; \
-                            return NULL; \
-                        } \
-                        strcpy(fakechroot_buf, fakechroot_path); \
-                        strcat(fakechroot_buf, (path)); \
-                        (path) = fakechroot_buf; \
+                    if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
+                        errno = ENOMEM; \
+                        return NULL; \
                     } \
+                    strcpy(fakechroot_buf, fakechroot_path); \
+                    strcat(fakechroot_buf, (path)); \
+                    (path) = fakechroot_buf; \
                 } \
             } \
         } \
@@ -140,7 +137,7 @@
     { \
         char *msg; \
         if (next_##function == NULL) { \
-            *(void **)(&next_##function) = dlsym(RTLD_NEXT, name); \
+            (next_##function) = dlsym(RTLD_NEXT, name); \
             if ((msg = dlerror()) != NULL) { \
                 fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
             } \
@@ -298,252 +295,286 @@ static char *strchrnul (const char *s, int c_in)
 #endif
 
 #ifdef HAVE___FXSTATAT
-static int     (*next___fxstatat) (int ver, int dirfd, const char *pathname, struct stat *buf, int flags) = NULL;
+static int     (*next___fxstatat) (int, int, const char *, struct stat *, int) = NULL;
 #endif
 #ifdef HAVE___FXSTATAT64
-static int     (*next___fxstatat64) (int ver, int dirfd, const char *pathname, struct stat64 *buf, int flags) = NULL;
+static int     (*next___fxstatat64) (int, int, const char *, struct stat64 *, int) = NULL;
 #endif
 #ifdef HAVE___LXSTAT
-static int     (*next___lxstat) (int ver, const char *filename, struct stat *buf) = NULL;
+static int     (*next___lxstat) (int, const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE___LXSTAT64
-static int     (*next___lxstat64) (int ver, const char *filename, struct stat64 *buf) = NULL;
+static int     (*next___lxstat64) (int, const char *, struct stat64 *) = NULL;
 #endif
 #ifdef HAVE___OPEN
-static int     (*next___open) (const char *pathname, int flags, ...) = NULL;
+static int     (*next___open) (const char *, int, ...) = NULL;
+#endif
+#ifdef HAVE___OPEN_2
+static int     (*next___open_2) (const char *, int) = NULL;
 #endif
 #ifdef HAVE___OPEN64
-static int     (*next___open64) (const char *pathname, int flags, ...) = NULL;
+static int     (*next___open64) (const char *, int, ...) = NULL;
+#endif
+#ifdef HAVE___OPEN64_2
+static int     (*next___open64_2) (const char *, int) = NULL;
+#endif
+#ifdef HAVE___OPENAT_2
+static int     (*next___openat_2) (int, const char *, int) = NULL;
+#endif
+#ifdef HAVE___OPENAT64_2
+static int     (*next___openat64_2) (int, const char *, int) = NULL;
 #endif
 #ifdef HAVE___OPENDIR2
-static DIR *   (*next___opendir2) (const char *name, int flags) = NULL;
+static DIR *   (*next___opendir2) (const char *, int) = NULL;
 #endif
 #ifdef HAVE___XMKNOD
-static int     (*next___xmknod) (int ver, const char *path, mode_t mode, dev_t *dev) = NULL;
+static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
 #endif
 #ifdef HAVE___XSTAT
-static int     (*next___xstat) (int ver, const char *filename, struct stat *buf) = NULL;
+static int     (*next___xstat) (int, const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE___XSTAT64
-static int     (*next___xstat64) (int ver, const char *filename, struct stat64 *buf) = NULL;
+static int     (*next___xstat64) (int, const char *, struct stat64 *) = NULL;
 #endif
 #ifdef HAVE__XFTW
-static int     (*next__xftw) (int mode, const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd) = NULL;
+static int     (*next__xftw) (int, const char *, int (*)(const char *, const struct stat *, int), int) = NULL;
 #endif
 #ifdef HAVE__XFTW64
-static int     (*next__xftw64) (int mode, const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd) = NULL;
+static int     (*next__xftw64) (int, const char *, int (*)(const char *, const struct stat64 *, int), int) = NULL;
 #endif
-static int     (*next_access) (const char *pathname, int mode) = NULL;
-static int     (*next_acct) (const char *filename) = NULL;
+static int     (*next_access) (const char *, int) = NULL;
+static int     (*next_acct) (const char *) = NULL;
 #ifdef AF_UNIX
-static int     (*next_bind) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+static int     (*next_bind) (int, const struct sockaddr *, socklen_t) = NULL;
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
-static char *  (*next_bindtextdomain) (const char *domainname, const char *dirname) = NULL;
+static char *  (*next_bindtextdomain) (const char *, const char *) = NULL;
 #endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
-static char *  (*next_canonicalize_file_name) (const char *name) = NULL;
+static char *  (*next_canonicalize_file_name) (const char *) = NULL;
 #endif
-static int     (*next_chdir) (const char *path) = NULL;
-static int     (*next_chmod) (const char *path, mode_t mode) = NULL;
-static int     (*next_chown) (const char *path, uid_t owner, gid_t group) = NULL;
-/* static int     (*next_chroot) (const char *path) = NULL; */
+static int     (*next_chdir) (const char *) = NULL;
+static int     (*next_chmod) (const char *, mode_t) = NULL;
+static int     (*next_chown) (const char *, uid_t, gid_t) = NULL;
+/* static int     (*next_chroot) (const char *) = NULL; */
 #ifdef AF_UNIX
-static int     (*next_connect) (int sockfd, const struct sockaddr *addr, socklen_t addrlen) = NULL;
+static int     (*next_connect) (int, const struct sockaddr *, socklen_t) = NULL;
 #endif
-static int     (*next_creat) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_creat) (const char *, mode_t) = NULL;
 #ifdef HAVE_CREAT64
-static int     (*next_creat64) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_creat64) (const char *, mode_t) = NULL;
 #endif
 #ifdef HAVE_DLMOPEN
-static void *  (*next_dlmopen) (Lmid_t nsid, const char *filename, int flag) = NULL;
+static void *  (*next_dlmopen) (Lmid_t, const char *, int) = NULL;
 #endif
-static void *  (*next_dlopen) (const char *filename, int flag) = NULL;
+static void *  (*next_dlopen) (const char *, int) = NULL;
 #ifdef HAVE_EACCESS
-static int     (*next_eaccess) (const char *pathname, int mode) = NULL;
+static int     (*next_eaccess) (const char *, int) = NULL;
 #endif
 #ifdef HAVE_EUIDACCESS
-static int     (*next_euidaccess) (const char *pathname, int mode) = NULL;
+static int     (*next_euidaccess) (const char *, int) = NULL;
 #endif
-/* static int     (*next_execl) (const char *path, const char *arg, ...) = NULL; */
-/* static int     (*next_execle) (const char *path, const char *arg, ...) = NULL; */
-/* static int     (*next_execlp) (const char *file, const char *arg, ...) = NULL; */
-/* static int     (*next_execv) (const char *path, char *const argv []) = NULL; */
-static int     (*next_execve) (const char *filename, char *const argv [], char *const envp[]) = NULL;
-static int     (*next_execvp) (const char *file, char *const argv []) = NULL;
+/* static int     (*next_execl) (const char *, const char *, ...) = NULL; */
+/* static int     (*next_execle) (const char *, const char *, ...) = NULL; */
+/* static int     (*next_execlp) (const char *, const char *, ...) = NULL; */
+/* static int     (*next_execv) (const char *, char *const []) = NULL; */
+static int     (*next_execve) (const char *, char *const [], char *const []) = NULL;
+static int     (*next_execvp) (const char *, char *const []) = NULL;
 #ifdef HAVE_FCHMODAT
-static int     (*next_fchmodat) (int dirfd, const char *path, mode_t mode, int flag) = NULL;
+static int     (*next_fchmodat) (int, const char *, mode_t, int) = NULL;
 #endif
 #ifdef HAVE_FCHOWNAT
-static int     (*next_fchownat) (int dirfd, const char *path, uid_t owner, gid_t group, int flag) = NULL;
+static int     (*next_fchownat) (int, const char *, uid_t, gid_t, int) = NULL;
 #endif
-static FILE *  (*next_fopen) (const char *path, const char *mode) = NULL;
+static FILE *  (*next_fopen) (const char *, const char *) = NULL;
 #ifdef HAVE_FOPEN64
-static FILE *  (*next_fopen64) (const char *path, const char *mode) = NULL;
+static FILE *  (*next_fopen64) (const char *, const char *) = NULL;
 #endif
-static FILE *  (*next_freopen) (const char *path, const char *mode, FILE *stream) = NULL;
+static FILE *  (*next_freopen) (const char *, const char *, FILE *) = NULL;
 #ifdef HAVE_FREOPEN64
-static FILE *  (*next_freopen64) (const char *path, const char *mode, FILE *stream) = NULL;
+static FILE *  (*next_freopen64) (const char *, const char *, FILE *) = NULL;
 #endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
-static FTS *   (*next_fts_open) (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) = NULL;
+static FTS *   (*next_fts_open) (char * const *, int, int (*)(const FTSENT **, const FTSENT **)) = NULL;
 #endif
 #endif
 #ifdef HAVE_FTW
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-static int     (*next_ftw) (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd) = NULL;
+static int     (*next_ftw) (const char *, int (*)(const char *, const struct stat *, int), int) = NULL;
 #endif
 #endif
 #ifdef HAVE_FTW64
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-static int     (*next_ftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd) = NULL;
+static int     (*next_ftw64) (const char *, int (*)(const char *, const struct stat64 *, int), int) = NULL;
 #endif
 #endif
 #ifdef HAVE_FUTIMESAT
-static int     (*next_futimesat) (int fd, const char *filename, const struct timeval tv[2]) = NULL;
+static int     (*next_futimesat) (int, const char *, const struct timeval [2]) = NULL;
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
-static char *  (*next_getcwd) (char *buf, size_t size) = NULL;
+static char *  (*next_getcwd) (char *, size_t) = NULL;
 #ifdef AF_UNIX
-static int     (*next_getpeername) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+static int     (*next_getpeername) (int, struct sockaddr *, socklen_t *) = NULL;
 #endif
 #ifdef AF_UNIX
-static int     (*next_getsockname) (int s, struct sockaddr *name, socklen_t *namelen) = NULL;
+static int     (*next_getsockname) (int, struct sockaddr *, socklen_t *) = NULL;
 #endif
 #ifdef HAVE_GETWD
-static char *  (*next_getwd) (char *buf) = NULL;
+static char *  (*next_getwd) (char *) = NULL;
 #endif
 #ifdef HAVE_GETXATTR
-static ssize_t (*next_getxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
+static ssize_t (*next_getxattr) (const char *, const char *, void *, size_t) = NULL;
 #endif
-static int     (*next_glob) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob_t *pglob) = NULL;
+static int     (*next_glob) (const char *, int , int (*) (const char *, int), glob_t *) = NULL;
 #ifdef HAVE_GLOB64
-static int     (*next_glob64) (const char *pattern, int flags, int (*errfunc) (const char *, int), glob64_t *pglob) = NULL;
+static int     (*next_glob64) (const char *, int , int (*) (const char *, int), glob64_t *) = NULL;
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
-static int     (*next_glob_pattern_p) (const char *pattern, int quote) = NULL;
+static int     (*next_glob_pattern_p) (const char *, int) = NULL;
 #endif
 #ifdef HAVE_INOTIFY_ADD_WATCH
-static int     (*next_inotify_add_watch) (int fd, const char *pathname, uint32_t mask) = NULL;
+static int     (*next_inotify_add_watch) (int, const char *, uint32_t) = NULL;
 #endif
 #ifdef HAVE_LCHMOD
-static int     (*next_lchmod) (const char *path, mode_t mode) = NULL;
+static int     (*next_lchmod) (const char *, mode_t) = NULL;
 #endif
-static int     (*next_lchown) (const char *path, uid_t owner, gid_t group) = NULL;
+static int     (*next_lchown) (const char *, uid_t, gid_t) = NULL;
 #ifdef HAVE_LCKPWDF
 /* static int     (*next_lckpwdf) (void) = NULL; */
 #endif
 #ifdef HAVE_LGETXATTR
-static ssize_t (*next_lgetxattr) (const char *path, const char *name, void *value, size_t size) = NULL;
+static ssize_t (*next_lgetxattr) (const char *, const char *, void *, size_t) = NULL;
 #endif
-static int     (*next_link) (const char *oldpath, const char *newpath) = NULL;
+static int     (*next_link) (const char *, const char *) = NULL;
+#ifdef HAVE_LINKAT
+static int     (*next_linkat) (int, const char *, int, const char *, int) = NULL;
+#endif
 #ifdef HAVE_LISTXATTR
-static ssize_t (*next_listxattr) (const char *path, char *list, size_t size) = NULL;
+static ssize_t (*next_listxattr) (const char *, char *, size_t) = NULL;
 #endif
 #ifdef HAVE_LLISTXATTR
-static ssize_t (*next_llistxattr) (const char *path, char *list, size_t size) = NULL;
+static ssize_t (*next_llistxattr) (const char *, char *, size_t) = NULL;
 #endif
 #ifdef HAVE_LREMOVEXATTR
-static int     (*next_lremovexattr) (const char *path, const char *name) = NULL;
+static int     (*next_lremovexattr) (const char *, const char *) = NULL;
 #endif
 #ifdef HAVE_LSETXATTR
-static int     (*next_lsetxattr) (const char *path, const char *name, const void *value, size_t size, int flags) = NULL;
+static int     (*next_lsetxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
 #if !defined(HAVE___LXSTAT)
-static int     (*next_lstat) (const char *file_name, struct stat *buf) = NULL;
+static int     (*next_lstat) (const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE_LSTAT64
 #if !defined(HAVE___LXSTAT64)
-static int     (*next_lstat64) (const char *file_name, struct stat64 *buf) = NULL;
+static int     (*next_lstat64) (const char *, struct stat64 *) = NULL;
 #endif
 #endif
 #ifdef HAVE_LUTIMES
-static int     (*next_lutimes) (const char *filename, const struct timeval tv[2]) = NULL;
+static int     (*next_lutimes) (const char *, const struct timeval [2]) = NULL;
 #endif
-static int     (*next_mkdir) (const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkdir) (const char *, mode_t) = NULL;
 #ifdef HAVE_MKDIRAT
-static int     (*next_mkdirat) (int dirfd, const char *pathname, mode_t mode) = NULL;
+static int     (*next_mkdirat) (int, const char *, mode_t) = NULL;
 #endif
 #ifdef HAVE_MKDTEMP
-static char *  (*next_mkdtemp) (char *template) = NULL;
+static char *  (*next_mkdtemp) (char *) = NULL;
 #endif
-static int     (*next_mknod) (const char *pathname, mode_t mode, dev_t dev) = NULL;
-static int     (*next_mkfifo) (const char *pathname, mode_t mode) = NULL;
-static int     (*next_mkstemp) (char *template) = NULL;
+static int     (*next_mknod) (const char *, mode_t, dev_t) = NULL;
+#ifdef HAVE_MKNODAT
+static int     (*next_mknodat) (int, const char *, mode_t, dev_t) = NULL;
+#endif
+static int     (*next_mkfifo) (const char *, mode_t) = NULL;
+#ifdef HAVE_MKFIFOAT
+static int     (*next_mkfifoat) (int, const char *, mode_t) = NULL;
+#endif
+static int     (*next_mkstemp) (char *) = NULL;
 #ifdef HAVE_MKSTEMP64
-static int     (*next_mkstemp64) (char *template) = NULL;
+static int     (*next_mkstemp64) (char *) = NULL;
 #endif
-static char *  (*next_mktemp) (char *template) = NULL;
+static char *  (*next_mktemp) (char *) = NULL;
 #ifdef HAVE_NFTW
-static int     (*next_nftw) (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag, struct FTW *s), int nopenfd, int flags) = NULL;
+static int     (*next_nftw) (const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int) = NULL;
 #endif
 #ifdef HAVE_NFTW64
-static int     (*next_nftw64) (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag, struct FTW *s), int nopenfd, int flags) = NULL;
+static int     (*next_nftw64) (const char *, int (*)(const char *, const struct stat64 *, int, struct FTW *), int, int) = NULL;
 #endif
-static int     (*next_open) (const char *pathname, int flags, ...) = NULL;
+static int     (*next_open) (const char *, int, ...) = NULL;
 #ifdef HAVE_OPEN64
-static int     (*next_open64) (const char *pathname, int flags, ...) = NULL;
+static int     (*next_open64) (const char *, int, ...) = NULL;
 #endif
 #ifdef HAVE_OPENAT
-static int     (*next_openat) (int dirfd, const char *pathname, int flags, ...) = NULL;
+static int     (*next_openat) (int, const char *, int, ...) = NULL;
 #endif
 #ifdef HAVE_OPENAT64
-static int     (*next_openat64) (int dirfd, const char *pathname, int flags, ...) = NULL;
+static int     (*next_openat64) (int, const char *, int, ...) = NULL;
 #endif
 #if !defined(HAVE___OPENDIR2)
-static DIR *   (*next_opendir) (const char *name) = NULL;
+static DIR *   (*next_opendir) (const char *) = NULL;
 #endif
-static long    (*next_pathconf) (const char *path, int name) = NULL;
-static READLINK_TYPE_RETURN (*next_readlink) (const char *path, char *buf, READLINK_TYPE_ARG3) = NULL;
-static char *  (*next_realpath) (const char *name, char *resolved) = NULL;
-static int     (*next_remove) (const char *pathname) = NULL;
+static long    (*next_pathconf) (const char *, int) = NULL;
+#ifdef __GNUC__
+/* static FILE *  (*next_popen) (const char *, const char *) = NULL; */
+#endif
+static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(/**/), READLINK_TYPE_ARG2(/**/), READLINK_TYPE_ARG3(/**/)) = NULL;
+#ifdef HAVE_READLINKAT
+static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(/**/), READLINKAT_TYPE_ARG2(/**/), READLINKAT_TYPE_ARG3(/**/), READLINKAT_TYPE_ARG4(/**/)) = NULL;
+#endif
+static char *  (*next_realpath) (const char *, char *) = NULL;
+static int     (*next_remove) (const char *) = NULL;
 #ifdef HAVE_REMOVEXATTR
-static int     (*next_removexattr) (const char *path, const char *name) = NULL;
+static int     (*next_removexattr) (const char *, const char *) = NULL;
 #endif
-static int     (*next_rename) (const char *oldpath, const char *newpath) = NULL;
+static int     (*next_rename) (const char *, const char *) = NULL;
 #ifdef HAVE_RENAMEAT
-static int     (*next_renameat) (int olddirfd, const char *oldpath, int newdirfd, const char *newpath) = NULL;
+static int     (*next_renameat) (int, const char *, int, const char *) = NULL;
 #endif
 #ifdef HAVE_REVOKE
-static int     (*next_revoke) (const char *file) = NULL;
+static int     (*next_revoke) (const char *) = NULL;
 #endif
-static int     (*next_rmdir) (const char *pathname) = NULL;
+static int     (*next_rmdir) (const char *) = NULL;
 #ifdef HAVE_SCANDIR
-static int     (*next_scandir) (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3, int(*compar)(const void *, const void *)) = NULL;
+static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(/**/), SCANDIR_TYPE_ARG2(/**/), SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SCANDIR64
-static int     (*next_scandir64) (const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *)) = NULL;
+static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(/**/), SCANDIR64_TYPE_ARG2(/**/), SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
-static int     (*next_setxattr) (const char *path, const char *name, const void *value, size_t size, int flags) = NULL;
+static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
 #if !defined(HAVE___XSTAT)
-static int     (*next_stat) (const char *file_name, struct stat *buf) = NULL;
+static int     (*next_stat) (const char *, struct stat *) = NULL;
 #endif
 #ifdef HAVE_STAT64
 #if !defined(HAVE___XSTAT64)
-static int     (*next_stat64) (const char *file_name, struct stat64 *buf) = NULL;
+static int     (*next_stat64) (const char *, struct stat64 *) = NULL;
 #endif
 #endif
-static int     (*next_symlink) (const char *oldpath, const char *newpath) = NULL;
-static char *  (*next_tempnam) (const char *dir, const char *pfx) = NULL;
-static char *  (*next_tmpnam) (char *s) = NULL;
-static int     (*next_truncate) (const char *path, off_t length) = NULL;
+static int     (*next_symlink) (const char *, const char *) = NULL;
+#ifdef HAVE_SYMLINKAT
+static int     (*next_symlinkat) (const char *, int, const char *) = NULL;
+#endif
+/* static int     (*next_system) (const char *) = NULL; */
+static char *  (*next_tempnam) (const char *, const char *) = NULL;
+static char *  (*next_tmpnam) (char *) = NULL;
+static int     (*next_truncate) (const char *, off_t) = NULL;
 #ifdef HAVE_TRUNCATE64
-static int     (*next_truncate64) (const char *path, off64_t length) = NULL;
+static int     (*next_truncate64) (const char *, off64_t) = NULL;
 #endif
-static int     (*next_unlink) (const char *pathname) = NULL;
+static int     (*next_unlink) (const char *) = NULL;
 #ifdef HAVE_UNLINKAT
-static int     (*next_unlinkat) (int dirfd, const char *pathname, int flags) = NULL;
+static int     (*next_unlinkat) (int, const char *, int) = NULL;
 #endif
 #ifdef HAVE_ULCKPWDF
 /* static int     (*next_ulckpwdf) (void) = NULL; */
 #endif
-static int     (*next_utime) (const char *filename, const struct utimbuf *buf) = NULL;
-static int     (*next_utimes) (const char *filename, const struct timeval tv[2]) = NULL;
+static int     (*next_utime) (const char *, const struct utimbuf *) = NULL;
+#ifdef HAVE_UTIMENSAT
+static int     (*next_utimensat) (int, const char *, const struct timespec [2], int) = NULL;
+#endif
+static int     (*next_utimes) (const char *, const struct timeval [2]) = NULL;
 
 
 /* Bootstrap the library */
@@ -596,8 +627,20 @@ void fakechroot_init (void)
 #ifdef HAVE___OPEN
     nextsym(__open, "__open");
 #endif
+#ifdef HAVE___OPEN_2
+    nextsym(__open_2, "__open_2");
+#endif
 #ifdef HAVE___OPEN64
     nextsym(__open64, "__open64");
+#endif
+#ifdef HAVE___OPEN64_2
+    nextsym(__open64_2, "__open64_2");
+#endif
+#ifdef HAVE___OPENAT_2
+    nextsym(__openat_2, "__openat_2");
+#endif
+#ifdef HAVE___OPENAT64_2
+    nextsym(__openat64_2, "__openat64_2");
 #endif
 #ifdef HAVE___OPENDIR2
     nextsym(__opendir2, "__opendir2");
@@ -718,6 +761,9 @@ void fakechroot_init (void)
     nextsym(lgetxattr, "lgetxattr");
 #endif
     nextsym(link, "link");
+#ifdef HAVE_LINKAT
+    nextsym(linkat, "linkat");
+#endif
 #ifdef HAVE_LISTXATTR
     nextsym(listxattr, "listxattr");
 #endif
@@ -749,7 +795,13 @@ void fakechroot_init (void)
     nextsym(mkdtemp, "mkdtemp");
 #endif
     nextsym(mknod, "mknod");
+#ifdef HAVE_MKNODAT
+    nextsym(mknod, "mknodat");
+#endif
     nextsym(mkfifo, "mkfifo");
+#ifdef HAVE_MKFIFOAT
+    nextsym(mkfifoat, "mkfifoat");
+#endif
     nextsym(mkstemp, "mkstemp");
 #ifdef HAVE_MKSTEMP64
     nextsym(mkstemp64, "mkstemp64");
@@ -774,8 +826,14 @@ void fakechroot_init (void)
 #if !defined(HAVE___OPENDIR2)
     nextsym(opendir, "opendir");
 #endif
+#ifdef __GNUC__
+/*    nextsym(popen, "popen"); */
+#endif
     nextsym(pathconf, "pathconf");
     nextsym(readlink, "readlink");
+#ifdef HAVE_READLINKAT
+    nextsym(readlinkat, "readlinkat");
+#endif
     nextsym(realpath, "realpath");
     nextsym(remove, "remove");
 #ifdef HAVE_REMOVEXATTR
@@ -807,6 +865,10 @@ void fakechroot_init (void)
 #endif
 #endif
     nextsym(symlink, "symlink");
+#ifdef HAVE_SYMLINKAT
+    nextsym(symlinkat, "symlinkat");
+#endif
+/*    nextsym(symlink, "system"); */
     nextsym(tempnam, "tempnam");
     nextsym(tmpnam, "tmpnam");
     nextsym(truncate, "truncate");
@@ -821,6 +883,9 @@ void fakechroot_init (void)
 /*    nextsym(ulckpwdf, "ulckpwdf"); */
 #endif
     nextsym(utime, "utime");
+#ifdef HAVE_UTIMENSAT
+    nextsym(utimensat, "utimensat");
+#endif
     nextsym(utimes, "utimes");
 }
 
@@ -869,8 +934,8 @@ static int fakechroot_localdir (const char *p_path)
 /* #include <sys/stat.h> */
 int __fxstatat (int ver, int dirfd, const char *pathname, struct stat *buf, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next___fxstatat == NULL) fakechroot_init();
     return next___fxstatat(ver, dirfd, pathname, buf, flags);
 }
@@ -883,8 +948,8 @@ int __fxstatat (int ver, int dirfd, const char *pathname, struct stat *buf, int 
 /* #include <sys/stat.h> */
 int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next___fxstatat64 == NULL) fakechroot_init();
     return next___fxstatat64(ver, dirfd, pathname, buf, flags);
 }
@@ -896,10 +961,19 @@ int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, 
 /* #include <unistd.h> */
 int __lxstat (int ver, const char *filename, struct stat *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = filename;
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next___lxstat == NULL) fakechroot_init();
-    return next___lxstat(ver, filename, buf);
+    retval = next___lxstat(ver, filename, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 
@@ -909,10 +983,19 @@ int __lxstat (int ver, const char *filename, struct stat *buf)
 /* #include <unistd.h> */
 int __lxstat64 (int ver, const char *filename, struct stat64 *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = filename;
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next___lxstat64 == NULL) fakechroot_init();
-    return next___lxstat64(ver, filename, buf);
+    retval = next___lxstat64(ver, filename, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 
@@ -922,9 +1005,9 @@ int __lxstat64 (int ver, const char *filename, struct stat64 *buf)
 int __open (const char *pathname, int flags, ...)
 {
     int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
 
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
 
     if (flags & O_CREAT) {
         va_list arg;
@@ -939,14 +1022,28 @@ int __open (const char *pathname, int flags, ...)
 #endif
 
 
+#ifdef HAVE___OPEN_2
+/* Internal libc function */
+int __open_2 (const char *pathname, int flags)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+
+    if (next___open_2 == NULL) fakechroot_init();
+    return next___open_2(pathname, flags);
+}
+#endif
+
+
 #ifdef HAVE___OPEN64
 /* Internal libc function */
 int __open64 (const char *pathname, int flags, ...)
 {
     int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
 
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
 
     if (flags & O_CREAT) {
         va_list arg;
@@ -961,13 +1058,55 @@ int __open64 (const char *pathname, int flags, ...)
 #endif
 
 
+#ifdef HAVE___OPEN64_2
+/* Internal libc function */
+int __open64_2 (const char *pathname, int flags)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+
+    if (next___open64_2 == NULL) fakechroot_init();
+    return next___open64_2(pathname, flags);
+}
+#endif
+
+
+#ifdef HAVE___OPENAT_2
+/* Internal libc function */
+int __openat_2 (int dirfd, const char *pathname, int flags)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+
+    if (next___openat_2 == NULL) fakechroot_init();
+    return next___openat_2(dirfd, pathname, flags);
+}
+#endif
+
+
+#ifdef HAVE___OPENAT64_2
+/* Internal libc function */
+int __openat64_2 (int dirfd, const char *pathname, int flags)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+
+    if (next___openat64_2 == NULL) fakechroot_init();
+    return next___openat64_2(dirfd, pathname, flags);
+}
+#endif
+
+
 #ifdef HAVE___OPENDIR2
 /* Internal libc function */
 /* #include <dirent.h> */
 DIR *__opendir2 (const char *name, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(name, fakechroot_path, fakechroot_buf);
     if (next___opendir2 == NULL) fakechroot_init();
     return next___opendir2(name, flags);
 }
@@ -979,8 +1118,8 @@ DIR *__opendir2 (const char *name, int flags)
 /* #include <unistd.h> */
 int __xmknod (int ver, const char *path, mode_t mode, dev_t *dev)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next___xmknod == NULL) fakechroot_init();
     return next___xmknod(ver, path, mode, dev);
 }
@@ -992,8 +1131,8 @@ int __xmknod (int ver, const char *path, mode_t mode, dev_t *dev)
 /* #include <unistd.h> */
 int __xstat (int ver, const char *filename, struct stat *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next___xstat == NULL) fakechroot_init();
     return next___xstat(ver, filename, buf);
 }
@@ -1005,8 +1144,8 @@ int __xstat (int ver, const char *filename, struct stat *buf)
 /* #include <unistd.h> */
 int __xstat64 (int ver, const char *filename, struct stat64 *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next___xstat64 == NULL) fakechroot_init();
     return next___xstat64(ver, filename, buf);
 }
@@ -1017,8 +1156,8 @@ int __xstat64 (int ver, const char *filename, struct stat64 *buf)
 /* include <ftw.h> */
 int _xftw (int mode, const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next__xftw == NULL) fakechroot_init();
     return next__xftw(mode, dir, fn, nopenfd);
 }
@@ -1029,8 +1168,8 @@ int _xftw (int mode, const char *dir, int (*fn)(const char *file, const struct s
 /* include <ftw.h> */
 int _xftw64 (int mode, const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next__xftw64 == NULL) fakechroot_init();
     return next__xftw64(mode, dir, fn, nopenfd);
 }
@@ -1040,8 +1179,8 @@ int _xftw64 (int mode, const char *dir, int (*fn)(const char *file, const struct
 /* #include <unistd.h> */
 int access (const char *pathname, int mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_access == NULL) fakechroot_init();
     return next_access(pathname, mode);
 }
@@ -1050,8 +1189,8 @@ int access (const char *pathname, int mode)
 /* #include <unistd.h> */
 int acct (const char *filename)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_acct == NULL) fakechroot_init();
     return next_acct(filename);
 }
@@ -1063,7 +1202,7 @@ int acct (const char *filename)
 /* #include <sys/un.h> */
 int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
@@ -1071,7 +1210,7 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
-        expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        expand_chroot_path(path, fakechroot_path, fakechroot_buf);
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
             return ENAMETOOLONG;
         }
@@ -1090,8 +1229,8 @@ int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 /* #include <libintl.h> */
 char * bindtextdomain (const char *domainname, const char *dirname)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dirname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dirname, fakechroot_path, fakechroot_buf);
     if (next_bindtextdomain == NULL) fakechroot_init();
     return next_bindtextdomain(domainname, dirname);
 }
@@ -1102,8 +1241,8 @@ char * bindtextdomain (const char *domainname, const char *dirname)
 /* #include <stdlib.h> */
 char *canonicalize_file_name (const char *name)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(name, fakechroot_path, fakechroot_buf);
     if (next_canonicalize_file_name == NULL) fakechroot_init();
     return next_canonicalize_file_name(name);
 }
@@ -1113,8 +1252,8 @@ char *canonicalize_file_name (const char *name)
 /* #include <unistd.h> */
 int chdir (const char *path)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_chdir == NULL) fakechroot_init();
     return next_chdir(path);
 }
@@ -1124,8 +1263,8 @@ int chdir (const char *path)
 /* #include <sys/stat.h> */
 int chmod (const char *path, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_chmod == NULL) fakechroot_init();
     return next_chmod(path, mode);
 }
@@ -1135,8 +1274,8 @@ int chmod (const char *path, mode_t mode)
 /* #include <unistd.h> */
 int chown (const char *path, uid_t owner, gid_t group)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_chown == NULL) fakechroot_init();
     return next_chown(path, owner, group);
 }
@@ -1212,6 +1351,19 @@ int chroot (const char *path)
         }
     }
 
+    ptr = tmp = dir;
+    for (ptr=tmp=dir; *ptr; ptr++) {
+        if (*ptr == '/' &&
+                *(ptr+1) && *(ptr+1) == '.' &&
+                (!*(ptr+2) || (*(ptr+2) == '/'))
+        ) {
+            ptr++;
+        } else {
+            *(tmp++) = *ptr;
+        }
+    }
+    *tmp = 0;
+
 #if defined(HAVE_SETENV)
     setenv("FAKECHROOT_BASE", dir, 1);
 #else
@@ -1253,7 +1405,7 @@ int chroot (const char *path)
 /* #include <sys/un.h> */
 int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
@@ -1261,7 +1413,7 @@ int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     if (next_connect == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
-        expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        expand_chroot_path(path, fakechroot_path, fakechroot_buf);
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
             return ENAMETOOLONG;
         }
@@ -1281,8 +1433,8 @@ int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 /* #include <fcntl.h> */
 int creat (const char *pathname, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_creat == NULL) fakechroot_init();
     return next_creat(pathname, mode);
 }
@@ -1294,8 +1446,8 @@ int creat (const char *pathname, mode_t mode)
 /* #include <fcntl.h> */
 int creat64 (const char *pathname, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_creat64 == NULL) fakechroot_init();
     return next_creat64(pathname, mode);
 }
@@ -1306,8 +1458,8 @@ int creat64 (const char *pathname, mode_t mode)
 /* #include <dlfcn.h> */
 void *dlmopen (Lmid_t nsid, const char *filename, int flag)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_dlmopen == NULL) fakechroot_init();
     return next_dlmopen(nsid, filename, flag);
 }
@@ -1317,8 +1469,8 @@ void *dlmopen (Lmid_t nsid, const char *filename, int flag)
 /* #include <dlfcn.h> */
 void *dlopen (const char *filename, int flag)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_dlopen == NULL) fakechroot_init();
     return next_dlopen(filename, flag);
 }
@@ -1329,8 +1481,8 @@ void *dlopen (const char *filename, int flag)
 /* #include <unistd.h> */
 int eaccess (const char *pathname, int mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_eaccess == NULL) fakechroot_init();
     return next_eaccess(pathname, mode);
 }
@@ -1342,8 +1494,8 @@ int eaccess (const char *pathname, int mode)
 /* #include <unistd.h> */
 int euidaccess (const char *pathname, int mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_euidaccess == NULL) fakechroot_init();
     return next_euidaccess(pathname, mode);
 }
@@ -1351,113 +1503,104 @@ int euidaccess (const char *pathname, int mode)
 
 
 /* #include <unistd.h> */
-int execl (const char *path, const char *arg, ...)
-{
-  size_t argv_max = 1024;
-  const char **argv = alloca (argv_max * sizeof (const char *));
-  unsigned int i;
-  va_list args;
+int execl (const char *path, const char *arg, ...) {
+    size_t argv_max = 1024;
+    const char **argv = alloca(argv_max * sizeof(const char *));
+    unsigned int i;
+    va_list args;
 
-  argv[0] = arg;
+    argv[0] = arg;
 
-  va_start (args, arg);
-  i = 0;
-  while (argv[i++] != NULL)
-    {
-      if (i == argv_max)
-        {
-          const char **nptr = alloca ((argv_max *= 2) * sizeof (const char *));
+    va_start (args, arg);
+    i = 0;
+    while (argv[i++] != NULL) {
+        if (i == argv_max) {
+            const char **nptr = alloca((argv_max *= 2) * sizeof(const char *));
 
             if ((char *) argv + i == (char *) nptr)
-            /* Stack grows up.  */
-            argv_max += i;
-          else
-            /* We have a hole in the stack.  */
-            argv = (const char **) memcpy (nptr, argv,
-                                           i * sizeof (const char *));
+                /* Stack grows up.  */
+                argv_max += i;
+            else
+                /* We have a hole in the stack.  */
+                argv = (const char **) memcpy(nptr, argv, i
+                        * sizeof(const char *));
         }
 
-      argv[i] = va_arg (args, const char *);
+        argv[i] = va_arg (args, const char *);
     }
-  va_end (args);
+    va_end (args);
 
-  return execve (path, (char *const *) argv, environ);
+    return execve(path, (char * const *) argv, environ);
 }
 
 
 /* #include <unistd.h> */
-int execle (const char *path, const char *arg, ...)
-{
-  size_t argv_max = 1024;
-  const char **argv = alloca (argv_max * sizeof (const char *));
-  const char *const *envp;
-  unsigned int i;
-  va_list args;
-  argv[0] = arg;
+int execle (const char *path, const char *arg, ...) {
+    size_t argv_max = 1024;
+    const char **argv = alloca(argv_max * sizeof(const char *));
+    const char * const *envp;
+    unsigned int i;
+    va_list args;
+    argv[0] = arg;
 
-  va_start (args, arg);
-  i = 0;
-  while (argv[i++] != NULL)
-    {
-      if (i == argv_max)
-        {
-          const char **nptr = alloca ((argv_max *= 2) * sizeof (const char *));
+    va_start (args, arg);
+    i = 0;
+    while (argv[i++] != NULL) {
+        if (i == argv_max) {
+            const char **nptr = alloca((argv_max *= 2) * sizeof(const char *));
 
             if ((char *) argv + i == (char *) nptr)
-            /* Stack grows up.  */
-            argv_max += i;
-          else
-            /* We have a hole in the stack.  */
-            argv = (const char **) memcpy (nptr, argv,
-                                           i * sizeof (const char *));
+                /* Stack grows up.  */
+                argv_max += i;
+            else
+                /* We have a hole in the stack.  */
+                argv = (const char **) memcpy(nptr, argv, i
+                        * sizeof(const char *));
         }
 
-      argv[i] = va_arg (args, const char *);
+        argv[i] = va_arg (args, const char *);
     }
 
-  envp = va_arg (args, const char *const *);
-  va_end (args);
+    envp = va_arg (args, const char *const *);
+    va_end (args);
 
-  return execve (path, (char *const *) argv, (char *const *) envp);
+    return execve(path, (char * const *) argv, (char * const *) envp);
 }
 
 
 /* #include <unistd.h> */
-int execlp (const char *file, const char *arg, ...)
-{
-  size_t argv_max = 1024;
-  const char **argv = alloca (argv_max * sizeof (const char *));
-  unsigned int i;
-  va_list args;
-  char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+int execlp (const char *file, const char *arg, ...) {
+    size_t argv_max = 1024;
+    const char **argv = alloca(argv_max * sizeof(const char *));
+    unsigned int i;
+    va_list args;
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
 
+    argv[0] = arg;
 
-  argv[0] = arg;
-
-  va_start (args, arg);
-  i = 0;
-  while (argv[i++] != NULL)
-    {
-      if (i == argv_max)
-        {
-          const char **nptr = alloca ((argv_max *= 2) * sizeof (const char *));
+    va_start (args, arg);
+    i = 0;
+    while (argv[i++] != NULL) {
+        if (i == argv_max) {
+            const char **nptr = alloca((argv_max *= 2) * sizeof(const char *));
 
             if ((char *) argv + i == (char *) nptr)
-            /* Stack grows up.  */
-            argv_max += i;
-          else
-            /* We have a hole in the stack.  */
-            argv = (const char **) memcpy (nptr, argv,
-                                           i * sizeof (const char *));
+                /* Stack grows up.  */
+                argv_max += i;
+            else
+                /* We have a hole in the stack.  */
+                argv = (const char **) memcpy(nptr, argv, i
+                        * sizeof(const char *));
         }
 
-      argv[i] = va_arg (args, const char *);
+        argv[i] = va_arg (args, const char *);
     }
-  va_end (args);
+    va_end (args);
 
-  expand_chroot_path(file, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-  if (next_execvp == NULL) fakechroot_init();
-  return next_execvp (file, (char *const *) argv);
+    expand_chroot_path(file, fakechroot_path, fakechroot_buf);
+    if (next_execvp == NULL)
+        fakechroot_init();
+    return next_execvp(file, (char * const *) argv);
 }
 
 
@@ -1467,6 +1610,36 @@ int execv (const char *path, char *const argv [])
     return execve (path, argv, environ);
 }
 
+/* Parse the FAKECHROOT_CMD_SUBST environment variable (the first
+ * parameter) and if there is a match with filename, return the
+ * substitution in cmd_subst.  Returns non-zero if there was a match.
+ *
+ * FAKECHROOT_CMD_SUBST=cmd=subst:cmd=subst:...
+ */
+static int try_cmd_subst (char *env, const char *filename, char *cmd_subst)
+{
+    int len = strlen (filename), len2;
+    char *p;
+
+    if (env == NULL) return 0;
+
+    do {
+        p = strchrnul (env, ':');
+
+        if (strncmp (env, filename, len) == 0 && env[len] == '=') {
+            len2 = p - &env[len+1];
+            if (len2 >= FAKECHROOT_MAXPATH)
+                len2 = FAKECHROOT_MAXPATH - 1;
+            strncpy (cmd_subst, &env[len+1], len2);
+            cmd_subst[len2] = '\0';
+            return 1;
+        }
+
+        env = p;
+    } while (*env++ != '\0');
+
+    return 0;
+}
 
 /* #include <unistd.h> */
 int execve (const char *filename, char *const argv [], char *const envp[])
@@ -1479,21 +1652,60 @@ int execve (const char *filename, char *const argv [], char *const envp[])
     char *env;
     char tmp[FAKECHROOT_MAXPATH], newfilename[FAKECHROOT_MAXPATH], argv0[FAKECHROOT_MAXPATH];
     char *ptr;
-    unsigned int i, j, n, len;
+    unsigned int i, j, n, len, r, newenvppos;
     size_t sizeenvp;
     char c;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *envkey[] = { "FAKECHROOT", "FAKECHROOT_BASE",
                        "FAKECHROOT_VERSION", "FAKECHROOT_EXCLUDE_PATH",
+                       "FAKECHROOT_CMD_SUBST",
                        "LD_LIBRARY_PATH", "LD_PRELOAD" };
+    const int nr_envkey = sizeof envkey / sizeof envkey[0];
+
+    if (next_execve == NULL) fakechroot_init();
+
+    /* Scan envp and check its size */
+    sizeenvp = 0;
+    for (ep = (char **)envp; *ep != NULL; ++ep) {
+        sizeenvp++;
+    }
+
+    /* Copy envp to newenvp */
+    newenvp = malloc( (sizeenvp + 1) * sizeof (char *) );
+    if (newenvp == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    for (ep = (char **) envp, newenvppos = 0; *ep != NULL; ++ep) {
+        for (j = 0; j < nr_envkey; j++) {
+            len = strlen (envkey[j]);
+            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+                goto skip;
+        }
+        newenvp[newenvppos] = *ep;
+        newenvppos++;
+    skip: ;
+    }
+    newenvp[newenvppos] = NULL;
 
     strncpy(argv0, filename, FAKECHROOT_MAXPATH);
 
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    r = try_cmd_subst (getenv ("FAKECHROOT_CMD_SUBST"), filename, tmp);
+    if (r) {
+        filename = tmp;
+
+        /* FAKECHROOT_CMD_SUBST escapes the chroot.  newenvp here does
+         * not contain LD_PRELOAD and the other special environment
+         * variables.
+         */
+        return next_execve(filename, argv, newenvp);
+    }
+
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     strcpy(tmp, filename);
     filename = tmp;
 
-    if ((file = open(filename, O_RDONLY)) == -1) {
+    if ((file = next_open(filename, O_RDONLY)) == -1) {
         errno = ENOENT;
         return -1;
     }
@@ -1505,48 +1717,23 @@ int execve (const char *filename, char *const argv [], char *const envp[])
         return -1;
     }
 
-    if (next_execve == NULL) fakechroot_init();
-
-    /* Scan envp and check its size */
-    sizeenvp = 0;
-    for (ep = (char **)envp; *ep != NULL; ++ep) {
-        sizeenvp++;
-    }
-
-    /* Copy envp to newenvp */
-    newenvp = malloc( sizeenvp * sizeof (char *) + sizeof(envkey) );
-    if (newenvp == NULL) {
-        errno = ENOMEM;
-        return -1;
-    }
-    for (ep = (char **)envp, i = 0; *ep != NULL; ++ep) {
-        for (j = 0; j < sizeof (envkey) / sizeof (char *); j++) {
-            len = strlen (envkey[j]);
-            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
-                goto skip;
-        }
-        newenvp[i] = *ep;
-        i++;
-    skip: ;
-    }
-
     /* Add our variables to newenvp */
-    newenvp = realloc( newenvp, i * sizeof(char *) + sizeof(envkey) );
+    newenvp = realloc( newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *) );
     if (newenvp == NULL) {
         errno = ENOMEM;
         return -1;
     }
-    for (j = 0; j < sizeof(envkey) / sizeof(char *); j++) {
+    for (j = 0; j < nr_envkey; j++) {
         env = getenv(envkey[j]);
         if (env != NULL) {
-            newenvp[i] = malloc(strlen(envkey[j]) + strlen(env) + 3);
-            strcpy(newenvp[i], envkey[j]);
-            strcat(newenvp[i], "=");
-            strcat(newenvp[i], env);
-            i++;
+            newenvp[newenvppos] = malloc(strlen(envkey[j]) + strlen(env) + 3);
+            strcpy(newenvp[newenvppos], envkey[j]);
+            strcat(newenvp[newenvppos], "=");
+            strcat(newenvp[newenvppos], env);
+            newenvppos++;
         }
     }
-    newenvp[i] = NULL;
+    newenvp[newenvppos] = NULL;
 
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!')
@@ -1562,7 +1749,7 @@ int execve (const char *filename, char *const argv [], char *const envp[])
             if (i > j) {
                 if (n == 0) {
                     ptr = &hashbang[j];
-                    expand_chroot_path(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+                    expand_chroot_path(ptr, fakechroot_path, fakechroot_buf);
                     strcpy(newfilename, ptr);
                 }
                 newargv[n++] = &hashbang[j];
@@ -1586,98 +1773,89 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 
 
 /* #include <unistd.h> */
-int execvp (const char *file, char *const argv [])
-{
-  if (*file == '\0')
-    {
-      /* We check the simple case first. */
-      errno = ENOENT;
-      return -1;
+int execvp (const char *file, char * const argv[]) {
+    if (*file == '\0') {
+        /* We check the simple case first. */
+        errno = ENOENT;
+        return -1;
     }
 
-  if (strchr (file, '/') != NULL)
-    {
-      /* Don't search when it contains a slash.  */
-      return execve (file, argv, environ);
-    }
-  else
-    {
-      int got_eacces = 0;
-      char *path, *p, *name;
-      size_t len;
-      size_t pathlen;
+    if (strchr(file, '/') != NULL) {
+        /* Don't search when it contains a slash.  */
+        return execve(file, argv, environ);
+    } else {
+        int got_eacces = 0;
+        char *path, *p, *name;
+        size_t len;
+        size_t pathlen;
 
-      path = getenv ("PATH");
-      if (path == NULL)
-        {
-          /* There is no `PATH' in the environment.
+        path = getenv("PATH");
+        if (path == NULL) {
+            /* There is no `PATH' in the environment.
              The default search path is the current directory
              followed by the path `confstr' returns for `_CS_PATH'.  */
-          len = confstr (_CS_PATH, (char *) NULL, 0);
-          path = (char *) alloca (1 + len);
-          path[0] = ':';
-          (void) confstr (_CS_PATH, path + 1, len);
+            len = confstr(_CS_PATH, (char *) NULL, 0);
+            path = (char *) alloca(1 + len);
+            path[0] = ':';
+            (void) confstr(_CS_PATH, path + 1, len);
         }
 
-      len = strlen (file) + 1;
-      pathlen = strlen (path);
-      name = alloca (pathlen + len + 1);
-      /* Copy the file name at the top.  */
-      name = (char *) memcpy (name + pathlen + 1, file, len);
-      /* And add the slash.  */
-      *--name = '/';
+        len = strlen(file) + 1;
+        pathlen = strlen(path);
+        name = alloca(pathlen + len + 1);
+        /* Copy the file name at the top.  */
+        name = (char *) memcpy(name + pathlen + 1, file, len);
+        /* And add the slash.  */
+        *--name = '/';
 
-      p = path;
-      do
-        {
-          char *startp;
+        p = path;
+        do {
+            char *startp;
 
-          path = p;
-          p = strchrnul (path, ':');
+            path = p;
+            p = strchrnul(path, ':');
 
-          if (p == path)
-            /* Two adjacent colons, or a colon at the beginning or the end
-               of `PATH' means to search the current directory.  */
-            startp = name + 1;
-          else
-            startp = (char *) memcpy (name - (p - path), path, p - path);
+            if (p == path)
+                /* Two adjacent colons, or a colon at the beginning or the end
+                 of `PATH' means to search the current directory.  */
+                startp = name + 1;
+            else
+                startp = (char *) memcpy(name - (p - path), path, p - path);
 
-          /* Try to execute this name.  If it works, execv will not return.  */
-          execve (startp, argv, environ);
+            /* Try to execute this name.  If it works, execv will not return.  */
+            execve(startp, argv, environ);
 
-          switch (errno)
-            {
+            switch (errno) {
             case EACCES:
-              /* Record the we got a `Permission denied' error.  If we end
+                /* Record the we got a `Permission denied' error.  If we end
                  up finding no executable we can use, we want to diagnose
                  that we did find one but were denied access.  */
-              got_eacces = 1;
+                got_eacces = 1;
             case ENOENT:
             case ESTALE:
             case ENOTDIR:
-              /* Those errors indicate the file is missing or not executable
+                /* Those errors indicate the file is missing or not executable
                  by us, in which case we want to just try the next path
                  directory.  */
-              break;
+                break;
 
             default:
-              /* Some other error means we found an executable file, but
+                /* Some other error means we found an executable file, but
                  something went wrong executing it; return the error to our
                  caller.  */
-              return -1;
+                return -1;
             }
-        }
-      while (*p++ != '\0');
+        } while (*p++ != '\0');
 
-      /* We tried every element and none of them worked.  */
-      if (got_eacces)
-        /* At least one failure was due to permissions, so report that
-           error.  */
-        errno = EACCES;
+        /* We tried every element and none of them worked.  */
+        if (got_eacces)
+            /* At least one failure was due to permissions, so report that
+             error.  */
+            errno = EACCES;
     }
 
-  /* Return the error from the last attempt (probably ENOENT).  */
-  return -1;
+    /* Return the error from the last attempt (probably ENOENT).  */
+    return -1;
 }
 
 
@@ -1687,8 +1865,8 @@ int execvp (const char *file, char *const argv [])
 /* #include <sys/stat.h> */
 int fchmodat (int dirfd, const char *path, mode_t mode, int flag)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_fchmodat == NULL) fakechroot_init();
     return next_fchmodat(dirfd, path, mode, flag);
 }
@@ -1701,8 +1879,8 @@ int fchmodat (int dirfd, const char *path, mode_t mode, int flag)
 /* #include <unistd.h> */
 int fchownat (int dirfd, const char *path, uid_t owner, gid_t group, int flag)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_fchownat == NULL) fakechroot_init();
     return next_fchownat(dirfd, path, owner, group, flag);
 }
@@ -1712,8 +1890,8 @@ int fchownat (int dirfd, const char *path, uid_t owner, gid_t group, int flag)
 /* #include <stdio.h> */
 FILE *fopen (const char *path, const char *mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_fopen == NULL) fakechroot_init();
     return next_fopen(path, mode);
 }
@@ -1723,8 +1901,8 @@ FILE *fopen (const char *path, const char *mode)
 /* #include <stdio.h> */
 FILE *fopen64 (const char *path, const char *mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_fopen64 == NULL) fakechroot_init();
     return next_fopen64(path, mode);
 }
@@ -1734,8 +1912,8 @@ FILE *fopen64 (const char *path, const char *mode)
 /* #include <stdio.h> */
 FILE *freopen (const char *path, const char *mode, FILE *stream)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_freopen == NULL) fakechroot_init();
     return next_freopen(path, mode, stream);
 }
@@ -1745,8 +1923,8 @@ FILE *freopen (const char *path, const char *mode, FILE *stream)
 /* #include <stdio.h> */
 FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_freopen64 == NULL) fakechroot_init();
     return next_freopen64(path, mode, stream);
 }
@@ -1757,7 +1935,7 @@ FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 #if !defined(HAVE___OPENDIR2)
 /* #include <fts.h> */
 FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) {
-    char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
+    char *fakechroot_path, *fakechroot_buf;
     char *path;
     char * const *p;
     char **new_path_argv;
@@ -1771,7 +1949,7 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
 
     for (n=0, p=path_argv, np=new_path_argv; *p; n++, p++, np++) {
         path = *p;
-        expand_chroot_path_malloc(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        expand_chroot_path_malloc(path, fakechroot_path, fakechroot_buf);
         *np = path;
     }
 
@@ -1787,8 +1965,8 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
 /* include <ftw.h> */
 int ftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_ftw == NULL) fakechroot_init();
     return next_ftw(dir, fn, nopenfd);
 }
@@ -1801,8 +1979,8 @@ int ftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int
 /* include <ftw.h> */
 int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_ftw64 == NULL) fakechroot_init();
     return next_ftw64(dir, fn, nopenfd);
 }
@@ -1815,8 +1993,8 @@ int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb,
 /* #include <fcntl.h> */
 int futimesat (int fd, const char *filename, const struct timeval tv[2])
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_futimesat == NULL) fakechroot_init();
     return next_futimesat(fd, filename, tv);
 }
@@ -1949,8 +2127,8 @@ char * getwd (char *buf)
 /* #include <sys/xattr.h> */
 ssize_t getxattr (const char *path, const char *name, void *value, size_t size)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_getxattr == NULL) fakechroot_init();
     return next_getxattr(path, name, value, size);
 }
@@ -1964,7 +2142,7 @@ int glob (const char *pattern, int flags, int (*errfunc) (const char *, int), gl
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
-    expand_chroot_path(pattern, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(pattern, fakechroot_path, fakechroot_buf);
 
     if (next_glob == NULL) fakechroot_init();
 
@@ -1997,7 +2175,7 @@ int glob64 (const char *pattern, int flags, int (*errfunc) (const char *, int), 
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
-    expand_chroot_path(pattern, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(pattern, fakechroot_path, fakechroot_buf);
 
     if (next_glob64 == NULL) fakechroot_init();
 
@@ -2027,8 +2205,8 @@ int glob64 (const char *pattern, int flags, int (*errfunc) (const char *, int), 
 /* #include <glob.h> */
 int glob_pattern_p (const char *pattern, int quote)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pattern, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pattern, fakechroot_path, fakechroot_buf);
     if (next_glob_pattern_p == NULL) fakechroot_init();
     return next_glob_pattern_p(pattern, quote);
 }
@@ -2039,8 +2217,8 @@ int glob_pattern_p (const char *pattern, int quote)
 /* #include <sys/inotify.h> */
 int inotify_add_watch (int fd, const char *pathname, uint32_t mask)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_inotify_add_watch == NULL) fakechroot_init();
     return next_inotify_add_watch(fd, pathname, mask);
 }
@@ -2052,8 +2230,8 @@ int inotify_add_watch (int fd, const char *pathname, uint32_t mask)
 /* #include <sys/stat.h> */
 int lchmod (const char *path, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_lchmod == NULL) fakechroot_init();
     return next_lchmod(path, mode);
 }
@@ -2064,8 +2242,8 @@ int lchmod (const char *path, mode_t mode)
 /* #include <unistd.h> */
 int lchown (const char *path, uid_t owner, gid_t group)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_lchown == NULL) fakechroot_init();
     return next_lchown(path, owner, group);
 }
@@ -2084,8 +2262,8 @@ int lckpwdf (void)
 /* #include <sys/xattr.h> */
 ssize_t lgetxattr (const char *path, const char *name, void *value, size_t size)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_lgetxattr == NULL) fakechroot_init();
     return next_lgetxattr(path, name, value, size);
 }
@@ -2096,21 +2274,36 @@ ssize_t lgetxattr (const char *path, const char *name, void *value, size_t size)
 int link (const char *oldpath, const char *newpath)
 {
     char tmp[FAKECHROOT_MAXPATH];
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
     strcpy(tmp, oldpath); oldpath=tmp;
-    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
     if (next_link == NULL) fakechroot_init();
     return next_link(oldpath, newpath);
 }
+
+
+#ifdef HAVE_LINKAT
+/* #include <unistd.h> */
+int linkat (int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
+    if (next_linkat == NULL) fakechroot_init();
+    return next_linkat(olddirfd, oldpath, newdirfd, newpath, flags);
+}
+#endif
 
 
 #ifdef HAVE_LISTXATTR
 /* #include <sys/xattr.h> */
 ssize_t listxattr (const char *path, char *list, size_t size)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_listxattr == NULL) fakechroot_init();
     return next_listxattr(path, list, size);
 }
@@ -2121,8 +2314,8 @@ ssize_t listxattr (const char *path, char *list, size_t size)
 /* #include <sys/xattr.h> */
 ssize_t llistxattr (const char *path, char *list, size_t size)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_llistxattr == NULL) fakechroot_init();
     return next_llistxattr(path, list, size);
 }
@@ -2133,8 +2326,8 @@ ssize_t llistxattr (const char *path, char *list, size_t size)
 /* #include <sys/xattr.h> */
 int lremovexattr (const char *path, const char *name)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_lremovexattr == NULL) fakechroot_init();
     return next_lremovexattr(path, name);
 }
@@ -2145,8 +2338,8 @@ int lremovexattr (const char *path, const char *name)
 /* #include <sys/xattr.h> */
 int lsetxattr (const char *path, const char *name, const void *value, size_t size, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_lsetxattr == NULL) fakechroot_init();
     return next_lsetxattr(path, name, value, size, flags);
 }
@@ -2158,10 +2351,19 @@ int lsetxattr (const char *path, const char *name, const void *value, size_t siz
 /* #include <unistd.h> */
 int lstat (const char *file_name, struct stat *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = file_name;
+    expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
     if (next_lstat == NULL) fakechroot_init();
-    return next_lstat(file_name, buf);
+    retval = next_lstat(file_name, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 
@@ -2172,10 +2374,19 @@ int lstat (const char *file_name, struct stat *buf)
 /* #include <unistd.h> */
 int lstat64 (const char *file_name, struct stat64 *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH], tmp[FAKECHROOT_MAXPATH];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+    orig = file_name;
+    expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
     if (next_lstat64 == NULL) fakechroot_init();
-    return next_lstat64(file_name, buf);
+    retval = next_lstat64(file_name, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+    return retval;
 }
 #endif
 #endif
@@ -2185,8 +2396,8 @@ int lstat64 (const char *file_name, struct stat64 *buf)
 /* #include <sys/time.h> */
 int lutimes (const char *filename, const struct timeval tv[2])
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_lutimes == NULL) fakechroot_init();
     return next_lutimes(filename, tv);
 }
@@ -2197,8 +2408,8 @@ int lutimes (const char *filename, const struct timeval tv[2])
 /* #include <sys/types.h> */
 int mkdir (const char *pathname, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_mkdir == NULL) fakechroot_init();
     return next_mkdir(pathname, mode);
 }
@@ -2210,9 +2421,9 @@ int mkdir (const char *pathname, mode_t mode)
 /* #include <sys/stat.h> */
 int mkdirat (int dirfd, const char *pathname, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
-    if (next_mkdir == NULL) fakechroot_init();
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    if (next_mkdirat == NULL) fakechroot_init();
     return next_mkdirat(dirfd, pathname, mode);
 }
 #endif
@@ -2227,7 +2438,7 @@ char *mkdtemp (char *template)
 
     oldtemplate = template;
 
-    expand_chroot_path(template, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(template, fakechroot_path, fakechroot_buf);
 
     if (next_mkdtemp == NULL) fakechroot_init();
 
@@ -2250,11 +2461,23 @@ char *mkdtemp (char *template)
 /* #include <sys/stat.h> */
 int mkfifo (const char *pathname, mode_t mode)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_mkfifo == NULL) fakechroot_init();
     return next_mkfifo(pathname, mode);
 }
+
+
+#ifdef HAVE_MKFIFOAT
+/* #include <sys/stat.h> */
+int mkfifoat (int dirfd, const char *pathname, mode_t mode)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    if (next_mkfifoat == NULL) fakechroot_init();
+    return next_mkfifoat(dirfd, pathname, mode);
+}
+#endif
 
 
 /* #include <sys/types.h> */
@@ -2263,11 +2486,24 @@ int mkfifo (const char *pathname, mode_t mode)
 /* #include <unistd.h> */
 int mknod (const char *pathname, mode_t mode, dev_t dev)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_mknod == NULL) fakechroot_init();
     return next_mknod(pathname, mode, dev);
 }
+
+
+#ifdef HAVE_MKNODAT
+/* #include <fcntl.h> */
+/* #include <sys/stat.h> */
+int mknodat (int dirfd, const char *pathname, mode_t mode, dev_t dev)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    if (next_mknodat == NULL) fakechroot_init();
+    return next_mknodat(dirfd, pathname, mode, dev);
+}
+#endif
 
 
 /* #include <stdlib.h> */
@@ -2279,7 +2515,7 @@ int mkstemp (char *template)
 
     oldtemplate = template;
 
-    expand_chroot_path(template, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(template, fakechroot_path, fakechroot_buf);
 
     if (next_mkstemp == NULL) fakechroot_init();
 
@@ -2306,7 +2542,7 @@ int mkstemp64 (char *template)
 
     oldtemplate = template;
 
-    expand_chroot_path(template, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(template, fakechroot_path, fakechroot_buf);
 
     if (next_mkstemp64 == NULL) fakechroot_init();
 
@@ -2337,7 +2573,7 @@ char *mktemp (char *template)
 
     if (!fakechroot_localdir(ptr)) {
         localdir = 1;
-        expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+        expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_buf);
     }
 
     if (next_mktemp == NULL) fakechroot_init();
@@ -2360,8 +2596,8 @@ char *mktemp (char *template)
 /* #include <ftw.h> */
 int nftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag, struct FTW *s), int nopenfd, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_nftw == NULL) fakechroot_init();
     return next_nftw(dir, fn, nopenfd, flags);
 }
@@ -2372,22 +2608,27 @@ int nftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, in
 /* #include <ftw.h> */
 int nftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag, struct FTW *s), int nopenfd, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_nftw64 == NULL) fakechroot_init();
     return next_nftw64(dir, fn, nopenfd, flags);
 }
 #endif
 
 
+#ifdef USE_ALIAS
+extern int __REDIRECT (__open_alias, (const char *pathname, int flags, ...), open);
+#else
+#define __open_alias open
+#endif
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
-int open (const char *pathname, int flags, ...)
+int __open_alias (const char *pathname, int flags, ...)
 {
     int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
 
     if (flags & O_CREAT) {
         va_list arg;
@@ -2402,14 +2643,19 @@ int open (const char *pathname, int flags, ...)
 
 
 #ifdef HAVE_OPEN64
+#ifdef USE_ALIAS
+extern int __REDIRECT (__open64_alias, (const char *pathname, int flags, ...), open64);
+#else
+#define __open64_alias open64
+#endif
 /* #include <sys/types.h> */
 /* #include <sys/stat.h> */
 /* #include <fcntl.h> */
-int open64 (const char *pathname, int flags, ...)
+int __open64_alias (const char *pathname, int flags, ...)
 {
     int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
 
     if (flags & O_CREAT) {
         va_list arg;
@@ -2425,13 +2671,18 @@ int open64 (const char *pathname, int flags, ...)
 
 
 #ifdef HAVE_OPENAT
+#ifdef USE_ALIAS
+extern int __REDIRECT (__openat_alias, (int dirfd, const char *pathname, int flags, ...), openat);
+#else
+#define __openat_alias openat
+#endif
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
-int openat (int dirfd, const char *pathname, int flags, ...)
+int __openat_alias (int dirfd, const char *pathname, int flags, ...)
 {
     int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
 
     if (flags & O_CREAT) {
         va_list arg;
@@ -2447,13 +2698,18 @@ int openat (int dirfd, const char *pathname, int flags, ...)
 
 
 #ifdef HAVE_OPENAT64
+#ifdef USE_ALIAS
+extern int __REDIRECT (__openat64_alias, (int dirfd, const char *pathname, int flags, ...), openat64);
+#else
+#define __openat64_alias openat64
+#endif
 /* #define _ATFILE_SOURCE */
 /* #include <fcntl.h> */
-int openat64 (int dirfd, const char *pathname, int flags, ...)
+int __openat64_alias (int dirfd, const char *pathname, int flags, ...)
 {
     int mode = 0;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
 
     if (flags & O_CREAT) {
         va_list arg;
@@ -2473,8 +2729,8 @@ int openat64 (int dirfd, const char *pathname, int flags, ...)
 /* #include <dirent.h> */
 DIR *opendir (const char *name)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(name, fakechroot_path, fakechroot_buf);
     if (next_opendir == NULL) fakechroot_init();
     return next_opendir(name);
 }
@@ -2484,21 +2740,115 @@ DIR *opendir (const char *name)
 /* #include <unistd.h> */
 long pathconf (const char *path, int name)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_pathconf == NULL) fakechroot_init();
     return next_pathconf(path, name);
 }
 
 
+#ifdef __GNUC__
+/*
+   popen reimplementation taken from bionic. glibc uses internal weak aliases
+   which cannot be overriden.
+ */
+static struct pid {
+    struct pid *next;
+    FILE *fp;
+    pid_t pid;
+} *pidlist;
+
+/* #include <stdio.h> */
+FILE *popen (const char *program, const char *type) {
+    struct pid * volatile cur;
+    FILE *iop;
+    int pdes[2];
+    pid_t pid;
+
+    if ((*type != 'r' && *type != 'w') || type[1] != '\0') {
+        errno = EINVAL;
+        return (NULL);
+    }
+
+    if ((cur = malloc(sizeof(struct pid))) == NULL)
+        return (NULL);
+
+    if (pipe(pdes) < 0) {
+        free(cur);
+        return (NULL);
+    }
+
+    switch (pid = vfork()) {
+    case -1: /* Error. */
+        (void) close(pdes[0]);
+        (void) close(pdes[1]);
+        free(cur);
+        return (NULL);
+        /* NOTREACHED */
+    case 0: /* Child. */
+    {
+        struct pid *pcur;
+        /*
+         * because vfork() instead of fork(), must leak FILE *,
+         * but luckily we are terminally headed for an execl()
+         */
+        for (pcur = pidlist; pcur; pcur = pcur->next)
+            close(fileno(pcur->fp));
+
+        if (*type == 'r') {
+            int tpdes1 = pdes[1];
+
+            (void) close(pdes[0]);
+            /*
+             * We must NOT modify pdes, due to the
+             * semantics of vfork.
+             */
+            if (tpdes1 != STDOUT_FILENO) {
+                (void) dup2(tpdes1, STDOUT_FILENO);
+                (void) close(tpdes1);
+                tpdes1 = STDOUT_FILENO;
+            }
+        } else {
+            (void) close(pdes[1]);
+            if (pdes[0] != STDIN_FILENO) {
+                (void) dup2(pdes[0], STDIN_FILENO);
+                (void) close(pdes[0]);
+            }
+        }
+        execl("/bin/sh", "sh", "-c", program, (char *) NULL);
+        _exit(127);
+        /* NOTREACHED */
+    }
+    }
+
+    /* Parent; assume fdopen can't fail. */
+    if (*type == 'r') {
+        iop = fdopen(pdes[0], type);
+        (void) close(pdes[1]);
+    } else {
+        iop = fdopen(pdes[1], type);
+        (void) close(pdes[0]);
+    }
+
+    /* Link into list of file descriptors. */
+    cur->fp = iop;
+    cur->pid = pid;
+    cur->next = pidlist;
+    pidlist = cur;
+
+    return (iop);
+}
+#endif
+
+
 /* #include <unistd.h> */
-READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
+READLINK_TYPE_RETURN readlink (READLINK_TYPE_ARG1(path), READLINK_TYPE_ARG2(buf), READLINK_TYPE_ARG3(bufsiz))
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
 
     if (next_readlink == NULL) fakechroot_init();
 
@@ -2517,8 +2867,7 @@ READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
             status -= strlen(fakechroot_path);
         }
         if (strlen(tmpptr) > bufsiz) {
-            errno = EFAULT;
-            return -1;
+            status = bufsiz;
         }
         strncpy(buf, tmpptr, status);
     } else {
@@ -2526,6 +2875,44 @@ READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3)
     }
     return status;
 }
+
+
+#ifdef HAVE_READLINKAT
+/* #include <unistd.h> */
+READLINKAT_TYPE_RETURN readlinkat (READLINKAT_TYPE_ARG1(dirfd), READLINKAT_TYPE_ARG2(path), READLINKAT_TYPE_ARG3(buf), READLINKAT_TYPE_ARG4(bufsiz))
+{
+    int status;
+    char tmp[FAKECHROOT_MAXPATH], *tmpptr;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (next_readlink == NULL) fakechroot_init();
+
+    if ((status = next_readlinkat(dirfd, path, tmp, FAKECHROOT_MAXPATH-1)) == -1) {
+        return -1;
+    }
+    tmp[status] = '\0';
+
+    fakechroot_path = getenv("FAKECHROOT_BASE");
+    if (fakechroot_path != NULL) {
+        fakechroot_ptr = strstr(tmp, fakechroot_path);
+        if (fakechroot_ptr != tmp) {
+            tmpptr = tmp;
+        } else {
+            tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
+        }
+        if (strlen(tmpptr) > bufsiz) {
+            status = bufsiz;
+        }
+        strncpy(buf, tmpptr, status);
+    } else {
+        strncpy(buf, tmp, status);
+    }
+    return status;
+}
+#endif
 
 
 /* #include <stdlib.h> */
@@ -2546,8 +2933,8 @@ char *realpath (const char *name, char *resolved)
 /* #include <stdio.h> */
 int remove (const char *pathname)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_remove == NULL) fakechroot_init();
     return next_remove(pathname);
 }
@@ -2557,8 +2944,8 @@ int remove (const char *pathname)
 /* #include <sys/xattr.h> */
 int removexattr (const char *path, const char *name)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_removexattr == NULL) fakechroot_init();
     return next_removexattr(path, name);
 }
@@ -2569,10 +2956,10 @@ int removexattr (const char *path, const char *name)
 int rename (const char *oldpath, const char *newpath)
 {
     char tmp[FAKECHROOT_MAXPATH];
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
     strcpy(tmp, oldpath); oldpath=tmp;
-    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
     if (next_rename == NULL) fakechroot_init();
     return next_rename(oldpath, newpath);
 }
@@ -2585,10 +2972,10 @@ int rename (const char *oldpath, const char *newpath)
 int renameat (int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
 {
     char tmp[FAKECHROOT_MAXPATH];
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
     strcpy(tmp, oldpath); oldpath=tmp;
-    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
     if (next_rename == NULL) fakechroot_init();
     return next_renameat(olddirfd, oldpath, newdirfd, newpath);
 }
@@ -2599,8 +2986,8 @@ int renameat (int olddirfd, const char *oldpath, int newdirfd, const char *newpa
 /* #include <unistd.h> */
 int revoke (const char *file)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(file, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(file, fakechroot_path, fakechroot_buf);
     if (next_revoke == NULL) fakechroot_init();
     return next_revoke(file);
 }
@@ -2610,8 +2997,8 @@ int revoke (const char *file)
 /* #include <unistd.h> */
 int rmdir (const char *pathname)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_rmdir == NULL) fakechroot_init();
     return next_rmdir(pathname);
 }
@@ -2619,10 +3006,10 @@ int rmdir (const char *pathname)
 
 #ifdef HAVE_SCANDIR
 /* #include <dirent.h> */
-int scandir (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3, int(*compar)(const void *, const void *))
+SCANDIR_TYPE_RETURN scandir (SCANDIR_TYPE_ARG1(dir), SCANDIR_TYPE_ARG2(namelist), SCANDIR_TYPE_ARG3(filter), SCANDIR_TYPE_ARG4(compar))
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_scandir == NULL) fakechroot_init();
     return next_scandir(dir, namelist, filter, compar);
 }
@@ -2631,10 +3018,10 @@ int scandir (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3, int(
 
 #ifdef HAVE_SCANDIR64
 /* #include <dirent.h> */
-int scandir64 (const char *dir, struct dirent64 ***namelist, int(*filter)(const struct dirent64 *), int(*compar)(const void *, const void *))
+SCANDIR64_TYPE_RETURN scandir64 (SCANDIR64_TYPE_ARG1(dir), SCANDIR64_TYPE_ARG2(namelist), SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar))
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_scandir64 == NULL) fakechroot_init();
     return next_scandir64(dir, namelist, filter, compar);
 }
@@ -2645,8 +3032,8 @@ int scandir64 (const char *dir, struct dirent64 ***namelist, int(*filter)(const 
 /* #include <sys/xattr.h> */
 int setxattr (const char *path, const char *name, const void *value, size_t size, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_setxattr == NULL) fakechroot_init();
     return next_setxattr(path, name, value, size, flags);
 }
@@ -2658,8 +3045,8 @@ int setxattr (const char *path, const char *name, const void *value, size_t size
 /* #include <unistd.h> */
 int stat (const char *file_name, struct stat *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
     if (next_stat == NULL) fakechroot_init();
     return next_stat(file_name, buf);
 }
@@ -2672,8 +3059,8 @@ int stat (const char *file_name, struct stat *buf)
 /* #include <unistd.h> */
 int stat64 (const char *file_name, struct stat64 *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(file_name, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
     if (next_stat64 == NULL) fakechroot_init();
     return next_stat64(file_name, buf);
 }
@@ -2685,20 +3072,83 @@ int stat64 (const char *file_name, struct stat64 *buf)
 int symlink (const char *oldpath, const char *newpath)
 {
     char tmp[FAKECHROOT_MAXPATH];
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(oldpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
     strcpy(tmp, oldpath); oldpath=tmp;
-    expand_chroot_path(newpath, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
     if (next_symlink == NULL) fakechroot_init();
     return next_symlink(oldpath, newpath);
 }
 
 
+#ifdef HAVE_SYMLINKAT
+/* #include <stdio.h> */
+int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
+{
+    char tmp[FAKECHROOT_MAXPATH];
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(oldpath, fakechroot_path, fakechroot_buf);
+    strcpy(tmp, oldpath); oldpath=tmp;
+    expand_chroot_path(newpath, fakechroot_path, fakechroot_buf);
+    if (next_symlinkat == NULL) fakechroot_init();
+    return next_symlinkat(oldpath, newdirfd, newpath);
+}
+#endif
+
+
+#ifdef __GNUC__
+/*
+   system reimplementation taken from bionic. glibc uses internal weak aliases
+   which cannot be overriden.
+ */
+/* #include <sys/types.h> */
+/* #include <signal.h> */
+/* #include <stdlib.h> */
+/* #include <unistd.h> */
+/* #include <sys/wait.h> */
+int system (const char *command)
+{
+    pid_t pid;
+    sig_t intsave, quitsave;
+    sigset_t mask, omask;
+    int pstat;
+    char *argp[] = {"sh", "-c", NULL, NULL};
+
+    if (!command) /* just checking... */
+    return(1);
+
+    argp[2] = (char *)command;
+
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &mask, &omask);
+    switch (pid = vfork()) {
+        case -1: /* error */
+        sigprocmask(SIG_SETMASK, &omask, NULL);
+        return(-1);
+        case 0: /* child */
+        sigprocmask(SIG_SETMASK, &omask, NULL);
+        execve("/bin/sh", argp, environ);
+        _exit(127);
+    }
+
+    intsave = (sig_t) bsd_signal(SIGINT, SIG_IGN);
+    quitsave = (sig_t) bsd_signal(SIGQUIT, SIG_IGN);
+    pid = waitpid(pid, (int *)&pstat, 0);
+    sigprocmask(SIG_SETMASK, &omask, NULL);
+    (void)bsd_signal(SIGINT, intsave);
+    (void)bsd_signal(SIGQUIT, quitsave);
+    return (pid == -1 ? -1 : pstat);
+
+}
+#endif
+
+
 /* #include <stdio.h> */
 char *tempnam (const char *dir, const char *pfx)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(dir, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
     if (next_tempnam == NULL) fakechroot_init();
     return next_tempnam(dir, pfx);
 }
@@ -2708,7 +3158,7 @@ char *tempnam (const char *dir, const char *pfx)
 char *tmpnam (char *s)
 {
     char *ptr;
-    char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
+    char *fakechroot_path, *fakechroot_buf;
 
     if (next_tmpnam == NULL) fakechroot_init();
 
@@ -2717,7 +3167,7 @@ char *tmpnam (char *s)
     }
 
     ptr = next_tmpnam(NULL);
-    expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_buf);
     return ptr;
 }
 
@@ -2726,8 +3176,8 @@ char *tmpnam (char *s)
 /* #include <sys/types.h> */
 int truncate (const char *path, off_t length)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_truncate == NULL) fakechroot_init();
     return next_truncate(path, length);
 }
@@ -2738,8 +3188,8 @@ int truncate (const char *path, off_t length)
 /* #include <sys/types.h> */
 int truncate64 (const char *path, off64_t length)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(path, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     if (next_truncate64 == NULL) fakechroot_init();
     return next_truncate64(path, length);
 }
@@ -2758,8 +3208,8 @@ int ulckpwdf (void)
 /* #include <unistd.h> */
 int unlink (const char *pathname)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_unlink == NULL) fakechroot_init();
     return next_unlink(pathname);
 }
@@ -2770,8 +3220,8 @@ int unlink (const char *pathname)
 /* #include <fcntl.h> */
 int unlinkat (int dirfd, const char *pathname, int flags)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next_unlinkat == NULL) fakechroot_init();
     return next_unlinkat(dirfd, pathname, flags);
 }
@@ -2782,18 +3232,30 @@ int unlinkat (int dirfd, const char *pathname, int flags)
 /* #include <utime.h> */
 int utime (const char *filename, const struct utimbuf *buf)
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_utime == NULL) fakechroot_init();
     return next_utime(filename, buf);
 }
 
 
+#ifdef HAVE_UTIMENSAT
+/* #include <sys/stat.h> */
+int utimensat (int dirfd, const char *pathname, const struct timespec times[2], int flags)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    if (next_utimensat == NULL) fakechroot_init();
+    return next_utimensat(dirfd, pathname, times, flags);
+}
+#endif
+
+
 /* #include <sys/time.h> */
 int utimes (const char *filename, const struct timeval tv[2])
 {
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(filename, fakechroot_path, fakechroot_ptr, fakechroot_buf);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     if (next_utimes == NULL) fakechroot_init();
     return next_utimes(filename, tv);
 }

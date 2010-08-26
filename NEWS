@@ -1,6 +1,33 @@
+== Version 2.10 ==
+
+25 Aug 2010
+
+* Handle properly GNU libc [=open](2), [=open64](2), [=openat](2) and
+  [=openat64](2) inline functions.
+* Compatibility were improved for [=scandir](3) and [=scandir64](3) functions
+  on the latest GNU libc.
+* Fixed [=lstat(2)] function returns correct [=st_size].  Thanks to Daniel
+  Baumann.
+* Fixed [=readlink(2)] function.  Correctly truncates content if buffer is too
+  small.
+* Fixed [=undefined symbol: rpl_malloc] error for compiled 32-bit library on
+  64-bit architecture by dropping AC_FUNC_MALLOC in configure.ac.
+* Fixed [=chroot(2)] function for path which contains dot character.  Thanks to
+  Robie Basak.
+* New function [=utimensat(2)] fixes "cp" command on Debian sid.
+* New functions [=linkat(2)], [=mknodat(2)], [=mkfifoat(2)], [=readlinkat(2)]
+  and [=symlinkat(2)].
+* New functions [=popen(3)] and [=system(3)] for GNU libc.
+* [=dpkg-shlibdeps(1)] works again because [=cd $FAKECHROOT_BASE] does not
+  change current working directory to root directory.
+* New FAKECHROOT_CMD_SUBST environment variable handles a list of substituted
+  commands.  Thanks to Richard W.M. Jones.
+* New scripts ldd and ldconfig with .fakechroot suffix are installed.
+* New "make test" target uses Perl's "prove" tool to run test units.
+
 == Version 2.9 ==
 
-19 Oct 2008
+31 Mar 2009
 
 * Fixed were made for [=getpeername](2) and [=getsockname](2) functions.  Thanks to
   Axel Thimm and Fedora people.

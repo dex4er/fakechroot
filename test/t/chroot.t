@@ -1,38 +1,26 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.sh
+. $srcdir/common.inc
 
-plan 6
-
-rm -rf testtree
-
-$srcdir/testtree.sh testtree
-test "`cat testtree/CHROOT`" = "testtree" || not
-ok "testtree"
+prepare 12
 
 $srcdir/testtree.sh testtree/testtree
-test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || not
-ok "testtree/testtree"
+test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || bail_out "testtree/testtree"
 
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
-        skip 2 "not root"
+        skip $(( $tap_plan / 2 )) "not root"
     else
 
-        t=`$srcdir/$chroot.sh testtree /usr/sbin/chroot testtree /bin/cat /CHROOT`
-        test "$t" = "testtree/testtree" || not
-        ok "$chroot chroot testtree"
-
-        t=`$srcdir/$chroot.sh testtree /usr/sbin/chroot /testtree /bin/cat /CHROOT`
-        test "$t" = "testtree/testtree" || not
-        ok "$chroot chroot /testtree"
-
-    fi    
+        for testtree in testtree /testtree ./testtree /./testtree testtree/. testtree/./.; do
+            t=`$srcdir/$chroot.sh testtree /usr/sbin/chroot $testtree /bin/cat /CHROOT`
+            test "$t" = "testtree/testtree" || not
+            ok "$chroot chroot $testtree:" $t
+        done
+    fi
 
 done
 
-rm -rf testtree
-
-end
+cleanup

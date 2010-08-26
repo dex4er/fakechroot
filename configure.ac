@@ -1,13 +1,15 @@
-# $Id: /local/trunk/configure.ac 402 2009-03-19T15:06:47.465312Z dexter  $
-
 AC_PREREQ(2.59)
-AC_INIT([fakechroot], [2.9], [dexter@debian.org])
+AC_INIT([fakechroot], [2.10], [dexter@debian.org])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
+
+# @MK@ifeq/else/endif
+AC_SUBST([MK], [])
 
 # --with-libpath
 AC_ARG_WITH([libpath],
@@ -27,6 +29,7 @@ AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_LN_S
+AC_CHECK_PROGS([PROVE], [prove])
 
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
@@ -66,7 +69,6 @@ AC_FUNC_ALLOCA
 AC_FUNC_CHOWN
 AC_FUNC_LSTAT
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([ \
@@ -75,7 +77,11 @@ __fxstatat64 \
 __lxstat \
 __lxstat64 \
 __open \
+__open_2 \
 __open64 \
+__open64_2 \
+__openat_2 \
+__openat64_2 \
 __opendir2 \
 __xmknod \
 __xstat \
@@ -125,6 +131,7 @@ lchown \
 lckpwdf \
 lgetxattr \
 link \
+linkat \
 listxattr \
 llistxattr \
 lremovexattr \
@@ -136,7 +143,9 @@ mkdir \
 mkdirat \
 mkdtemp \
 mknod \
+mknodat \
 mkfifo \
+mkfifoat \
 mkstemp \
 mkstemp64 \
 mktemp \
@@ -148,7 +157,9 @@ openat \
 openat64 \
 opendir \
 pathconf \
+popen \
 readlink \
+readlinkat \
 realpath \
 remove \
 removexattr \
@@ -164,6 +175,8 @@ stat \
 stat64 \
 strchrnul \
 symlink \
+symlinkat \
+system \
 tempnam \
 tmpnam \
 truncate \
@@ -172,11 +185,14 @@ unlink \
 unlinkat \
 ulckpwdf \
 utime \
+utimensat \
 utimes \
 ])
 
 AC_FUNC_READLINK_ARGTYPES
+AC_FUNC_READLINKAT_ARGTYPES
 AC_FUNC_SCANDIR_ARGTYPES
+AC_FUNC_SCANDIR64_ARGTYPES
 
 AC_CONFIG_FILES([ \
 Makefile \

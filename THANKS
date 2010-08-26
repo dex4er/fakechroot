@@ -8,10 +8,14 @@ I'm glad to see that fakechroot had found another purposes:
   * to be a part of Klik application installer (http://klik.atekon.de)
   * to be a supporter for pbuilder building system
     (http://pbuilder.alioth.debian.org/)
+  * to be a supporter for febootstrap - a tool for bootstraping Fedora system
+    (http://people.redhat.com/~rjones/febootstrap/)
   * to be a supporter for Apport retracer
     (https://wiki.ubuntu.com/Apport)
   * to be a part of Slind - a minimal Debian-based distro for embedded devices
     (https://www.slind.org/Main_Page)
+  * to be a part of scratchbox - the cross-compilation toolkit project
+    (http://freedesktop.org/wiki/Software/sbox2)
 
 I would like to thank to:
 
@@ -22,4 +26,4 @@ I would like to thank to:
   * Martin Pitt <martin.pitt@ubuntu.com>, for great Ubuntu support
   * Daniel Kahn Gillmor <dkg-debian.org@fifthhorseman.net>, for testing
 
- -- Piotr Roszatycki <dexter@debian.org>  Tue, 15 Jul 2008 14:07:14 +0200
+ -- Piotr Roszatycki <dexter@debian.org>  Wed, 25 Aug 2010 15:08:20 +0200

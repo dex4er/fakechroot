@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# $Id: /local/trunk/scripts/fakechroot.in 160 2005-09-08T15:35:16.405737Z dexter  $
-
 usage () {
 cat - >&2 <<EOF
 fakechroot, create a fake chroot environment.

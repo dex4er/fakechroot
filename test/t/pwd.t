@@ -1,34 +1,28 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.sh
+. $srcdir/common.inc
 
-plan 5
-
-rm -rf testtree
-
-$srcdir/testtree.sh testtree
-test "`cat testtree/CHROOT`" = "testtree" || not
-ok "testtree"
+prepare 16
 
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
-        skip 2 "not root"
+        skip $(( $tap_plan / 2 )) "not root"
     else
 
-        t=`$srcdir/$chroot.sh testtree /bin/pwd`
-        test "$t" = "/" || not
-        ok "$chroot pwd is /"
+        for testtree in testtree ./testtree testtree/. testtree/./.; do
+            t=`$srcdir/$chroot.sh $testtree /bin/pwd`
+            test "$t" = "/" || not
+            ok "$chroot $testtree pwd is" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/cat CHROOT`
-        test "$t" = "testtree" || not
-        ok "$chroot CHROOT is testtree"
+            t=`$srcdir/$chroot.sh $testtree /bin/cat CHROOT`
+            test "$t" = "testtree" || not
+            ok "$chroot $testtree CHROOT is" $t
+        done
 
-    fi    
+    fi
 
 done
 
-rm -rf testtree
-
-end
+cleanup

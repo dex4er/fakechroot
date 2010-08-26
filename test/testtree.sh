@@ -39,14 +39,17 @@ for p in \
     '/bin/chmod' \
     '/bin/csh' \
     '/bin/cp' \
+    '/bin/echo' \
     '/bin/grep' \
-    '/bin/sh' \
+    '/bin/ln' \
     '/bin/ls' \
     '/bin/mkdir' \
     '/bin/ps' \
     '/bin/pwd' \
+    '/bin/readlink' \
     '/bin/rm' \
     '/bin/sh' \
+    '/bin/sleep' \
     '/bin/touch' \
     '/usr/bin/basename' \
     '/usr/bin/dirname' \
@@ -54,6 +57,7 @@ for p in \
     '/usr/bin/id' \
     '/usr/bin/ltrace' \
     '/usr/bin/perl' \
+    '/usr/bin/seq' \
     '/usr/bin/strace' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \
