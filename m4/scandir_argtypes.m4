@@ -12,7 +12,7 @@ AC_CACHE_CHECK([types of arguments for scandir],
  for ac_arg1 in 'const char *name'; do
   for ac_arg2 in 'struct dirent ***name'; do
    for ac_arg3 in 'int(*name)(const struct dirent *)' 'int(*name)(struct dirent *)'; do
-    for ac_arg4 in 'int(*name)(const void *,const void *)' 'int(*name)(const struct dirent **, const struct dirent **)'; do
+    for ac_arg4 in 'int(*name)(const struct dirent **, const struct dirent **)' 'int(*name)(const void *,const void *)'; do
      AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
 [AC_INCLUDES_DEFAULT
