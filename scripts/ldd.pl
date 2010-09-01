@@ -182,7 +182,10 @@ MAIN: {
         my $address = '0x' . '0' x ($Format =~ /^elf64-/ ? 16 : 8);
 
         foreach my $lib (@Libs) {
-            if (defined $Libs{$lib}) {
+            if ($lib =~ /^\//) {
+                printf "\t%s (%s)\n", $lib, $address;
+            }
+            elsif (defined $Libs{$lib}) {
                 printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
             }
             else {
