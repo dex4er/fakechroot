@@ -10,6 +10,7 @@ TESTS = \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \
+    t/socket-af_unix.t \
     t/symlink.t \
     t/system.t \
     t/touch.t \
