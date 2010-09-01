@@ -70,9 +70,11 @@ do
 done
 
 for p in \
+    'ld-*.so' \
     'ld-linux.so.*' \
     'ld-linux-x86-64.so.*' \
     'ld-uClibc.so.*' \
+    'ld.so.*' \
     'libacl.so.*' \
     'libattr.so.*' \
     'libc.so.*' \
