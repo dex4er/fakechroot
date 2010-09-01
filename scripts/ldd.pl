@@ -15,7 +15,7 @@ my $Status = 0;
 my $Dynamic = 0;
 my $Format = '';
 
-my $Ldlinuxsodir = "/lib";
+my $Ldsodir = "/lib";
 my @Ld_Library_Path = qw(/usr/lib /lib /usr/lib32 /lib32 /usr/lib64 /lib64);
 
 
@@ -98,8 +98,8 @@ sub objdump {
             next unless $line =~ /^ \s* NEEDED \s+ (.*) \s* $/x;
 
             my $needed = $1;
-            if ($needed =~ /^ld-linux(\.|-)/) {
-                $needed = "$Ldlinuxsodir/$needed";
+            if ($needed =~ /^ld(-linux)?(\.|-)/) {
+                $needed = "$Ldsodir/$needed";
             }
 
             ldso($needed);
