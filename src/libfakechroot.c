@@ -345,7 +345,7 @@ static int     (*next__xftw64) (int, const char *, int (*)(const char *, const s
 static int     (*next_access) (const char *, int) = NULL;
 static int     (*next_acct) (const char *) = NULL;
 #ifdef AF_UNIX
-static int     (*next_bind) (int, const struct sockaddr *, socklen_t) = NULL;
+static int     (*next_bind) (int, BIND_TYPE_ARG2(/**/), socklen_t) = NULL;
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
 static char *  (*next_bindtextdomain) (const char *, const char *) = NULL;
@@ -1200,13 +1200,14 @@ int acct (const char *filename)
 /* #include <sys/types.h> */
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    //struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    const struct sockaddr_un *addr_un = addr.__sockaddr_un__;
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
