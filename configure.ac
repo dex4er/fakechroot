@@ -189,11 +189,17 @@ utimensat \
 utimes \
 ])
 
-AC_FUNC_BIND_ARGTYPES
 AC_FUNC_READLINK_ARGTYPES
 AC_FUNC_READLINKAT_ARGTYPES
 AC_FUNC_SCANDIR_ARGTYPES
 AC_FUNC_SCANDIR64_ARGTYPES
+
+AC_CHECK_FUNC_ARGTYPES([bind],
+    [[int], [int name], [const struct sockaddr *name], [socklen_t name]],
+    [[int]],
+    [[int name]],
+    [[__CONST_SOCKADDR_ARG name], [const struct sockaddr *name]],
+    [[socklen_t name]])
 
 AC_CONFIG_FILES([ \
 Makefile \
