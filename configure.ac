@@ -43,15 +43,29 @@ AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([ \
+stdarg.h \
+sys/types.h \
+sys/stat.h \
+sys/socket.h \
+sys/un.h \
+unistd.h \
+stdlib.h \
+dlfcn.h \
+stdio.h \
+sys/times.h \
 fcntl.h \
+errno.h \
+dirent.h \
+string.h \
+glob.h \
+utime.h \
+pwd.h \
+signal.h \
+libintl.h \
 fts.h \
 ftw.h \
-libintl.h \
 shadow.h \
-stdlib.h \
-string.h \
-unistd.h \
-utime.h \
+sys/wait.h \
 sys/inotify.h \
 sys/xattr.h \
 ])
