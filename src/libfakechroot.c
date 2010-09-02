@@ -1206,8 +1206,11 @@ int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-    //struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+#ifdef BIND_TYPE_ARG2___CONST_SOCKADDR_ARG_NAME
     const struct sockaddr_un *addr_un = addr.__sockaddr_un__;
+#else
+    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+#endif
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
