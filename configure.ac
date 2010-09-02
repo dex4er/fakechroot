@@ -195,11 +195,11 @@ AC_FUNC_SCANDIR_ARGTYPES
 AC_FUNC_SCANDIR64_ARGTYPES
 
 AC_CHECK_FUNC_ARGTYPES([bind],
-    [[int], [int name], [const struct sockaddr *name], [socklen_t name]],
+    [[int], [int name], [const struct sockaddr *_], [socklen_t _]],
     [[int]],
-    [[int name]],
-    [[__CONST_SOCKADDR_ARG name], [const struct sockaddr *name]],
-    [[socklen_t name]])
+    [[int _]],
+    [[__CONST_SOCKADDR_ARG _], [const struct sockaddr *_]],
+    [[socklen_t _]])
 
 AC_CONFIG_FILES([ \
 Makefile \
