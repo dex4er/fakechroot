@@ -34,6 +34,7 @@ m4_define([_AC_CHECK_FUNC_ARGTYPES_QUOTE], [m4_join([], ['], AS_ESCAPE($1, [''])
 # etc. variables.
 AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
     [_AH_CHECK_FUNC_ARGTYPES([$1], m4_shift4($@))
+        AC_CHECK_HEADERS([$2])
         AC_CACHE_CHECK([types of arguments for $1],
             [ac_cv_func_$1_args],
                 [m4_join([ ], [for ac_return in], m4_map([_AC_CHECK_FUNC_ARGTYPES_QUOTE], [$5]), [; do])
