@@ -518,7 +518,7 @@ static long    (*next_pathconf) (const char *, int) = NULL;
 #ifdef __GNUC__
 /* static FILE *  (*next_popen) (const char *, const char *) = NULL; */
 #endif
-static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(/**/), READLINK_TYPE_ARG2(/**/), READLINK_TYPE_ARG3(/**/)) = NULL;
+static READLINK_TYPE_RETURN (*next_readlink) (const char *, char *, READLINK_TYPE_ARG3(/**/)) = NULL;
 #ifdef HAVE_READLINKAT
 static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(/**/), READLINKAT_TYPE_ARG2(/**/), READLINKAT_TYPE_ARG3(/**/), READLINKAT_TYPE_ARG4(/**/)) = NULL;
 #endif
@@ -2846,7 +2846,7 @@ FILE *popen (const char *program, const char *type) {
 
 
 /* #include <unistd.h> */
-READLINK_TYPE_RETURN readlink (READLINK_TYPE_ARG1(path), READLINK_TYPE_ARG2(buf), READLINK_TYPE_ARG3(bufsiz))
+READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3(bufsiz))
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;

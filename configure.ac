@@ -200,7 +200,6 @@ utimensat \
 utimes \
 ])
 
-AC_FUNC_READLINK_ARGTYPES
 AC_FUNC_READLINKAT_ARGTYPES
 AC_FUNC_SCANDIR_ARGTYPES
 AC_FUNC_SCANDIR64_ARGTYPES
@@ -212,6 +211,14 @@ AC_CHECK_FUNC_ARGTYPES([bind],
     [[int _]],
     [[__CONST_SOCKADDR_ARG _], [const struct sockaddr *_]],
     [[socklen_t _]])
+
+AC_CHECK_FUNC_ARGTYPES([readlink],
+    AC_INCLUDES_HEADERS([unistd.h]),
+    [[int], [int name], [const struct sockaddr *_], [socklen_t _]],
+    [[ssize_t], [int]],
+    [[const char *_]],
+    [[char *_]],
+    [[size_t _], [int _]])
 
 AC_CONFIG_FILES([ \
 Makefile \
