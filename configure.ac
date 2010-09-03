@@ -13,16 +13,13 @@ AC_SUBST([MK], [])
 
 # --with-libpath
 AC_ARG_WITH([libpath],
-	    AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
-			   [path list where library might be located [[default=$pkglibdir]]]),
-	    [ac_cv_libpath=$withval
-case "$ac_cv_libpath" in
-      "") AC_MSG_ERROR([invalid libpath specified]) ;;
-      *) libpath="$ac_cv_libpath" ;;
-esac],
-	    [ac_cv_libpath=$libdir/$PACKAGE_NAME
-libpath="$ac_cv_libpath"])
-AC_SUBST(libpath)
+    [AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
+        [path list where library might be located @<:@default=$pkglibdir@:>@])],
+    [with_libpath=$withval],
+    [with_libpath=$libdir/$PACKAGE_NAME])
+AS_IF([test "x$with_libpath" = x],
+    [AC_MSG_FAILURE([invalid libpath specified])])
+AC_SUBST(libpath, $with_libpath)
 
 # Checks for programs.
 AC_PROG_MAKE_SET
