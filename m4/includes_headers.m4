@@ -17,7 +17,7 @@ $2
         ], [])
         m4_foreach_w([myheader], [$1],
             [m4_define(myhave, AS_TR_CPP(m4_join([], [HAVE_], myheader)))
-m4_echo(m4_join([], [#ifdef ], myhave))
-m4_echo(m4_join([], [#include <], myheader, [>]))
-m4_echo([#endif])
+m4_echo(m4_join([], [@%:@ifdef ], myhave))
+m4_echo(m4_join([], [@%:@include <], myheader, [>]))
+m4_echo([@%:@endif])
                 ])])

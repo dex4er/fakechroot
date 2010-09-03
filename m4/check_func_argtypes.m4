@@ -52,7 +52,7 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
                                 [m4_for([myargn], [6], m4_count($@), [1],
                                     [m4_define([myacvar], m4_join([], [ac_arg], m4_eval(myargn - 5)))
                                         m4_define([myargvar], m4_join([], [arg], m4_eval(myargn - 5)))
-                                        m4_join([], [#define ],
+                                        m4_join([], [@%:@define ],
                                             myacvar, [(_) $], myacvar
                                             )])]
                                 m4_join([], [extern $ac_return bind (], m4_join([, ], myarglist),[);]))],
