@@ -11,14 +11,14 @@
 # -----------------------------------------------------------------------------------
 m4_define([_AH_CHECK_FUNC_ARGTYPES],
     [m4_foreach([mytype], [$2],
-        [m4_define([myname], m4_join([], [HAVE_], $1, [_], mytype, [_TYPE_RETURN]))
-            AH_TEMPLATE(AS_TR_CPP([myname]), m4_join([], [Define to 1 if the type of return value for `$1' is `], mytype, [']))])
+            [m4_define([myname], m4_join([], [HAVE_], $1, [_], mytype, [_TYPE_RETURN]))
+                AH_TEMPLATE(AS_TR_CPP([myname]), m4_join([], [Define to 1 if the type of return value for `$1' is `], mytype, [']))])
         m4_if(m4_cmp(m4_count($@), 2), [1],
-            [m4_for([myargn], [3], m4_count($@), [1],
-                [m4_foreach([mytype], m4_argn(myargn, $@),
-                    [m4_define([myargi], m4_eval(myargn - 2))
-                        m4_define([myname], m4_join([], [HAVE_], $1, [_], mytype, [_TYPE_ARG], myargi))
-                        AH_TEMPLATE(AS_TR_CPP([myname]), m4_join([], [Define to 1 if the type of arg ], myargi, [ for `$1' is `], mytype, [']))])])])])
+                [m4_for([myargn], [3], m4_count($@), [1],
+                        [m4_foreach([mytype], m4_argn(myargn, $@),
+                            [m4_define([myargi], m4_eval(myargn - 2))
+                                m4_define([myname], m4_join([], [HAVE_], $1, [_], mytype, [_TYPE_ARG], myargi))
+                                AH_TEMPLATE(AS_TR_CPP([myname]), m4_join([], [Define to 1 if the type of arg ], myargi, [ for `$1' is `], mytype, [']))])])])])
 
 # _AC_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
 # -------------------------------------
@@ -45,17 +45,17 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
                             m4_join([ ], [for], myacvar, [in], m4_map([_AC_CHECK_FUNC_ARGTYPES_QUOTE], m4_argn(myargn, $@)), [; do ])])
                     AC_COMPILE_IFELSE(
                         [AC_LANG_PROGRAM(
-                            [$2],
-                            [m4_for([myargn], [5], m4_count($@), [1],
-                                [m4_define([myacvar], m4_join([], [ac_arg], m4_eval(myargn - 4)))
-                                    m4_define([myargvar], m4_join([], [arg], m4_eval(myargn - 4)))
-                                    m4_join([], [#define ],
-                                        myacvar, [(_) $], myacvar
-                                        )])]
-                            m4_join([], [extern $ac_return bind (], m4_join([, ], myarglist),[);]))],
-                        [m4_define([myaccvargs], m4_if(m4_cmp(m4_count(myacarglist), 0), [1],
-                            m4_join([], [;$], m4_join([;$], myacarglist))))
-                            m4_join([], [ac_cv_func_$1_args="$ac_return], myaccvargs, ["; break ], m4_eval(m4_count($@) - 3))])
+                                [$2],
+                                [m4_for([myargn], [5], m4_count($@), [1],
+                                    [m4_define([myacvar], m4_join([], [ac_arg], m4_eval(myargn - 4)))
+                                        m4_define([myargvar], m4_join([], [arg], m4_eval(myargn - 4)))
+                                        m4_join([], [#define ],
+                                            myacvar, [(_) $], myacvar
+                                            )])]
+                                m4_join([], [extern $ac_return bind (], m4_join([, ], myarglist),[);]))],
+                            [m4_define([myaccvargs], m4_if(m4_cmp(m4_count(myacarglist), 0), [1],
+                                m4_join([], [;$], m4_join([;$], myacarglist))))
+                                m4_join([], [ac_cv_func_$1_args="$ac_return], myaccvargs, ["; break ], m4_eval(m4_count($@) - 3))])
                     m4_for([myargn], [4], m4_count($@), [1], m4_echo([done; ]))
                     m4_join([], [: ${ac_cv_func_$1_args='(default) ], m4_join([;], $3), ['}])])
         m4_echo([
@@ -69,8 +69,8 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
         AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1_$[1]_TYPE_RETURN]), [1])
         m4_if(m4_cmp(m4_count($@), 4), [1],
             [m4_for([myargn], [5], m4_count($@), [1],
-                [m4_define([myargi], m4_eval(myargn - 4))
-                    AC_DEFINE_UNQUOTED(m4_join([], AS_TR_CPP(m4_join([], $1, [_TYPE_ARG], myargi)), [(_)]), m4_join([], [$], m4_eval(myargi + 1)),
-                        m4_join([], [Define to the type of arg ], myargi, [ for `], $1, ['.]))
-                    AC_DEFINE_UNQUOTED(AS_TR_CPP(m4_join([], [HAVE_$1_$], m4_eval(myargi + 1), [_TYPE_ARG], myargi)), [1])
-                    m4_echo([rm -f conftest*])])])])
+                    [m4_define([myargi], m4_eval(myargn - 4))
+                        AC_DEFINE_UNQUOTED(m4_join([], AS_TR_CPP(m4_join([], $1, [_TYPE_ARG], myargi)), [(_)]), m4_join([], [$], m4_eval(myargi + 1)),
+                            m4_join([], [Define to the type of arg ], myargi, [ for `], $1, ['.]))
+                        AC_DEFINE_UNQUOTED(AS_TR_CPP(m4_join([], [HAVE_$1_$], m4_eval(myargi + 1), [_TYPE_ARG], myargi)), [1])
+                        m4_echo([rm -f conftest*])])])])
