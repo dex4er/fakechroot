@@ -205,7 +205,7 @@ AC_FUNC_SCANDIR_ARGTYPES
 AC_FUNC_SCANDIR64_ARGTYPES
 
 AC_CHECK_FUNC_ARGTYPES([bind],
-    AC_INCLUDES_HEADERS([sys/types.h sys/socket.h]),
+    [sys/types.h sys/socket.h], [],
     [[int], [int name], [const struct sockaddr *_], [socklen_t _]],
     [[int]],
     [[int _]],
@@ -213,8 +213,8 @@ AC_CHECK_FUNC_ARGTYPES([bind],
     [[socklen_t _]])
 
 AC_CHECK_FUNC_ARGTYPES([readlink],
-    AC_INCLUDES_HEADERS([unistd.h]),
-    [[int], [int name], [const struct sockaddr *_], [socklen_t _]],
+    [unistd.h], [],
+    [[ssize_t], [const char *_], [char *_], [size_t _]],
     [[ssize_t], [int]],
     [[const char *_]],
     [[char *_]],
