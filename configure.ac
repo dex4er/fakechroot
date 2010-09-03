@@ -40,31 +40,31 @@ AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([ \
-stdarg.h \
-sys/types.h \
-sys/stat.h \
-sys/socket.h \
-sys/un.h \
-unistd.h \
-stdlib.h \
-dlfcn.h \
-stdio.h \
-sys/times.h \
-fcntl.h \
-errno.h \
 dirent.h \
-string.h \
-glob.h \
-utime.h \
-pwd.h \
-signal.h \
-libintl.h \
+dlfcn.h \
+errno.h \
+fcntl.h \
 fts.h \
 ftw.h \
+glob.h \
+libintl.h \
+pwd.h \
 shadow.h \
-sys/wait.h \
+signal.h \
+stdarg.h \
+stdio.h \
+stdlib.h \
+string.h \
 sys/inotify.h \
+sys/socket.h \
+sys/stat.h \
+sys/times.h \
+sys/types.h \
+sys/un.h \
+sys/wait.h \
 sys/xattr.h \
+unistd.h \
+utime.h \
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
