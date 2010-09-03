@@ -25,9 +25,9 @@ m4_define([_AH_CHECK_FUNC_ARGTYPES],
 # -------------------------------------
 m4_define([_AC_CHECK_FUNC_ARGTYPES_QUOTE], [m4_join([], ['], AS_ESCAPE($1, ['']), ['], [ ])])
 
-# AC_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, PROLOGUE, HEADERS, TYPES-DEFAULT,
+# AC_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, HEADER-FILES, PROLOGUE, TYPES-DEFAULT,
 #     TYPES-RETURN, TYPES-ARG1, TYPES-ARG2, ...])
-# -----------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Determine the correct type to be passed to each of the FUNCTION-NAME
 # function's arguments, and define those types in `func_TYPE_RETURN',
 # `HAVE_func_type_TYPE_RETURN', `func_TYPE_ARG1', `HAVE_func_type_TYPE_ARG1',
@@ -48,7 +48,7 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
                             m4_join([ ], [for], myacvar, [in], m4_map([_AC_CHECK_FUNC_ARGTYPES_QUOTE], m4_argn(myargn, $@)), [; do ])])
                     AC_COMPILE_IFELSE(
                         [AC_LANG_PROGRAM(
-                                [AC_INCLUDES_HEADERS([$1], [$2])],
+                                [AC_INCLUDES_HEADERS([$2], [$3])],
                                 [m4_for([myargn], [6], m4_count($@), [1],
                                     [m4_define([myacvar], m4_join([], [ac_arg], m4_eval(myargn - 5)))
                                         m4_define([myargvar], m4_join([], [arg], m4_eval(myargn - 5)))
