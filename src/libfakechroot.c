@@ -1206,7 +1206,7 @@ int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-#ifdef HAVE_BIND___CONST_SOCKADDR_ARG___TYPE_ARG2
+#ifdef HAVE_BIND_TYPE_ARG2___CONST_SOCKADDR_ARG__
     const struct sockaddr_un *addr_un = addr.__sockaddr_un__;
 #else
     struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;

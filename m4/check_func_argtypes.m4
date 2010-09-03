@@ -11,13 +11,13 @@
 # -----------------------------------------------------------------------------------
 m4_define([_AH_CHECK_FUNC_ARGTYPES],
     [m4_foreach([mytype], [$2],
-            [m4_define([myname], m4_join([], [HAVE_], $1, [_], mytype, [_TYPE_RETURN]))
+            [m4_define([myname], m4_join([], [HAVE_], $1, [_TYPE_RETURN_], mytype))
                 AH_TEMPLATE(AS_TR_CPP([myname]), m4_join([], [Define to 1 if the type of return value for `$1' is `], mytype, [']))])
         m4_if(m4_cmp(m4_count($@), 2), [1],
                 [m4_for([myargn], [3], m4_count($@), [1],
                         [m4_foreach([mytype], m4_argn(myargn, $@),
                             [m4_define([myargi], m4_eval(myargn - 2))
-                                m4_define([myname], m4_join([], [HAVE_], $1, [_], mytype, [_TYPE_ARG], myargi))
+                                m4_define([myname], m4_join([], [HAVE_], $1, [_TYPE_ARG], myargi, [_], mytype))
                                 AH_TEMPLATE(AS_TR_CPP([myname]), m4_join([], [Define to 1 if the type of arg ], myargi, [ for `$1' is `], mytype, [']))])])])])
 
 # _AC_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
@@ -66,11 +66,11 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
             ])
         AC_DEFINE_UNQUOTED(AS_TR_CPP([$1_TYPE_RETURN]), $[1],
             m4_join([], [Define to the type of return value for `], $1, ['.]))
-        AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1_$[1]_TYPE_RETURN]), [1])
+        AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1_TYPE_RETURN_$[1]]), [1])
         m4_if(m4_cmp(m4_count($@), 4), [1],
             [m4_for([myargn], [5], m4_count($@), [1],
                     [m4_define([myargi], m4_eval(myargn - 4))
                         AC_DEFINE_UNQUOTED(m4_join([], AS_TR_CPP(m4_join([], $1, [_TYPE_ARG], myargi)), [(_)]), m4_join([], [$], m4_eval(myargi + 1)),
                             m4_join([], [Define to the type of arg ], myargi, [ for `], $1, ['.]))
-                        AC_DEFINE_UNQUOTED(AS_TR_CPP(m4_join([], [HAVE_$1_$], m4_eval(myargi + 1), [_TYPE_ARG], myargi)), [1])
+                        AC_DEFINE_UNQUOTED(AS_TR_CPP(m4_join([], [HAVE_$1_TYPE_ARG], myargi, [_$], m4_eval(myargi + 1))), [1])
                         m4_echo([rm -f conftest*])])])])
