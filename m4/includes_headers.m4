@@ -20,4 +20,5 @@ $2
 m4_echo(m4_join([], [@%:@ifdef ], myhave))
 m4_echo(m4_join([], [@%:@include <], myheader, [>]))
 m4_echo([@%:@endif])
-                ])])
+                ])
+        m4_undefine([myhave])])
