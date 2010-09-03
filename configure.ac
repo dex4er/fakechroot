@@ -206,7 +206,7 @@ AC_FUNC_SCANDIR64_ARGTYPES
 
 AC_CHECK_FUNC_ARGTYPES([bind],
     [sys/types.h sys/socket.h], [],
-    [[int], [int name], [const struct sockaddr *_], [socklen_t _]],
+    [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
     [[int]],
     [[int _]],
     [[__CONST_SOCKADDR_ARG _], [const struct sockaddr *_]],
