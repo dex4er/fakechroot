@@ -200,7 +200,6 @@ utimensat \
 utimes \
 ])
 
-AC_FUNC_SCANDIR_ARGTYPES
 AC_FUNC_SCANDIR64_ARGTYPES
 
 AC_CHECK_FUNC_ARGTYPES([bind],
@@ -218,6 +217,15 @@ AC_CHECK_FUNC_ARGTYPES([readlink],
     [[const char *_]],
     [[char *_]],
     [[size_t _], [int _]])
+
+AC_CHECK_FUNC_ARGTYPES([scandir],
+    [dirent.h], [],
+    [[int], [const char *_], [struct dirent ***_], [int(*_)(const struct dirent *)], [int(*_)(const void *,const void *)]],
+    [[int]],
+    [[const char *_]],
+    [[struct dirent ***_]],
+    [[int(*_)(const struct dirent *)], [int(*_)(struct dirent *)]],
+    [[int(*_)(const struct dirent **, const struct dirent **)], [int(*_)(const void *,const void *)]])
 
 AC_CONFIG_FILES([ \
 Makefile \
