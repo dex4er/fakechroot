@@ -7,6 +7,13 @@
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
 
+
+# Compatibility with older autoconf
+m4_ifndef([m4_argn],
+        [m4_define([m4_argn],
+                [m4_car(m4_shiftn([$1], $@))])])
+
+
 # _AH_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, TYPES-RETURN, [TYPES-ARG1,
 #     TYPES_ARG2, ...])
 # -----------------------------------------------------------------
@@ -24,9 +31,11 @@ m4_define([_AH_CHECK_FUNC_ARGTYPES],
                                 m4_undefine([myargi])
                                 m4_undefine([myname])])])])])
 
+
 # _AC_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
 # -------------------------------------
 m4_define([_AC_CHECK_FUNC_ARGTYPES_QUOTE], [m4_join([], ['], AS_ESCAPE($1, ['']), ['], [ ])])
+
 
 # AC_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, HEADER-FILES, PROLOGUE, TYPES-DEFAULT,
 #     TYPES-RETURN, TYPES-ARG1, TYPES-ARG2, ...])
