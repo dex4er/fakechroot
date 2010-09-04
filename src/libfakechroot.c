@@ -539,7 +539,7 @@ static int     (*next_rmdir) (const char *) = NULL;
 static int (*next_scandir) (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SCANDIR64
-static int (*next_scandir64) (const char *, struct dirent ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
+static int (*next_scandir64) (const char *, struct dirent64 ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
