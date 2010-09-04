@@ -169,7 +169,7 @@ static char *strchrnul (const char *s, int c_in)
 
     /* Handle the first few characters by reading one character at a time.
        Do this until CHAR_PTR is aligned on a longword boundary.  */
-    for (char_ptr = s; ((unsigned long int) char_ptr
+    for (char_ptr = (unsigned char *)s; ((unsigned long int) char_ptr
                         & (sizeof(longword) - 1)) != 0; ++char_ptr)
         if (*char_ptr == c || *char_ptr == '\0')
             return (void *) char_ptr;
