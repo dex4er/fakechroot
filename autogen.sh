@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Depends: libtool (>= 2.0), automake (>= 1.10)
 
