@@ -102,6 +102,7 @@ _xftw64 \
 access \
 acct \
 bindtextdomain \
+bsd_signal \
 canonicalize_file_name \
 chdir \
 chmod \
