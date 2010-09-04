@@ -200,8 +200,6 @@ utimensat \
 utimes \
 ])
 
-AC_FUNC_SCANDIR64_ARGTYPES
-
 AC_CHECK_FUNC_ARGTYPES([bind],
     [sys/types.h sys/socket.h], [],
     [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
@@ -226,6 +224,15 @@ AC_CHECK_FUNC_ARGTYPES([scandir],
     [[struct dirent ***_]],
     [[int(*_)(const struct dirent *)], [int(*_)(struct dirent *)]],
     [[int(*_)(const struct dirent **, const struct dirent **)], [int(*_)(const void *,const void *)]])
+
+AC_CHECK_FUNC_ARGTYPES([scandir64],
+    [dirent.h], [],
+    [[int], [const char *_], [struct dirent64 ***_], [int(*_)(const struct dirent64 *)], [int(*_)(const void *,const void *)]],
+    [[int]],
+    [[const char *_]],
+    [[struct dirent64 ***_]],
+    [[int(*_)(const struct dirent64 *)], [int(*_)(struct dirent64 *)]],
+    [[int(*_)(const struct dirent64 **, const struct dirent64 **)], [int(*_)(const void *,const void *)]])
 
 AC_CONFIG_FILES([ \
 Makefile \
