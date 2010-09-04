@@ -3113,8 +3113,8 @@ int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
 int system (const char *command)
 {
     pid_t pid;
-    sig_t intsave, quitsave;
     sigset_t mask, omask;
+    struct sigaction new_action_ign, old_action_int, old_action_quit;
     int pstat;
     char *argp[] = {"sh", "-c", NULL, NULL};
 
@@ -3136,14 +3136,21 @@ int system (const char *command)
         _exit(127);
     }
 
-    intsave = (sig_t) bsd_signal(SIGINT, SIG_IGN);
-    quitsave = (sig_t) bsd_signal(SIGQUIT, SIG_IGN);
-    pid = waitpid(pid, (int *)&pstat, 0);
-    sigprocmask(SIG_SETMASK, &omask, NULL);
-    (void)bsd_signal(SIGINT, intsave);
-    (void)bsd_signal(SIGQUIT, quitsave);
-    return (pid == -1 ? -1 : pstat);
+    new_action_ign.sa_handler = SIG_IGN;
+    sigemptyset (&new_action_ign.sa_mask);
+    new_action_ign.sa_flags = 0;
 
+    sigaction(SIGINT, &new_action_ign, &old_action_int);
+    sigaction(SIGQUIT, &new_action_ign, &old_action_quit);
+
+    pid = waitpid(pid, (int *)&pstat, 0);
+
+    sigprocmask(SIG_SETMASK, &omask, NULL);
+
+    sigaction(SIGINT, &old_action_int, NULL);
+    sigaction(SIGQUIT, &old_action_quit, NULL);
+
+    return (pid == -1 ? -1 : pstat);
 }
 #endif
 
