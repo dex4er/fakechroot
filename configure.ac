@@ -1,4 +1,4 @@
-AC_PREREQ(2.59)
+AC_PREREQ(2.62)
 AC_INIT([fakechroot], [2.10], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Depends: libtool (>= 2.0), automake (>= 1.10)
+# Depends: libtool (>= 2.0), automake (>= 1.10), autoconf (>= 2.62)
 
 set -e
 
