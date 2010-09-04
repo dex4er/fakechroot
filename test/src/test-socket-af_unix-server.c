@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     clilen = sizeof(cli_addr);
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0) {
-        error("accept");
+        perror("accept");
         exit(1);
     }
 
