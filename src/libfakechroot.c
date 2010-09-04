@@ -536,10 +536,10 @@ static int     (*next_revoke) (const char *) = NULL;
 #endif
 static int     (*next_rmdir) (const char *) = NULL;
 #ifdef HAVE_SCANDIR
-static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(/**/), SCANDIR_TYPE_ARG2(/**/), SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
+static int (*next_scandir) (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SCANDIR64
-static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(/**/), SCANDIR64_TYPE_ARG2(/**/), SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
+static int (*next_scandir64) (const char *, struct dirent ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
@@ -3010,7 +3010,7 @@ int rmdir (const char *pathname)
 
 #ifdef HAVE_SCANDIR
 /* #include <dirent.h> */
-SCANDIR_TYPE_RETURN scandir (SCANDIR_TYPE_ARG1(dir), SCANDIR_TYPE_ARG2(namelist), SCANDIR_TYPE_ARG3(filter), SCANDIR_TYPE_ARG4(compar))
+int scandir (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3(filter), SCANDIR_TYPE_ARG4(compar))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
@@ -3022,7 +3022,7 @@ SCANDIR_TYPE_RETURN scandir (SCANDIR_TYPE_ARG1(dir), SCANDIR_TYPE_ARG2(namelist)
 
 #ifdef HAVE_SCANDIR64
 /* #include <dirent.h> */
-SCANDIR64_TYPE_RETURN scandir64 (SCANDIR64_TYPE_ARG1(dir), SCANDIR64_TYPE_ARG2(namelist), SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar))
+int scandir64 (const char *dir, struct dirent64 ***namelist, SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
