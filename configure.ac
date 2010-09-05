@@ -105,12 +105,14 @@ _xftw \
 _xftw64 \
 access \
 acct \
+bind \
 bindtextdomain \
 canonicalize_file_name \
 chdir \
 chmod \
 chown \
 chroot \
+connect \
 creat \
 creat64 \
 dlmopen \
@@ -135,6 +137,8 @@ ftw64 \
 futimesat \
 get_current_dir_name \
 getcwd \
+getpeername \
+getsockname \
 getwd \
 getxattr \
 glob \
@@ -204,13 +208,23 @@ utimensat \
 utimes \
 ])
 
-AC_CHECK_FUNC_ARGTYPES([bind],
-    [sys/types.h sys/socket.h], [],
-    [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
-    [[int]],
-    [[int _]],
-    [[__CONST_SOCKADDR_ARG _], [const struct sockaddr *_]],
-    [[socklen_t _]])
+m4_foreach_w([function], [bind connect],
+    [AC_CHECK_FUNC_ARGTYPES(function,
+        [sys/types.h sys/socket.h], [],
+        [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
+        [[int]],
+        [[int _]],
+        [[__CONST_SOCKADDR_ARG _], [const struct sockaddr *_]],
+        [[socklen_t _]])])
+
+m4_foreach_w([function], [getpeername getsockname],
+    [AC_CHECK_FUNC_ARGTYPES(function,
+        [sys/types.h sys/socket.h], [],
+        [[int], [int _], [struct sockaddr *_], [socklen_t _]],
+        [[int]],
+        [[int _]],
+        [[__SOCKADDR_ARG _], [struct sockaddr *_]],
+        [[socklen_t *__restrict _], [socket_t *_]])])
 
 AC_CHECK_FUNC_ARGTYPES([readlink],
     [unistd.h], [],

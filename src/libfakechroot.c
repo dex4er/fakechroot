@@ -85,6 +85,9 @@
 #endif
 #endif
 
+#define SOCKADDR_UN(addr) (struct sockaddr_un *)(addr)
+#define SOCKADDR_UN_UNION(addr) (struct sockaddr_un *)((addr).__sockaddr_un__)
+
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
 #define USE_ALIAS 1
 #endif
@@ -364,7 +367,7 @@ static int     (*next_chmod) (const char *, mode_t) = NULL;
 static int     (*next_chown) (const char *, uid_t, gid_t) = NULL;
 /* static int     (*next_chroot) (const char *) = NULL; */
 #ifdef AF_UNIX
-static int     (*next_connect) (int, const struct sockaddr *, socklen_t) = NULL;
+static int     (*next_connect) (int, CONNECT_TYPE_ARG2(/**/), socklen_t) = NULL;
 #endif
 static int     (*next_creat) (const char *, mode_t) = NULL;
 #ifdef HAVE_CREAT64
@@ -423,10 +426,10 @@ static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
 static char *  (*next_getcwd) (char *, size_t) = NULL;
 #ifdef AF_UNIX
-static int     (*next_getpeername) (int, struct sockaddr *, socklen_t *) = NULL;
+static int     (*next_getpeername) (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *) = NULL;
 #endif
 #ifdef AF_UNIX
-static int     (*next_getsockname) (int, struct sockaddr *, socklen_t *) = NULL;
+static int     (*next_getsockname) (int, GETSOCKNAME_TYPE_ARG2(/**/), socklen_t *) = NULL;
 #endif
 #ifdef HAVE_GETWD
 static char *  (*next_getwd) (char *) = NULL;
@@ -1206,17 +1209,20 @@ int acct (const char *filename)
 /* #include <sys/types.h> */
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
+
+#ifdef HAVE_BIND_TYPE_ARG2___CONST_SOCKADDR_ARG__
+#define BIND_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define BIND_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
 int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-#ifdef HAVE_BIND_TYPE_ARG2___CONST_SOCKADDR_ARG__
-    struct sockaddr_un *addr_un = (struct sockaddr_un *)(addr.__sockaddr_un__);
-#else
-    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
-#endif
+    struct sockaddr_un *addr_un = BIND_SOCKADDR_UN(addr);
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
@@ -1413,13 +1419,20 @@ int chroot (const char *path)
 /* #include <sys/types.h> */
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+
+#ifdef HAVE_CONNECT_TYPE_ARG2___CONST_SOCKADDR_ARG__
+#define CONNECT_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define CONNECT_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int connect (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    struct sockaddr_un *addr_un = CONNECT_SOCKADDR_UN(addr);
     if (next_connect == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
@@ -2058,28 +2071,35 @@ char * getcwd (char *buf, size_t size)
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
+
+#ifdef HAVE_GETPEERNAME_TYPE_ARG2___SOCKADDR_ARG__
+#define GETPEERNAME_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define GETPEERNAME_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int getpeername (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t *addrlen)
 {
     int status;
-    socklen_t newnamelen;
-    struct sockaddr_un newname;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getpeername == NULL) fakechroot_init();
-    newnamelen = sizeof(struct sockaddr_un);
-    memset(&newname, 0, newnamelen);
-    status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
+    newaddrlen = sizeof(struct sockaddr_un);
+    memset(&newaddr, 0, newaddrlen);
+    status = next_getpeername(s, (struct sockaddr *)&newaddr, &newaddrlen);
     if (status != 0) {
         return status;
     }
-    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
-        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+    if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
+        strncpy(fakechroot_buf, newaddr.sun_path, FAKECHROOT_MAXPATH);
         narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
 
-    memcpy(name, &newname, sizeof(struct sockaddr_un));
-    *namelen = SUN_LEN(&newname);
+    memcpy(GETPEERNAME_SOCKADDR_UN(addr), &newaddr, sizeof(struct sockaddr_un));
+    *addrlen = SUN_LEN(&newaddr);
     return status;
 }
 #endif
@@ -2088,28 +2108,35 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
+
+#ifdef HAVE_GETSOCKNAME_TYPE_ARG2___SOCKADDR_ARG__
+#define GETSOCKNAME_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define GETSOCKNAME_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int getsockname (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t *addrlen)
 {
     int status;
-    socklen_t newnamelen;
-    struct sockaddr_un newname;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getsockname == NULL) fakechroot_init();
-    newnamelen = sizeof(struct sockaddr_un);
-    memset(&newname, 0, newnamelen);
-    status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
+    newaddrlen = sizeof(struct sockaddr_un);
+    memset(&newaddr, 0, newaddrlen);
+    status = next_getsockname(s, (struct sockaddr *)&newaddr, &newaddrlen);
     if (status != 0) {
         return status;
     }
-    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
-        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+    if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
+        strncpy(fakechroot_buf, newaddr.sun_path, FAKECHROOT_MAXPATH);
         narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
 
-    memcpy(name, &newname, sizeof(struct sockaddr_un));
-    *namelen = SUN_LEN(&newname);
+    memcpy(GETSOCKNAME_SOCKADDR_UN(addr), &newaddr, sizeof(struct sockaddr_un));
+    *addrlen = SUN_LEN(&newaddr);
     return status;
 }
 #endif
