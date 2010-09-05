@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     memset((char *) &serv_addr, 0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     strcpy(serv_addr.sun_path, argv[1]);
-    servlen = SUN_LEN(&serv_addr);;
+    servlen = SUN_LEN(&serv_addr);
 
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         perror("socket");
@@ -40,4 +41,6 @@ int main(int argc, char *argv[]) {
 
     n = read(sockfd, buffer, 80);
     write(1, buffer, n);
+
+    return 0;
 }

@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,7 +11,8 @@
 #endif
 
 int main(int argc, char *argv[]) {
-    int sockfd, newsockfd, servlen, clilen, n;
+    int sockfd, newsockfd, servlen, n;
+    socklen_t clilen;
     struct sockaddr_un cli_addr, serv_addr;
     char buffer[80];
 
@@ -44,4 +46,6 @@ int main(int argc, char *argv[]) {
     n = read(newsockfd, buffer, 80);
     write(1, buffer, n);
     write(newsockfd, buffer, n);
+
+    return 0;
 }

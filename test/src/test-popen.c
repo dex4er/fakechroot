@@ -11,7 +11,6 @@
 
 int main (int argc, char *argv[]) {
     FILE *fp;
-    int status;
     char path[PATH_MAX];
 
     if (argc != 2) {
