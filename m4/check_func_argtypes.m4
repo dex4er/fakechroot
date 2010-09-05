@@ -68,7 +68,7 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
                                             myacvar, [(_) $], myacvar
                                             )
                                         m4_undefine([myacvar])])]
-                                m4_join([], [extern $ac_return bind (], m4_join([, ], myarglist),[);]))],
+                                m4_join([], [extern $ac_return $1 (], m4_join([, ], myarglist),[);]))],
                             [m4_define([myaccvargs], m4_if(m4_cmp(m4_count(myacarglist), 0), [1],
                                 m4_join([], [;$], m4_join([;$], myacarglist))))
                                 m4_join([], [ac_cv_func_$1_args="$ac_return], myaccvargs, ["; break ], m4_eval(m4_count($@) - 4))
