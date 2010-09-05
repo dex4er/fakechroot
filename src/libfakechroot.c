@@ -79,6 +79,12 @@
 #define UNIX_PATH_MAX 108
 #endif
 
+#ifdef AF_UNIX
+#ifndef SUN_LEN
+#define SUN_LEN(su) (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
+#endif
+
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
 #define USE_ALIAS 1
 #endif
@@ -1221,7 +1227,7 @@ int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;
         strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
-        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        newaddrlen = SUN_LEN(&newaddr_un);
         return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_bind(sockfd, addr, addrlen);
@@ -1424,7 +1430,7 @@ int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;
         strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
-        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        newaddrlen = SUN_LEN(&newaddr_un);
         return next_connect(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_connect(sockfd, addr, addrlen);
@@ -2073,7 +2079,7 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
     }
 
     memcpy(name, &newname, sizeof(struct sockaddr_un));
-    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    *namelen = SUN_LEN(&newname);
     return status;
 }
 #endif
@@ -2103,7 +2109,7 @@ int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
     }
 
     memcpy(name, &newname, sizeof(struct sockaddr_un));
-    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    *namelen = SUN_LEN(&newname);
     return status;
 }
 #endif
