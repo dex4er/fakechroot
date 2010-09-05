@@ -5,6 +5,13 @@ srcdir=${srcdir:-.}
 
 prepare 4
 
+case "`uname -s`" in
+    Linux|KFreeBSD)
+        CP_ARGS=-dp;;
+    *)
+        CP_ARGS=-a;;
+esac
+
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
@@ -14,13 +21,13 @@ for chroot in chroot fakechroot; do
         echo 'something' > testtree/file-$chroot
         ln -s /file-$chroot testtree/symlink-$chroot
 
-        t=`$srcdir/$chroot.sh testtree /bin/sh -c "cp -dp /file-$chroot /file2-$chroot; cat /file2-$chroot" 2>&1`
+        t=`$srcdir/$chroot.sh testtree /bin/sh -c "cp $CP_ARGS /file-$chroot /file2-$chroot; cat /file2-$chroot" 2>&1`
         test "$t" = "something" || not
-        ok "$chroot cp -dp /file-$chroot /file2-$chroot:" $t
+        ok "$chroot cp $CP_ARGS /file-$chroot /file2-$chroot:" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/sh -c "cp -dp /symlink-$chroot /symlink2-$chroot; cat /symlink2-$chroot" 2>&1`
+        t=`$srcdir/$chroot.sh testtree /bin/sh -c "cp $CP_ARGS /symlink-$chroot /symlink2-$chroot; cat /symlink2-$chroot" 2>&1`
         test "$t" = "something" || not
-        ok "$chroot cp -dp /symlink-$chroot /symlink2-$chroot:" $t
+        ok "$chroot cp $CP_ARGS /symlink-$chroot /symlink2-$chroot:" $t
 
     fi
 

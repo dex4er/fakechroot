@@ -57,11 +57,13 @@ for p in \
     '/usr/bin/id' \
     '/usr/bin/ltrace' \
     '/usr/bin/perl' \
+    '/usr/bin/readlink' \
     '/usr/bin/seq' \
     '/usr/bin/strace' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \
+    '/usr/local/bin/gseq' \
     '/usr/local/bin/strace'
 do
     for f in $p; do

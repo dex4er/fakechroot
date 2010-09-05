@@ -1,9 +1,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#ifndef SUN_LEN
+#define SUN_LEN(su) (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
 
 int main(int argc, char *argv[]) {
     int sockfd, servlen, n;
@@ -18,7 +22,7 @@ int main(int argc, char *argv[]) {
     memset((char *) &serv_addr, 0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     strcpy(serv_addr.sun_path, argv[1]);
-    servlen = strlen(serv_addr.sun_path) + sizeof(serv_addr.sun_family);
+    servlen = SUN_LEN(&serv_addr);;
 
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         perror("socket");

@@ -27,6 +27,7 @@ AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_LN_S
 AC_CHECK_PROGS([PROVE], [prove])
+AC_CHECK_PROGS([SEQ], [seq gseq])
 
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])

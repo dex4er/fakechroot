@@ -1,6 +1,3 @@
-
-. $srcdir/tap.inc
-
 TRUE=0
 FALSE=1
 
@@ -48,3 +45,6 @@ prepare () {
     $srcdir/testtree.sh testtree
     test "`cat testtree/CHROOT 2>&1`" = "testtree" || bail_out "cannot create testtree"
 }
+
+. $srcdir/seq.inc
+. $srcdir/tap.inc

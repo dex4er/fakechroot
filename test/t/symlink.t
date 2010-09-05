@@ -2,6 +2,7 @@
 
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
+. $srcdir/readlink.inc
 
 prepare 18
 
@@ -24,7 +25,7 @@ for chroot in chroot fakechroot; do
         test "$t" = "something" || not
         ok "$chroot rel-symlink is" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/readlink $chroot-rel-symlink 2>&1`
+        t=`$srcdir/$chroot.sh testtree $readlink $chroot-rel-symlink 2>&1`
         test "$t" = "$chroot-file" || not
         ok "$chroot rel-symlink links to" $t
 
@@ -42,7 +43,7 @@ for chroot in chroot fakechroot; do
         test "$t" = "something" || not
         ok "$chroot abs-symlink is" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/readlink $chroot-abs-symlink 2>&1`
+        t=`$srcdir/$chroot.sh testtree $readlink $chroot-abs-symlink 2>&1`
         test "$t" = "/$chroot-file" || not
         ok "$chroot abs-symlink links to" $t
 
