@@ -12,9 +12,8 @@
 # Generates a prolog which can replace standard AC_INCLUDES_DEFAULT
 
 AC_DEFUN([AC_INCLUDES_HEADERS],
-    [m4_ifval([$2], [
+    [
 $2
-        ], [])
         m4_foreach_w([myheader], [$1],
             [
 [@%:@ifdef HAVE_]AS_TR_CPP(myheader)

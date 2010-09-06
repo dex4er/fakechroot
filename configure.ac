@@ -77,7 +77,7 @@ AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
 # Checks for additional typedefs.
-AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, [@%:@include <sys/un.h>])
+AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, AC_INCLUDES_HEADERS([sys/un.h]))
 
 # Checks for library functions.
 AC_FUNC_ALLOCA
