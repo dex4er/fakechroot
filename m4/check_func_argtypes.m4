@@ -71,18 +71,18 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
                                 [;$]m4_join([;$], myacarglist)))
                                 [ac_cv_func_$1_args="$ac_return]myaccvargs["; break ]m4_eval(m4_count($@) - 4)
                                 m4_undefine([myaccvargs])])
-                    m4_for([myargn], [5], m4_count($@), [1], m4_echo([
-                        done]))
+                    m4_for([myargn], [5], m4_count($@), [1], [
+                        done])
                     [: ${ac_cv_func_$1_args='(default) ]m4_join([;], $4)['}]
                     m4_undefine([myarglist])
                     m4_undefine([myacarglist])
                     m4_undefine([myfuncarglist])])
-        m4_echo([
+        [
             ac_save_IFS=$IFS; IFS=';'
             set dummy `echo "$ac_cv_func_$1_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`
             IFS=$ac_save_IFS
             shift
-            ])
+            ]
         AC_DEFINE_UNQUOTED(AS_TR_CPP([$1_TYPE_RETURN]), $[1],
             [Define to the type of return value for `$1'.])
         AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1_TYPE_RETURN_$[1]]), [1])
@@ -92,5 +92,5 @@ AC_DEFUN([AC_CHECK_FUNC_ARGTYPES],
                         AC_DEFINE_UNQUOTED(AS_TR_CPP([$1_TYPE_ARG]myargi)[(_)], [$]m4_eval(myargi + 1),
                             [Define to the type of arg ]myargi[ for `$1'.])
                         AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1_TYPE_ARG]myargi[_$]m4_eval(myargi + 1)), [1])
-                        m4_echo([rm -f conftest*])
+                        [rm -f conftest*]
                         m4_undefine([myargi])])])])
