@@ -40,33 +40,33 @@ AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([ \
-dirent.h \
-dlfcn.h \
-errno.h \
-fcntl.h \
-fts.h \
-ftw.h \
-glob.h \
-libintl.h \
-pwd.h \
-shadow.h \
-signal.h \
-stdarg.h \
-stdio.h \
-stdlib.h \
-string.h \
-sys/inotify.h \
-sys/socket.h \
-sys/stat.h \
-sys/times.h \
-sys/types.h \
-sys/un.h \
-sys/wait.h \
-sys/xattr.h \
-unistd.h \
-utime.h \
-])
+AC_CHECK_HEADERS(m4_normalize([
+dirent.h
+dlfcn.h
+errno.h
+fcntl.h
+fts.h
+ftw.h
+glob.h
+libintl.h
+pwd.h
+shadow.h
+signal.h
+stdarg.h
+stdio.h
+stdlib.h
+string.h
+sys/inotify.h
+sys/socket.h
+sys/stat.h
+sys/times.h
+sys/types.h
+sys/un.h
+sys/wait.h
+sys/xattr.h
+unistd.h
+utime.h
+]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -86,127 +86,127 @@ AC_FUNC_LSTAT
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([ \
-__fxstatat \
-__fxstatat64 \
-__lxstat \
-__lxstat64 \
-__open \
-__open_2 \
-__open64 \
-__open64_2 \
-__openat_2 \
-__openat64_2 \
-__opendir2 \
-__xmknod \
-__xstat \
-__xstat64 \
-_xftw \
-_xftw64 \
-access \
-acct \
-bind \
-bindtextdomain \
-canonicalize_file_name \
-chdir \
-chmod \
-chown \
-chroot \
-connect \
-creat \
-creat64 \
-dlmopen \
-dlopen \
-eaccess \
-euidaccess \
-execl \
-execle \
-execlp \
-execv \
-execve \
-execvp \
-fchmodat \
-fchownat \
-fopen \
-fopen64 \
-freopen \
-freopen64 \
-fts_open \
-ftw \
-ftw64 \
-futimesat \
-get_current_dir_name \
-getcwd \
-getpeername \
-getsockname \
-getwd \
-getxattr \
-glob \
-glob64 \
-glob_pattern_p \
-inotify_add_watch \
-lchmod \
-lchown \
-lckpwdf \
-lgetxattr \
-link \
-linkat \
-listxattr \
-llistxattr \
-lremovexattr \
-lsetxattr \
-lstat \
-lstat64 \
-lutimes \
-mkdir \
-mkdirat \
-mkdtemp \
-mknod \
-mknodat \
-mkfifo \
-mkfifoat \
-mkstemp \
-mkstemp64 \
-mktemp \
-nftw \
-nftw64 \
-open \
-open64 \
-openat \
-openat64 \
-opendir \
-pathconf \
-popen \
-readlink \
-readlinkat \
-realpath \
-remove \
-removexattr \
-rename \
-renameat \
-revoke \
-rmdir \
-scandir \
-scandir64 \
-setenv \
-setxattr \
-stat \
-stat64 \
-strchrnul \
-symlink \
-symlinkat \
-system \
-tempnam \
-tmpnam \
-truncate \
-truncate64 \
-unlink \
-unlinkat \
-ulckpwdf \
-utime \
-utimensat \
-utimes \
-])
+AC_CHECK_FUNCS(m4_normalize([
+__fxstatat
+__fxstatat64
+__lxstat
+__lxstat64
+__open
+__open_2
+__open64
+__open64_2
+__openat_2
+__openat64_2
+__opendir2
+__xmknod
+__xstat
+__xstat64
+_xftw
+_xftw64
+access
+acct
+bind
+bindtextdomain
+canonicalize_file_name
+chdir
+chmod
+chown
+chroot
+connect
+creat
+creat64
+dlmopen
+dlopen
+eaccess
+euidaccess
+execl
+execle
+execlp
+execv
+execve
+execvp
+fchmodat
+fchownat
+fopen
+fopen64
+freopen
+freopen64
+fts_open
+ftw
+ftw64
+futimesat
+get_current_dir_name
+getcwd
+getpeername
+getsockname
+getwd
+getxattr
+glob
+glob64
+glob_pattern_p
+inotify_add_watch
+lchmod
+lchown
+lckpwdf
+lgetxattr
+link
+linkat
+listxattr
+llistxattr
+lremovexattr
+lsetxattr
+lstat
+lstat64
+lutimes
+mkdir
+mkdirat
+mkdtemp
+mknod
+mknodat
+mkfifo
+mkfifoat
+mkstemp
+mkstemp64
+mktemp
+nftw
+nftw64
+open
+open64
+openat
+openat64
+opendir
+pathconf
+popen
+readlink
+readlinkat
+realpath
+remove
+removexattr
+rename
+renameat
+revoke
+rmdir
+scandir
+scandir64
+setenv
+setxattr
+stat
+stat64
+strchrnul
+symlink
+symlinkat
+system
+tempnam
+tmpnam
+truncate
+truncate64
+unlink
+unlinkat
+ulckpwdf
+utime
+utimensat
+utimes
+]))
 
 m4_foreach_w([function], [bind connect],
     [AC_CHECK_FUNC_ARGTYPES(function,
@@ -252,12 +252,12 @@ AC_CHECK_FUNC_ARGTYPES([scandir64],
     [[int(*_)(const struct dirent64 *)], [int(*_)(struct dirent64 *)]],
     [[int(*_)(const struct dirent64 **, const struct dirent64 **)], [int(*_)(const void *,const void *)]])
 
-AC_CONFIG_FILES([ \
-Makefile \
-man/Makefile \
-src/Makefile \
-scripts/Makefile \
-test/Makefile \
-test/src/Makefile \
-])
+AC_CONFIG_FILES(m4_normalize([
+Makefile
+man/Makefile
+src/Makefile
+scripts/Makefile
+test/Makefile
+test/src/Makefile
+]))
 AC_OUTPUT
