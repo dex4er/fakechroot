@@ -210,7 +210,7 @@ utimes \
 
 m4_foreach_w([function], [bind connect],
     [AC_CHECK_FUNC_ARGTYPES(function,
-        [sys/types.h sys/socket.h], [],
+        [], [sys/types.h sys/socket.h],
         [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
         [[int]],
         [[int _]],
@@ -219,7 +219,7 @@ m4_foreach_w([function], [bind connect],
 
 m4_foreach_w([function], [getpeername getsockname],
     [AC_CHECK_FUNC_ARGTYPES(function,
-        [sys/types.h sys/socket.h], [],
+        [], [sys/types.h sys/socket.h],
         [[int], [int _], [struct sockaddr *_], [socklen_t _]],
         [[int]],
         [[int _]],
@@ -227,7 +227,7 @@ m4_foreach_w([function], [getpeername getsockname],
         [[socklen_t *__restrict _], [socket_t *_]])])
 
 AC_CHECK_FUNC_ARGTYPES([readlink],
-    [unistd.h], [],
+    [], [unistd.h],
     [[ssize_t], [const char *_], [char *_], [size_t _]],
     [[ssize_t], [int]],
     [[const char *_]],
@@ -235,7 +235,7 @@ AC_CHECK_FUNC_ARGTYPES([readlink],
     [[size_t _], [int _]])
 
 AC_CHECK_FUNC_ARGTYPES([scandir],
-    [dirent.h], [],
+    [], [dirent.h],
     [[int], [const char *_], [struct dirent ***_], [int(*_)(const struct dirent *)], [int(*_)(const void *,const void *)]],
     [[int]],
     [[const char *_]],
@@ -244,7 +244,7 @@ AC_CHECK_FUNC_ARGTYPES([scandir],
     [[int(*_)(const struct dirent **, const struct dirent **)], [int(*_)(const void *,const void *)]])
 
 AC_CHECK_FUNC_ARGTYPES([scandir64],
-    [dirent.h], [],
+    [], [dirent.h],
     [[int], [const char *_], [struct dirent64 ***_], [int(*_)(const struct dirent64 *)], [int(*_)(const void *,const void *)]],
     [[int]],
     [[const char *_]],
