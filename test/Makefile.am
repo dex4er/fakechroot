@@ -26,8 +26,11 @@ EXTRA_DIST = $(TESTS) \
     common.inc \
     debootstrap.sh \
     fakechroot.sh \
+    readlink.inc \
+    seq.inc \
     tap.inc \
     testtree.sh \
+    touch.inc \
     t/cmd-subst-pwd.sh \
     #
 
