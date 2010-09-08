@@ -98,6 +98,7 @@ __open64_2
 __openat_2
 __openat64_2
 __opendir2
+__realpath_chk
 __xmknod
 __xstat
 __xstat64

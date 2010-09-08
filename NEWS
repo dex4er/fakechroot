@@ -2,6 +2,8 @@
 
 8 Sep 2010
 
+* Fixed function [=canonicalize_file_name](3).
+* New functions [=__*_chk](3) for GNU libc with fortify level > 0.
 * New environment variable FAKECHROOT_AF_UNIX_PATH defines an optional prefix
   for unix sockets.
 * Better support for FreeBSD was made.

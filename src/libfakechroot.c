@@ -336,6 +336,9 @@ static int     (*next___openat64_2) (int, const char *, int) = NULL;
 #ifdef HAVE___OPENDIR2
 static DIR *   (*next___opendir2) (const char *, int) = NULL;
 #endif
+#ifdef HAVE___REALPATH_CHK
+static char *  (*next___realpath_chk) (const char *, char *, size_t) = NULL;
+#endif
 #ifdef HAVE___XMKNOD
 static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
 #endif
@@ -653,6 +656,9 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE___OPENDIR2
     nextsym(__opendir2, "__opendir2");
+#endif
+#ifdef HAVE___REALPATH_CHK
+    nextsym(__realpath_chk, "__realpath_chk");
 #endif
 #ifdef HAVE___XMKNOD
     nextsym(__xmknod, "__xmknod");
@@ -1122,6 +1128,23 @@ DIR *__opendir2 (const char *name, int flags)
 #endif
 
 
+#ifdef HAVE___REALPATH_CHK
+/* #include <stdlib.h> */
+char *__realpath_chk (const char *name, char *resolved, size_t resolvedlen)
+{
+    char *ptr;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if (next_realpath == NULL) fakechroot_init();
+
+    if ((ptr = next___realpath_chk(name, resolved, resolvedlen)) != NULL) {
+        narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
+    }
+    return ptr;
+}
+#endif
+
+
 #ifdef HAVE___XMKNOD
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
@@ -1270,10 +1293,12 @@ char * bindtextdomain (const char *domainname, const char *dirname)
 /* #include <stdlib.h> */
 char *canonicalize_file_name (const char *name)
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(name, fakechroot_path, fakechroot_buf);
-    if (next_canonicalize_file_name == NULL) fakechroot_init();
-    return next_canonicalize_file_name(name);
+    char *resolved = malloc(FAKECHROOT_MAXPATH * 2);
+#ifdef HAVE___REALPATH_CHK
+    return __realpath_chk(name, resolved, FAKECHROOT_MAXPATH * 2);
+#else
+    return realpath(name, resolved);
+#endif
 }
 #endif
 
