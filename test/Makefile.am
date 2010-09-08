@@ -2,6 +2,7 @@ SUBDIRS = src
 
 TESTS = \
     t/00echo.t \
+    t/canonicalize_file_name \
     t/chdir.t \
     t/chroot.t \
     t/cmd-subst.t \
