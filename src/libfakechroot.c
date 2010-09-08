@@ -1223,12 +1223,25 @@ int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
     struct sockaddr_un *addr_un = BIND_SOCKADDR_UN(addr);
+    char *af_unix_path;
+    const int af_unix_path_max = sizeof(addr_un->sun_path);
+
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
-        expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        if ((af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH")) != NULL) {
+            fakechroot_buf[af_unix_path_max] = 0;
+            strncpy(fakechroot_buf, af_unix_path, af_unix_path_max - 1);
+            strcat(fakechroot_buf, path);
+            path = fakechroot_buf;
+        }
+        else {
+            expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        }
+
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
-            return ENAMETOOLONG;
+            errno = ENAMETOOLONG;
+            return -1;
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;
@@ -1433,12 +1446,25 @@ int connect (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen)
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
     struct sockaddr_un *addr_un = CONNECT_SOCKADDR_UN(addr);
+    char *af_unix_path;
+    const int af_unix_path_max = sizeof(addr_un->sun_path);
+
     if (next_connect == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
-        expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        if ((af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH")) != NULL) {
+            fakechroot_buf[af_unix_path_max] = 0;
+            strncpy(fakechroot_buf, af_unix_path, af_unix_path_max - 1);
+            strcat(fakechroot_buf, path);
+            path = fakechroot_buf;
+        }
+        else {
+            expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        }
+
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
-            return ENAMETOOLONG;
+            errno = ENAMETOOLONG;
+            return -1;
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;

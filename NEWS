@@ -2,6 +2,8 @@
 
 8 Sep 2010
 
+* New environment variable FAKECHROOT_AF_UNIX_PATH defines an optional prefix
+  for unix sockets.
 * Better support for FreeBSD was made.
 * Autoconf scripts were refactored.
 * More test units were added.
