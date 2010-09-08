@@ -1,3 +1,11 @@
+== Version 2.11 ==
+
+8 Sep 2010
+
+* Better support for FreeBSD was made.
+* Autoconf scripts were refactored.
+* More test units were added.
+
 == Version 2.10 ==
 
 25 Aug 2010
