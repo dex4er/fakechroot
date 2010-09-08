@@ -37,10 +37,16 @@ int main(int argc, char *argv[]) {
 
     memset(buffer, 0, 82);
     strncpy(buffer, argv[2], 80);
-    write(sockfd, buffer, strlen(buffer));
+    if (write(sockfd, buffer, strlen(buffer)) < 0) {
+        perror("write(newsockfd)");
+        exit(1);
+    }
 
     n = read(sockfd, buffer, 80);
-    write(1, buffer, n);
+    if (write(1, buffer, n) < 0) {
+        perror("write(newsockfd)");
+        exit(1);
+    }
 
     return 0;
 }

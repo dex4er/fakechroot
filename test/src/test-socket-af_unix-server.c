@@ -44,8 +44,14 @@ int main(int argc, char *argv[]) {
     }
 
     n = read(newsockfd, buffer, 80);
-    write(1, buffer, n);
-    write(newsockfd, buffer, n);
+    if (write(1, buffer, n) < 0) {
+        perror("write(1)");
+        exit(1);
+    }
+    if (write(newsockfd, buffer, n) < 0) {
+        perror("write(newsockfd)");
+        exit(1);
+    }
 
     return 0;
 }
