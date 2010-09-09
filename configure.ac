@@ -231,6 +231,14 @@ m4_foreach_w([function], [getpeername getsockname],
         [[__SOCKADDR_ARG _], [struct sockaddr *_]],
         [[socklen_t *__restrict _], [socket_t *_]])])
 
+AC_CHECK_FUNC_ARGTYPES([fts_open],
+    [], [sys/types.h sys/stat.h fts.h],
+    [[FTS *], [char * const *_], [int], [int (*_)(const FTSENT **, const FTSENT **)]],
+    [[FTS *]],
+    [[char * const *_]],
+    [[int _]],
+    [[int (*_)(const FTSENT * const *, const FTSENT * const *)], [int (*_)(const FTSENT **, const FTSENT **)]])
+
 AC_CHECK_FUNC_ARGTYPES([readlink],
     [], [unistd.h],
     [[ssize_t], [const char *_], [char *_], [size_t _]],

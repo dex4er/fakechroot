@@ -420,7 +420,7 @@ static FILE *  (*next_freopen64) (const char *, const char *, FILE *) = NULL;
 #endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
-static FTS *   (*next_fts_open) (char * const *, int, int (*)(const FTSENT **, const FTSENT **)) = NULL;
+static FTS *   (*next_fts_open) (char * const *, int, FTS_OPEN_TYPE_ARG3(/**/)) = NULL;
 #endif
 #endif
 #ifdef HAVE_FTW
@@ -2126,7 +2126,7 @@ FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
 /* #include <fts.h> */
-FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) {
+FTS * fts_open (char * const *path_argv, int options, FTS_OPEN_TYPE_ARG3(compar)) {
     char *fakechroot_path, *fakechroot_buf;
     char *path;
     char * const *p;
