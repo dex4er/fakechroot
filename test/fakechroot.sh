@@ -16,5 +16,5 @@ if [ $# -gt 0 ]; then
     HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir "$@"
 else
     echo "LD_PRELOAD=$LD_PRELOAD"
-    HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir /bin/bash
+    HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir $SHELL
 fi

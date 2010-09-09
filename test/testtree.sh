@@ -55,6 +55,7 @@ for p in \
     '/usr/bin/dirname' \
     '/usr/bin/find' \
     '/usr/bin/id' \
+    '/usr/bin/less' \
     '/usr/bin/ltrace' \
     '/usr/bin/perl' \
     '/usr/bin/readlink' \
@@ -64,6 +65,7 @@ for p in \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \
     '/usr/local/bin/gseq' \
+    '/usr/local/bin/ltrace' \
     '/usr/local/bin/strace'
 do
     for f in $p; do
