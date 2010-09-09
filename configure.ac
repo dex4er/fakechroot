@@ -8,9 +8,6 @@ AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
 
-# @MK@ifeq/else/endif
-AC_SUBST([MK], [])
-
 # --with-libpath
 AC_ARG_WITH([libpath],
     [AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
