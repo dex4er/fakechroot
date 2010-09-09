@@ -89,6 +89,8 @@ AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS(m4_normalize([
 __fxstatat
 __fxstatat64
+__getcwd_chk
+__getwd_chk
 __lxstat
 __lxstat64
 __open
@@ -99,6 +101,8 @@ __openat_2
 __openat64_2
 __opendir2
 __realpath_chk
+__readlink_chk
+__readlinkat_chk
 __xmknod
 __xstat
 __xstat64

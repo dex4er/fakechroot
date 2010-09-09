@@ -309,6 +309,12 @@ static int     (*next___fxstatat) (int, int, const char *, struct stat *, int) =
 #ifdef HAVE___FXSTATAT64
 static int     (*next___fxstatat64) (int, int, const char *, struct stat64 *, int) = NULL;
 #endif
+#ifdef HAVE___GETCWD_CHK
+static char *  (*next___getcwd_chk) (char *, size_t, size_t) = NULL;
+#endif
+#ifdef HAVE___GETWD_CHK
+static char *  (*next___getwd_chk) (char *, size_t) = NULL;
+#endif
 #ifdef HAVE___LXSTAT
 static int     (*next___lxstat) (int, const char *, struct stat *) = NULL;
 #endif
@@ -338,6 +344,12 @@ static DIR *   (*next___opendir2) (const char *, int) = NULL;
 #endif
 #ifdef HAVE___REALPATH_CHK
 static char *  (*next___realpath_chk) (const char *, char *, size_t) = NULL;
+#endif
+#ifdef HAVE___READLINK_CHK
+static ssize_t (*next___readlink_chk) (const char *, char *, size_t, size_t) = NULL;
+#endif
+#ifdef HAVE___READLINKAT_CHK
+static ssize_t (*next___readlinkat_chk) (int, const char *, char *, size_t, size_t) = NULL;
 #endif
 #ifdef HAVE___XMKNOD
 static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
@@ -622,6 +634,12 @@ void fakechroot_init (void)
 #ifdef HAVE___FXSTATAT64
     nextsym(__fxstatat64, "__fxstatat64");
 #endif
+#ifdef HAVE___GETCWD_CHK
+    nextsym(__getcwd_chk, "__getcwd_chk");
+#endif
+#ifdef HAVE___GETWD_CHK
+    nextsym(__getwd_chk, "__getwd_chk");
+#endif
 #ifdef HAVE___LXSTAT
     nextsym(__lxstat, "__lxstat");
 #endif
@@ -651,6 +669,12 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE___REALPATH_CHK
     nextsym(__realpath_chk, "__realpath_chk");
+#endif
+#ifdef HAVE___READLINK_CHK
+    nextsym(__readlink_chk, "__readlink_chk");
+#endif
+#ifdef HAVE___READLINKAT_CHK
+    nextsym(__readlinkat_chk, "__readlinkat_chk");
 #endif
 #ifdef HAVE___XMKNOD
     nextsym(__xmknod, "__xmknod");
@@ -953,6 +977,42 @@ int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, 
 #endif
 
 
+#ifdef HAVE___GETCWD_CHK
+/* #include <unistd.h> */
+char * __getcwd_chk (char *buf, size_t size, size_t buflen)
+{
+    char *cwd;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if (next_getcwd == NULL) fakechroot_init();
+
+    if ((cwd = next___getcwd_chk(buf, size, buflen)) == NULL) {
+        return NULL;
+    }
+    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    return cwd;
+}
+#endif
+
+
+#ifdef HAVE___GETWD_CHK
+/* #include <unistd.h> */
+char * __getwd_chk (char *buf, size_t buflen)
+{
+    char *cwd;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if (next_getwd == NULL) fakechroot_init();
+
+    if ((cwd = next___getwd_chk(buf, buflen)) == NULL) {
+        return NULL;
+    }
+    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    return cwd;
+}
+#endif
+
+
 #ifdef HAVE___LXSTAT
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
@@ -1106,6 +1166,82 @@ DIR *__opendir2 (const char *name, int flags)
     expand_chroot_path(name, fakechroot_path, fakechroot_buf);
     if (next___opendir2 == NULL) fakechroot_init();
     return next___opendir2(name, flags);
+}
+#endif
+
+
+#ifdef HAVE___READLINK_CHK
+/* #include <unistd.h> */
+ssize_t __readlink_chk (const char *path, char *buf, size_t bufsiz, size_t buflen)
+{
+    int status;
+    char tmp[FAKECHROOT_MAXPATH], *tmpptr;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (next_readlink == NULL) fakechroot_init();
+
+    if ((status = next___readlink_chk(path, tmp, FAKECHROOT_MAXPATH-1, buflen)) == -1) {
+        return -1;
+    }
+    tmp[status] = '\0';
+
+    fakechroot_path = getenv("FAKECHROOT_BASE");
+    if (fakechroot_path != NULL) {
+        fakechroot_ptr = strstr(tmp, fakechroot_path);
+        if (fakechroot_ptr != tmp) {
+            tmpptr = tmp;
+        } else {
+            tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
+        }
+        if (strlen(tmpptr) > bufsiz) {
+            status = bufsiz;
+        }
+        strncpy(buf, tmpptr, status);
+    } else {
+        strncpy(buf, tmp, status);
+    }
+    return status;
+}
+#endif
+
+
+#ifdef HAVE___READLINKAT_CHK
+/* #include <unistd.h> */
+ssize_t __readlinkat_chk (int dirfd, const char *path, char *buf, size_t bufsiz, size_t buflen)
+{
+    int status;
+    char tmp[FAKECHROOT_MAXPATH], *tmpptr;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (next_readlink == NULL) fakechroot_init();
+
+    if ((status = next___readlinkat_chk(dirfd, path, tmp, FAKECHROOT_MAXPATH-1, buflen)) == -1) {
+        return -1;
+    }
+    tmp[status] = '\0';
+
+    fakechroot_path = getenv("FAKECHROOT_BASE");
+    if (fakechroot_path != NULL) {
+        fakechroot_ptr = strstr(tmp, fakechroot_path);
+        if (fakechroot_ptr != tmp) {
+            tmpptr = tmp;
+        } else {
+            tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
+        }
+        if (strlen(tmpptr) > bufsiz) {
+            status = bufsiz;
+        }
+        strncpy(buf, tmpptr, status);
+    } else {
+        strncpy(buf, tmp, status);
+    }
+    return status;
 }
 #endif
 
