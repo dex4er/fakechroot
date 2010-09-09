@@ -850,7 +850,9 @@ void fakechroot_init (void)
 #ifdef HAVE_OPENAT64
     nextsym(openat64, "openat64");
 #endif
+#if !defined(HAVE___OPENDIR2)
     nextsym(opendir, "opendir");
+#endif
 #ifdef __GNUC__
 /*    nextsym(popen, "popen"); */
 #endif
