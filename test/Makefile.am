@@ -37,8 +37,8 @@ EXTRA_DIST = $(TESTS) \
 
 test:
 	$(MAKE) $(AM_MAKEFLAGS) -C src check
-@MK@ifneq (,$(PROVE))
-	srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t
-@MK@else
-	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
-@MK@endif
+	if [ -n "$(PROVE)" ]; then \
+	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
+	else; \
+	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS;
+	endif
