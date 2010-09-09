@@ -39,6 +39,6 @@ test:
 	$(MAKE) $(AM_MAKEFLAGS) -C src check
 	if [ -n "$(PROVE)" ]; then \
 	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
-	else; \
-	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS;
-	endif
+	else \
+	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
+	fi
