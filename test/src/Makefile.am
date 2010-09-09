@@ -3,7 +3,6 @@ check_PROGRAMS = \
     test-chroot \
     test-lstat \
     test-popen \
-    test-ptsname \
     test-scandir \
     test-socket-af_unix-client \
     test-socket-af_unix-server \
