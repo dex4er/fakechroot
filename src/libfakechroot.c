@@ -2283,7 +2283,7 @@ int glob_pattern_p (const char *pattern, int quote)
 #endif
 
 
-#ifdef HAVE_
+#ifdef HAVE_INOTIFY_ADD_WATCH
 /* #include <sys/inotify.h> */
 int inotify_add_watch (int fd, const char *pathname, uint32_t mask)
 {
