@@ -476,13 +476,9 @@ static int     (*next_lremovexattr) (const char *, const char *) = NULL;
 #ifdef HAVE_LSETXATTR
 static int     (*next_lsetxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
-#if !defined(HAVE___LXSTAT)
 static int     (*next_lstat) (const char *, struct stat *) = NULL;
-#endif
 #ifdef HAVE_LSTAT64
-#if !defined(HAVE___LXSTAT64)
 static int     (*next_lstat64) (const char *, struct stat64 *) = NULL;
-#endif
 #endif
 #ifdef HAVE_LUTIMES
 static int     (*next_lutimes) (const char *, const struct timeval [2]) = NULL;
@@ -556,13 +552,9 @@ static int (*next_scandir64) (const char *, struct dirent64 ***, SCANDIR64_TYPE_
 #ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
-#if !defined(HAVE___XSTAT)
 static int     (*next_stat) (const char *, struct stat *) = NULL;
-#endif
 #ifdef HAVE_STAT64
-#if !defined(HAVE___XSTAT64)
 static int     (*next_stat64) (const char *, struct stat64 *) = NULL;
-#endif
 #endif
 static int     (*next_symlink) (const char *, const char *) = NULL;
 #ifdef HAVE_SYMLINKAT
@@ -791,13 +783,9 @@ void fakechroot_init (void)
 #ifdef HAVE_LSETXATTR
     nextsym(lsetxattr, "lsetxattr");
 #endif
-#if !defined(HAVE___LXSTAT)
     nextsym(lstat, "lstat");
-#endif
 #ifdef HAVE_LSTAT64
-#if !defined(HAVE___LXSTAT64)
     nextsym(lstat64, "lstat64");
-#endif
 #endif
 #ifdef HAVE_LUTIMES
     nextsym(lutimes, "lutimes");
@@ -838,9 +826,7 @@ void fakechroot_init (void)
 #ifdef HAVE_OPENAT64
     nextsym(openat64, "openat64");
 #endif
-#if !defined(HAVE___OPENDIR2)
     nextsym(opendir, "opendir");
-#endif
 #ifdef __GNUC__
 /*    nextsym(popen, "popen"); */
 #endif
@@ -871,13 +857,9 @@ void fakechroot_init (void)
 #ifdef HAVE_SETXATTR
     nextsym(setxattr, "setxattr");
 #endif
-#if !defined(HAVE___XSTAT)
     nextsym(stat, "stat");
-#endif
 #ifdef HAVE_STAT64
-#if !defined(HAVE___XSTAT64)
     nextsym(stat64, "stat64");
-#endif
 #endif
     nextsym(symlink, "symlink");
 #ifdef HAVE_SYMLINKAT
@@ -2434,7 +2416,6 @@ int lsetxattr (const char *path, const char *name, const void *value, size_t siz
 #endif
 
 
-#if !defined(HAVE___LXSTAT)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int lstat (const char *file_name, struct stat *buf)
@@ -2453,11 +2434,9 @@ int lstat (const char *file_name, struct stat *buf)
             buf->st_size = status;
     return retval;
 }
-#endif
 
 
 #ifdef HAVE_LSTAT64
-#if !defined(HAVE___LXSTAT64)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int lstat64 (const char *file_name, struct stat64 *buf)
@@ -2476,7 +2455,6 @@ int lstat64 (const char *file_name, struct stat64 *buf)
             buf->st_size = status;
     return retval;
 }
-#endif
 #endif
 
 
@@ -3128,7 +3106,6 @@ int setxattr (const char *path, const char *name, const void *value, size_t size
 #endif
 
 
-#if !defined(HAVE___XSTAT)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int stat (const char *file_name, struct stat *buf)
@@ -3138,11 +3115,9 @@ int stat (const char *file_name, struct stat *buf)
     if (next_stat == NULL) fakechroot_init();
     return next_stat(file_name, buf);
 }
-#endif
 
 
 #ifdef HAVE_STAT64
-#if !defined(HAVE___XSTAT64)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int stat64 (const char *file_name, struct stat64 *buf)
@@ -3152,7 +3127,6 @@ int stat64 (const char *file_name, struct stat64 *buf)
     if (next_stat64 == NULL) fakechroot_init();
     return next_stat64(file_name, buf);
 }
-#endif
 #endif
 
 
