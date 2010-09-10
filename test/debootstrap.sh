@@ -23,10 +23,11 @@ fi
 tarball=$vendor-$release-$arch.debs.tgz
 
 prepare_env
+export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
 
 debootstrap_opts="--arch=$arch --variant=fakechroot"
 if [ ! -f $tarball ]; then
-    fakeroot /usr/sbin/debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir
+    fakeroot /usr/sbin/debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
 fi
 
 rm -rf $destdir

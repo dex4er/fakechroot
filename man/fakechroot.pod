@@ -82,6 +82,7 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
+ $ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
  $ fakeroot fakechroot debootstrap --variant=fakechroot lenny /tmp/len
  ny
 
@@ -154,9 +155,10 @@ command runs instead (path to substitute command is not chrooted).
 
 For example:
 
- FAKECHROOT_CMD_SUBST=/sbin/ldconfig=/tmp/ldconfig-wrapper
+ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
 
-will substitute C</tmp/ldconfig-wrapper> for C</sbin/ldconfig>.
+will substitute C</bin/true> for C</usr/bin/mkfifo> and will make possible to
+install sysvinit binary package.
 
 Give as many substitute commands as you want, separated by C<:>
 (colon) characters.
