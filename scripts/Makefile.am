@@ -15,9 +15,9 @@ fakechroot: $(srcdir)/fakechroot.sh
 	chmod +x $@
 
 ldd.fakechroot: ldd.pl
-	cp ldd.pl ldd.fakechroot
+	cp $(srcdir)/ldd.pl ldd.fakechroot
 	chmod +x ldd.fakechroot
 
 ldconfig.fakechroot: ldconfig.sh
-	cp ldconfig.sh ldconfig.fakechroot
+	cp $(srcdir)/ldconfig.sh ldconfig.fakechroot
 	chmod +x ldconfig.fakechroot
