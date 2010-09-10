@@ -32,6 +32,7 @@ EXTRA_DIST = $(TESTS) \
     tap.inc \
     testtree.sh \
     touch.inc \
+    bin/fakechroot \
     t/cmd-subst-pwd.sh \
     #
 

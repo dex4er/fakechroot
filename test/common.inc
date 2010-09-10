@@ -26,10 +26,12 @@ prepare_env () {
     export LD_PRELOAD
 
     if ! which chroot >/dev/null; then
-        export PATH=/usr/sbin:/sbin:$PATH
+	PATH=/usr/sbin:/sbin:$PATH
+	export PATH
     fi
 
-    export FAKECHROOT=true
+    FAKECHROOT=true
+    export FAKECHROOT
 }
 
 cleanup () {
