@@ -3,7 +3,7 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
 
-alias fakechroot=$srcdir/bin/fakechroot
+export PATH=$srcdir/bin:$PATH
 
 run () {
     HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
