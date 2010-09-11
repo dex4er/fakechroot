@@ -8,6 +8,7 @@ TESTS = \
     t/cmd-subst.t \
     t/cp.t \
     t/escape-nested-chroot.t \
+    t/host.t \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \

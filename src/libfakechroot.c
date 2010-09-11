@@ -2269,7 +2269,7 @@ int getpeername (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t *addrlen)
         strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
 
-    memcpy(GETPEERNAME_SOCKADDR_UN(addr), &newaddr, sizeof(struct sockaddr_un));
+    memcpy(GETPEERNAME_SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
     *addrlen = SUN_LEN(&newaddr);
     return status;
 }
@@ -2306,7 +2306,7 @@ int getsockname (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t *addrlen)
         strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
 
-    memcpy(GETSOCKNAME_SOCKADDR_UN(addr), &newaddr, sizeof(struct sockaddr_un));
+    memcpy(GETSOCKNAME_SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
     *addrlen = SUN_LEN(&newaddr);
     return status;
 }

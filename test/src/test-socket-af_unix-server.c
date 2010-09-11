@@ -13,7 +13,8 @@
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd, servlen, n;
     socklen_t clilen;
-    struct sockaddr_un cli_addr, serv_addr;
+    struct sockaddr_un cli_addr, serv_addr, name_addr;
+    socklen_t namelen;
     char buffer[80];
 
     if (argc != 2) {
@@ -32,6 +33,12 @@ int main(int argc, char *argv[]) {
     servlen = SUN_LEN(&serv_addr);
     if (bind(sockfd, (struct sockaddr *)&serv_addr, servlen) < 0) {
         perror("bind");
+        exit(1);
+    }
+
+    namelen = SUN_LEN(&name_addr);
+    if (getsockname(sockfd, (struct sockaddr*)&name_addr, &namelen) < 0) {
+        perror("getsockname");
         exit(1);
     }
 
