@@ -90,8 +90,8 @@ An example session with fakechroot:
  # cd /
  # echo deb http://ftp.debian.org/debian sid main contrib non-free >
  /etc/apt/sources.list
- # echo deb-src http://ftp.debian.org/debian sid main contrib non-fr
- ee >> /etc/apt/sources.list
+ # echo deb-src http://ftp.debian.org/debian sid main contrib non-free
+  >> /etc/apt/sources.list
  # apt-get update
  # apt-get install adduser whiptail build-essential devscripts
  # adduser --uid 1001 user
@@ -252,6 +252,5 @@ Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 
 =head1 SEE ALSO
 
-fakeroot(1), dpkg-buildpackage(1), debuild(1), debootstrap(8),
+fakeroot(1), debuild(1), debootstrap(8), febootstrap(8),
 http://fakechroot.alioth.debian.org/
-
