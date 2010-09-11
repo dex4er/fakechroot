@@ -82,24 +82,27 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
- $ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
- $ fakeroot fakechroot debootstrap --variant=fakechroot lenny /tmp/len
- ny
+ $ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv
+ =/bin/true
+ $ fakeroot fakechroot debootstrap --variant=fakechroot sid /tmp/sid
 
- $ fakeroot fakechroot chroot /tmp/lenny /bin/bash
+ $ fakeroot fakechroot chroot /tmp/sid /bin/bash
  # cd /
- # echo deb http://ftp.debian.org/debian lenny main contrib non-free >
+ # echo deb http://ftp.debian.org/debian sid main contrib non-free >
  /etc/apt/sources.list
- # echo deb-src http://ftp.debian.org/debian lenny main contrib non-fr
+ # echo deb-src http://ftp.debian.org/debian sid main contrib non-fr
  ee >> /etc/apt/sources.list
  # apt-get update
  # apt-get install adduser whiptail build-essential devscripts
  # adduser --uid 1001 user
- # cd /tmp
- # apt-get source hello
- # cd hello-*
- # debuild --preserve-env -b
  # exit
+
+ $ fakechroot chroot /tmp/sid /bin/bash
+ $ cd /tmp
+ $ apt-get source hello
+ $ cd hello-*
+ $ debuild --preserve-env -b
+ $ exit
 
 =head1 SECURITY ASPECTS
 
