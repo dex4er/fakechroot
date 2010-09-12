@@ -6,7 +6,7 @@
   [=host 127.0.0.1] command currently is working.  Thanks to Daniel Tschan.
 * Fixes were made for [=canonicalize_file_name](3) function.  [=man-db] command
   currently is working.
-* New functions [=__*_chk](3) for GNU libc with fortify level > 0.
+* New functions [=__*_chk](3) were added for GNU libc with fortify level > 0.
 * New environment variable FAKECHROOT_AF_UNIX_PATH defines an optional prefix
   for unix sockets.
 * Better support for FreeBSD was made.
