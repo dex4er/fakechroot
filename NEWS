@@ -1,10 +1,10 @@
 == Version 2.11 ==
 
-11 Sep 2010
+12 Sep 2010
 
-* Fixed [=getpeername](2) and [=getsockname](2) functions make that
+* Fixes were made for [=getpeername](2) and [=getsockname](2) functions.
   [=host 127.0.0.1] command currently is working.  Thanks to Daniel Tschan.
-* Fixed [=canonicalize_file_name](3) function makes that [=man-db] command
+* Fixes were made for [=canonicalize_file_name](3) function.  [=man-db] command
   currently is working.
 * New functions [=__*_chk](3) for GNU libc with fortify level > 0.
 * New environment variable FAKECHROOT_AF_UNIX_PATH defines an optional prefix
@@ -44,9 +44,9 @@
 
 31 Mar 2009
 
-* Fixed were made for [=getpeername](2) and [=getsockname](2) functions.  Thanks to
+* Fixes were made for [=getpeername](2) and [=getsockname](2) functions.  Thanks to
   Axel Thimm and Fedora people.
-* Fixed were made for [=execve](2):
+* Fixes were made for [=execve](2):
   * Always copy necessary variables to new environment.
   * Do not make duplicates of environment variables.  Thanks to Richard
     W.M. Jones.
