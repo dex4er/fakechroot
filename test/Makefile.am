@@ -2,14 +2,17 @@ SUBDIRS = src
 
 TESTS = \
     t/00echo.t \
+    t/canonicalize_file_name.t \
     t/chdir.t \
     t/chroot.t \
     t/cmd-subst.t \
     t/cp.t \
     t/escape-nested-chroot.t \
+    t/host.t \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \
+    t/socket-af_unix.t \
     t/symlink.t \
     t/system.t \
     t/touch.t \
@@ -25,15 +28,19 @@ EXTRA_DIST = $(TESTS) \
     common.inc \
     debootstrap.sh \
     fakechroot.sh \
+    readlink.inc \
+    seq.inc \
     tap.inc \
     testtree.sh \
+    touch.inc \
+    bin/fakechroot \
     t/cmd-subst-pwd.sh \
     #
 
 test:
 	$(MAKE) $(AM_MAKEFLAGS) -C src check
-@MK@ifneq (,$(PROVE))
-	$(PROVE) t
-@MK@else
-	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
-@MK@endif
+	if [ -n "$(PROVE)" ]; then \
+	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
+	else \
+	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
+	fi

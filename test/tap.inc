@@ -19,7 +19,7 @@ ok () {
 skip () {
     tap_skip_n=$1
     shift
-    for tap_skip_i in `seq 1 $tap_skip_n`; do
+    for tap_skip_i in `$SEQ 1 $tap_skip_n`; do
         ok "# SKIP $@"
     done
 }

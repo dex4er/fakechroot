@@ -1,5 +1,5 @@
-AC_PREREQ(2.59)
-AC_INIT([fakechroot], [2.10], [dexter@debian.org])
+AC_PREREQ(2.62)
+AC_INIT([fakechroot], [2.11], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -8,21 +8,15 @@ AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
 AC_LANG_C
 
-# @MK@ifeq/else/endif
-AC_SUBST([MK], [])
-
 # --with-libpath
 AC_ARG_WITH([libpath],
-	    AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
-			   [path list where library might be located [[default=$pkglibdir]]]),
-	    [ac_cv_libpath=$withval
-case "$ac_cv_libpath" in
-      "") AC_MSG_ERROR([invalid libpath specified]) ;;
-      *) libpath="$ac_cv_libpath" ;;
-esac],
-	    [ac_cv_libpath=$libdir/$PACKAGE_NAME
-libpath="$ac_cv_libpath"])
-AC_SUBST(libpath)
+    [AS_HELP_STRING([--with-libpath@<:@=LIBPATH@:>@],
+        [path list where library might be located @<:@default=$pkglibdir@:>@])],
+    [with_libpath=$withval],
+    [with_libpath=$libdir/$PACKAGE_NAME])
+AS_IF([test "x$with_libpath" = x],
+    [AC_MSG_FAILURE([invalid libpath specified])])
+AC_SUBST(libpath, $with_libpath)
 
 # Checks for programs.
 AC_PROG_MAKE_SET
@@ -30,6 +24,7 @@ AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_LN_S
 AC_CHECK_PROGS([PROVE], [prove])
+AC_CHECK_PROGS([SEQ], [seq gseq])
 
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
@@ -42,19 +37,33 @@ AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([ \
-fcntl.h \
-fts.h \
-ftw.h \
-libintl.h \
-shadow.h \
-stdlib.h \
-string.h \
-unistd.h \
-utime.h \
-sys/inotify.h \
-sys/xattr.h \
-])
+AC_CHECK_HEADERS(m4_normalize([
+dirent.h
+dlfcn.h
+errno.h
+fcntl.h
+fts.h
+ftw.h
+glob.h
+libintl.h
+pwd.h
+shadow.h
+signal.h
+stdarg.h
+stdio.h
+stdlib.h
+string.h
+sys/inotify.h
+sys/socket.h
+sys/stat.h
+sys/times.h
+sys/types.h
+sys/un.h
+sys/wait.h
+sys/xattr.h
+unistd.h
+utime.h
+]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -64,6 +73,9 @@ AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
+# Checks for additional typedefs.
+AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, AC_INCLUDES_HEADERS([sys/un.h]))
+
 # Checks for library functions.
 AC_FUNC_ALLOCA
 AC_FUNC_CHOWN
@@ -71,135 +83,191 @@ AC_FUNC_LSTAT
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([ \
-__fxstatat \
-__fxstatat64 \
-__lxstat \
-__lxstat64 \
-__open \
-__open_2 \
-__open64 \
-__open64_2 \
-__openat_2 \
-__openat64_2 \
-__opendir2 \
-__xmknod \
-__xstat \
-__xstat64 \
-_xftw \
-_xftw64 \
-access \
-acct \
-bindtextdomain \
-canonicalize_file_name \
-chdir \
-chmod \
-chown \
-chroot \
-creat \
-creat64 \
-dlmopen \
-dlopen \
-eaccess \
-euidaccess \
-execl \
-execle \
-execlp \
-execv \
-execve \
-execvp \
-fchmodat \
-fchownat \
-fopen \
-fopen64 \
-freopen \
-freopen64 \
-fts_open \
-ftw \
-ftw64 \
-futimesat \
-get_current_dir_name \
-getcwd \
-getwd \
-getxattr \
-glob \
-glob64 \
-glob_pattern_p \
-inotify_add_watch \
-lchmod \
-lchown \
-lckpwdf \
-lgetxattr \
-link \
-linkat \
-listxattr \
-llistxattr \
-lremovexattr \
-lsetxattr \
-lstat \
-lstat64 \
-lutimes \
-mkdir \
-mkdirat \
-mkdtemp \
-mknod \
-mknodat \
-mkfifo \
-mkfifoat \
-mkstemp \
-mkstemp64 \
-mktemp \
-nftw \
-nftw64 \
-open \
-open64 \
-openat \
-openat64 \
-opendir \
-pathconf \
-popen \
-readlink \
-readlinkat \
-realpath \
-remove \
-removexattr \
-rename \
-renameat \
-revoke \
-rmdir \
-scandir \
-scandir64 \
-setenv \
-setxattr \
-stat \
-stat64 \
-strchrnul \
-symlink \
-symlinkat \
-system \
-tempnam \
-tmpnam \
-truncate \
-truncate64 \
-unlink \
-unlinkat \
-ulckpwdf \
-utime \
-utimensat \
-utimes \
-])
+AC_CHECK_FUNCS(m4_normalize([
+__fxstatat
+__fxstatat64
+__getcwd_chk
+__getwd_chk
+__lxstat
+__lxstat64
+__open
+__open_2
+__open64
+__open64_2
+__openat_2
+__openat64_2
+__opendir2
+__realpath_chk
+__readlink_chk
+__readlinkat_chk
+__xmknod
+__xstat
+__xstat64
+_xftw
+_xftw64
+access
+acct
+bind
+bindtextdomain
+canonicalize_file_name
+chdir
+chmod
+chown
+chroot
+connect
+creat
+creat64
+dlmopen
+dlopen
+eaccess
+euidaccess
+execl
+execle
+execlp
+execv
+execve
+execvp
+fchmodat
+fchownat
+fopen
+fopen64
+freopen
+freopen64
+fts_open
+ftw
+ftw64
+futimesat
+get_current_dir_name
+getcwd
+getpeername
+getsockname
+getwd
+getxattr
+glob
+glob64
+glob_pattern_p
+inotify_add_watch
+lchmod
+lchown
+lckpwdf
+lgetxattr
+link
+linkat
+listxattr
+llistxattr
+lremovexattr
+lsetxattr
+lstat
+lstat64
+lutimes
+mkdir
+mkdirat
+mkdtemp
+mknod
+mknodat
+mkfifo
+mkfifoat
+mkstemp
+mkstemp64
+mktemp
+nftw
+nftw64
+open
+open64
+openat
+openat64
+opendir
+pathconf
+popen
+readlink
+readlinkat
+realpath
+remove
+removexattr
+rename
+renameat
+revoke
+rmdir
+scandir
+scandir64
+setenv
+setxattr
+stat
+stat64
+strchrnul
+symlink
+symlinkat
+system
+tempnam
+tmpnam
+truncate
+truncate64
+unlink
+unlinkat
+ulckpwdf
+utime
+utimensat
+utimes
+]))
 
-AC_FUNC_READLINK_ARGTYPES
-AC_FUNC_READLINKAT_ARGTYPES
-AC_FUNC_SCANDIR_ARGTYPES
-AC_FUNC_SCANDIR64_ARGTYPES
+m4_foreach_w([function], [bind connect],
+    [AC_CHECK_FUNC_ARGTYPES(function,
+        [], [sys/types.h sys/socket.h],
+        [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
+        [[int]],
+        [[int _]],
+        [[__CONST_SOCKADDR_ARG _], [const struct sockaddr *_]],
+        [[socklen_t _]])])
 
-AC_CONFIG_FILES([ \
-Makefile \
-man/Makefile \
-src/Makefile \
-scripts/Makefile \
-test/Makefile \
-test/src/Makefile \
-])
+m4_foreach_w([function], [getpeername getsockname],
+    [AC_CHECK_FUNC_ARGTYPES(function,
+        [], [sys/types.h sys/socket.h],
+        [[int], [int _], [struct sockaddr *_], [socklen_t _]],
+        [[int]],
+        [[int _]],
+        [[__SOCKADDR_ARG _], [struct sockaddr *_]],
+        [[socklen_t *__restrict _], [socket_t *_]])])
+
+AC_CHECK_FUNC_ARGTYPES([fts_open],
+    [], [sys/types.h sys/stat.h fts.h],
+    [[FTS *], [char * const *_], [int], [int (*_)(const FTSENT **, const FTSENT **)]],
+    [[FTS *]],
+    [[char * const *_]],
+    [[int _]],
+    [[int (*_)(const FTSENT * const *, const FTSENT * const *)], [int (*_)(const FTSENT **, const FTSENT **)]])
+
+AC_CHECK_FUNC_ARGTYPES([readlink],
+    [], [unistd.h],
+    [[ssize_t], [const char *_], [char *_], [size_t _]],
+    [[ssize_t], [int]],
+    [[const char *_]],
+    [[char *_]],
+    [[size_t _], [int _]])
+
+AC_CHECK_FUNC_ARGTYPES([scandir],
+    [], [dirent.h],
+    [[int], [const char *_], [struct dirent ***_], [int(*_)(const struct dirent *)], [int(*_)(const void *,const void *)]],
+    [[int]],
+    [[const char *_]],
+    [[struct dirent ***_]],
+    [[int(*_)(const struct dirent *)], [int(*_)(struct dirent *)]],
+    [[int(*_)(const struct dirent **, const struct dirent **)], [int(*_)(const void *,const void *)]])
+
+AC_CHECK_FUNC_ARGTYPES([scandir64],
+    [], [dirent.h],
+    [[int], [const char *_], [struct dirent64 ***_], [int(*_)(const struct dirent64 *)], [int(*_)(const void *,const void *)]],
+    [[int]],
+    [[const char *_]],
+    [[struct dirent64 ***_]],
+    [[int(*_)(const struct dirent64 *)], [int(*_)(struct dirent64 *)]],
+    [[int(*_)(const struct dirent64 **, const struct dirent64 **)], [int(*_)(const void *,const void *)]])
+
+AC_CONFIG_FILES(m4_normalize([
+Makefile
+man/Makefile
+src/Makefile
+scripts/Makefile
+test/Makefile
+test/src/Makefile
+]))
 AC_OUTPUT

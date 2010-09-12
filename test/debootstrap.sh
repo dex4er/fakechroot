@@ -3,13 +3,17 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
 
+export PATH=$srcdir/bin:$PATH
+
 run () {
-    HOME=/root $destdir/usr/sbin/chroot `pwd -P`/$destdir "$@"
+    HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
 }
 
 vendor=${VENDOR:-`lsb_release -s -i`}
 release=${RELEASE:-`lsb_release -s -c`}
-arch=${ARCH:-`dpkg-architecture -t$(arch)-linux-gnu -qDEB_HOST_ARCH 2>/dev/null`}
+type=`dpkg-architecture -qDEB_HOST_GNU_TYPE`
+systype=${type#*-}
+arch=${ARCH:-`dpkg-architecture -t$(arch)-$systype -qDEB_HOST_ARCH 2>/dev/null`}
 
 if [ $# -gt 0 ]; then
     destdir=$1
@@ -20,19 +24,26 @@ fi
 
 tarball=$vendor-$release-$arch.debs.tgz
 
-prepare_env
+export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv=/bin/true
+export FAKECHROOT_AF_UNIX_PATH=/tmp
 
 debootstrap_opts="--arch=$arch --variant=fakechroot"
 if [ ! -f $tarball ]; then
-    fakeroot /usr/sbin/debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir
+    FAKECHROOT=true fakeroot /usr/sbin/debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
 fi
 
 rm -rf $destdir
-fakeroot /usr/sbin/debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
+
+if ! which chroot >/dev/null; then
+    PATH=$PATH:/usr/sbin:/sbin
+    export PATH
+fi
+
+fakeroot fakechroot /usr/sbin/debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
 
 cp -v `cd $srcdir; pwd`/../scripts/ldd.pl $destdir/usr/bin/ldd
 
-HOME=/root fakeroot $destdir/usr/sbin/chroot `pwd -P`/$destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
+HOME=/root fakeroot fakechroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
 run sh -c 'cat /etc/apt/sources.list | sed "s/^deb/deb-src/" >> /etc/apt/sources.list'
 run fakeroot apt-get --force-yes -y update

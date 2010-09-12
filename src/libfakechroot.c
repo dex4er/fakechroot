@@ -79,6 +79,15 @@
 #define UNIX_PATH_MAX 108
 #endif
 
+#ifdef AF_UNIX
+#ifndef SUN_LEN
+#define SUN_LEN(su) (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
+#endif
+
+#define SOCKADDR_UN(addr) (struct sockaddr_un *)(addr)
+#define SOCKADDR_UN_UNION(addr) (struct sockaddr_un *)((addr).__sockaddr_un__)
+
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
 #define USE_ALIAS 1
 #endif
@@ -169,7 +178,7 @@ static char *strchrnul (const char *s, int c_in)
 
     /* Handle the first few characters by reading one character at a time.
        Do this until CHAR_PTR is aligned on a longword boundary.  */
-    for (char_ptr = s; ((unsigned long int) char_ptr
+    for (char_ptr = (unsigned char *)s; ((unsigned long int) char_ptr
                         & (sizeof(longword) - 1)) != 0; ++char_ptr)
         if (*char_ptr == c || *char_ptr == '\0')
             return (void *) char_ptr;
@@ -300,6 +309,12 @@ static int     (*next___fxstatat) (int, int, const char *, struct stat *, int) =
 #ifdef HAVE___FXSTATAT64
 static int     (*next___fxstatat64) (int, int, const char *, struct stat64 *, int) = NULL;
 #endif
+#ifdef HAVE___GETCWD_CHK
+static char *  (*next___getcwd_chk) (char *, size_t, size_t) = NULL;
+#endif
+#ifdef HAVE___GETWD_CHK
+static char *  (*next___getwd_chk) (char *, size_t) = NULL;
+#endif
 #ifdef HAVE___LXSTAT
 static int     (*next___lxstat) (int, const char *, struct stat *) = NULL;
 #endif
@@ -327,6 +342,15 @@ static int     (*next___openat64_2) (int, const char *, int) = NULL;
 #ifdef HAVE___OPENDIR2
 static DIR *   (*next___opendir2) (const char *, int) = NULL;
 #endif
+#ifdef HAVE___REALPATH_CHK
+static char *  (*next___realpath_chk) (const char *, char *, size_t) = NULL;
+#endif
+#ifdef HAVE___READLINK_CHK
+static ssize_t (*next___readlink_chk) (const char *, char *, size_t, size_t) = NULL;
+#endif
+#ifdef HAVE___READLINKAT_CHK
+static ssize_t (*next___readlinkat_chk) (int, const char *, char *, size_t, size_t) = NULL;
+#endif
 #ifdef HAVE___XMKNOD
 static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
 #endif
@@ -345,7 +369,7 @@ static int     (*next__xftw64) (int, const char *, int (*)(const char *, const s
 static int     (*next_access) (const char *, int) = NULL;
 static int     (*next_acct) (const char *) = NULL;
 #ifdef AF_UNIX
-static int     (*next_bind) (int, const struct sockaddr *, socklen_t) = NULL;
+static int     (*next_bind) (int, BIND_TYPE_ARG2(/**/), socklen_t) = NULL;
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
 static char *  (*next_bindtextdomain) (const char *, const char *) = NULL;
@@ -358,7 +382,7 @@ static int     (*next_chmod) (const char *, mode_t) = NULL;
 static int     (*next_chown) (const char *, uid_t, gid_t) = NULL;
 /* static int     (*next_chroot) (const char *) = NULL; */
 #ifdef AF_UNIX
-static int     (*next_connect) (int, const struct sockaddr *, socklen_t) = NULL;
+static int     (*next_connect) (int, CONNECT_TYPE_ARG2(/**/), socklen_t) = NULL;
 #endif
 static int     (*next_creat) (const char *, mode_t) = NULL;
 #ifdef HAVE_CREAT64
@@ -417,10 +441,10 @@ static char *  (*next_get_current_dir_name) (void) = NULL;
 #endif
 static char *  (*next_getcwd) (char *, size_t) = NULL;
 #ifdef AF_UNIX
-static int     (*next_getpeername) (int, struct sockaddr *, socklen_t *) = NULL;
+static int     (*next_getpeername) (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *) = NULL;
 #endif
 #ifdef AF_UNIX
-static int     (*next_getsockname) (int, struct sockaddr *, socklen_t *) = NULL;
+static int     (*next_getsockname) (int, GETSOCKNAME_TYPE_ARG2(/**/), socklen_t *) = NULL;
 #endif
 #ifdef HAVE_GETWD
 static char *  (*next_getwd) (char *) = NULL;
@@ -464,13 +488,9 @@ static int     (*next_lremovexattr) (const char *, const char *) = NULL;
 #ifdef HAVE_LSETXATTR
 static int     (*next_lsetxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
-#if !defined(HAVE___LXSTAT)
 static int     (*next_lstat) (const char *, struct stat *) = NULL;
-#endif
 #ifdef HAVE_LSTAT64
-#if !defined(HAVE___LXSTAT64)
 static int     (*next_lstat64) (const char *, struct stat64 *) = NULL;
-#endif
 #endif
 #ifdef HAVE_LUTIMES
 static int     (*next_lutimes) (const char *, const struct timeval [2]) = NULL;
@@ -518,9 +538,9 @@ static long    (*next_pathconf) (const char *, int) = NULL;
 #ifdef __GNUC__
 /* static FILE *  (*next_popen) (const char *, const char *) = NULL; */
 #endif
-static READLINK_TYPE_RETURN (*next_readlink) (READLINK_TYPE_ARG1(/**/), READLINK_TYPE_ARG2(/**/), READLINK_TYPE_ARG3(/**/)) = NULL;
+static READLINK_TYPE_RETURN (*next_readlink) (const char *, char *, READLINK_TYPE_ARG3(/**/)) = NULL;
 #ifdef HAVE_READLINKAT
-static READLINKAT_TYPE_RETURN (*next_readlinkat) (READLINKAT_TYPE_ARG1(/**/), READLINKAT_TYPE_ARG2(/**/), READLINKAT_TYPE_ARG3(/**/), READLINKAT_TYPE_ARG4(/**/)) = NULL;
+static ssize_t (*next_readlinkat) (int, const char *, char *, size_t) = NULL;
 #endif
 static char *  (*next_realpath) (const char *, char *) = NULL;
 static int     (*next_remove) (const char *) = NULL;
@@ -536,21 +556,17 @@ static int     (*next_revoke) (const char *) = NULL;
 #endif
 static int     (*next_rmdir) (const char *) = NULL;
 #ifdef HAVE_SCANDIR
-static SCANDIR_TYPE_RETURN (*next_scandir) (SCANDIR_TYPE_ARG1(/**/), SCANDIR_TYPE_ARG2(/**/), SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
+static int (*next_scandir) (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SCANDIR64
-static SCANDIR64_TYPE_RETURN (*next_scandir64) (SCANDIR64_TYPE_ARG1(/**/), SCANDIR64_TYPE_ARG2(/**/), SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
+static int (*next_scandir64) (const char *, struct dirent64 ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
 #endif
 #ifdef HAVE_SETXATTR
 static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
 #endif
-#if !defined(HAVE___XSTAT)
 static int     (*next_stat) (const char *, struct stat *) = NULL;
-#endif
 #ifdef HAVE_STAT64
-#if !defined(HAVE___XSTAT64)
 static int     (*next_stat64) (const char *, struct stat64 *) = NULL;
-#endif
 #endif
 static int     (*next_symlink) (const char *, const char *) = NULL;
 #ifdef HAVE_SYMLINKAT
@@ -618,6 +634,12 @@ void fakechroot_init (void)
 #ifdef HAVE___FXSTATAT64
     nextsym(__fxstatat64, "__fxstatat64");
 #endif
+#ifdef HAVE___GETCWD_CHK
+    nextsym(__getcwd_chk, "__getcwd_chk");
+#endif
+#ifdef HAVE___GETWD_CHK
+    nextsym(__getwd_chk, "__getwd_chk");
+#endif
 #ifdef HAVE___LXSTAT
     nextsym(__lxstat, "__lxstat");
 #endif
@@ -644,6 +666,15 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE___OPENDIR2
     nextsym(__opendir2, "__opendir2");
+#endif
+#ifdef HAVE___REALPATH_CHK
+    nextsym(__realpath_chk, "__realpath_chk");
+#endif
+#ifdef HAVE___READLINK_CHK
+    nextsym(__readlink_chk, "__readlink_chk");
+#endif
+#ifdef HAVE___READLINKAT_CHK
+    nextsym(__readlinkat_chk, "__readlinkat_chk");
 #endif
 #ifdef HAVE___XMKNOD
     nextsym(__xmknod, "__xmknod");
@@ -776,13 +807,9 @@ void fakechroot_init (void)
 #ifdef HAVE_LSETXATTR
     nextsym(lsetxattr, "lsetxattr");
 #endif
-#if !defined(HAVE___LXSTAT)
     nextsym(lstat, "lstat");
-#endif
 #ifdef HAVE_LSTAT64
-#if !defined(HAVE___LXSTAT64)
     nextsym(lstat64, "lstat64");
-#endif
 #endif
 #ifdef HAVE_LUTIMES
     nextsym(lutimes, "lutimes");
@@ -856,13 +883,9 @@ void fakechroot_init (void)
 #ifdef HAVE_SETXATTR
     nextsym(setxattr, "setxattr");
 #endif
-#if !defined(HAVE___XSTAT)
     nextsym(stat, "stat");
-#endif
 #ifdef HAVE_STAT64
-#if !defined(HAVE___XSTAT64)
     nextsym(stat64, "stat64");
-#endif
 #endif
     nextsym(symlink, "symlink");
 #ifdef HAVE_SYMLINKAT
@@ -952,6 +975,42 @@ int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, 
     expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     if (next___fxstatat64 == NULL) fakechroot_init();
     return next___fxstatat64(ver, dirfd, pathname, buf, flags);
+}
+#endif
+
+
+#ifdef HAVE___GETCWD_CHK
+/* #include <unistd.h> */
+char * __getcwd_chk (char *buf, size_t size, size_t buflen)
+{
+    char *cwd;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if (next_getcwd == NULL) fakechroot_init();
+
+    if ((cwd = next___getcwd_chk(buf, size, buflen)) == NULL) {
+        return NULL;
+    }
+    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    return cwd;
+}
+#endif
+
+
+#ifdef HAVE___GETWD_CHK
+/* #include <unistd.h> */
+char * __getwd_chk (char *buf, size_t buflen)
+{
+    char *cwd;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if (next_getwd == NULL) fakechroot_init();
+
+    if ((cwd = next___getwd_chk(buf, buflen)) == NULL) {
+        return NULL;
+    }
+    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    return cwd;
 }
 #endif
 
@@ -1113,6 +1172,99 @@ DIR *__opendir2 (const char *name, int flags)
 #endif
 
 
+#ifdef HAVE___READLINK_CHK
+/* #include <unistd.h> */
+ssize_t __readlink_chk (const char *path, char *buf, size_t bufsiz, size_t buflen)
+{
+    int status;
+    char tmp[FAKECHROOT_MAXPATH], *tmpptr;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (next_readlink == NULL) fakechroot_init();
+
+    if ((status = next___readlink_chk(path, tmp, FAKECHROOT_MAXPATH-1, buflen)) == -1) {
+        return -1;
+    }
+    tmp[status] = '\0';
+
+    fakechroot_path = getenv("FAKECHROOT_BASE");
+    if (fakechroot_path != NULL) {
+        fakechroot_ptr = strstr(tmp, fakechroot_path);
+        if (fakechroot_ptr != tmp) {
+            tmpptr = tmp;
+        } else {
+            tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
+        }
+        if (strlen(tmpptr) > bufsiz) {
+            status = bufsiz;
+        }
+        strncpy(buf, tmpptr, status);
+    } else {
+        strncpy(buf, tmp, status);
+    }
+    return status;
+}
+#endif
+
+
+#ifdef HAVE___READLINKAT_CHK
+/* #include <unistd.h> */
+ssize_t __readlinkat_chk (int dirfd, const char *path, char *buf, size_t bufsiz, size_t buflen)
+{
+    int status;
+    char tmp[FAKECHROOT_MAXPATH], *tmpptr;
+    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
+
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (next_readlink == NULL) fakechroot_init();
+
+    if ((status = next___readlinkat_chk(dirfd, path, tmp, FAKECHROOT_MAXPATH-1, buflen)) == -1) {
+        return -1;
+    }
+    tmp[status] = '\0';
+
+    fakechroot_path = getenv("FAKECHROOT_BASE");
+    if (fakechroot_path != NULL) {
+        fakechroot_ptr = strstr(tmp, fakechroot_path);
+        if (fakechroot_ptr != tmp) {
+            tmpptr = tmp;
+        } else {
+            tmpptr = tmp + strlen(fakechroot_path);
+            status -= strlen(fakechroot_path);
+        }
+        if (strlen(tmpptr) > bufsiz) {
+            status = bufsiz;
+        }
+        strncpy(buf, tmpptr, status);
+    } else {
+        strncpy(buf, tmp, status);
+    }
+    return status;
+}
+#endif
+
+
+#ifdef HAVE___REALPATH_CHK
+/* #include <stdlib.h> */
+char *__realpath_chk (const char *name, char *resolved, size_t resolvedlen)
+{
+    char *ptr;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if (next_realpath == NULL) fakechroot_init();
+
+    if ((ptr = next___realpath_chk(name, resolved, resolvedlen)) != NULL) {
+        narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
+    }
+    return ptr;
+}
+#endif
+
+
 #ifdef HAVE___XMKNOD
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
@@ -1200,24 +1352,44 @@ int acct (const char *filename)
 /* #include <sys/types.h> */
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int bind (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+
+#ifdef HAVE_BIND_TYPE_ARG2___CONST_SOCKADDR_ARG__
+#define BIND_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define BIND_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    struct sockaddr_un *addr_un = BIND_SOCKADDR_UN(addr);
+    char *af_unix_path;
+    const int af_unix_path_max = sizeof(addr_un->sun_path);
+
     if (next_bind == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
-        expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        if ((af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH")) != NULL) {
+            fakechroot_buf[af_unix_path_max] = 0;
+            strncpy(fakechroot_buf, af_unix_path, af_unix_path_max - 1);
+            strcat(fakechroot_buf, path);
+            path = fakechroot_buf;
+        }
+        else {
+            expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        }
+
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
-            return ENAMETOOLONG;
+            errno = ENAMETOOLONG;
+            return -1;
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;
         strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
-        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        newaddrlen = SUN_LEN(&newaddr_un);
         return next_bind(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_bind(sockfd, addr, addrlen);
@@ -1241,10 +1413,12 @@ char * bindtextdomain (const char *domainname, const char *dirname)
 /* #include <stdlib.h> */
 char *canonicalize_file_name (const char *name)
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
-    expand_chroot_path(name, fakechroot_path, fakechroot_buf);
-    if (next_canonicalize_file_name == NULL) fakechroot_init();
-    return next_canonicalize_file_name(name);
+    char *resolved = malloc(FAKECHROOT_MAXPATH * 2);
+#ifdef HAVE___REALPATH_CHK
+    return __realpath_chk(name, resolved, FAKECHROOT_MAXPATH * 2);
+#else
+    return realpath(name, resolved);
+#endif
 }
 #endif
 
@@ -1403,24 +1577,44 @@ int chroot (const char *path)
 /* #include <sys/types.h> */
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int connect (int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+
+#ifdef HAVE_CONNECT_TYPE_ARG2___CONST_SOCKADDR_ARG__
+#define CONNECT_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define CONNECT_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int connect (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     char *path;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr_un;
-    struct sockaddr_un *addr_un = (struct sockaddr_un *)addr;
+    struct sockaddr_un *addr_un = CONNECT_SOCKADDR_UN(addr);
+    char *af_unix_path;
+    const int af_unix_path_max = sizeof(addr_un->sun_path);
+
     if (next_connect == NULL) fakechroot_init();
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
         path = addr_un->sun_path;
-        expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        if ((af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH")) != NULL) {
+            fakechroot_buf[af_unix_path_max] = 0;
+            strncpy(fakechroot_buf, af_unix_path, af_unix_path_max - 1);
+            strcat(fakechroot_buf, path);
+            path = fakechroot_buf;
+        }
+        else {
+            expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+        }
+
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
-            return ENAMETOOLONG;
+            errno = ENAMETOOLONG;
+            return -1;
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;
         strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
-        newaddrlen = sizeof(newaddr_un.sun_family) + strlen(newaddr_un.sun_path);
+        newaddrlen = SUN_LEN(&newaddr_un);
         return next_connect(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
     return next_connect(sockfd, addr, addrlen);
@@ -2048,28 +2242,35 @@ char * getcwd (char *buf, size_t size)
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
+
+#ifdef HAVE_GETPEERNAME_TYPE_ARG2___SOCKADDR_ARG__
+#define GETPEERNAME_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define GETPEERNAME_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int getpeername (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t *addrlen)
 {
     int status;
-    socklen_t newnamelen;
-    struct sockaddr_un newname;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getpeername == NULL) fakechroot_init();
-    newnamelen = sizeof(struct sockaddr_un);
-    memset(&newname, 0, newnamelen);
-    status = next_getpeername(s, (struct sockaddr *)&newname, &newnamelen);
+    newaddrlen = sizeof(struct sockaddr_un);
+    memset(&newaddr, 0, newaddrlen);
+    status = next_getpeername(s, (struct sockaddr *)&newaddr, &newaddrlen);
     if (status != 0) {
         return status;
     }
-    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
-        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+    if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
+        strncpy(fakechroot_buf, newaddr.sun_path, FAKECHROOT_MAXPATH);
         narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
 
-    memcpy(name, &newname, sizeof(struct sockaddr_un));
-    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    memcpy(GETPEERNAME_SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
+    *addrlen = SUN_LEN(&newaddr);
     return status;
 }
 #endif
@@ -2078,28 +2279,35 @@ int getpeername (int s, struct sockaddr *name, socklen_t *namelen)
 #ifdef AF_UNIX
 /* #include <sys/socket.h> */
 /* #include <sys/un.h> */
-int getsockname (int s, struct sockaddr *name, socklen_t *namelen)
+
+#ifdef HAVE_GETSOCKNAME_TYPE_ARG2___SOCKADDR_ARG__
+#define GETSOCKNAME_SOCKADDR_UN(addr) SOCKADDR_UN_UNION(addr)
+#else
+#define GETSOCKNAME_SOCKADDR_UN(addr) SOCKADDR_UN(addr)
+#endif
+
+int getsockname (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t *addrlen)
 {
     int status;
-    socklen_t newnamelen;
-    struct sockaddr_un newname;
+    socklen_t newaddrlen;
+    struct sockaddr_un newaddr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_MAXPATH];
 
     if (next_getsockname == NULL) fakechroot_init();
-    newnamelen = sizeof(struct sockaddr_un);
-    memset(&newname, 0, newnamelen);
-    status = next_getsockname(s, (struct sockaddr *)&newname, &newnamelen);
+    newaddrlen = sizeof(struct sockaddr_un);
+    memset(&newaddr, 0, newaddrlen);
+    status = next_getsockname(s, (struct sockaddr *)&newaddr, &newaddrlen);
     if (status != 0) {
         return status;
     }
-    if (newname.sun_family == AF_UNIX && newname.sun_path && *(newname.sun_path)) {
-        strncpy(fakechroot_buf, newname.sun_path, FAKECHROOT_MAXPATH);
+    if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
+        strncpy(fakechroot_buf, newaddr.sun_path, FAKECHROOT_MAXPATH);
         narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-        strncpy(newname.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
     }
 
-    memcpy(name, &newname, sizeof(struct sockaddr_un));
-    *namelen = sizeof(newname.sun_family) + strlen(newname.sun_path);
+    memcpy(GETSOCKNAME_SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
+    *addrlen = SUN_LEN(&newaddr);
     return status;
 }
 #endif
@@ -2213,7 +2421,7 @@ int glob_pattern_p (const char *pattern, int quote)
 #endif
 
 
-#ifdef HAVE_
+#ifdef HAVE_INOTIFY_ADD_WATCH
 /* #include <sys/inotify.h> */
 int inotify_add_watch (int fd, const char *pathname, uint32_t mask)
 {
@@ -2346,7 +2554,6 @@ int lsetxattr (const char *path, const char *name, const void *value, size_t siz
 #endif
 
 
-#if !defined(HAVE___LXSTAT)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int lstat (const char *file_name, struct stat *buf)
@@ -2365,11 +2572,9 @@ int lstat (const char *file_name, struct stat *buf)
             buf->st_size = status;
     return retval;
 }
-#endif
 
 
 #ifdef HAVE_LSTAT64
-#if !defined(HAVE___LXSTAT64)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int lstat64 (const char *file_name, struct stat64 *buf)
@@ -2388,7 +2593,6 @@ int lstat64 (const char *file_name, struct stat64 *buf)
             buf->st_size = status;
     return retval;
 }
-#endif
 #endif
 
 
@@ -2842,7 +3046,7 @@ FILE *popen (const char *program, const char *type) {
 
 
 /* #include <unistd.h> */
-READLINK_TYPE_RETURN readlink (READLINK_TYPE_ARG1(path), READLINK_TYPE_ARG2(buf), READLINK_TYPE_ARG3(bufsiz))
+READLINK_TYPE_RETURN readlink (const char *path, char *buf, READLINK_TYPE_ARG3(bufsiz))
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
@@ -2879,7 +3083,7 @@ READLINK_TYPE_RETURN readlink (READLINK_TYPE_ARG1(path), READLINK_TYPE_ARG2(buf)
 
 #ifdef HAVE_READLINKAT
 /* #include <unistd.h> */
-READLINKAT_TYPE_RETURN readlinkat (READLINKAT_TYPE_ARG1(dirfd), READLINKAT_TYPE_ARG2(path), READLINKAT_TYPE_ARG3(buf), READLINKAT_TYPE_ARG4(bufsiz))
+ssize_t readlinkat (int dirfd, const char *path, char *buf, size_t bufsiz)
 {
     int status;
     char tmp[FAKECHROOT_MAXPATH], *tmpptr;
@@ -3006,7 +3210,7 @@ int rmdir (const char *pathname)
 
 #ifdef HAVE_SCANDIR
 /* #include <dirent.h> */
-SCANDIR_TYPE_RETURN scandir (SCANDIR_TYPE_ARG1(dir), SCANDIR_TYPE_ARG2(namelist), SCANDIR_TYPE_ARG3(filter), SCANDIR_TYPE_ARG4(compar))
+int scandir (const char *dir, struct dirent ***namelist, SCANDIR_TYPE_ARG3(filter), SCANDIR_TYPE_ARG4(compar))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
@@ -3018,7 +3222,7 @@ SCANDIR_TYPE_RETURN scandir (SCANDIR_TYPE_ARG1(dir), SCANDIR_TYPE_ARG2(namelist)
 
 #ifdef HAVE_SCANDIR64
 /* #include <dirent.h> */
-SCANDIR64_TYPE_RETURN scandir64 (SCANDIR64_TYPE_ARG1(dir), SCANDIR64_TYPE_ARG2(namelist), SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar))
+int scandir64 (const char *dir, struct dirent64 ***namelist, SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
@@ -3040,7 +3244,6 @@ int setxattr (const char *path, const char *name, const void *value, size_t size
 #endif
 
 
-#if !defined(HAVE___XSTAT)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int stat (const char *file_name, struct stat *buf)
@@ -3050,11 +3253,9 @@ int stat (const char *file_name, struct stat *buf)
     if (next_stat == NULL) fakechroot_init();
     return next_stat(file_name, buf);
 }
-#endif
 
 
 #ifdef HAVE_STAT64
-#if !defined(HAVE___XSTAT64)
 /* #include <sys/stat.h> */
 /* #include <unistd.h> */
 int stat64 (const char *file_name, struct stat64 *buf)
@@ -3064,7 +3265,6 @@ int stat64 (const char *file_name, struct stat64 *buf)
     if (next_stat64 == NULL) fakechroot_init();
     return next_stat64(file_name, buf);
 }
-#endif
 #endif
 
 
@@ -3109,8 +3309,8 @@ int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
 int system (const char *command)
 {
     pid_t pid;
-    sig_t intsave, quitsave;
     sigset_t mask, omask;
+    struct sigaction new_action_ign, old_action_int, old_action_quit;
     int pstat;
     char *argp[] = {"sh", "-c", NULL, NULL};
 
@@ -3132,14 +3332,21 @@ int system (const char *command)
         _exit(127);
     }
 
-    intsave = (sig_t) bsd_signal(SIGINT, SIG_IGN);
-    quitsave = (sig_t) bsd_signal(SIGQUIT, SIG_IGN);
-    pid = waitpid(pid, (int *)&pstat, 0);
-    sigprocmask(SIG_SETMASK, &omask, NULL);
-    (void)bsd_signal(SIGINT, intsave);
-    (void)bsd_signal(SIGQUIT, quitsave);
-    return (pid == -1 ? -1 : pstat);
+    new_action_ign.sa_handler = SIG_IGN;
+    sigemptyset (&new_action_ign.sa_mask);
+    new_action_ign.sa_flags = 0;
 
+    sigaction(SIGINT, &new_action_ign, &old_action_int);
+    sigaction(SIGQUIT, &new_action_ign, &old_action_quit);
+
+    pid = waitpid(pid, (int *)&pstat, 0);
+
+    sigprocmask(SIG_SETMASK, &omask, NULL);
+
+    sigaction(SIGINT, &old_action_int, NULL);
+    sigaction(SIGQUIT, &old_action_quit, NULL);
+
+    return (pid == -1 ? -1 : pstat);
 }
 #endif
 

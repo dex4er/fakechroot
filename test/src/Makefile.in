@@ -34,25 +34,28 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = test-chroot$(EXEEXT) test-lstat$(EXEEXT) \
-	test-popen$(EXEEXT) test-scandir$(EXEEXT) test-system$(EXEEXT)
+check_PROGRAMS = test-canonicalize_file_name$(EXEEXT) \
+	test-chroot$(EXEEXT) test-lstat$(EXEEXT) test-popen$(EXEEXT) \
+	test-scandir$(EXEEXT) test-socket-af_unix-client$(EXEEXT) \
+	test-socket-af_unix-server$(EXEEXT) test-system$(EXEEXT)
 subdir = test/src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/m4/readlink_argtypes.m4 \
-	$(top_srcdir)/m4/readlinkat_argtypes.m4 \
-	$(top_srcdir)/m4/scandir64_argtypes.m4 \
-	$(top_srcdir)/m4/scandir_argtypes.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/check_func_argtypes.m4 \
+	$(top_srcdir)/m4/includes_headers.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+test_canonicalize_file_name_SOURCES = test-canonicalize_file_name.c
+test_canonicalize_file_name_OBJECTS =  \
+	test-canonicalize_file_name.$(OBJEXT)
+test_canonicalize_file_name_LDADD = $(LDADD)
 test_chroot_SOURCES = test-chroot.c
 test_chroot_OBJECTS = test-chroot.$(OBJEXT)
 test_chroot_LDADD = $(LDADD)
@@ -65,6 +68,14 @@ test_popen_LDADD = $(LDADD)
 test_scandir_SOURCES = test-scandir.c
 test_scandir_OBJECTS = test-scandir.$(OBJEXT)
 test_scandir_LDADD = $(LDADD)
+test_socket_af_unix_client_SOURCES = test-socket-af_unix-client.c
+test_socket_af_unix_client_OBJECTS =  \
+	test-socket-af_unix-client.$(OBJEXT)
+test_socket_af_unix_client_LDADD = $(LDADD)
+test_socket_af_unix_server_SOURCES = test-socket-af_unix-server.c
+test_socket_af_unix_server_OBJECTS =  \
+	test-socket-af_unix-server.$(OBJEXT)
+test_socket_af_unix_server_LDADD = $(LDADD)
 test_system_SOURCES = test-system.c
 test_system_OBJECTS = test-system.$(OBJEXT)
 test_system_LDADD = $(LDADD)
@@ -81,9 +92,12 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = test-chroot.c test-lstat.c test-popen.c test-scandir.c \
-	test-system.c
-DIST_SOURCES = test-chroot.c test-lstat.c test-popen.c test-scandir.c \
+SOURCES = test-canonicalize_file_name.c test-chroot.c test-lstat.c \
+	test-popen.c test-scandir.c test-socket-af_unix-client.c \
+	test-socket-af_unix-server.c test-system.c
+DIST_SOURCES = test-canonicalize_file_name.c test-chroot.c \
+	test-lstat.c test-popen.c test-scandir.c \
+	test-socket-af_unix-client.c test-socket-af_unix-server.c \
 	test-system.c
 ETAGS = etags
 CTAGS = ctags
@@ -128,7 +142,6 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-MK = @MK@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -147,6 +160,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PROVE = @PROVE@
 RANLIB = @RANLIB@
 SED = @SED@
+SEQ = @SEQ@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -251,6 +265,9 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+test-canonicalize_file_name$(EXEEXT): $(test_canonicalize_file_name_OBJECTS) $(test_canonicalize_file_name_DEPENDENCIES) 
+	@rm -f test-canonicalize_file_name$(EXEEXT)
+	$(LINK) $(test_canonicalize_file_name_OBJECTS) $(test_canonicalize_file_name_LDADD) $(LIBS)
 test-chroot$(EXEEXT): $(test_chroot_OBJECTS) $(test_chroot_DEPENDENCIES) 
 	@rm -f test-chroot$(EXEEXT)
 	$(LINK) $(test_chroot_OBJECTS) $(test_chroot_LDADD) $(LIBS)
@@ -263,6 +280,12 @@ test-popen$(EXEEXT): $(test_popen_OBJECTS) $(test_popen_DEPENDENCIES)
 test-scandir$(EXEEXT): $(test_scandir_OBJECTS) $(test_scandir_DEPENDENCIES) 
 	@rm -f test-scandir$(EXEEXT)
 	$(LINK) $(test_scandir_OBJECTS) $(test_scandir_LDADD) $(LIBS)
+test-socket-af_unix-client$(EXEEXT): $(test_socket_af_unix_client_OBJECTS) $(test_socket_af_unix_client_DEPENDENCIES) 
+	@rm -f test-socket-af_unix-client$(EXEEXT)
+	$(LINK) $(test_socket_af_unix_client_OBJECTS) $(test_socket_af_unix_client_LDADD) $(LIBS)
+test-socket-af_unix-server$(EXEEXT): $(test_socket_af_unix_server_OBJECTS) $(test_socket_af_unix_server_DEPENDENCIES) 
+	@rm -f test-socket-af_unix-server$(EXEEXT)
+	$(LINK) $(test_socket_af_unix_server_OBJECTS) $(test_socket_af_unix_server_LDADD) $(LIBS)
 test-system$(EXEEXT): $(test_system_OBJECTS) $(test_system_DEPENDENCIES) 
 	@rm -f test-system$(EXEEXT)
 	$(LINK) $(test_system_OBJECTS) $(test_system_LDADD) $(LIBS)
@@ -273,10 +296,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-canonicalize_file_name.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-chroot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-lstat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-popen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-scandir.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket-af_unix-client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket-af_unix-server.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-system.Po@am__quote@
 
 .c.o:

@@ -11,13 +11,13 @@ do_subst = sed -e 's,[@]prefix[@],$(prefix),g' \
 	       -e 's,[@]VERSION[@],$(VERSION),g'
 
 fakechroot: $(srcdir)/fakechroot.sh
-	$(do_subst) < $< > $@
+	$(do_subst) < $(srcdir)/fakechroot.sh > fakechroot
 	chmod +x $@
 
 ldd.fakechroot: ldd.pl
-	cp $< $@
-	chmod +x $@
+	cp $(srcdir)/ldd.pl ldd.fakechroot
+	chmod +x ldd.fakechroot
 
 ldconfig.fakechroot: ldconfig.sh
-	cp $< $@
-	chmod +x $@
+	cp $(srcdir)/ldconfig.sh ldconfig.fakechroot
+	chmod +x ldconfig.fakechroot

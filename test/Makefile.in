@@ -37,14 +37,11 @@ target_triplet = @target@
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/m4/readlink_argtypes.m4 \
-	$(top_srcdir)/m4/readlinkat_argtypes.m4 \
-	$(top_srcdir)/m4/scandir64_argtypes.m4 \
-	$(top_srcdir)/m4/scandir_argtypes.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/check_func_argtypes.m4 \
+	$(top_srcdir)/m4/includes_headers.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -136,7 +133,6 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-MK = @MK@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -155,6 +151,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PROVE = @PROVE@
 RANLIB = @RANLIB@
 SED = @SED@
+SEQ = @SEQ@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -219,14 +216,17 @@ top_srcdir = @top_srcdir@
 SUBDIRS = src
 TESTS = \
     t/00echo.t \
+    t/canonicalize_file_name.t \
     t/chdir.t \
     t/chroot.t \
     t/cmd-subst.t \
     t/cp.t \
     t/escape-nested-chroot.t \
+    t/host.t \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \
+    t/socket-af_unix.t \
     t/symlink.t \
     t/system.t \
     t/touch.t \
@@ -240,8 +240,12 @@ EXTRA_DIST = $(TESTS) \
     common.inc \
     debootstrap.sh \
     fakechroot.sh \
+    readlink.inc \
+    seq.inc \
     tap.inc \
     testtree.sh \
+    touch.inc \
+    bin/fakechroot \
     t/cmd-subst-pwd.sh \
     #
 
@@ -688,11 +692,11 @@ uninstall-am:
 
 test:
 	$(MAKE) $(AM_MAKEFLAGS) -C src check
-@MK@ifneq (,$(PROVE))
-	$(PROVE) t
-@MK@else
-	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
-@MK@endif
+	if [ -n "$(PROVE)" ]; then \
+	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
+	else \
+	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

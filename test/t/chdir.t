@@ -14,13 +14,13 @@ for chroot in chroot fakechroot; do
     else
 
         for d in / .. /tmp/..; do
-            t=`$srcdir/fakechroot.sh testtree /bin/sh -c "cd $d && ls CHROOT"  2>&1`
+            t=`$srcdir/$chroot.sh testtree /bin/sh -c "cd $d && ls CHROOT"  2>&1`
             test "$t" = "CHROOT" || not
             ok "$chroot cd $d:" $t
         done
 
         for d in '$FAKECHROOT_BASE'; do
-            t=`$srcdir/fakechroot.sh testtree /bin/sh -c "cd $d && ls CHROOT"  2>&1`
+            t=`$srcdir/$chroot.sh testtree /bin/sh -c "cd $d && ls CHROOT"  2>&1`
             test "$t" != "CHROOT" || not
             ok "$chroot not cd $d:" $t
         done

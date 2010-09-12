@@ -1,5 +1,29 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to the type of arg 1 for `bind'. */
+#undef BIND_TYPE_ARG1
+
+/* Define to the type of arg 2 for `bind'. */
+#undef BIND_TYPE_ARG2
+
+/* Define to the type of arg 3 for `bind'. */
+#undef BIND_TYPE_ARG3
+
+/* Define to the type of return value for `bind'. */
+#undef BIND_TYPE_RETURN
+
+/* Define to the type of arg 1 for `connect'. */
+#undef CONNECT_TYPE_ARG1
+
+/* Define to the type of arg 2 for `connect'. */
+#undef CONNECT_TYPE_ARG2
+
+/* Define to the type of arg 3 for `connect'. */
+#undef CONNECT_TYPE_ARG3
+
+/* Define to the type of return value for `connect'. */
+#undef CONNECT_TYPE_RETURN
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -7,6 +31,42 @@
 
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
+
+/* Define to the type of arg 1 for `fts_open'. */
+#undef FTS_OPEN_TYPE_ARG1
+
+/* Define to the type of arg 2 for `fts_open'. */
+#undef FTS_OPEN_TYPE_ARG2
+
+/* Define to the type of arg 3 for `fts_open'. */
+#undef FTS_OPEN_TYPE_ARG3
+
+/* Define to the type of return value for `fts_open'. */
+#undef FTS_OPEN_TYPE_RETURN
+
+/* Define to the type of arg 1 for `getpeername'. */
+#undef GETPEERNAME_TYPE_ARG1
+
+/* Define to the type of arg 2 for `getpeername'. */
+#undef GETPEERNAME_TYPE_ARG2
+
+/* Define to the type of arg 3 for `getpeername'. */
+#undef GETPEERNAME_TYPE_ARG3
+
+/* Define to the type of return value for `getpeername'. */
+#undef GETPEERNAME_TYPE_RETURN
+
+/* Define to the type of arg 1 for `getsockname'. */
+#undef GETSOCKNAME_TYPE_ARG1
+
+/* Define to the type of arg 2 for `getsockname'. */
+#undef GETSOCKNAME_TYPE_ARG2
+
+/* Define to the type of arg 3 for `getsockname'. */
+#undef GETSOCKNAME_TYPE_ARG3
+
+/* Define to the type of return value for `getsockname'. */
+#undef GETSOCKNAME_TYPE_RETURN
 
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
@@ -21,8 +81,27 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* Define to 1 if you have the `bind' function. */
+#undef HAVE_BIND
+
 /* Define to 1 if you have the `bindtextdomain' function. */
 #undef HAVE_BINDTEXTDOMAIN
+
+/* Define to 1 if the type of arg 1 for `bind' is `int _' */
+#undef HAVE_BIND_TYPE_ARG1_INT__
+
+/* Define to 1 if the type of arg 2 for `bind' is `const struct sockaddr *_'
+   */
+#undef HAVE_BIND_TYPE_ARG2_CONST_STRUCT_SOCKADDR_P_
+
+/* Define to 1 if the type of arg 2 for `bind' is `__CONST_SOCKADDR_ARG _' */
+#undef HAVE_BIND_TYPE_ARG2___CONST_SOCKADDR_ARG__
+
+/* Define to 1 if the type of arg 3 for `bind' is `socklen_t _' */
+#undef HAVE_BIND_TYPE_ARG3_SOCKLEN_T__
+
+/* Define to 1 if the type of return value for `bind' is `int' */
+#undef HAVE_BIND_TYPE_RETURN_INT
 
 /* Define to 1 if you have the `canonicalize_file_name' function. */
 #undef HAVE_CANONICALIZE_FILE_NAME
@@ -38,6 +117,26 @@
 
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
+
+/* Define to 1 if you have the `connect' function. */
+#undef HAVE_CONNECT
+
+/* Define to 1 if the type of arg 1 for `connect' is `int _' */
+#undef HAVE_CONNECT_TYPE_ARG1_INT__
+
+/* Define to 1 if the type of arg 2 for `connect' is `const struct sockaddr
+   *_' */
+#undef HAVE_CONNECT_TYPE_ARG2_CONST_STRUCT_SOCKADDR_P_
+
+/* Define to 1 if the type of arg 2 for `connect' is `__CONST_SOCKADDR_ARG _'
+   */
+#undef HAVE_CONNECT_TYPE_ARG2___CONST_SOCKADDR_ARG__
+
+/* Define to 1 if the type of arg 3 for `connect' is `socklen_t _' */
+#undef HAVE_CONNECT_TYPE_ARG3_SOCKLEN_T__
+
+/* Define to 1 if the type of return value for `connect' is `int' */
+#undef HAVE_CONNECT_TYPE_RETURN_INT
 
 /* Define to 1 if you have the `creat' function. */
 #undef HAVE_CREAT
@@ -59,6 +158,9 @@
 
 /* Define to 1 if you have the `eaccess' function. */
 #undef HAVE_EACCESS
+
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
 
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS
@@ -108,6 +210,15 @@
 /* Define to 1 if you have the `fts_open' function. */
 #undef HAVE_FTS_OPEN
 
+/* Define to 1 if the type of arg 1 for `fts_open' is `char * const *_' */
+#undef HAVE_FTS_OPEN_TYPE_ARG1_CHAR_P_CONST_P_
+
+/* Define to 1 if the type of arg 2 for `fts_open' is `int _' */
+#undef HAVE_FTS_OPEN_TYPE_ARG2_INT__
+
+/* Define to 1 if the type of return value for `fts_open' is `FTS *' */
+#undef HAVE_FTS_OPEN_TYPE_RETURN_FTS_P
+
 /* Define to 1 if you have the `ftw' function. */
 #undef HAVE_FTW
 
@@ -123,6 +234,52 @@
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
+/* Define to 1 if you have the `getpeername' function. */
+#undef HAVE_GETPEERNAME
+
+/* Define to 1 if the type of arg 1 for `getpeername' is `int _' */
+#undef HAVE_GETPEERNAME_TYPE_ARG1_INT__
+
+/* Define to 1 if the type of arg 2 for `getpeername' is `struct sockaddr *_'
+   */
+#undef HAVE_GETPEERNAME_TYPE_ARG2_STRUCT_SOCKADDR_P_
+
+/* Define to 1 if the type of arg 2 for `getpeername' is `__SOCKADDR_ARG _' */
+#undef HAVE_GETPEERNAME_TYPE_ARG2___SOCKADDR_ARG__
+
+/* Define to 1 if the type of arg 3 for `getpeername' is `socket_t *_' */
+#undef HAVE_GETPEERNAME_TYPE_ARG3_SOCKET_T_P_
+
+/* Define to 1 if the type of arg 3 for `getpeername' is `socklen_t
+   *__restrict _' */
+#undef HAVE_GETPEERNAME_TYPE_ARG3_SOCKLEN_T_P__RESTRICT__
+
+/* Define to 1 if the type of return value for `getpeername' is `int' */
+#undef HAVE_GETPEERNAME_TYPE_RETURN_INT
+
+/* Define to 1 if you have the `getsockname' function. */
+#undef HAVE_GETSOCKNAME
+
+/* Define to 1 if the type of arg 1 for `getsockname' is `int _' */
+#undef HAVE_GETSOCKNAME_TYPE_ARG1_INT__
+
+/* Define to 1 if the type of arg 2 for `getsockname' is `struct sockaddr *_'
+   */
+#undef HAVE_GETSOCKNAME_TYPE_ARG2_STRUCT_SOCKADDR_P_
+
+/* Define to 1 if the type of arg 2 for `getsockname' is `__SOCKADDR_ARG _' */
+#undef HAVE_GETSOCKNAME_TYPE_ARG2___SOCKADDR_ARG__
+
+/* Define to 1 if the type of arg 3 for `getsockname' is `socket_t *_' */
+#undef HAVE_GETSOCKNAME_TYPE_ARG3_SOCKET_T_P_
+
+/* Define to 1 if the type of arg 3 for `getsockname' is `socklen_t
+   *__restrict _' */
+#undef HAVE_GETSOCKNAME_TYPE_ARG3_SOCKLEN_T_P__RESTRICT__
+
+/* Define to 1 if the type of return value for `getsockname' is `int' */
+#undef HAVE_GETSOCKNAME_TYPE_RETURN_INT
+
 /* Define to 1 if you have the `getwd' function. */
 #undef HAVE_GETWD
 
@@ -137,6 +294,9 @@
 
 /* Define to 1 if you have the `glob64' function. */
 #undef HAVE_GLOB64
+
+/* Define to 1 if you have the <glob.h> header file. */
+#undef HAVE_GLOB_H
 
 /* Define to 1 if you have the `glob_pattern_p' function. */
 #undef HAVE_GLOB_PATTERN_P
@@ -259,11 +419,32 @@
 /* Define to 1 if you have the `popen' function. */
 #undef HAVE_POPEN
 
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
+
 /* Define to 1 if you have the `readlink' function. */
 #undef HAVE_READLINK
 
 /* Define to 1 if you have the `readlinkat' function. */
 #undef HAVE_READLINKAT
+
+/* Define to 1 if the type of arg 1 for `readlink' is `const char *_' */
+#undef HAVE_READLINK_TYPE_ARG1_CONST_CHAR_P_
+
+/* Define to 1 if the type of arg 2 for `readlink' is `char *_' */
+#undef HAVE_READLINK_TYPE_ARG2_CHAR_P_
+
+/* Define to 1 if the type of arg 3 for `readlink' is `int _' */
+#undef HAVE_READLINK_TYPE_ARG3_INT__
+
+/* Define to 1 if the type of arg 3 for `readlink' is `size_t _' */
+#undef HAVE_READLINK_TYPE_ARG3_SIZE_T__
+
+/* Define to 1 if the type of return value for `readlink' is `int' */
+#undef HAVE_READLINK_TYPE_RETURN_INT
+
+/* Define to 1 if the type of return value for `readlink' is `ssize_t' */
+#undef HAVE_READLINK_TYPE_RETURN_SSIZE_T
 
 /* Define to 1 if you have the `realpath' function. */
 #undef HAVE_REALPATH
@@ -292,6 +473,25 @@
 /* Define to 1 if you have the `scandir64' function. */
 #undef HAVE_SCANDIR64
 
+/* Define to 1 if the type of arg 1 for `scandir64' is `const char *_' */
+#undef HAVE_SCANDIR64_TYPE_ARG1_CONST_CHAR_P_
+
+/* Define to 1 if the type of arg 2 for `scandir64' is `struct dirent64 ***_'
+   */
+#undef HAVE_SCANDIR64_TYPE_ARG2_STRUCT_DIRENT64_PPP_
+
+/* Define to 1 if the type of return value for `scandir64' is `int' */
+#undef HAVE_SCANDIR64_TYPE_RETURN_INT
+
+/* Define to 1 if the type of arg 1 for `scandir' is `const char *_' */
+#undef HAVE_SCANDIR_TYPE_ARG1_CONST_CHAR_P_
+
+/* Define to 1 if the type of arg 2 for `scandir' is `struct dirent ***_' */
+#undef HAVE_SCANDIR_TYPE_ARG2_STRUCT_DIRENT_PPP_
+
+/* Define to 1 if the type of return value for `scandir' is `int' */
+#undef HAVE_SCANDIR_TYPE_RETURN_INT
+
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
 
@@ -300,6 +500,9 @@
 
 /* Define to 1 if you have the <shadow.h> header file. */
 #undef HAVE_SHADOW_H
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
@@ -311,8 +514,14 @@
    zero-length file name argument. */
 #undef HAVE_STAT_EMPTY_STRING_BUG
 
+/* Define to 1 if you have the <stdarg.h> header file. */
+#undef HAVE_STDARG_H
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
@@ -325,6 +534,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if `sun_len' is a member of `struct sockaddr_un'. */
+#undef HAVE_STRUCT_SOCKADDR_UN_SUN_LEN
 
 /* Define to 1 if you have the `symlink' function. */
 #undef HAVE_SYMLINK
@@ -346,11 +558,23 @@
    */
 #undef HAVE_SYS_NDIR_H
 
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
+/* Define to 1 if you have the <sys/times.h> header file. */
+#undef HAVE_SYS_TIMES_H
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#undef HAVE_SYS_WAIT_H
 
 /* Define to 1 if you have the <sys/xattr.h> header file. */
 #undef HAVE_SYS_XATTR_H
@@ -406,6 +630,12 @@
 /* Define to 1 if you have the `__fxstatat64' function. */
 #undef HAVE___FXSTATAT64
 
+/* Define to 1 if you have the `__getcwd_chk' function. */
+#undef HAVE___GETCWD_CHK
+
+/* Define to 1 if you have the `__getwd_chk' function. */
+#undef HAVE___GETWD_CHK
+
 /* Define to 1 if you have the `__lxstat' function. */
 #undef HAVE___LXSTAT
 
@@ -432,6 +662,15 @@
 
 /* Define to 1 if you have the `__open_2' function. */
 #undef HAVE___OPEN_2
+
+/* Define to 1 if you have the `__readlinkat_chk' function. */
+#undef HAVE___READLINKAT_CHK
+
+/* Define to 1 if you have the `__readlink_chk' function. */
+#undef HAVE___READLINK_CHK
+
+/* Define to 1 if you have the `__realpath_chk' function. */
+#undef HAVE___REALPATH_CHK
 
 /* Define to 1 if you have the `__xmknod' function. */
 #undef HAVE___XMKNOD
@@ -470,21 +709,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* Define to the type of arg 1 for `readlinkat'. */
-#undef READLINKAT_TYPE_ARG1
-
-/* Define to the type of arg 2 for `readlinkat'. */
-#undef READLINKAT_TYPE_ARG2
-
-/* Define to the type of arg 3 for `readlinkat'. */
-#undef READLINKAT_TYPE_ARG3
-
-/* Define to the type of arg 4 for `readlinkat'. */
-#undef READLINKAT_TYPE_ARG4
-
-/* Define to the type of return value for `readlinkat'. */
-#undef READLINKAT_TYPE_RETURN
 
 /* Define to the type of arg 1 for `readlink'. */
 #undef READLINK_TYPE_ARG1

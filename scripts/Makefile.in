@@ -38,14 +38,11 @@ target_triplet = @target@
 subdir = scripts
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/m4/readlink_argtypes.m4 \
-	$(top_srcdir)/m4/readlinkat_argtypes.m4 \
-	$(top_srcdir)/m4/scandir64_argtypes.m4 \
-	$(top_srcdir)/m4/scandir_argtypes.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/check_func_argtypes.m4 \
+	$(top_srcdir)/m4/includes_headers.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -118,7 +115,6 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-MK = @MK@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -137,6 +133,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PROVE = @PROVE@
 RANLIB = @RANLIB@
 SED = @SED@
+SEQ = @SEQ@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -434,16 +431,16 @@ uninstall-am: uninstall-binSCRIPTS
 
 
 fakechroot: $(srcdir)/fakechroot.sh
-	$(do_subst) < $< > $@
+	$(do_subst) < $(srcdir)/fakechroot.sh > fakechroot
 	chmod +x $@
 
 ldd.fakechroot: ldd.pl
-	cp $< $@
-	chmod +x $@
+	cp $(srcdir)/ldd.pl ldd.fakechroot
+	chmod +x ldd.fakechroot
 
 ldconfig.fakechroot: ldconfig.sh
-	cp $< $@
-	chmod +x $@
+	cp $(srcdir)/ldconfig.sh ldconfig.fakechroot
+	chmod +x ldconfig.fakechroot
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

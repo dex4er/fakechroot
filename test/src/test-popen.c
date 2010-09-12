@@ -11,7 +11,6 @@
 
 int main (int argc, char *argv[]) {
     FILE *fp;
-    int status;
     char path[PATH_MAX];
 
     if (argc != 2) {
@@ -29,9 +28,7 @@ int main (int argc, char *argv[]) {
         printf("%s", path);
     }
 
-    status = pclose(fp);
-    if (status == -1) {
-        perror("pclose");
-        exit(1);
-    }
+    pclose(fp);
+
+    return 0;
 }

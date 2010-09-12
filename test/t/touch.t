@@ -5,13 +5,7 @@ srcdir=${srcdir:-.}
 
 prepare 16
 
-if [ -x testtree/usr/bin/touch ]; then
-    touch=/usr/bin/touch
-elif [ -x testtree/bin/touch ]; then
-    touch=/bin/touch
-else
-    touch=
-fi
+. $srcdir/touch.inc
 
 if [ -z "$touch" ]; then
     skip 16 "touch not found"

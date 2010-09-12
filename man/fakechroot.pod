@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="22 Aug 2010"
+# pod2man --section=1 --release="Debian" --center=" " --date="8 Sep 2010"
 #
 =head1 NAME
 
@@ -82,23 +82,27 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
- $ fakeroot fakechroot debootstrap --variant=fakechroot lenny /tmp/len
- ny
+ $ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv
+ =/bin/true
+ $ fakeroot fakechroot debootstrap --variant=fakechroot sid /tmp/sid
 
- $ fakeroot fakechroot chroot /tmp/lenny /bin/bash
+ $ fakeroot fakechroot chroot /tmp/sid /bin/bash
  # cd /
- # echo deb http://ftp.debian.org/debian lenny main contrib non-free >
+ # echo deb http://ftp.debian.org/debian sid main contrib non-free >
  /etc/apt/sources.list
- # echo deb-src http://ftp.debian.org/debian lenny main contrib non-fr
- ee >> /etc/apt/sources.list
+ # echo deb-src http://ftp.debian.org/debian sid main contrib non-free
+  >> /etc/apt/sources.list
  # apt-get update
  # apt-get install adduser whiptail build-essential devscripts
  # adduser --uid 1001 user
- # cd /tmp
- # apt-get source hello
- # cd hello-*
- # debuild --preserve-env -b
  # exit
+
+ $ fakechroot chroot /tmp/sid /bin/bash
+ $ cd /tmp
+ $ apt-get source hello
+ $ cd hello-*
+ $ debuild --preserve-env -b
+ $ exit
 
 =head1 SECURITY ASPECTS
 
@@ -135,6 +139,12 @@ The version of current fakechroot library.
 
 The root directory for fake chroot environment.
 
+=item B<FAKECHROOT_AF_UNIX_PATH>
+
+The root directory for unix sockets.  The default value is the same as
+C<FAKECHROOT_BASE> and it can be set separately if the C<FAKECHROOT_BASE>
+is too long and the unix socket path can exceed the limit of B<108> chars.
+
 =item B<FAKECHROOT_EXCLUDE_PATH>
 
 The list of directories which are excluded from being chrooted.  The elements
@@ -148,9 +158,10 @@ command runs instead (path to substitute command is not chrooted).
 
 For example:
 
- FAKECHROOT_CMD_SUBST=/sbin/ldconfig=/tmp/ldconfig-wrapper
+ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
 
-will substitute C</tmp/ldconfig-wrapper> for C</sbin/ldconfig>.
+will substitute C</bin/true> for C</usr/bin/mkfifo> and will make possible to
+install sysvinit binary package.
 
 Give as many substitute commands as you want, separated by C<:>
 (colon) characters.
@@ -241,6 +252,5 @@ Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 
 =head1 SEE ALSO
 
-fakeroot(1), dpkg-buildpackage(1), debuild(1), debootstrap(8),
+fakeroot(1), debuild(1), debootstrap(8), febootstrap(8),
 http://fakechroot.alioth.debian.org/
-

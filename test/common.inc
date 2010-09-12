@@ -1,6 +1,3 @@
-
-. $srcdir/tap.inc
-
 TRUE=0
 FALSE=1
 
@@ -29,10 +26,12 @@ prepare_env () {
     export LD_PRELOAD
 
     if ! which chroot >/dev/null; then
-        export PATH=/usr/sbin:/sbin:$PATH
+        PATH=$PATH:/usr/sbin:/sbin
+        export PATH
     fi
 
-    export FAKECHROOT=true
+    FAKECHROOT=true
+    export FAKECHROOT
 }
 
 cleanup () {
@@ -48,3 +47,6 @@ prepare () {
     $srcdir/testtree.sh testtree
     test "`cat testtree/CHROOT 2>&1`" = "testtree" || bail_out "cannot create testtree"
 }
+
+. $srcdir/seq.inc
+. $srcdir/tap.inc

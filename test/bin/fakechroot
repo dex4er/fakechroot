@@ -1,0 +1,22 @@
+#!/bin/sh
+
+srcdir=${srcdir:-.}
+. $srcdir/common.inc
+
+if [ "$1" = "-s" ] || [ "$1" = "--use-system-libs" ]; then
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH${LD_LIBRARY_PATH:+:}/usr/lib:/lib"
+    export LD_LIBRARY_PATH
+    shift
+fi
+
+if [ "$1" = "--" ]; then
+    shift
+fi
+
+prepare_env
+
+if [ $# -gt 0 ]; then
+    exec "$@"
+else
+    exec $SHELL
+fi

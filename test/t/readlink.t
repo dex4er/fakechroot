@@ -2,6 +2,7 @@
 
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
+. $srcdir/readlink.inc
 
 imax=$(( 180 - $(pwd | wc -c) ))
 
@@ -16,7 +17,7 @@ for chroot in chroot fakechroot; do
         symlink=$chroot-
         destfile=$chroot-
 
-        for i in `seq 1 $imax`; do
+        for i in `$SEQ 1 $imax`; do
 
             symlink="${symlink}a"
             destfile="${destfile}b"
@@ -26,7 +27,7 @@ for chroot in chroot fakechroot; do
             test "$t" = "" || not
             ok "$chroot ln -s [$i]" $t
 
-            t=`$srcdir/$chroot.sh testtree /bin/readlink $symlink 2>&1`
+            t=`$srcdir/$chroot.sh testtree $readlink $symlink 2>&1`
             test "$t" = "$destfile" || not
             ok "$chroot readlink [$i]" $t
 

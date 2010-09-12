@@ -55,13 +55,17 @@ for p in \
     '/usr/bin/dirname' \
     '/usr/bin/find' \
     '/usr/bin/id' \
+    '/usr/bin/less' \
     '/usr/bin/ltrace' \
     '/usr/bin/perl' \
+    '/usr/bin/readlink' \
     '/usr/bin/seq' \
     '/usr/bin/strace' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \
+    '/usr/local/bin/gseq' \
+    '/usr/local/bin/ltrace' \
     '/usr/local/bin/strace'
 do
     for f in $p; do
@@ -70,9 +74,11 @@ do
 done
 
 for p in \
+    'ld-*.so' \
     'ld-linux.so.*' \
     'ld-linux-x86-64.so.*' \
     'ld-uClibc.so.*' \
+    'ld.so.*' \
     'libacl.so.*' \
     'libattr.so.*' \
     'libc.so.*' \

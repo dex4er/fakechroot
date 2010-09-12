@@ -1,14 +1,16 @@
 #!/bin/sh
 
+srcdir=${srcdir:-.}
+
 if [ $# -gt 0 ]; then
     destdir=$1
     shift
 else
-    destdir=testtree
+    destdir=$srcdir/testtree
 fi
 
 if [ $# -gt 0 ]; then
-    HOME=/root chroot `pwd`/$destdir "$@"
+    HOME=/root exec /usr/sbin/chroot $destdir "$@"
 else
-    HOME=/root chroot `pwd`/$destdir /bin/bash
+    HOME=/root exec /usr/sbin/chroot $destdir $SHELL
 fi
