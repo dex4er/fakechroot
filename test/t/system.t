@@ -6,7 +6,7 @@ srcdir=${srcdir:-.}
 prepare 4
 
 case "`uname -s`" in
-    Linux|KFreeBSD)
+    Linux|GNU/kFreeBSD)
         exe=exe;;
     *)
         exe=file;;
