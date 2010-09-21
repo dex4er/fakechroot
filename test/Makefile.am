@@ -20,10 +20,10 @@ TESTS = \
 
 suffix =
 
-CLEANFILES = testtree
+CLEANFILES = .proverc
 
 EXTRA_DIST = $(TESTS) \
-    .proverc \
+    proverc \
     chroot.sh \
     common.inc \
     debootstrap.sh \
@@ -40,6 +40,7 @@ EXTRA_DIST = $(TESTS) \
 test:
 	$(MAKE) $(AM_MAKEFLAGS) -C src check
 	if [ -n "$(PROVE)" ]; then \
+	    cp -f $(srcdir)/proverc .proverc; \
 	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
 	else \
 	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
