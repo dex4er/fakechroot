@@ -1794,7 +1794,7 @@ int execlp (const char *file, const char *arg, ...) {
     expand_chroot_path(file, fakechroot_path, fakechroot_buf);
     if (next_execvp == NULL)
         fakechroot_init();
-    return next_execvp(file, (char * const *) argv);
+    return execvp(file, (char * const *) argv);
 }
 
 
