@@ -1,6 +1,7 @@
 check_PROGRAMS = \
     test-canonicalize_file_name \
     test-chroot \
+    test-execlp \
     test-lstat \
     test-popen \
     test-scandir \

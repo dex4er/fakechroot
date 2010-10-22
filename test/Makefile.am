@@ -7,6 +7,7 @@ TESTS = \
     t/chroot.t \
     t/cmd-subst.t \
     t/cp.t \
+    t/execlp.t \
     t/escape-nested-chroot.t \
     t/host.t \
     t/popen.t \
