@@ -13,22 +13,16 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-	cat >> testtree/bin/execlp-test <<EOF
-#!/bin/bash
+        t=`$srcdir/$chroot.sh testtree test-execlp echo something 2>&1`
+        test "$t" = "something" || not
+        ok "$chroot execlp with echo returns" $t
 
-echo "Magic bees"
-EOF
-	chmod a+x testtree/bin/execlp-test
+        printf "#!/bin/sh\necho \$@\n" > testtree/bin/test-echo
+        chmod a+x testtree/bin/test-echo
 
-	correct_output=`testtree/bin/execlp-test`
-
-	t=`$srcdir/$chroot.sh testtree execlp-test`
-	test "$t" = "$correct_output" || not
-	ok "$chroot execlp test script executes ok in shell"
-
-	t=`$srcdir/$chroot.sh testtree test-execlp`
-	test "$t" = "$correct_output" || not
-	ok "$chroot execlp test script executes ok from execlp()"
+        t=`$srcdir/$chroot.sh testtree test-execlp test-echo something 2>&1`
+        test "$t" = "something" || not
+        ok "$chroot execlp with test-echo returns" $t
 
     fi
 done
