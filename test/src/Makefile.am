@@ -7,6 +7,7 @@ check_PROGRAMS = \
     test-scandir \
     test-socket-af_unix-client \
     test-socket-af_unix-server \
+    test-statfs \
     test-system \
     #
 

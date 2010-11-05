@@ -54,11 +54,15 @@ stdio.h
 stdlib.h
 string.h
 sys/inotify.h
+sys/mount.h
+sys/param.h
 sys/socket.h
 sys/stat.h
+sys/statfs.h
 sys/times.h
 sys/types.h
 sys/un.h
+sys/vfs.h
 sys/wait.h
 sys/xattr.h
 unistd.h
@@ -100,6 +104,7 @@ __opendir2
 __realpath_chk
 __readlink_chk
 __readlinkat_chk
+__statfs
 __xmknod
 __xstat
 __xstat64
@@ -194,6 +199,7 @@ setenv
 setxattr
 stat
 stat64
+statfs
 strchrnul
 symlink
 symlinkat
