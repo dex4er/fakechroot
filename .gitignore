@@ -11,6 +11,7 @@
 .libs
 .pc
 .project
+.proverc
 Makefile
 Makefile.in
 aclocal.m4
