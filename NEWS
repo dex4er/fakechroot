@@ -1,3 +1,9 @@
+== Version 2.12 ==
+
+SOON
+
+* New function +execlp+(3).  Thanks to Robert Spanton.
+
 == Version 2.11 ==
 
 12 Sep 2010
