@@ -59,6 +59,7 @@ sys/param.h
 sys/socket.h
 sys/stat.h
 sys/statfs.h
+sys/statvfs.h
 sys/times.h
 sys/types.h
 sys/un.h
@@ -201,6 +202,8 @@ stat
 stat64
 statfs
 statfs64
+statvfs
+statvfs64
 strchrnul
 symlink
 symlinkat

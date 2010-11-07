@@ -8,6 +8,7 @@ check_PROGRAMS = \
     test-socket-af_unix-client \
     test-socket-af_unix-server \
     test-statfs \
+    test-statvfs \
     test-system \
     #
 
