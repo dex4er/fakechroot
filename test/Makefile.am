@@ -14,6 +14,7 @@ TESTS = \
     t/pwd.t \
     t/readlink.t \
     t/socket-af_unix.t \
+    t/statfs.c \
     t/symlink.t \
     t/system.t \
     t/touch.t \
