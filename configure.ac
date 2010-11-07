@@ -200,6 +200,7 @@ setxattr
 stat
 stat64
 statfs
+statfs64
 strchrnul
 symlink
 symlinkat
