@@ -3,6 +3,7 @@
 SOON
 
 * New function +execlp+(3).  Thanks to Robert Spanton.
+* New functions +statfs+(2) and +statvfs+(2).  Thanks to Paweł Stawicki.
 
 == Version 2.11 ==
 
