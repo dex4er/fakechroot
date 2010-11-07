@@ -4,6 +4,7 @@ SOON
 
 * New function +execlp+(3).  Thanks to Robert Spanton.
 * New functions +statfs+(2) and +statvfs+(2).  Thanks to Paweł Stawicki.
+* Better support for GNU/kFreeBSD was made.
 
 == Version 2.11 ==
 
