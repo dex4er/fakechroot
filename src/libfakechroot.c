@@ -593,7 +593,9 @@ static int     (*next_statfs) (const char *, struct statfs *) = NULL;
 static int     (*next_statfs64) (const char *, struct statfs64 *) = NULL;
 #endif
 #ifdef HAVE_STATVFS
+#if !defined(__FreeBSD__) || defined(__GLIBC__)
 static int     (*next_statvfs) (const char *, struct statvfs *) = NULL;
+#endif
 #endif
 #ifdef HAVE_STATVFS64
 static int     (*next_statvfs64) (const char *, struct statvfs64 *) = NULL;
@@ -927,7 +929,9 @@ void fakechroot_init (void)
     nextsym(statfs64, "statfs64");
 #endif
 #ifdef HAVE_STATVFS
+#if !defined(__FreeBSD__) || defined(__GLIBC__)
     nextsym(statvfs, "statvfs");
+#endif
 #endif
 #ifdef HAVE_STATVFS64
     nextsym(statvfs64, "statvfs64");
@@ -3353,6 +3357,7 @@ int statfs64 (const char *path, struct statfs64 *buf)
 
 
 #ifdef HAVE_STATVFS
+#if !defined(__FreeBSD__) || defined(__GLIBC__)
 /* #include <sys/statvfs.h> */
 int statvfs (const char *path, struct statvfs *buf)
 {
@@ -3361,6 +3366,7 @@ int statvfs (const char *path, struct statvfs *buf)
     if (next_statvfs == NULL) fakechroot_init();
     return next_statvfs(path, buf);
 }
+#endif
 #endif
 
 
