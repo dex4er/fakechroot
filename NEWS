@@ -1,6 +1,6 @@
 == Version 2.12 ==
 
-SOON
+10 Nov 2010
 
 * New function +execlp+(3).  Thanks to Robert Spanton.
 * New functions +statfs+(2) and +statvfs+(2).  Thanks to Paweł Stawicki.
