@@ -64,6 +64,21 @@
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
+#ifdef HAVE_SYS_STATFS_H
+#include <sys/statfs.h>
+#endif
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#endif
 
 #if defined(PATH_MAX)
 #define FAKECHROOT_MAXPATH PATH_MAX
@@ -351,6 +366,9 @@ static ssize_t (*next___readlink_chk) (const char *, char *, size_t, size_t) = N
 #ifdef HAVE___READLINKAT_CHK
 static ssize_t (*next___readlinkat_chk) (int, const char *, char *, size_t, size_t) = NULL;
 #endif
+#ifdef HAVE___STATFS
+static int     (*next___statfs) (const char *, struct statfs *) = NULL;
+#endif
 #ifdef HAVE___XMKNOD
 static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
 #endif
@@ -568,6 +586,20 @@ static int     (*next_stat) (const char *, struct stat *) = NULL;
 #ifdef HAVE_STAT64
 static int     (*next_stat64) (const char *, struct stat64 *) = NULL;
 #endif
+#ifdef HAVE_STATFS
+static int     (*next_statfs) (const char *, struct statfs *) = NULL;
+#endif
+#ifdef HAVE_STATFS64
+static int     (*next_statfs64) (const char *, struct statfs64 *) = NULL;
+#endif
+#ifdef HAVE_STATVFS
+#if !defined(__FreeBSD__) || defined(__GLIBC__)
+static int     (*next_statvfs) (const char *, struct statvfs *) = NULL;
+#endif
+#endif
+#ifdef HAVE_STATVFS64
+static int     (*next_statvfs64) (const char *, struct statvfs64 *) = NULL;
+#endif
 static int     (*next_symlink) (const char *, const char *) = NULL;
 #ifdef HAVE_SYMLINKAT
 static int     (*next_symlinkat) (const char *, int, const char *) = NULL;
@@ -675,6 +707,9 @@ void fakechroot_init (void)
 #endif
 #ifdef HAVE___READLINKAT_CHK
     nextsym(__readlinkat_chk, "__readlinkat_chk");
+#endif
+#ifdef HAVE___STATFS
+    nextsym(__statfs, "__statfs");
 #endif
 #ifdef HAVE___XMKNOD
     nextsym(__xmknod, "__xmknod");
@@ -886,6 +921,20 @@ void fakechroot_init (void)
     nextsym(stat, "stat");
 #ifdef HAVE_STAT64
     nextsym(stat64, "stat64");
+#endif
+#ifdef HAVE_STATFS
+    nextsym(statfs, "statfs");
+#endif
+#ifdef HAVE_STATFS64
+    nextsym(statfs64, "statfs64");
+#endif
+#ifdef HAVE_STATVFS
+#if !defined(__FreeBSD__) || defined(__GLIBC__)
+    nextsym(statvfs, "statvfs");
+#endif
+#endif
+#ifdef HAVE_STATVFS64
+    nextsym(statvfs64, "statvfs64");
 #endif
     nextsym(symlink, "symlink");
 #ifdef HAVE_SYMLINKAT
@@ -1261,6 +1310,18 @@ char *__realpath_chk (const char *name, char *resolved, size_t resolvedlen)
         narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
     }
     return ptr;
+}
+#endif
+
+
+#ifdef HAVE___STATFS
+/* #include <sys/vfs.h> */
+int __statfs (const char *path, struct statfs *buf)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    if (next___statfs == NULL) fakechroot_init();
+    return next___statfs(path, buf);
 }
 #endif
 
@@ -1794,7 +1855,7 @@ int execlp (const char *file, const char *arg, ...) {
     expand_chroot_path(file, fakechroot_path, fakechroot_buf);
     if (next_execvp == NULL)
         fakechroot_init();
-    return next_execvp(file, (char * const *) argv);
+    return execvp(file, (char * const *) argv);
 }
 
 
@@ -3264,6 +3325,59 @@ int stat64 (const char *file_name, struct stat64 *buf)
     expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
     if (next_stat64 == NULL) fakechroot_init();
     return next_stat64(file_name, buf);
+}
+#endif
+
+
+#ifdef HAVE_STATFS
+/* #include <sys/vfs.h> */
+/* or */
+/* #include <sys/param.h> */
+/* #include <sys/mount.h> */
+int statfs (const char *path, struct statfs *buf)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    if (next_statfs == NULL) fakechroot_init();
+    return next_statfs(path, buf);
+}
+#endif
+
+
+#ifdef HAVE_STATFS64
+/* #include <sys/vfs.h> */
+int statfs64 (const char *path, struct statfs64 *buf)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    if (next_statfs64 == NULL) fakechroot_init();
+    return next_statfs64(path, buf);
+}
+#endif
+
+
+#ifdef HAVE_STATVFS
+#if !defined(__FreeBSD__) || defined(__GLIBC__)
+/* #include <sys/statvfs.h> */
+int statvfs (const char *path, struct statvfs *buf)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    if (next_statvfs == NULL) fakechroot_init();
+    return next_statvfs(path, buf);
+}
+#endif
+#endif
+
+
+#ifdef HAVE_STATVFS64
+/* #include <sys/statvfs.h> */
+int statvfs64 (const char *path, struct statvfs64 *buf)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_MAXPATH];
+    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    if (next_statvfs64 == NULL) fakechroot_init();
+    return next_statvfs64(path, buf);
 }
 #endif
 

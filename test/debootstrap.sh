@@ -41,6 +41,8 @@ fi
 
 fakeroot fakechroot /usr/sbin/debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
 
+HOME=/root fakeroot fakechroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install -f
+
 cp -v `cd $srcdir; pwd`/../scripts/ldd.pl $destdir/usr/bin/ldd
 
 HOME=/root fakeroot fakechroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg

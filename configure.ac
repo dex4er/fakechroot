@@ -1,5 +1,5 @@
 AC_PREREQ(2.62)
-AC_INIT([fakechroot], [2.11], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+AC_INIT([fakechroot], [2.12], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -54,11 +54,16 @@ stdio.h
 stdlib.h
 string.h
 sys/inotify.h
+sys/mount.h
+sys/param.h
 sys/socket.h
 sys/stat.h
+sys/statfs.h
+sys/statvfs.h
 sys/times.h
 sys/types.h
 sys/un.h
+sys/vfs.h
 sys/wait.h
 sys/xattr.h
 unistd.h
@@ -100,6 +105,7 @@ __opendir2
 __realpath_chk
 __readlink_chk
 __readlinkat_chk
+__statfs
 __xmknod
 __xstat
 __xstat64
@@ -194,6 +200,10 @@ setenv
 setxattr
 stat
 stat64
+statfs
+statfs64
+statvfs
+statvfs64
 strchrnul
 symlink
 symlinkat

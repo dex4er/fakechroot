@@ -434,11 +434,11 @@ fakechroot: $(srcdir)/fakechroot.sh
 	$(do_subst) < $(srcdir)/fakechroot.sh > fakechroot
 	chmod +x $@
 
-ldd.fakechroot: ldd.pl
+ldd.fakechroot: $(srcdir)/ldd.pl
 	cp $(srcdir)/ldd.pl ldd.fakechroot
 	chmod +x ldd.fakechroot
 
-ldconfig.fakechroot: ldconfig.sh
+ldconfig.fakechroot: $(srcdir)/ldconfig.sh
 	cp $(srcdir)/ldconfig.sh ldconfig.fakechroot
 	chmod +x ldconfig.fakechroot
 
