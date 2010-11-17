@@ -703,8 +703,6 @@ static int fakechroot_localdir (const char *p_path)
 
     if (!p_path) return 0;
 
-    if (!first) fakechroot_init();
-
     /* We need to expand ~ paths */
     if (home_path!=NULL && p_path[0]=='~') {
         strcpy(cwd_path, home_path);
