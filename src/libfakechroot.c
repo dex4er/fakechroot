@@ -157,13 +157,13 @@
         } \
     }
 
-#define nextsym(function, name) \
+#define nextsym(function) \
     { \
         char *msg; \
         if (next_##function == NULL) { \
-            (next_##function) = dlsym(RTLD_NEXT, name); \
+            (next_##function) = dlsym(RTLD_NEXT, #function); \
             if ((msg = dlerror()) != NULL) { \
-                fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, name, msg); \
+                fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, #function, msg); \
             } \
         } \
     }
@@ -663,304 +663,304 @@ void fakechroot_init (void)
     }
 
 #ifdef HAVE___FXSTATAT
-    nextsym(__fxstatat, "__fxstatat");
+    nextsym(__fxstatat);
 #endif
 #ifdef HAVE___FXSTATAT64
-    nextsym(__fxstatat64, "__fxstatat64");
+    nextsym(__fxstatat64);
 #endif
 #ifdef HAVE___GETCWD_CHK
-    nextsym(__getcwd_chk, "__getcwd_chk");
+    nextsym(__getcwd_chk);
 #endif
 #ifdef HAVE___GETWD_CHK
-    nextsym(__getwd_chk, "__getwd_chk");
+    nextsym(__getwd_chk);
 #endif
 #ifdef HAVE___LXSTAT
-    nextsym(__lxstat, "__lxstat");
+    nextsym(__lxstat);
 #endif
 #ifdef HAVE___LXSTAT64
-    nextsym(__lxstat64, "__lxstat64");
+    nextsym(__lxstat64);
 #endif
 #ifdef HAVE___OPEN
-    nextsym(__open, "__open");
+    nextsym(__open);
 #endif
 #ifdef HAVE___OPEN_2
-    nextsym(__open_2, "__open_2");
+    nextsym(__open_2);
 #endif
 #ifdef HAVE___OPEN64
-    nextsym(__open64, "__open64");
+    nextsym(__open64);
 #endif
 #ifdef HAVE___OPEN64_2
-    nextsym(__open64_2, "__open64_2");
+    nextsym(__open64_2);
 #endif
 #ifdef HAVE___OPENAT_2
-    nextsym(__openat_2, "__openat_2");
+    nextsym(__openat_2);
 #endif
 #ifdef HAVE___OPENAT64_2
-    nextsym(__openat64_2, "__openat64_2");
+    nextsym(__openat64_2);
 #endif
 #ifdef HAVE___OPENDIR2
-    nextsym(__opendir2, "__opendir2");
+    nextsym(__opendir2);
 #endif
 #ifdef HAVE___REALPATH_CHK
-    nextsym(__realpath_chk, "__realpath_chk");
+    nextsym(__realpath_chk);
 #endif
 #ifdef HAVE___READLINK_CHK
-    nextsym(__readlink_chk, "__readlink_chk");
+    nextsym(__readlink_chk);
 #endif
 #ifdef HAVE___READLINKAT_CHK
-    nextsym(__readlinkat_chk, "__readlinkat_chk");
+    nextsym(__readlinkat_chk);
 #endif
 #ifdef HAVE___STATFS
-    nextsym(__statfs, "__statfs");
+    nextsym(__statfs);
 #endif
 #ifdef HAVE___XMKNOD
-    nextsym(__xmknod, "__xmknod");
+    nextsym(__xmknod);
 #endif
 #ifdef HAVE___XSTAT
-    nextsym(__xstat, "__xstat");
+    nextsym(__xstat);
 #endif
 #ifdef HAVE___XSTAT64
-    nextsym(__xstat64, "__xstat64");
+    nextsym(__xstat64);
 #endif
-    nextsym(access, "access");
-    nextsym(acct, "acct");
+    nextsym(access);
+    nextsym(acct);
 #ifdef AF_UNIX
-    nextsym(bind, "bind");
+    nextsym(bind);
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
-    nextsym(bindtextdomain, "bindtextdomain");
+    nextsym(bindtextdomain);
 #endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
-    nextsym(canonicalize_file_name, "canonicalize_file_name");
+    nextsym(canonicalize_file_name);
 #endif
-    nextsym(chdir, "chdir");
-    nextsym(chmod, "chmod");
-    nextsym(chown, "chown");
-/*    nextsym(chroot, "chroot"); */
+    nextsym(chdir);
+    nextsym(chmod);
+    nextsym(chown);
+/*    nextsym(chroot); */
 #ifdef AF_UNIX
-    nextsym(connect, "connect");
+    nextsym(connect);
 #endif
-    nextsym(creat, "creat");
+    nextsym(creat);
 #ifdef HAVE_CREAT64
-    nextsym(creat64, "creat64");
+    nextsym(creat64);
 #endif
 #ifdef HAVE_DLMOPEN
-    nextsym(dlmopen, "dlmopen");
+    nextsym(dlmopen);
 #endif
-    nextsym(dlopen, "dlopen");
+    nextsym(dlopen);
 #ifdef HAVE_EACCESS
-    nextsym(eaccess, "eaccess");
+    nextsym(eaccess);
 #endif
 #ifdef HAVE_EUIDACCESS
-    nextsym(euidaccess, "euidaccess");
+    nextsym(euidaccess);
 #endif
-/*    nextsym(execl, "execl"); */
-/*    nextsym(execle, "execle"); */
-/*    nextsym(execlp, "execlp"); */
-/*    nextsym(execv, "execv"); */
-    nextsym(execve, "execve");
-    nextsym(execvp, "execvp");
+/*    nextsym(execl); */
+/*    nextsym(execle); */
+/*    nextsym(execlp); */
+/*    nextsym(execv); */
+    nextsym(execve);
+    nextsym(execvp);
 #ifdef HAVE_FCHMODAT
-    nextsym(fchmodat, "fchmodat");
+    nextsym(fchmodat);
 #endif
 #ifdef HAVE_FCHOWNAT
-    nextsym(fchownat, "fchownat");
+    nextsym(fchownat);
 #endif
-    nextsym(fopen, "fopen");
+    nextsym(fopen);
 #ifdef HAVE_FOPEN64
-    nextsym(fopen64, "fopen64");
+    nextsym(fopen64);
 #endif
-    nextsym(freopen, "freopen");
+    nextsym(freopen);
 #ifdef HAVE_FREOPEN64
-    nextsym(freopen64, "freopen64");
+    nextsym(freopen64);
 #endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
-    nextsym(fts_open, "fts_open");
+    nextsym(fts_open);
 #endif
 #endif
 #ifdef HAVE_FTW
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-    nextsym(ftw, "ftw");
+    nextsym(ftw);
 #endif
 #endif
 #ifdef HAVE_FTW64
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-    nextsym(ftw64, "ftw64");
+    nextsym(ftw64);
 #endif
 #endif
 #ifdef HAVE_FUTIMESAT
-    nextsym(futimesat, "futimesat");
+    nextsym(futimesat);
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
-    nextsym(get_current_dir_name, "get_current_dir_name");
+    nextsym(get_current_dir_name);
 #endif
-    nextsym(getcwd, "getcwd");
+    nextsym(getcwd);
 #ifdef AF_UNIX
-    nextsym(getpeername, "getpeername");
+    nextsym(getpeername);
 #endif
 #ifdef AF_UNIX
-    nextsym(getsockname, "getsockname");
+    nextsym(getsockname);
 #endif
 #ifdef HAVE_GETWD
-    nextsym(getwd, "getwd");
+    nextsym(getwd);
 #endif
 #ifdef HAVE_GETXATTR
-    nextsym(getxattr, "getxattr");
+    nextsym(getxattr);
 #endif
-    nextsym(glob, "glob");
+    nextsym(glob);
 #ifdef HAVE_GLOB64
-    nextsym(glob64, "glob64");
+    nextsym(glob64);
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
-    nextsym(glob_pattern_p, "glob_pattern_p");
+    nextsym(glob_pattern_p);
 #endif
 #ifdef HAVE_INOTIFY_ADD_WATCH
-    nextsym(inotify_add_watch, "inotify_add_watch");
+    nextsym(inotify_add_watch);
 #endif
 #ifdef HAVE_LCHMOD
-    nextsym(lchmod, "lchmod");
+    nextsym(lchmod);
 #endif
-    nextsym(lchown, "lchown");
+    nextsym(lchown);
 #ifdef HAVE_LCKPWDF
-/*    nextsym(lckpwdf, "lckpwdf"); */
+/*    nextsym(lckpwdf); */
 #endif
 #ifdef HAVE_LGETXATTR
-    nextsym(lgetxattr, "lgetxattr");
+    nextsym(lgetxattr);
 #endif
-    nextsym(link, "link");
+    nextsym(link);
 #ifdef HAVE_LINKAT
-    nextsym(linkat, "linkat");
+    nextsym(linkat);
 #endif
 #ifdef HAVE_LISTXATTR
-    nextsym(listxattr, "listxattr");
+    nextsym(listxattr);
 #endif
 #ifdef HAVE_LLISTXATTR
-    nextsym(llistxattr, "llistxattr");
+    nextsym(llistxattr);
 #endif
 #ifdef HAVE_LREMOVEXATTR
-    nextsym(lremovexattr, "lremovexattr");
+    nextsym(lremovexattr);
 #endif
 #ifdef HAVE_LSETXATTR
-    nextsym(lsetxattr, "lsetxattr");
+    nextsym(lsetxattr);
 #endif
-    nextsym(lstat, "lstat");
+    nextsym(lstat);
 #ifdef HAVE_LSTAT64
-    nextsym(lstat64, "lstat64");
+    nextsym(lstat64);
 #endif
 #ifdef HAVE_LUTIMES
-    nextsym(lutimes, "lutimes");
+    nextsym(lutimes);
 #endif
-    nextsym(mkdir, "mkdir");
+    nextsym(mkdir);
 #ifdef HAVE_MKDIRAT
-    nextsym(mkdirat, "mkdirat");
+    nextsym(mkdirat);
 #endif
 #ifdef HAVE_MKDTEMP
-    nextsym(mkdtemp, "mkdtemp");
+    nextsym(mkdtemp);
 #endif
-    nextsym(mknod, "mknod");
+    nextsym(mknod);
 #ifdef HAVE_MKNODAT
-    nextsym(mknod, "mknodat");
+    nextsym(mknod);
 #endif
-    nextsym(mkfifo, "mkfifo");
+    nextsym(mkfifo);
 #ifdef HAVE_MKFIFOAT
-    nextsym(mkfifoat, "mkfifoat");
+    nextsym(mkfifoat);
 #endif
-    nextsym(mkstemp, "mkstemp");
+    nextsym(mkstemp);
 #ifdef HAVE_MKSTEMP64
-    nextsym(mkstemp64, "mkstemp64");
+    nextsym(mkstemp64);
 #endif
-    nextsym(mktemp, "mktemp");
+    nextsym(mktemp);
 #ifdef HAVE_NFTW
-    nextsym(nftw, "nftw");
+    nextsym(nftw);
 #endif
 #ifdef HAVE_NFTW64
-    nextsym(nftw64, "nftw64");
+    nextsym(nftw64);
 #endif
-    nextsym(open, "open");
+    nextsym(open);
 #ifdef HAVE_OPEN64
-    nextsym(open64, "open64");
+    nextsym(open64);
 #endif
 #ifdef HAVE_OPENAT
-    nextsym(openat, "openat");
+    nextsym(openat);
 #endif
 #ifdef HAVE_OPENAT64
-    nextsym(openat64, "openat64");
+    nextsym(openat64);
 #endif
 #if !defined(HAVE___OPENDIR2)
-    nextsym(opendir, "opendir");
+    nextsym(opendir);
 #endif
 #ifdef __GNUC__
-/*    nextsym(popen, "popen"); */
+/*    nextsym(popen); */
 #endif
-    nextsym(pathconf, "pathconf");
-    nextsym(readlink, "readlink");
+    nextsym(pathconf);
+    nextsym(readlink);
 #ifdef HAVE_READLINKAT
-    nextsym(readlinkat, "readlinkat");
+    nextsym(readlinkat);
 #endif
-    nextsym(realpath, "realpath");
-    nextsym(remove, "remove");
+    nextsym(realpath);
+    nextsym(remove);
 #ifdef HAVE_REMOVEXATTR
-    nextsym(removexattr, "removexattr");
+    nextsym(removexattr);
 #endif
-    nextsym(rename, "rename");
+    nextsym(rename);
 #ifdef HAVE_RENAMEAT
-    nextsym(renameat, "renameat");
+    nextsym(renameat);
 #endif
 #ifdef HAVE_REVOKE
-    nextsym(revoke, "revoke");
+    nextsym(revoke);
 #endif
-    nextsym(rmdir, "rmdir");
+    nextsym(rmdir);
 #ifdef HAVE_SCANDIR
-    nextsym(scandir, "scandir");
+    nextsym(scandir);
 #endif
 #ifdef HAVE_SCANDIR64
-    nextsym(scandir64, "scandir64");
+    nextsym(scandir64);
 #endif
 #ifdef HAVE_SETXATTR
-    nextsym(setxattr, "setxattr");
+    nextsym(setxattr);
 #endif
-    nextsym(stat, "stat");
+    nextsym(stat);
 #ifdef HAVE_STAT64
-    nextsym(stat64, "stat64");
+    nextsym(stat64);
 #endif
 #ifdef HAVE_STATFS
-    nextsym(statfs, "statfs");
+    nextsym(statfs);
 #endif
 #ifdef HAVE_STATFS64
-    nextsym(statfs64, "statfs64");
+    nextsym(statfs64);
 #endif
 #ifdef HAVE_STATVFS
 #if !defined(__FreeBSD__) || defined(__GLIBC__)
-    nextsym(statvfs, "statvfs");
+    nextsym(statvfs);
 #endif
 #endif
 #ifdef HAVE_STATVFS64
-    nextsym(statvfs64, "statvfs64");
+    nextsym(statvfs64);
 #endif
-    nextsym(symlink, "symlink");
+    nextsym(symlink);
 #ifdef HAVE_SYMLINKAT
-    nextsym(symlinkat, "symlinkat");
+    nextsym(symlinkat);
 #endif
-/*    nextsym(symlink, "system"); */
-    nextsym(tempnam, "tempnam");
-    nextsym(tmpnam, "tmpnam");
-    nextsym(truncate, "truncate");
+/*    nextsym(symlink); */
+    nextsym(tempnam);
+    nextsym(tmpnam);
+    nextsym(truncate);
 #ifdef HAVE_TRUNCATE64
-    nextsym(truncate64, "truncate64");
+    nextsym(truncate64);
 #endif
-    nextsym(unlink, "unlink");
+    nextsym(unlink);
 #ifdef HAVE_UNLINKAT
-    nextsym(unlinkat, "unlinkat");
+    nextsym(unlinkat);
 #endif
 #ifdef HAVE_ULCKPWDF
-/*    nextsym(ulckpwdf, "ulckpwdf"); */
+/*    nextsym(ulckpwdf); */
 #endif
-    nextsym(utime, "utime");
+    nextsym(utime);
 #ifdef HAVE_UTIMENSAT
-    nextsym(utimensat, "utimensat");
+    nextsym(utimensat);
 #endif
-    nextsym(utimes, "utimes");
+    nextsym(utimes);
 }
 
 
