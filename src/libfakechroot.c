@@ -1,10 +1,12 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>, LGPL
-    Copyright (c) 2007      Mark Eichin <eichin@metacarta.com>, LGPL
+    Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
+    <dexter@debian.org>
+    Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
+    Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
 
     klik2 support -- give direct access to a list of directories
-    Copyright (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>, LGPL
+    Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -157,26 +159,37 @@
         } \
     }
 
-#define nextsym(function) \
-    { \
-        char *msg; \
-        if (next_##function == NULL) { \
-            (next_##function) = dlsym(RTLD_NEXT, #function); \
-            if ((msg = dlerror()) != NULL) { \
-                fprintf (stderr, "%s: dlsym(%s): %s\n", PACKAGE, #function, msg); \
-            } \
-        } \
-    }
+typedef void (*fakechroot_wrapperfn_t)(void);
 
-#define nextdecl(function, return_type, arguments) \
-    static return_type (*next_##function) arguments = NULL;
+struct fakechroot_wrapper {
+    fakechroot_wrapperfn_t func;
+    fakechroot_wrapperfn_t nextfunc;
+    const char *name;
+};
+
+#define wrapper_proto(function, return_type, arguments) \
+    extern return_type function arguments; \
+    typedef return_type (*fakechroot_##function##_fn_t) arguments; \
+    struct fakechroot_wrapper fakechroot_##function##_wrapper_decl __attribute__((section("data.fakechroot"))) = { \
+        .func = (fakechroot_wrapperfn_t) function, \
+        .nextfunc = NULL, \
+        .name = #function \
+    };
 
 #define nextcall(function) \
-    ((next_##function == NULL ? fakechroot_init() : NULL), next_##function)
+    ( \
+      (fakechroot_##function##_fn_t)( \
+          fakechroot_##function##_wrapper_decl.nextfunc ? \
+          fakechroot_##function##_wrapper_decl.nextfunc : \
+          fakechroot_loadfunc(&fakechroot_##function##_wrapper_decl) \
+      ) \
+    )
 
 #ifndef __GLIBC__
 extern char **environ;
 #endif
+
+
 
 /* Useful to exclude a list of directories or files */
 static char *exclude_list[32];
@@ -324,310 +337,310 @@ static char *strchrnul (const char *s, int c_in)
 #endif
 
 #ifdef HAVE___FXSTATAT
-nextdecl(__fxstatat, int, (int, int, const char *, struct stat *, int));
+wrapper_proto(__fxstatat, int, (int, int, const char *, struct stat *, int));
 #endif
 #ifdef HAVE___FXSTATAT64
-nextdecl(__fxstatat64, int, (int, int, const char *, struct stat64 *, int));
+wrapper_proto(__fxstatat64, int, (int, int, const char *, struct stat64 *, int));
 #endif
 #ifdef HAVE___GETCWD_CHK
-nextdecl(__getcwd_chk, char *, (char *, size_t, size_t));
+wrapper_proto(__getcwd_chk, char *, (char *, size_t, size_t));
 #endif
 #ifdef HAVE___GETWD_CHK
-nextdecl(__getwd_chk, char *, (char *, size_t));
+wrapper_proto(__getwd_chk, char *, (char *, size_t));
 #endif
 #ifdef HAVE___LXSTAT
-nextdecl(__lxstat, int, (int, const char *, struct stat *));
+wrapper_proto(__lxstat, int, (int, const char *, struct stat *));
 #endif
 #ifdef HAVE___LXSTAT64
-nextdecl(__lxstat64, int, (int, const char *, struct stat64 *));
+wrapper_proto(__lxstat64, int, (int, const char *, struct stat64 *));
 #endif
 #ifdef HAVE___OPEN
-nextdecl(__open, int, (const char *, int, ...));
+wrapper_proto(__open, int, (const char *, int, ...));
 #endif
 #ifdef HAVE___OPEN_2
-nextdecl(__open_2, int, (const char *, int));
+wrapper_proto(__open_2, int, (const char *, int));
 #endif
 #ifdef HAVE___OPEN64
-nextdecl(__open64, int, (const char *, int, ...));
+wrapper_proto(__open64, int, (const char *, int, ...));
 #endif
 #ifdef HAVE___OPEN64_2
-nextdecl(__open64_2, int, (const char *, int));
+wrapper_proto(__open64_2, int, (const char *, int));
 #endif
 #ifdef HAVE___OPENAT_2
-nextdecl(__openat_2, int, (int, const char *, int));
+wrapper_proto(__openat_2, int, (int, const char *, int));
 #endif
 #ifdef HAVE___OPENAT64_2
-nextdecl(__openat64_2, int, (int, const char *, int));
+wrapper_proto(__openat64_2, int, (int, const char *, int));
 #endif
 #ifdef HAVE___OPENDIR2
-nextdecl(__opendir2, DIR *, (const char *, int));
+wrapper_proto(__opendir2, DIR *, (const char *, int));
 #endif
 #ifdef HAVE___REALPATH_CHK
-nextdecl(__realpath_chk, char *, (const char *, char *, size_t));
+wrapper_proto(__realpath_chk, char *, (const char *, char *, size_t));
 #endif
 #ifdef HAVE___READLINK_CHK
-nextdecl(__readlink_chk, ssize_t, (const char *, char *, size_t, size_t));
+wrapper_proto(__readlink_chk, ssize_t, (const char *, char *, size_t, size_t));
 #endif
 #ifdef HAVE___READLINKAT_CHK
-nextdecl(__readlinkat_chk, ssize_t, (int, const char *, char *, size_t, size_t));
+wrapper_proto(__readlinkat_chk, ssize_t, (int, const char *, char *, size_t, size_t));
 #endif
 #ifdef HAVE___STATFS
-nextdecl(__statfs, int, (const char *, struct statfs *));
+wrapper_proto(__statfs, int, (const char *, struct statfs *));
 #endif
 #ifdef HAVE___XMKNOD
-nextdecl(__xmknod, int, (int, const char *, mode_t, dev_t *));
+wrapper_proto(__xmknod, int, (int, const char *, mode_t, dev_t *));
 #endif
 #ifdef HAVE___XSTAT
-nextdecl(__xstat, int, (int, const char *, struct stat *));
+wrapper_proto(__xstat, int, (int, const char *, struct stat *));
 #endif
 #ifdef HAVE___XSTAT64
-nextdecl(__xstat64, int, (int, const char *, struct stat64 *));
+wrapper_proto(__xstat64, int, (int, const char *, struct stat64 *));
 #endif
 #ifdef HAVE__XFTW
-nextdecl(_xftw, int, (int, const char *, int (*)(const char *, const struct stat *, int), int));
+wrapper_proto(_xftw, int, (int, const char *, int (*)(const char *, const struct stat *, int), int));
 #endif
 #ifdef HAVE__XFTW64
-nextdecl(_xftw64, int, (int, const char *, int (*)(const char *, const struct stat64 *, int), int));
+wrapper_proto(_xftw64, int, (int, const char *, int (*)(const char *, const struct stat64 *, int), int));
 #endif
-nextdecl(access, int, (const char *, int));
-nextdecl(acct, int, (const char *));
+wrapper_proto(access, int, (const char *, int));
+wrapper_proto(acct, int, (const char *));
 #ifdef AF_UNIX
-nextdecl(bind, int, (int, BIND_TYPE_ARG2(/**/), socklen_t));
+wrapper_proto(bind, int, (int, BIND_TYPE_ARG2(/**/), socklen_t));
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
-nextdecl(bindtextdomain, char *, (const char *, const char *));
+wrapper_proto(bindtextdomain, char *, (const char *, const char *));
 #endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
-nextdecl(canonicalize_file_name, char *, (const char *));
+wrapper_proto(canonicalize_file_name, char *, (const char *));
 #endif
-nextdecl(chdir, int, (const char *));
-nextdecl(chmod, int, (const char *, mode_t));
-nextdecl(chown, int, (const char *, uid_t, gid_t));
-/* nextdecl(chroot, int, (const char *)); */
+wrapper_proto(chdir, int, (const char *));
+wrapper_proto(chmod, int, (const char *, mode_t));
+wrapper_proto(chown, int, (const char *, uid_t, gid_t));
+/* wrapper_proto(chroot, int, (const char *)); */
 #ifdef AF_UNIX
-nextdecl(connect, int, (int, CONNECT_TYPE_ARG2(/**/), socklen_t));
+wrapper_proto(connect, int, (int, CONNECT_TYPE_ARG2(/**/), socklen_t));
 #endif
-nextdecl(creat, int, (const char *, mode_t));
+wrapper_proto(creat, int, (const char *, mode_t));
 #ifdef HAVE_CREAT64
-nextdecl(creat64, int, (const char *, mode_t));
+wrapper_proto(creat64, int, (const char *, mode_t));
 #endif
 #ifdef HAVE_DLMOPEN
-nextdecl(dlmopen, void *, (Lmid_t, const char *, int));
+wrapper_proto(dlmopen, void *, (Lmid_t, const char *, int));
 #endif
-nextdecl(dlopen, void *, (const char *, int));
+wrapper_proto(dlopen, void *, (const char *, int));
 #ifdef HAVE_EACCESS
-nextdecl(eaccess, int, (const char *, int));
+wrapper_proto(eaccess, int, (const char *, int));
 #endif
 #ifdef HAVE_EUIDACCESS
-nextdecl(euidaccess, int, (const char *, int));
+wrapper_proto(euidaccess, int, (const char *, int));
 #endif
-/* nextdecl(execl, int, (const char *, const char *, ...)); */
-/* nextdecl(execle, int, (const char *, const char *, ...)); */
-/* nextdecl(execlp, int, (const char *, const char *, ...)); */
-/* nextdecl(execv, int, (const char *, char *const [])); */
-nextdecl(execve, int, (const char *, char *const [], char *const []));
-nextdecl(execvp, int, (const char *, char *const []));
+/* wrapper_proto(execl, int, (const char *, const char *, ...)); */
+/* wrapper_proto(execle, int, (const char *, const char *, ...)); */
+/* wrapper_proto(execlp, int, (const char *, const char *, ...)); */
+/* wrapper_proto(execv, int, (const char *, char *const [])); */
+wrapper_proto(execve, int, (const char *, char *const [], char *const []));
+wrapper_proto(execvp, int, (const char *, char *const []));
 #ifdef HAVE_FCHMODAT
-nextdecl(fchmodat, int, (int, const char *, mode_t, int));
+wrapper_proto(fchmodat, int, (int, const char *, mode_t, int));
 #endif
 #ifdef HAVE_FCHOWNAT
-nextdecl(fchownat, int, (int, const char *, uid_t, gid_t, int));
+wrapper_proto(fchownat, int, (int, const char *, uid_t, gid_t, int));
 #endif
-nextdecl(fopen, FILE *, (const char *, const char *));
+wrapper_proto(fopen, FILE *, (const char *, const char *));
 #ifdef HAVE_FOPEN64
-nextdecl(fopen64, FILE *, (const char *, const char *));
+wrapper_proto(fopen64, FILE *, (const char *, const char *));
 #endif
-nextdecl(freopen, FILE *, (const char *, const char *, FILE *));
+wrapper_proto(freopen, FILE *, (const char *, const char *, FILE *));
 #ifdef HAVE_FREOPEN64
-nextdecl(freopen64, FILE *, (const char *, const char *, FILE *));
+wrapper_proto(freopen64, FILE *, (const char *, const char *, FILE *));
 #endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
-nextdecl(fts_open, FTS *, (char * const *, int, int (*)(const FTSENT **, const FTSENT **)));
+wrapper_proto(fts_open, FTS *, (char * const *, int, int (*)(const FTSENT **, const FTSENT **)));
 #endif
 #endif
 #ifdef HAVE_FTW
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-nextdecl(ftw, int, (const char *, int (*)(const char *, const struct stat *, int), int));
+wrapper_proto(ftw, int, (const char *, int (*)(const char *, const struct stat *, int), int));
 #endif
 #endif
 #ifdef HAVE_FTW64
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-nextdecl(ftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int), int));
+wrapper_proto(ftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int), int));
 #endif
 #endif
 #ifdef HAVE_FUTIMESAT
-nextdecl(futimesat, int, (int, const char *, const struct timeval [2]));
+wrapper_proto(futimesat, int, (int, const char *, const struct timeval [2]));
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
-nextdecl(get_current_dir_name, char *, (void));
+wrapper_proto(get_current_dir_name, char *, (void));
 #endif
-nextdecl(getcwd, char *, (char *, size_t));
+wrapper_proto(getcwd, char *, (char *, size_t));
 #ifdef AF_UNIX
-nextdecl(getpeername, int, (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *));
+wrapper_proto(getpeername, int, (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *));
 #endif
 #ifdef AF_UNIX
-nextdecl(getsockname, int, (int, GETSOCKNAME_TYPE_ARG2(/**/), socklen_t *));
+wrapper_proto(getsockname, int, (int, GETSOCKNAME_TYPE_ARG2(/**/), socklen_t *));
 #endif
 #ifdef HAVE_GETWD
-nextdecl(getwd, char *, (char *));
+wrapper_proto(getwd, char *, (char *));
 #endif
 #ifdef HAVE_GETXATTR
-nextdecl(getxattr, ssize_t, (const char *, const char *, void *, size_t));
+wrapper_proto(getxattr, ssize_t, (const char *, const char *, void *, size_t));
 #endif
-nextdecl(glob, int, (const char *, int, int (*) (const char *, int), glob_t *));
+wrapper_proto(glob, int, (const char *, int, int (*) (const char *, int), glob_t *));
 #ifdef HAVE_GLOB64
-nextdecl(glob64, int, (const char *, int, int (*) (const char *, int), glob64_t *));
+wrapper_proto(glob64, int, (const char *, int, int (*) (const char *, int), glob64_t *));
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
-nextdecl(glob_pattern_p, int, (const char *, int));
+wrapper_proto(glob_pattern_p, int, (const char *, int));
 #endif
 #ifdef HAVE_INOTIFY_ADD_WATCH
-nextdecl(inotify_add_watch, int, (int, const char *, uint32_t));
+wrapper_proto(inotify_add_watch, int, (int, const char *, uint32_t));
 #endif
 #ifdef HAVE_LCHMOD
-nextdecl(lchmod, int, (const char *, mode_t));
+wrapper_proto(lchmod, int, (const char *, mode_t));
 #endif
-nextdecl(lchown, int, (const char *, uid_t, gid_t));
+wrapper_proto(lchown, int, (const char *, uid_t, gid_t));
 #ifdef HAVE_LCKPWDF
-/* nextdecl(lckpwdf, int, (void)); */
+/* wrapper_proto(lckpwdf, int, (void)); */
 #endif
 #ifdef HAVE_LGETXATTR
-nextdecl(lgetxattr, ssize_t, (const char *, const char *, void *, size_t));
+wrapper_proto(lgetxattr, ssize_t, (const char *, const char *, void *, size_t));
 #endif
-nextdecl(link, int, (const char *, const char *));
+wrapper_proto(link, int, (const char *, const char *));
 #ifdef HAVE_LINKAT
-nextdecl(linkat, int, (int, const char *, int, const char *, int));
+wrapper_proto(linkat, int, (int, const char *, int, const char *, int));
 #endif
 #ifdef HAVE_LISTXATTR
-nextdecl(listxattr, ssize_t, (const char *, char *, size_t));
+wrapper_proto(listxattr, ssize_t, (const char *, char *, size_t));
 #endif
 #ifdef HAVE_LLISTXATTR
-nextdecl(llistxattr, ssize_t, (const char *, char *, size_t));
+wrapper_proto(llistxattr, ssize_t, (const char *, char *, size_t));
 #endif
 #ifdef HAVE_LREMOVEXATTR
-nextdecl(lremovexattr, int, (const char *, const char *));
+wrapper_proto(lremovexattr, int, (const char *, const char *));
 #endif
 #ifdef HAVE_LSETXATTR
-nextdecl(lsetxattr, int, (const char *, const char *, const void *, size_t, int));
+wrapper_proto(lsetxattr, int, (const char *, const char *, const void *, size_t, int));
 #endif
-nextdecl(lstat, int, (const char *, struct stat *));
+wrapper_proto(lstat, int, (const char *, struct stat *));
 #ifdef HAVE_LSTAT64
-nextdecl(lstat64, int, (const char *, struct stat64 *));
+wrapper_proto(lstat64, int, (const char *, struct stat64 *));
 #endif
 #ifdef HAVE_LUTIMES
-nextdecl(lutimes, int, (const char *, const struct timeval [2]));
+wrapper_proto(lutimes, int, (const char *, const struct timeval [2]));
 #endif
-nextdecl(mkdir, int, (const char *, mode_t));
+wrapper_proto(mkdir, int, (const char *, mode_t));
 #ifdef HAVE_MKDIRAT
-nextdecl(mkdirat, int, (int, const char *, mode_t));
+wrapper_proto(mkdirat, int, (int, const char *, mode_t));
 #endif
 #ifdef HAVE_MKDTEMP
-nextdecl(mkdtemp, char *, (char *));
+wrapper_proto(mkdtemp, char *, (char *));
 #endif
-nextdecl(mknod, int, (const char *, mode_t, dev_t));
+wrapper_proto(mknod, int, (const char *, mode_t, dev_t));
 #ifdef HAVE_MKNODAT
-nextdecl(mknodat, int, (int, const char *, mode_t, dev_t));
+wrapper_proto(mknodat, int, (int, const char *, mode_t, dev_t));
 #endif
-nextdecl(mkfifo, int, (const char *, mode_t));
+wrapper_proto(mkfifo, int, (const char *, mode_t));
 #ifdef HAVE_MKFIFOAT
-nextdecl(mkfifoat, int, (int, const char *, mode_t));
+wrapper_proto(mkfifoat, int, (int, const char *, mode_t));
 #endif
-nextdecl(mkstemp, int, (char *));
+wrapper_proto(mkstemp, int, (char *));
 #ifdef HAVE_MKSTEMP64
-nextdecl(mkstemp64, int, (char *));
+wrapper_proto(mkstemp64, int, (char *));
 #endif
-nextdecl(mktemp, char *, (char *));
+wrapper_proto(mktemp, char *, (char *));
 #ifdef HAVE_NFTW
-nextdecl(nftw, int, (const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int));
+wrapper_proto(nftw, int, (const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int));
 #endif
 #ifdef HAVE_NFTW64
-nextdecl(nftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int, struct FTW *), int, int));
+wrapper_proto(nftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int, struct FTW *), int, int));
 #endif
-nextdecl(open, int, (const char *, int, ...));
+wrapper_proto(open, int, (const char *, int, ...));
 #ifdef HAVE_OPEN64
-nextdecl(open64, int, (const char *, int, ...));
+wrapper_proto(open64, int, (const char *, int, ...));
 #endif
 #ifdef HAVE_OPENAT
-nextdecl(openat, int, (int, const char *, int, ...));
+wrapper_proto(openat, int, (int, const char *, int, ...));
 #endif
 #ifdef HAVE_OPENAT64
-nextdecl(openat64, int, (int, const char *, int, ...));
+wrapper_proto(openat64, int, (int, const char *, int, ...));
 #endif
 #if !defined(HAVE___OPENDIR2)
-nextdecl(opendir, DIR *, (const char *));
+wrapper_proto(opendir, DIR *, (const char *));
 #endif
-nextdecl(pathconf, long, (const char *, int));
+wrapper_proto(pathconf, long, (const char *, int));
 #ifdef __GNUC__
-/* nextdecl(popen, FILE *, (const char *, const char *)); */
+/* wrapper_proto(popen, FILE *, (const char *, const char *)); */
 #endif
-nextdecl(readlink, READLINK_TYPE_RETURN, (const char *, char *, READLINK_TYPE_ARG3(/**/)));
+wrapper_proto(readlink, READLINK_TYPE_RETURN, (const char *, char *, READLINK_TYPE_ARG3(/**/)));
 #ifdef HAVE_READLINKAT
-nextdecl(readlinkat, ssize_t, (int, const char *, char *, size_t));
+wrapper_proto(readlinkat, ssize_t, (int, const char *, char *, size_t));
 #endif
-nextdecl(realpath, char *, (const char *, char *));
-nextdecl(remove, int, (const char *));
+wrapper_proto(realpath, char *, (const char *, char *));
+wrapper_proto(remove, int, (const char *));
 #ifdef HAVE_REMOVEXATTR
-nextdecl(removexattr, int, (const char *, const char *));
+wrapper_proto(removexattr, int, (const char *, const char *));
 #endif
-nextdecl(rename, int, (const char *, const char *));
+wrapper_proto(rename, int, (const char *, const char *));
 #ifdef HAVE_RENAMEAT
-nextdecl(renameat, int, (int, const char *, int, const char *));
+wrapper_proto(renameat, int, (int, const char *, int, const char *));
 #endif
 #ifdef HAVE_REVOKE
-nextdecl(revoke, int, (const char *));
+wrapper_proto(revoke, int, (const char *));
 #endif
-nextdecl(rmdir, int, (const char *));
+wrapper_proto(rmdir, int, (const char *));
 #ifdef HAVE_SCANDIR
-nextdecl(scandir, int, (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)));
+wrapper_proto(scandir, int, (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)));
 #endif
 #ifdef HAVE_SCANDIR64
-nextdecl(scandir64, int, (const char *, struct dirent64 ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)));
+wrapper_proto(scandir64, int, (const char *, struct dirent64 ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)));
 #endif
 #ifdef HAVE_SETXATTR
-nextdecl(setxattr, int, (const char *, const char *, const void *, size_t, int));
+wrapper_proto(setxattr, int, (const char *, const char *, const void *, size_t, int));
 #endif
-nextdecl(stat, int, (const char *, struct stat *));
+wrapper_proto(stat, int, (const char *, struct stat *));
 #ifdef HAVE_STAT64
-nextdecl(stat64, int, (const char *, struct stat64 *));
+wrapper_proto(stat64, int, (const char *, struct stat64 *));
 #endif
 #ifdef HAVE_STATFS
-nextdecl(statfs, int, (const char *, struct statfs *));
+wrapper_proto(statfs, int, (const char *, struct statfs *));
 #endif
 #ifdef HAVE_STATFS64
-nextdecl(statfs64, int, (const char *, struct statfs64 *));
+wrapper_proto(statfs64, int, (const char *, struct statfs64 *));
 #endif
 #ifdef HAVE_STATVFS
 #if !defined(__FreeBSD__) || defined(__GLIBC__)
-nextdecl(statvfs, int, (const char *, struct statvfs *));
+wrapper_proto(statvfs, int, (const char *, struct statvfs *));
 #endif
 #endif
 #ifdef HAVE_STATVFS64
-nextdecl(statvfs64, int, (const char *, struct statvfs64 *));
+wrapper_proto(statvfs64, int, (const char *, struct statvfs64 *));
 #endif
-nextdecl(symlink, int, (const char *, const char *));
+wrapper_proto(symlink, int, (const char *, const char *));
 #ifdef HAVE_SYMLINKAT
-nextdecl(symlinkat, int, (const char *, int, const char *));
+wrapper_proto(symlinkat, int, (const char *, int, const char *));
 #endif
-/* nextdecl(system, int, (const char *)); */
-nextdecl(tempnam, char *, (const char *, const char *));
-nextdecl(tmpnam, char *, (char *));
-nextdecl(truncate, int, (const char *, off_t));
+/* wrapper_proto(system, int, (const char *)); */
+wrapper_proto(tempnam, char *, (const char *, const char *));
+wrapper_proto(tmpnam, char *, (char *));
+wrapper_proto(truncate, int, (const char *, off_t));
 #ifdef HAVE_TRUNCATE64
-nextdecl(truncate64, int, (const char *, off64_t));
+wrapper_proto(truncate64, int, (const char *, off64_t));
 #endif
-nextdecl(unlink, int, (const char *));
+wrapper_proto(unlink, int, (const char *));
 #ifdef HAVE_UNLINKAT
-nextdecl(unlinkat, int, (int, const char *, int));
+wrapper_proto(unlinkat, int, (int, const char *, int));
 #endif
 #ifdef HAVE_ULCKPWDF
-/* nextdecl(ulckpwdf, int, (void)); */
+/* wrapper_proto(ulckpwdf, int, (void)); */
 #endif
-nextdecl(utime, int, (const char *, const struct utimbuf *));
+wrapper_proto(utime, int, (const char *, const struct utimbuf *));
 #ifdef HAVE_UTIMENSAT
-nextdecl(utimensat, int, (int, const char *, const struct timespec [2], int));
+wrapper_proto(utimensat, int, (int, const char *, const struct timespec [2], int));
 #endif
-nextdecl(utimes, int, (const char *, const struct timeval [2]));
+wrapper_proto(utimes, int, (const char *, const struct timeval [2]));
 
 
 /* Bootstrap the library */
@@ -664,306 +677,19 @@ void fakechroot_init (void)
             strcat(home_path, "/");
         }
     }
+}
 
-#ifdef HAVE___FXSTATAT
-    nextsym(__fxstatat);
-#endif
-#ifdef HAVE___FXSTATAT64
-    nextsym(__fxstatat64);
-#endif
-#ifdef HAVE___GETCWD_CHK
-    nextsym(__getcwd_chk);
-#endif
-#ifdef HAVE___GETWD_CHK
-    nextsym(__getwd_chk);
-#endif
-#ifdef HAVE___LXSTAT
-    nextsym(__lxstat);
-#endif
-#ifdef HAVE___LXSTAT64
-    nextsym(__lxstat64);
-#endif
-#ifdef HAVE___OPEN
-    nextsym(__open);
-#endif
-#ifdef HAVE___OPEN_2
-    nextsym(__open_2);
-#endif
-#ifdef HAVE___OPEN64
-    nextsym(__open64);
-#endif
-#ifdef HAVE___OPEN64_2
-    nextsym(__open64_2);
-#endif
-#ifdef HAVE___OPENAT_2
-    nextsym(__openat_2);
-#endif
-#ifdef HAVE___OPENAT64_2
-    nextsym(__openat64_2);
-#endif
-#ifdef HAVE___OPENDIR2
-    nextsym(__opendir2);
-#endif
-#ifdef HAVE___REALPATH_CHK
-    nextsym(__realpath_chk);
-#endif
-#ifdef HAVE___READLINK_CHK
-    nextsym(__readlink_chk);
-#endif
-#ifdef HAVE___READLINKAT_CHK
-    nextsym(__readlinkat_chk);
-#endif
-#ifdef HAVE___STATFS
-    nextsym(__statfs);
-#endif
-#ifdef HAVE___XMKNOD
-    nextsym(__xmknod);
-#endif
-#ifdef HAVE___XSTAT
-    nextsym(__xstat);
-#endif
-#ifdef HAVE___XSTAT64
-    nextsym(__xstat64);
-#endif
-    nextsym(access);
-    nextsym(acct);
-#ifdef AF_UNIX
-    nextsym(bind);
-#endif
-#ifdef HAVE_BINDTEXTDOMAIN
-    nextsym(bindtextdomain);
-#endif
-#ifdef HAVE_CANONICALIZE_FILE_NAME
-    nextsym(canonicalize_file_name);
-#endif
-    nextsym(chdir);
-    nextsym(chmod);
-    nextsym(chown);
-/*    nextsym(chroot); */
-#ifdef AF_UNIX
-    nextsym(connect);
-#endif
-    nextsym(creat);
-#ifdef HAVE_CREAT64
-    nextsym(creat64);
-#endif
-#ifdef HAVE_DLMOPEN
-    nextsym(dlmopen);
-#endif
-    nextsym(dlopen);
-#ifdef HAVE_EACCESS
-    nextsym(eaccess);
-#endif
-#ifdef HAVE_EUIDACCESS
-    nextsym(euidaccess);
-#endif
-/*    nextsym(execl); */
-/*    nextsym(execle); */
-/*    nextsym(execlp); */
-/*    nextsym(execv); */
-    nextsym(execve);
-    nextsym(execvp);
-#ifdef HAVE_FCHMODAT
-    nextsym(fchmodat);
-#endif
-#ifdef HAVE_FCHOWNAT
-    nextsym(fchownat);
-#endif
-    nextsym(fopen);
-#ifdef HAVE_FOPEN64
-    nextsym(fopen64);
-#endif
-    nextsym(freopen);
-#ifdef HAVE_FREOPEN64
-    nextsym(freopen64);
-#endif
-#ifdef HAVE_FTS_OPEN
-#if !defined(HAVE___OPENDIR2)
-    nextsym(fts_open);
-#endif
-#endif
-#ifdef HAVE_FTW
-#if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-    nextsym(ftw);
-#endif
-#endif
-#ifdef HAVE_FTW64
-#if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-    nextsym(ftw64);
-#endif
-#endif
-#ifdef HAVE_FUTIMESAT
-    nextsym(futimesat);
-#endif
-#ifdef HAVE_GET_CURRENT_DIR_NAME
-    nextsym(get_current_dir_name);
-#endif
-    nextsym(getcwd);
-#ifdef AF_UNIX
-    nextsym(getpeername);
-#endif
-#ifdef AF_UNIX
-    nextsym(getsockname);
-#endif
-#ifdef HAVE_GETWD
-    nextsym(getwd);
-#endif
-#ifdef HAVE_GETXATTR
-    nextsym(getxattr);
-#endif
-    nextsym(glob);
-#ifdef HAVE_GLOB64
-    nextsym(glob64);
-#endif
-#ifdef HAVE_GLOB_PATTERN_P
-    nextsym(glob_pattern_p);
-#endif
-#ifdef HAVE_INOTIFY_ADD_WATCH
-    nextsym(inotify_add_watch);
-#endif
-#ifdef HAVE_LCHMOD
-    nextsym(lchmod);
-#endif
-    nextsym(lchown);
-#ifdef HAVE_LCKPWDF
-/*    nextsym(lckpwdf); */
-#endif
-#ifdef HAVE_LGETXATTR
-    nextsym(lgetxattr);
-#endif
-    nextsym(link);
-#ifdef HAVE_LINKAT
-    nextsym(linkat);
-#endif
-#ifdef HAVE_LISTXATTR
-    nextsym(listxattr);
-#endif
-#ifdef HAVE_LLISTXATTR
-    nextsym(llistxattr);
-#endif
-#ifdef HAVE_LREMOVEXATTR
-    nextsym(lremovexattr);
-#endif
-#ifdef HAVE_LSETXATTR
-    nextsym(lsetxattr);
-#endif
-    nextsym(lstat);
-#ifdef HAVE_LSTAT64
-    nextsym(lstat64);
-#endif
-#ifdef HAVE_LUTIMES
-    nextsym(lutimes);
-#endif
-    nextsym(mkdir);
-#ifdef HAVE_MKDIRAT
-    nextsym(mkdirat);
-#endif
-#ifdef HAVE_MKDTEMP
-    nextsym(mkdtemp);
-#endif
-    nextsym(mknod);
-#ifdef HAVE_MKNODAT
-    nextsym(mknod);
-#endif
-    nextsym(mkfifo);
-#ifdef HAVE_MKFIFOAT
-    nextsym(mkfifoat);
-#endif
-    nextsym(mkstemp);
-#ifdef HAVE_MKSTEMP64
-    nextsym(mkstemp64);
-#endif
-    nextsym(mktemp);
-#ifdef HAVE_NFTW
-    nextsym(nftw);
-#endif
-#ifdef HAVE_NFTW64
-    nextsym(nftw64);
-#endif
-    nextsym(open);
-#ifdef HAVE_OPEN64
-    nextsym(open64);
-#endif
-#ifdef HAVE_OPENAT
-    nextsym(openat);
-#endif
-#ifdef HAVE_OPENAT64
-    nextsym(openat64);
-#endif
-#if !defined(HAVE___OPENDIR2)
-    nextsym(opendir);
-#endif
-#ifdef __GNUC__
-/*    nextsym(popen); */
-#endif
-    nextsym(pathconf);
-    nextsym(readlink);
-#ifdef HAVE_READLINKAT
-    nextsym(readlinkat);
-#endif
-    nextsym(realpath);
-    nextsym(remove);
-#ifdef HAVE_REMOVEXATTR
-    nextsym(removexattr);
-#endif
-    nextsym(rename);
-#ifdef HAVE_RENAMEAT
-    nextsym(renameat);
-#endif
-#ifdef HAVE_REVOKE
-    nextsym(revoke);
-#endif
-    nextsym(rmdir);
-#ifdef HAVE_SCANDIR
-    nextsym(scandir);
-#endif
-#ifdef HAVE_SCANDIR64
-    nextsym(scandir64);
-#endif
-#ifdef HAVE_SETXATTR
-    nextsym(setxattr);
-#endif
-    nextsym(stat);
-#ifdef HAVE_STAT64
-    nextsym(stat64);
-#endif
-#ifdef HAVE_STATFS
-    nextsym(statfs);
-#endif
-#ifdef HAVE_STATFS64
-    nextsym(statfs64);
-#endif
-#ifdef HAVE_STATVFS
-#if !defined(__FreeBSD__) || defined(__GLIBC__)
-    nextsym(statvfs);
-#endif
-#endif
-#ifdef HAVE_STATVFS64
-    nextsym(statvfs64);
-#endif
-    nextsym(symlink);
-#ifdef HAVE_SYMLINKAT
-    nextsym(symlinkat);
-#endif
-/*    nextsym(symlink); */
-    nextsym(tempnam);
-    nextsym(tmpnam);
-    nextsym(truncate);
-#ifdef HAVE_TRUNCATE64
-    nextsym(truncate64);
-#endif
-    nextsym(unlink);
-#ifdef HAVE_UNLINKAT
-    nextsym(unlinkat);
-#endif
-#ifdef HAVE_ULCKPWDF
-/*    nextsym(ulckpwdf); */
-#endif
-    nextsym(utime);
-#ifdef HAVE_UTIMENSAT
-    nextsym(utimensat);
-#endif
-    nextsym(utimes);
+
+/* Lazily load function */
+static inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
+{
+    char *msg;
+    if (!(w->nextfunc = dlsym(RTLD_NEXT, w->name))) {;
+        msg = dlerror();
+        fprintf(stderr, "%s: %s: %s\n", PACKAGE, w->name, msg != NULL ? msg : "unresolved symbol");
+        exit(EXIT_FAILURE);
+    }
+    return w->nextfunc;
 }
 
 
