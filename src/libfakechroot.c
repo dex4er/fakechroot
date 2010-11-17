@@ -986,7 +986,7 @@ static int fakechroot_localdir (const char *p_path)
 
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
-        next_getcwd(cwd_path, FAKECHROOT_MAXPATH);
+        nextcall(getcwd)(cwd_path, FAKECHROOT_MAXPATH);
         v_path = cwd_path;
         narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
     }
