@@ -168,6 +168,9 @@
         } \
     }
 
+#define nextdecl(function, return_type, arguments) \
+    static return_type (*next_##function) arguments = NULL;
+
 #define nextcall(function) \
     ((next_##function == NULL ? fakechroot_init() : NULL), next_##function)
 
@@ -321,310 +324,310 @@ static char *strchrnul (const char *s, int c_in)
 #endif
 
 #ifdef HAVE___FXSTATAT
-static int     (*next___fxstatat) (int, int, const char *, struct stat *, int) = NULL;
+nextdecl(__fxstatat, int, (int, int, const char *, struct stat *, int));
 #endif
 #ifdef HAVE___FXSTATAT64
-static int     (*next___fxstatat64) (int, int, const char *, struct stat64 *, int) = NULL;
+nextdecl(__fxstatat64, int, (int, int, const char *, struct stat64 *, int));
 #endif
 #ifdef HAVE___GETCWD_CHK
-static char *  (*next___getcwd_chk) (char *, size_t, size_t) = NULL;
+nextdecl(__getcwd_chk, char *, (char *, size_t, size_t));
 #endif
 #ifdef HAVE___GETWD_CHK
-static char *  (*next___getwd_chk) (char *, size_t) = NULL;
+nextdecl(__getwd_chk, char *, (char *, size_t));
 #endif
 #ifdef HAVE___LXSTAT
-static int     (*next___lxstat) (int, const char *, struct stat *) = NULL;
+nextdecl(__lxstat, int, (int, const char *, struct stat *));
 #endif
 #ifdef HAVE___LXSTAT64
-static int     (*next___lxstat64) (int, const char *, struct stat64 *) = NULL;
+nextdecl(__lxstat64, int, (int, const char *, struct stat64 *));
 #endif
 #ifdef HAVE___OPEN
-static int     (*next___open) (const char *, int, ...) = NULL;
+nextdecl(__open, int, (const char *, int, ...));
 #endif
 #ifdef HAVE___OPEN_2
-static int     (*next___open_2) (const char *, int) = NULL;
+nextdecl(__open_2, int, (const char *, int));
 #endif
 #ifdef HAVE___OPEN64
-static int     (*next___open64) (const char *, int, ...) = NULL;
+nextdecl(__open64, int, (const char *, int, ...));
 #endif
 #ifdef HAVE___OPEN64_2
-static int     (*next___open64_2) (const char *, int) = NULL;
+nextdecl(__open64_2, int, (const char *, int));
 #endif
 #ifdef HAVE___OPENAT_2
-static int     (*next___openat_2) (int, const char *, int) = NULL;
+nextdecl(__openat_2, int, (int, const char *, int));
 #endif
 #ifdef HAVE___OPENAT64_2
-static int     (*next___openat64_2) (int, const char *, int) = NULL;
+nextdecl(__openat64_2, int, (int, const char *, int));
 #endif
 #ifdef HAVE___OPENDIR2
-static DIR *   (*next___opendir2) (const char *, int) = NULL;
+nextdecl(__opendir2, DIR *, (const char *, int));
 #endif
 #ifdef HAVE___REALPATH_CHK
-static char *  (*next___realpath_chk) (const char *, char *, size_t) = NULL;
+nextdecl(__realpath_chk, char *, (const char *, char *, size_t));
 #endif
 #ifdef HAVE___READLINK_CHK
-static ssize_t (*next___readlink_chk) (const char *, char *, size_t, size_t) = NULL;
+nextdecl(__readlink_chk, ssize_t, (const char *, char *, size_t, size_t));
 #endif
 #ifdef HAVE___READLINKAT_CHK
-static ssize_t (*next___readlinkat_chk) (int, const char *, char *, size_t, size_t) = NULL;
+nextdecl(__readlinkat_chk, ssize_t, (int, const char *, char *, size_t, size_t));
 #endif
 #ifdef HAVE___STATFS
-static int     (*next___statfs) (const char *, struct statfs *) = NULL;
+nextdecl(__statfs, int, (const char *, struct statfs *));
 #endif
 #ifdef HAVE___XMKNOD
-static int     (*next___xmknod) (int, const char *, mode_t, dev_t *) = NULL;
+nextdecl(__xmknod, int, (int, const char *, mode_t, dev_t *));
 #endif
 #ifdef HAVE___XSTAT
-static int     (*next___xstat) (int, const char *, struct stat *) = NULL;
+nextdecl(__xstat, int, (int, const char *, struct stat *));
 #endif
 #ifdef HAVE___XSTAT64
-static int     (*next___xstat64) (int, const char *, struct stat64 *) = NULL;
+nextdecl(__xstat64, int, (int, const char *, struct stat64 *));
 #endif
 #ifdef HAVE__XFTW
-static int     (*next__xftw) (int, const char *, int (*)(const char *, const struct stat *, int), int) = NULL;
+nextdecl(_xftw, int, (int, const char *, int (*)(const char *, const struct stat *, int), int));
 #endif
 #ifdef HAVE__XFTW64
-static int     (*next__xftw64) (int, const char *, int (*)(const char *, const struct stat64 *, int), int) = NULL;
+nextdecl(_xftw64, int, (int, const char *, int (*)(const char *, const struct stat64 *, int), int));
 #endif
-static int     (*next_access) (const char *, int) = NULL;
-static int     (*next_acct) (const char *) = NULL;
+nextdecl(access, int, (const char *, int));
+nextdecl(acct, int, (const char *));
 #ifdef AF_UNIX
-static int     (*next_bind) (int, BIND_TYPE_ARG2(/**/), socklen_t) = NULL;
+nextdecl(bind, int, (int, BIND_TYPE_ARG2(/**/), socklen_t));
 #endif
 #ifdef HAVE_BINDTEXTDOMAIN
-static char *  (*next_bindtextdomain) (const char *, const char *) = NULL;
+nextdecl(bindtextdomain, char *, (const char *, const char *));
 #endif
 #ifdef HAVE_CANONICALIZE_FILE_NAME
-static char *  (*next_canonicalize_file_name) (const char *) = NULL;
+nextdecl(canonicalize_file_name, char *, (const char *));
 #endif
-static int     (*next_chdir) (const char *) = NULL;
-static int     (*next_chmod) (const char *, mode_t) = NULL;
-static int     (*next_chown) (const char *, uid_t, gid_t) = NULL;
-/* static int     (*next_chroot) (const char *) = NULL; */
+nextdecl(chdir, int, (const char *));
+nextdecl(chmod, int, (const char *, mode_t));
+nextdecl(chown, int, (const char *, uid_t, gid_t));
+/* nextdecl(chroot, int, (const char *)); */
 #ifdef AF_UNIX
-static int     (*next_connect) (int, CONNECT_TYPE_ARG2(/**/), socklen_t) = NULL;
+nextdecl(connect, int, (int, CONNECT_TYPE_ARG2(/**/), socklen_t));
 #endif
-static int     (*next_creat) (const char *, mode_t) = NULL;
+nextdecl(creat, int, (const char *, mode_t));
 #ifdef HAVE_CREAT64
-static int     (*next_creat64) (const char *, mode_t) = NULL;
+nextdecl(creat64, int, (const char *, mode_t));
 #endif
 #ifdef HAVE_DLMOPEN
-static void *  (*next_dlmopen) (Lmid_t, const char *, int) = NULL;
+nextdecl(dlmopen, void *, (Lmid_t, const char *, int));
 #endif
-static void *  (*next_dlopen) (const char *, int) = NULL;
+nextdecl(dlopen, void *, (const char *, int));
 #ifdef HAVE_EACCESS
-static int     (*next_eaccess) (const char *, int) = NULL;
+nextdecl(eaccess, int, (const char *, int));
 #endif
 #ifdef HAVE_EUIDACCESS
-static int     (*next_euidaccess) (const char *, int) = NULL;
+nextdecl(euidaccess, int, (const char *, int));
 #endif
-/* static int     (*next_execl) (const char *, const char *, ...) = NULL; */
-/* static int     (*next_execle) (const char *, const char *, ...) = NULL; */
-/* static int     (*next_execlp) (const char *, const char *, ...) = NULL; */
-/* static int     (*next_execv) (const char *, char *const []) = NULL; */
-static int     (*next_execve) (const char *, char *const [], char *const []) = NULL;
-static int     (*next_execvp) (const char *, char *const []) = NULL;
+/* nextdecl(execl, int, (const char *, const char *, ...)); */
+/* nextdecl(execle, int, (const char *, const char *, ...)); */
+/* nextdecl(execlp, int, (const char *, const char *, ...)); */
+/* nextdecl(execv, int, (const char *, char *const [])); */
+nextdecl(execve, int, (const char *, char *const [], char *const []));
+nextdecl(execvp, int, (const char *, char *const []));
 #ifdef HAVE_FCHMODAT
-static int     (*next_fchmodat) (int, const char *, mode_t, int) = NULL;
+nextdecl(fchmodat, int, (int, const char *, mode_t, int));
 #endif
 #ifdef HAVE_FCHOWNAT
-static int     (*next_fchownat) (int, const char *, uid_t, gid_t, int) = NULL;
+nextdecl(fchownat, int, (int, const char *, uid_t, gid_t, int));
 #endif
-static FILE *  (*next_fopen) (const char *, const char *) = NULL;
+nextdecl(fopen, FILE *, (const char *, const char *));
 #ifdef HAVE_FOPEN64
-static FILE *  (*next_fopen64) (const char *, const char *) = NULL;
+nextdecl(fopen64, FILE *, (const char *, const char *));
 #endif
-static FILE *  (*next_freopen) (const char *, const char *, FILE *) = NULL;
+nextdecl(freopen, FILE *, (const char *, const char *, FILE *));
 #ifdef HAVE_FREOPEN64
-static FILE *  (*next_freopen64) (const char *, const char *, FILE *) = NULL;
+nextdecl(freopen64, FILE *, (const char *, const char *, FILE *));
 #endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
-static FTS *   (*next_fts_open) (char * const *, int, int (*)(const FTSENT **, const FTSENT **)) = NULL;
+nextdecl(fts_open, FTS *, (char * const *, int, int (*)(const FTSENT **, const FTSENT **)));
 #endif
 #endif
 #ifdef HAVE_FTW
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-static int     (*next_ftw) (const char *, int (*)(const char *, const struct stat *, int), int) = NULL;
+nextdecl(ftw, int, (const char *, int (*)(const char *, const struct stat *, int), int));
 #endif
 #endif
 #ifdef HAVE_FTW64
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
-static int     (*next_ftw64) (const char *, int (*)(const char *, const struct stat64 *, int), int) = NULL;
+nextdecl(ftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int), int));
 #endif
 #endif
 #ifdef HAVE_FUTIMESAT
-static int     (*next_futimesat) (int, const char *, const struct timeval [2]) = NULL;
+nextdecl(futimesat, int, (int, const char *, const struct timeval [2]));
 #endif
 #ifdef HAVE_GET_CURRENT_DIR_NAME
-static char *  (*next_get_current_dir_name) (void) = NULL;
+nextdecl(get_current_dir_name, char *, (void));
 #endif
-static char *  (*next_getcwd) (char *, size_t) = NULL;
+nextdecl(getcwd, char *, (char *, size_t));
 #ifdef AF_UNIX
-static int     (*next_getpeername) (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *) = NULL;
+nextdecl(getpeername, int, (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *));
 #endif
 #ifdef AF_UNIX
-static int     (*next_getsockname) (int, GETSOCKNAME_TYPE_ARG2(/**/), socklen_t *) = NULL;
+nextdecl(getsockname, int, (int, GETSOCKNAME_TYPE_ARG2(/**/), socklen_t *));
 #endif
 #ifdef HAVE_GETWD
-static char *  (*next_getwd) (char *) = NULL;
+nextdecl(getwd, char *, (char *));
 #endif
 #ifdef HAVE_GETXATTR
-static ssize_t (*next_getxattr) (const char *, const char *, void *, size_t) = NULL;
+nextdecl(getxattr, ssize_t, (const char *, const char *, void *, size_t));
 #endif
-static int     (*next_glob) (const char *, int , int (*) (const char *, int), glob_t *) = NULL;
+nextdecl(glob, int, (const char *, int, int (*) (const char *, int), glob_t *));
 #ifdef HAVE_GLOB64
-static int     (*next_glob64) (const char *, int , int (*) (const char *, int), glob64_t *) = NULL;
+nextdecl(glob64, int, (const char *, int, int (*) (const char *, int), glob64_t *));
 #endif
 #ifdef HAVE_GLOB_PATTERN_P
-static int     (*next_glob_pattern_p) (const char *, int) = NULL;
+nextdecl(glob_pattern_p, int, (const char *, int));
 #endif
 #ifdef HAVE_INOTIFY_ADD_WATCH
-static int     (*next_inotify_add_watch) (int, const char *, uint32_t) = NULL;
+nextdecl(inotify_add_watch, int, (int, const char *, uint32_t));
 #endif
 #ifdef HAVE_LCHMOD
-static int     (*next_lchmod) (const char *, mode_t) = NULL;
+nextdecl(lchmod, int, (const char *, mode_t));
 #endif
-static int     (*next_lchown) (const char *, uid_t, gid_t) = NULL;
+nextdecl(lchown, int, (const char *, uid_t, gid_t));
 #ifdef HAVE_LCKPWDF
-/* static int     (*next_lckpwdf) (void) = NULL; */
+/* nextdecl(lckpwdf, int, (void)); */
 #endif
 #ifdef HAVE_LGETXATTR
-static ssize_t (*next_lgetxattr) (const char *, const char *, void *, size_t) = NULL;
+nextdecl(lgetxattr, ssize_t, (const char *, const char *, void *, size_t));
 #endif
-static int     (*next_link) (const char *, const char *) = NULL;
+nextdecl(link, int, (const char *, const char *));
 #ifdef HAVE_LINKAT
-static int     (*next_linkat) (int, const char *, int, const char *, int) = NULL;
+nextdecl(linkat, int, (int, const char *, int, const char *, int));
 #endif
 #ifdef HAVE_LISTXATTR
-static ssize_t (*next_listxattr) (const char *, char *, size_t) = NULL;
+nextdecl(listxattr, ssize_t, (const char *, char *, size_t));
 #endif
 #ifdef HAVE_LLISTXATTR
-static ssize_t (*next_llistxattr) (const char *, char *, size_t) = NULL;
+nextdecl(llistxattr, ssize_t, (const char *, char *, size_t));
 #endif
 #ifdef HAVE_LREMOVEXATTR
-static int     (*next_lremovexattr) (const char *, const char *) = NULL;
+nextdecl(lremovexattr, int, (const char *, const char *));
 #endif
 #ifdef HAVE_LSETXATTR
-static int     (*next_lsetxattr) (const char *, const char *, const void *, size_t, int) = NULL;
+nextdecl(lsetxattr, int, (const char *, const char *, const void *, size_t, int));
 #endif
-static int     (*next_lstat) (const char *, struct stat *) = NULL;
+nextdecl(lstat, int, (const char *, struct stat *));
 #ifdef HAVE_LSTAT64
-static int     (*next_lstat64) (const char *, struct stat64 *) = NULL;
+nextdecl(lstat64, int, (const char *, struct stat64 *));
 #endif
 #ifdef HAVE_LUTIMES
-static int     (*next_lutimes) (const char *, const struct timeval [2]) = NULL;
+nextdecl(lutimes, int, (const char *, const struct timeval [2]));
 #endif
-static int     (*next_mkdir) (const char *, mode_t) = NULL;
+nextdecl(mkdir, int, (const char *, mode_t));
 #ifdef HAVE_MKDIRAT
-static int     (*next_mkdirat) (int, const char *, mode_t) = NULL;
+nextdecl(mkdirat, int, (int, const char *, mode_t));
 #endif
 #ifdef HAVE_MKDTEMP
-static char *  (*next_mkdtemp) (char *) = NULL;
+nextdecl(mkdtemp, char *, (char *));
 #endif
-static int     (*next_mknod) (const char *, mode_t, dev_t) = NULL;
+nextdecl(mknod, int, (const char *, mode_t, dev_t));
 #ifdef HAVE_MKNODAT
-static int     (*next_mknodat) (int, const char *, mode_t, dev_t) = NULL;
+nextdecl(mknodat, int, (int, const char *, mode_t, dev_t));
 #endif
-static int     (*next_mkfifo) (const char *, mode_t) = NULL;
+nextdecl(mkfifo, int, (const char *, mode_t));
 #ifdef HAVE_MKFIFOAT
-static int     (*next_mkfifoat) (int, const char *, mode_t) = NULL;
+nextdecl(mkfifoat, int, (int, const char *, mode_t));
 #endif
-static int     (*next_mkstemp) (char *) = NULL;
+nextdecl(mkstemp, int, (char *));
 #ifdef HAVE_MKSTEMP64
-static int     (*next_mkstemp64) (char *) = NULL;
+nextdecl(mkstemp64, int, (char *));
 #endif
-static char *  (*next_mktemp) (char *) = NULL;
+nextdecl(mktemp, char *, (char *));
 #ifdef HAVE_NFTW
-static int     (*next_nftw) (const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int) = NULL;
+nextdecl(nftw, int, (const char *, int (*)(const char *, const struct stat *, int, struct FTW *), int, int));
 #endif
 #ifdef HAVE_NFTW64
-static int     (*next_nftw64) (const char *, int (*)(const char *, const struct stat64 *, int, struct FTW *), int, int) = NULL;
+nextdecl(nftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int, struct FTW *), int, int));
 #endif
-static int     (*next_open) (const char *, int, ...) = NULL;
+nextdecl(open, int, (const char *, int, ...));
 #ifdef HAVE_OPEN64
-static int     (*next_open64) (const char *, int, ...) = NULL;
+nextdecl(open64, int, (const char *, int, ...));
 #endif
 #ifdef HAVE_OPENAT
-static int     (*next_openat) (int, const char *, int, ...) = NULL;
+nextdecl(openat, int, (int, const char *, int, ...));
 #endif
 #ifdef HAVE_OPENAT64
-static int     (*next_openat64) (int, const char *, int, ...) = NULL;
+nextdecl(openat64, int, (int, const char *, int, ...));
 #endif
 #if !defined(HAVE___OPENDIR2)
-static DIR *   (*next_opendir) (const char *) = NULL;
+nextdecl(opendir, DIR *, (const char *));
 #endif
-static long    (*next_pathconf) (const char *, int) = NULL;
+nextdecl(pathconf, long, (const char *, int));
 #ifdef __GNUC__
-/* static FILE *  (*next_popen) (const char *, const char *) = NULL; */
+/* nextdecl(popen, FILE *, (const char *, const char *)); */
 #endif
-static READLINK_TYPE_RETURN (*next_readlink) (const char *, char *, READLINK_TYPE_ARG3(/**/)) = NULL;
+nextdecl(readlink, READLINK_TYPE_RETURN, (const char *, char *, READLINK_TYPE_ARG3(/**/)));
 #ifdef HAVE_READLINKAT
-static ssize_t (*next_readlinkat) (int, const char *, char *, size_t) = NULL;
+nextdecl(readlinkat, ssize_t, (int, const char *, char *, size_t));
 #endif
-static char *  (*next_realpath) (const char *, char *) = NULL;
-static int     (*next_remove) (const char *) = NULL;
+nextdecl(realpath, char *, (const char *, char *));
+nextdecl(remove, int, (const char *));
 #ifdef HAVE_REMOVEXATTR
-static int     (*next_removexattr) (const char *, const char *) = NULL;
+nextdecl(removexattr, int, (const char *, const char *));
 #endif
-static int     (*next_rename) (const char *, const char *) = NULL;
+nextdecl(rename, int, (const char *, const char *));
 #ifdef HAVE_RENAMEAT
-static int     (*next_renameat) (int, const char *, int, const char *) = NULL;
+nextdecl(renameat, int, (int, const char *, int, const char *));
 #endif
 #ifdef HAVE_REVOKE
-static int     (*next_revoke) (const char *) = NULL;
+nextdecl(revoke, int, (const char *));
 #endif
-static int     (*next_rmdir) (const char *) = NULL;
+nextdecl(rmdir, int, (const char *));
 #ifdef HAVE_SCANDIR
-static int (*next_scandir) (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)) = NULL;
+nextdecl(scandir, int, (const char *, struct dirent ***, SCANDIR_TYPE_ARG3(/**/), SCANDIR_TYPE_ARG4(/**/)));
 #endif
 #ifdef HAVE_SCANDIR64
-static int (*next_scandir64) (const char *, struct dirent64 ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)) = NULL;
+nextdecl(scandir64, int, (const char *, struct dirent64 ***, SCANDIR64_TYPE_ARG3(/**/), SCANDIR64_TYPE_ARG4(/**/)));
 #endif
 #ifdef HAVE_SETXATTR
-static int     (*next_setxattr) (const char *, const char *, const void *, size_t, int) = NULL;
+nextdecl(setxattr, int, (const char *, const char *, const void *, size_t, int));
 #endif
-static int     (*next_stat) (const char *, struct stat *) = NULL;
+nextdecl(stat, int, (const char *, struct stat *));
 #ifdef HAVE_STAT64
-static int     (*next_stat64) (const char *, struct stat64 *) = NULL;
+nextdecl(stat64, int, (const char *, struct stat64 *));
 #endif
 #ifdef HAVE_STATFS
-static int     (*next_statfs) (const char *, struct statfs *) = NULL;
+nextdecl(statfs, int, (const char *, struct statfs *));
 #endif
 #ifdef HAVE_STATFS64
-static int     (*next_statfs64) (const char *, struct statfs64 *) = NULL;
+nextdecl(statfs64, int, (const char *, struct statfs64 *));
 #endif
 #ifdef HAVE_STATVFS
 #if !defined(__FreeBSD__) || defined(__GLIBC__)
-static int     (*next_statvfs) (const char *, struct statvfs *) = NULL;
+nextdecl(statvfs, int, (const char *, struct statvfs *));
 #endif
 #endif
 #ifdef HAVE_STATVFS64
-static int     (*next_statvfs64) (const char *, struct statvfs64 *) = NULL;
+nextdecl(statvfs64, int, (const char *, struct statvfs64 *));
 #endif
-static int     (*next_symlink) (const char *, const char *) = NULL;
+nextdecl(symlink, int, (const char *, const char *));
 #ifdef HAVE_SYMLINKAT
-static int     (*next_symlinkat) (const char *, int, const char *) = NULL;
+nextdecl(symlinkat, int, (const char *, int, const char *));
 #endif
-/* static int     (*next_system) (const char *) = NULL; */
-static char *  (*next_tempnam) (const char *, const char *) = NULL;
-static char *  (*next_tmpnam) (char *) = NULL;
-static int     (*next_truncate) (const char *, off_t) = NULL;
+/* nextdecl(system, int, (const char *)); */
+nextdecl(tempnam, char *, (const char *, const char *));
+nextdecl(tmpnam, char *, (char *));
+nextdecl(truncate, int, (const char *, off_t));
 #ifdef HAVE_TRUNCATE64
-static int     (*next_truncate64) (const char *, off64_t) = NULL;
+nextdecl(truncate64, int, (const char *, off64_t));
 #endif
-static int     (*next_unlink) (const char *) = NULL;
+nextdecl(unlink, int, (const char *));
 #ifdef HAVE_UNLINKAT
-static int     (*next_unlinkat) (int, const char *, int) = NULL;
+nextdecl(unlinkat, int, (int, const char *, int));
 #endif
 #ifdef HAVE_ULCKPWDF
-/* static int     (*next_ulckpwdf) (void) = NULL; */
+/* nextdecl(ulckpwdf, int, (void)); */
 #endif
-static int     (*next_utime) (const char *, const struct utimbuf *) = NULL;
+nextdecl(utime, int, (const char *, const struct utimbuf *));
 #ifdef HAVE_UTIMENSAT
-static int     (*next_utimensat) (int, const char *, const struct timespec [2], int) = NULL;
+nextdecl(utimensat, int, (int, const char *, const struct timespec [2], int));
 #endif
-static int     (*next_utimes) (const char *, const struct timeval [2]) = NULL;
+nextdecl(utimes, int, (const char *, const struct timeval [2]));
 
 
 /* Bootstrap the library */
