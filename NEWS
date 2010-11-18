@@ -1,9 +1,9 @@
 == Version 2.13 ==
 
-17 Nov 2010
+18 Nov 2010
 
 * Lazy dynamic symbol loading was implemented.  Thanks to Alexander Shishkin.
-* Be sure that +FAKECHROOT_EXCLUDE_PATH+ list is always loaded.
+* Fixed bug when +FAKECHROOT_EXCLUDE_PATH+ list was sometimes ignored.
 
 == Version 2.12 ==
 
