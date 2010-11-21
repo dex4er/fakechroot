@@ -29,6 +29,7 @@
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
+#include <stddef.h>
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -2802,16 +2803,237 @@ ssize_t readlinkat (int dirfd, const char *path, char *buf, size_t bufsiz)
 #endif
 
 
+/*
+   realpath reimplementation taken from Gnulib.
+
+   Return the canonical absolute name of a given file.
+   Copyright (C) 1996-2010 Free Software Foundation, Inc.
+*/
 /* #include <stdlib.h> */
+
+#ifndef MAXSYMLINKS
+# ifdef SYMLOOP_MAX
+#  define MAXSYMLINKS SYMLOOP_MAX
+# else
+#  define MAXSYMLINKS 20
+# endif
+#endif
+
+#ifndef DOUBLE_SLASH_IS_DISTINCT_ROOT
+# define DOUBLE_SLASH_IS_DISTINCT_ROOT 0
+#endif
+
+#ifndef __set_errno
+# define __set_errno(e) (errno = (e))
+#endif
+
 char *realpath (const char *name, char *resolved)
 {
-    char *ptr;
-    char *fakechroot_path, *fakechroot_ptr;
+    char *rpath, *dest, *extra_buf = NULL;
+    const char *start, *end, *rpath_limit;
+    long int path_max;
+    int num_links = 0;
 
-    if ((ptr = nextcall(realpath)(name, resolved)) != NULL) {
-        narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
+    if (name == NULL) {
+        /* As per Single Unix Specification V2 we must return an error if
+           either parameter is a null pointer.  We extend this to allow
+           the RESOLVED parameter to be NULL in case the we are expected to
+           allocate the room for the return value.  */
+        __set_errno (EINVAL);
+        return NULL;
     }
-    return ptr;
+
+    if (name[0] == '\0') {
+        /* As per Single Unix Specification V2 we must return an error if
+           the name argument points to an empty string.  */
+        __set_errno (ENOENT);
+        return NULL;
+    }
+
+    path_max = FAKECHROOT_MAXPATH;
+
+    if (resolved == NULL) {
+        rpath = malloc (path_max);
+        if (rpath == NULL) {
+            /* It's easier to set errno to ENOMEM than to rely on the
+               'malloc-posix' gnulib module.  */
+            errno = ENOMEM;
+            return NULL;
+        }
+    } else
+        rpath = resolved;
+    rpath_limit = rpath + path_max;
+
+    if (name[0] != '/') {
+        if (!getcwd (rpath, path_max)) {
+            rpath[0] = '\0';
+            goto error;
+        }
+        dest = strchr (rpath, '\0');
+    } else {
+        rpath[0] = '/';
+        dest = rpath + 1;
+        if (DOUBLE_SLASH_IS_DISTINCT_ROOT && name[1] == '/')
+            *dest++ = '/';
+    }
+
+    for (start = end = name; *start; start = end) {
+#ifdef HAVE___LXSTAT64
+        struct stat64 st;
+#else
+        struct stat st;
+#endif
+        int n;
+
+        /* Skip sequence of multiple path-separators.  */
+        while (*start == '/')
+            ++start;
+
+        /* Find end of path component.  */
+        for (end = start; *end && *end != '/'; ++end)
+            /* Nothing.  */;
+
+        if (end - start == 0)
+            break;
+        else if (end - start == 1 && start[0] == '.')
+            /* nothing */;
+        else if (end - start == 2 && start[0] == '.' && start[1] == '.') {
+            /* Back up to previous component, ignore if at root already.  */
+            if (dest > rpath + 1)
+                while ((--dest)[-1] != '/');
+            if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
+                    && *dest == '/')
+                dest++;
+        } else {
+            size_t new_size;
+
+            if (dest[-1] != '/')
+                *dest++ = '/';
+
+            if (dest + (end - start) >= rpath_limit) {
+                ptrdiff_t dest_offset = dest - rpath;
+                char *new_rpath;
+
+                if (resolved) {
+                    __set_errno (ENAMETOOLONG);
+                    if (dest > rpath + 1)
+                        dest--;
+                    *dest = '\0';
+                    goto error;
+                }
+                new_size = rpath_limit - rpath;
+                if (end - start + 1 > path_max)
+                    new_size += end - start + 1;
+                else
+                    new_size += path_max;
+                new_rpath = (char *) realloc (rpath, new_size);
+                if (new_rpath == NULL) {
+                    /* It's easier to set errno to ENOMEM than to rely on the
+                       'realloc-posix' gnulib module.  */
+                    errno = ENOMEM;
+                    goto error;
+                }
+                rpath = new_rpath;
+                rpath_limit = rpath + new_size;
+
+                dest = rpath + dest_offset;
+            }
+
+            memcpy (dest, start, end - start);
+            dest += end - start;
+            *dest = '\0';
+
+#ifdef HAVE___LXSTAT64
+            if (__lxstat64 (_STAT_VER, rpath, &st) < 0)
+                goto error;
+#else
+            if (stat (rpath, &st) < 0)
+                goto error;
+#endif
+
+            if (S_ISLNK (st.st_mode)) {
+                char *buf;
+                size_t len;
+
+                if (++num_links > MAXSYMLINKS) {
+                    __set_errno (ELOOP);
+                    goto error;
+                }
+
+                buf = malloc (path_max);
+                if (!buf) {
+                    errno = ENOMEM;
+                    goto error;
+                }
+
+                n = readlink (rpath, buf, path_max - 1);
+                if (n < 0) {
+                    int saved_errno = errno;
+                    free (buf);
+                    errno = saved_errno;
+                    goto error;
+                }
+                buf[n] = '\0';
+
+                if (!extra_buf) {
+                    extra_buf = malloc (path_max);
+                    if (!extra_buf) {
+                        free (buf);
+                        errno = ENOMEM;
+                        goto error;
+                    }
+                }
+
+                len = strlen (end);
+                if ((long int) (n + len) >= path_max) {
+                    free (buf);
+                    __set_errno (ENAMETOOLONG);
+                    goto error;
+                }
+
+                /* Careful here, end may be a pointer into extra_buf... */
+                memmove (&extra_buf[n], end, len + 1);
+                name = end = memcpy (extra_buf, buf, n);
+
+                if (buf[0] == '/') {
+                    dest = rpath + 1;     /* It's an absolute symlink */
+                    if (DOUBLE_SLASH_IS_DISTINCT_ROOT && buf[1] == '/')
+                        *dest++ = '/';
+                } else {
+                    /* Back up to previous component, ignore if at root
+                       already: */
+                    if (dest > rpath + 1)
+                        while ((--dest)[-1] != '/');
+                    if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
+                            && *dest == '/')
+                        dest++;
+                }
+            } else if (!S_ISDIR (st.st_mode) && *end != '\0') {
+                __set_errno (ENOTDIR);
+                goto error;
+            }
+        }
+    }
+    if (dest > rpath + 1 && dest[-1] == '/')
+        --dest;
+    if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1 && *dest == '/')
+        dest++;
+    *dest = '\0';
+
+    if (extra_buf)
+        free (extra_buf);
+
+    return rpath;
+
+error: {
+        int saved_errno = errno;
+        if (extra_buf)
+            free (extra_buf);
+        if (resolved == NULL)
+            free (rpath);
+        errno = saved_errno;
+    }
+    return NULL;
 }
 
 
