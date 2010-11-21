@@ -3,13 +3,19 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
 
-prepare 12
+prepare 18
 
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
         skip $(( $tap_plan / 2 )) "not root"
     else
+
+        for path in / . ..; do
+            t=`$srcdir/$chroot.sh testtree /bin/test-canonicalize_file_name $path 2>&1`
+            test "$t" = "/" || not
+            ok "$chroot realpath for $path is really" $t
+        done
 
         echo "something" > testtree/$chroot-file
         mkdir testtree/$chroot-dir
