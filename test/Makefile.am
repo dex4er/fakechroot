@@ -13,6 +13,7 @@ TESTS = \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \
+    t/realpath.t \
     t/socket-af_unix.t \
     t/statfs.t \
     t/statvfs.t \

@@ -4,6 +4,7 @@ check_PROGRAMS = \
     test-execlp \
     test-lstat \
     test-popen \
+    test-realpath \
     test-scandir \
     test-socket-af_unix-client \
     test-socket-af_unix-server \
