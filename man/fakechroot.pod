@@ -242,8 +242,12 @@ behaviour.
 fakechroot is distributed under the GNU Lesser General Public License (LGPL
 2.1 or greater).
 
-realpath reimplementation taken from Gnulib.  Copyright (C) 1996-2010 Free
-Software Foundation, Inc.
+popen reimplementation taken from uClibc.
+Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
+Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
+
+realpath reimplementation taken from Gnulib.
+Copyright (c) 1996-2010 Free Software Foundation, Inc.
 
 =head1 AUTHORS
 

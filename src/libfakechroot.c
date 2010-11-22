@@ -110,6 +110,10 @@
 #define USE_ALIAS 1
 #endif
 
+#ifndef __set_errno
+# define __set_errno(e) (errno = (e))
+#endif
+
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -572,9 +576,7 @@ wrapper_proto(openat64, int, (int, const char *, int, ...));
 wrapper_proto(opendir, DIR *, (const char *));
 #endif
 wrapper_proto(pathconf, long, (const char *, int));
-#ifdef __GNUC__
-/* wrapper_proto(popen, FILE *, (const char *, const char *)); */
-#endif
+wrapper_proto(popen, FILE *, (const char *, const char *));
 wrapper_proto(readlink, READLINK_TYPE_RETURN, (const char *, char *, READLINK_TYPE_ARG3(/**/)));
 #ifdef HAVE_READLINKAT
 wrapper_proto(readlinkat, ssize_t, (int, const char *, char *, size_t));
@@ -2639,98 +2641,105 @@ long pathconf (const char *path, int name)
 }
 
 
-#ifdef __GNUC__
 /*
-   popen reimplementation taken from bionic. glibc uses internal weak aliases
-   which cannot be overriden.
+   popen reimplementation taken from uClibc.
+   Copyright (C) 2004       Manuel Novoa III    <mjn3@codepoet.org>
+   Copyright (C) 2000-2006 Erik Andersen <andersen@uclibc.org>
+
+   glibc uses internal weak aliases which cannot be overriden.
  */
-static struct pid {
-    struct pid *next;
-    FILE *fp;
-    pid_t pid;
-} *pidlist;
-
 /* #include <stdio.h> */
-FILE *popen (const char *program, const char *type) {
-    struct pid * volatile cur;
-    FILE *iop;
-    int pdes[2];
+struct popen_list_item {
+    struct popen_list_item *next;
+    FILE *f;
+    pid_t pid;
+};
+
+static struct popen_list_item *popen_list /* = NULL (bss initialized) */;
+
+#ifndef HAVE_VFORK
+# define vfork fork
+#endif
+
+FILE *popen (const char *command, const char *modes)
+{
+    FILE *fp;
+    struct popen_list_item *pi;
+    struct popen_list_item *po;
+    int pipe_fd[2];
+    int parent_fd;
+    int child_fd;
+    int child_writing;                  /* Doubles as the desired child fildes. */
     pid_t pid;
 
-    if ((*type != 'r' && *type != 'w') || type[1] != '\0') {
-        errno = EINVAL;
-        return (NULL);
-    }
-
-    if ((cur = malloc(sizeof(struct pid))) == NULL)
-        return (NULL);
-
-    if (pipe(pdes) < 0) {
-        free(cur);
-        return (NULL);
-    }
-
-    switch (pid = vfork()) {
-    case -1: /* Error. */
-        (void) close(pdes[0]);
-        (void) close(pdes[1]);
-        free(cur);
-        return (NULL);
-        /* NOTREACHED */
-    case 0: /* Child. */
-    {
-        struct pid *pcur;
-        /*
-         * because vfork() instead of fork(), must leak FILE *,
-         * but luckily we are terminally headed for an execl()
-         */
-        for (pcur = pidlist; pcur; pcur = pcur->next)
-            close(fileno(pcur->fp));
-
-        if (*type == 'r') {
-            int tpdes1 = pdes[1];
-
-            (void) close(pdes[0]);
-            /*
-             * We must NOT modify pdes, due to the
-             * semantics of vfork.
-             */
-            if (tpdes1 != STDOUT_FILENO) {
-                (void) dup2(tpdes1, STDOUT_FILENO);
-                (void) close(tpdes1);
-                tpdes1 = STDOUT_FILENO;
-            }
-        } else {
-            (void) close(pdes[1]);
-            if (pdes[0] != STDIN_FILENO) {
-                (void) dup2(pdes[0], STDIN_FILENO);
-                (void) close(pdes[0]);
-            }
+    child_writing = 0;                  /* Assume child is writing. */
+    if (modes[0] != 'w') {              /* Parent not writing... */
+        ++child_writing;                /* so child must be writing. */
+        if (modes[0] != 'r') {  /* Oops!  Parent not reading either! */
+            __set_errno(EINVAL);
+            goto RET_NULL;
         }
-        execl("/bin/sh", "sh", "-c", program, (char *) NULL);
+    }
+
+    if (!(pi = malloc(sizeof(struct popen_list_item)))) {
+        goto RET_NULL;
+    }
+
+    if (pipe(pipe_fd)) {
+        goto FREE_PI;
+    }
+
+    child_fd = pipe_fd[child_writing];
+    parent_fd = pipe_fd[1-child_writing];
+
+    if (!(fp = fdopen(parent_fd, modes))) {
+        close(parent_fd);
+        close(child_fd);
+        goto FREE_PI;
+    }
+
+    if ((pid = vfork()) == 0) { /* Child of vfork... */
+        close(parent_fd);
+        if (child_fd != child_writing) {
+            dup2(child_fd, child_writing);
+            close(child_fd);
+        }
+
+        /* SUSv3 requires that any previously popen()'d streams in the
+         * parent shall be closed in the child. */
+        for (po = popen_list ; po ; po = po->next) {
+            fclose(po->f);
+        }
+
+        execl("/bin/sh", "sh", "-c", command, (char *)0);
+
+        /* SUSv3 mandates an exit code of 127 for the child if the
+         * command interpreter can not be invoked. */
         _exit(127);
-        /* NOTREACHED */
-    }
     }
 
-    /* Parent; assume fdopen can't fail. */
-    if (*type == 'r') {
-        iop = fdopen(pdes[0], type);
-        (void) close(pdes[1]);
-    } else {
-        iop = fdopen(pdes[1], type);
-        (void) close(pdes[0]);
+    /* We need to close the child filedes whether vfork failed or
+     * it succeeded and we're in the parent. */
+    close(child_fd);
+
+    if (pid > 0) {                              /* Parent of vfork... */
+        pi->pid = pid;
+        pi->f = fp;
+        pi->next = popen_list;
+        popen_list = pi;
+
+        return fp;
     }
 
-    /* Link into list of file descriptors. */
-    cur->fp = iop;
-    cur->pid = pid;
-    cur->next = pidlist;
-    pidlist = cur;
+    /* If we get here, vfork failed. */
+    fclose(fp);                                 /* Will close parent_fd. */
 
-    return (iop);
+FREE_PI:
+    free(pi);
+
+RET_NULL:
+    return NULL;
 }
-#endif
 
 
 /* #include <unistd.h> */
@@ -2821,10 +2830,6 @@ ssize_t readlinkat (int dirfd, const char *path, char *buf, size_t bufsiz)
 
 #ifndef DOUBLE_SLASH_IS_DISTINCT_ROOT
 # define DOUBLE_SLASH_IS_DISTINCT_ROOT 0
-#endif
-
-#ifndef __set_errno
-# define __set_errno(e) (errno = (e))
 #endif
 
 char *realpath (const char *name, char *resolved)

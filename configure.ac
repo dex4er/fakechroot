@@ -218,6 +218,7 @@ ulckpwdf
 utime
 utimensat
 utimes
+vfork
 ]))
 
 m4_foreach_w([function], [bind connect],
