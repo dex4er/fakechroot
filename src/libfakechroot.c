@@ -2975,7 +2975,7 @@ char *realpath (const char *name, char *resolved)
             if (__lxstat64 (_STAT_VER, rpath, &st) < 0)
                 goto error;
 #else
-            if (stat (rpath, &st) < 0)
+            if (lstat (rpath, &st) < 0)
                 goto error;
 #endif
 
