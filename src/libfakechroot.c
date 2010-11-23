@@ -428,7 +428,7 @@ wrapper_proto(canonicalize_file_name, char *, (const char *));
 wrapper_proto(chdir, int, (const char *));
 wrapper_proto(chmod, int, (const char *, mode_t));
 wrapper_proto(chown, int, (const char *, uid_t, gid_t));
-/* wrapper_proto(chroot, int, (const char *)); */
+wrapper_proto(chroot, int, (const char *));
 #ifdef AF_UNIX
 wrapper_proto(connect, int, (int, CONNECT_TYPE_ARG2(/**/), socklen_t));
 #endif
@@ -446,10 +446,10 @@ wrapper_proto(eaccess, int, (const char *, int));
 #ifdef HAVE_EUIDACCESS
 wrapper_proto(euidaccess, int, (const char *, int));
 #endif
-/* wrapper_proto(execl, int, (const char *, const char *, ...)); */
-/* wrapper_proto(execle, int, (const char *, const char *, ...)); */
-/* wrapper_proto(execlp, int, (const char *, const char *, ...)); */
-/* wrapper_proto(execv, int, (const char *, char *const [])); */
+wrapper_proto(execl, int, (const char *, const char *, ...));
+wrapper_proto(execle, int, (const char *, const char *, ...));
+wrapper_proto(execlp, int, (const char *, const char *, ...));
+wrapper_proto(execv, int, (const char *, char *const []));
 wrapper_proto(execve, int, (const char *, char *const [], char *const []));
 wrapper_proto(execvp, int, (const char *, char *const []));
 #ifdef HAVE_FCHMODAT
@@ -515,7 +515,7 @@ wrapper_proto(lchmod, int, (const char *, mode_t));
 #endif
 wrapper_proto(lchown, int, (const char *, uid_t, gid_t));
 #ifdef HAVE_LCKPWDF
-/* wrapper_proto(lckpwdf, int, (void)); */
+wrapper_proto(lckpwdf, int, (void));
 #endif
 #ifdef HAVE_LGETXATTR
 wrapper_proto(lgetxattr, ssize_t, (const char *, const char *, void *, size_t));
@@ -648,7 +648,7 @@ wrapper_proto(unlink, int, (const char *));
 wrapper_proto(unlinkat, int, (int, const char *, int));
 #endif
 #ifdef HAVE_ULCKPWDF
-/* wrapper_proto(ulckpwdf, int, (void)); */
+wrapper_proto(ulckpwdf, int, (void));
 #endif
 wrapper_proto(utime, int, (const char *, const struct utimbuf *));
 #ifdef HAVE_UTIMENSAT
