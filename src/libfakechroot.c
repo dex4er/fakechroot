@@ -631,7 +631,9 @@ wrapper_proto(symlink, int, (const char *, const char *));
 #ifdef HAVE_SYMLINKAT
 wrapper_proto(symlinkat, int, (const char *, int, const char *));
 #endif
-/* wrapper_proto(system, int, (const char *)); */
+#ifdef __GNUC__
+wrapper_proto(system, int, (const char *));
+#endif
 wrapper_proto(tempnam, char *, (const char *, const char *));
 wrapper_proto(tmpnam, char *, (char *));
 wrapper_proto(truncate, int, (const char *, off_t));
