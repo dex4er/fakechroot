@@ -4,6 +4,7 @@
 
 * Fixed +realpath+(3) function.  +apt-ftparchive+ command currently is
   working.
+* Fixed +canonicalize_file_name+(3) function.
 * Lazy dynamic symbol loading was implemented.  Thanks to Alexander Shishkin.
 * Fixed bug when +FAKECHROOT_EXCLUDE_PATH+ list was sometimes ignored.
 * All source code is now on LGPL license again.

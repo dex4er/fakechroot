@@ -1023,15 +1023,16 @@ ssize_t __readlinkat_chk (int dirfd, const char *path, char *buf, size_t bufsiz,
 
 #ifdef HAVE___REALPATH_CHK
 /* #include <stdlib.h> */
-char *__realpath_chk (const char *name, char *resolved, size_t resolvedlen)
-{
-    char *ptr;
-    char *fakechroot_path, *fakechroot_ptr;
+/* #include <sys/cdefs.h> */
 
-    if ((ptr = nextcall(__realpath_chk)(name, resolved, resolvedlen)) != NULL) {
-        narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
-    }
-    return ptr;
+extern void __chk_fail (void) __attribute__ ((__noreturn__));
+
+char * __realpath_chk (const char *buf, char *resolved, size_t resolvedlen)
+{
+    if (resolvedlen < FAKECHROOT_MAXPATH)
+        __chk_fail ();
+
+    return realpath (buf, resolved);
 }
 #endif
 
