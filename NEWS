@@ -1,11 +1,12 @@
 == Version 2.13 ==
 
-18 Nov 2010
+23 Nov 2010
 
 * Fixed +realpath+(3) function.  +apt-ftparchive+ command currently is
   working.
 * Lazy dynamic symbol loading was implemented.  Thanks to Alexander Shishkin.
 * Fixed bug when +FAKECHROOT_EXCLUDE_PATH+ list was sometimes ignored.
+* All source code is now on LGPL license again.
 
 == Version 2.12 ==
 
