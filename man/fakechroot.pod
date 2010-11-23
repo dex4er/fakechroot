@@ -242,11 +242,24 @@ behaviour.
 fakechroot is distributed under the GNU Lesser General Public License (LGPL
 2.1 or greater).
 
-popen reimplementation taken from uClibc.
+execl function reimplementation taken from GNU C Library.
+Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
+
+execle function reimplementation taken from GNU C Library.
+Copyright (C) 1991,97,98,99,2002,2005 Free Software Foundation, Inc.
+
+execlp function reimplementation taken from GNU C Library.
+Copyright (C) 1991,93,96,97,98,99,2002,2005 Free Software Foundation, Inc.
+
+execvp function reimplementation taken from GNU C Library.
+Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
+Free Software Foundation, Inc.
+
+popen function reimplementation taken from uClibc.
 Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
 Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
 
-realpath reimplementation taken from Gnulib.
+realpath function reimplementation taken from Gnulib.
 Copyright (c) 1996-2010 Free Software Foundation, Inc.
 
 =head1 AUTHORS

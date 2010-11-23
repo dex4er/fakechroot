@@ -1458,8 +1458,12 @@ int euidaccess (const char *pathname, int mode)
 #endif
 
 
+/* execl function reimplementation taken from GNU C Library.
+   Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
+ */
 /* #include <unistd.h> */
-int execl (const char *path, const char *arg, ...) {
+int execl (const char *path, const char *arg, ...)
+{
     size_t argv_max = 1024;
     const char **argv = alloca(argv_max * sizeof(const char *));
     unsigned int i;
@@ -1490,8 +1494,12 @@ int execl (const char *path, const char *arg, ...) {
 }
 
 
+/* execle function reimplementation taken from GNU C Library.
+   Copyright (C) 1991,97,98,99,2002,2005 Free Software Foundation, Inc.
+ */
 /* #include <unistd.h> */
-int execle (const char *path, const char *arg, ...) {
+int execle (const char *path, const char *arg, ...)
+{
     size_t argv_max = 1024;
     const char **argv = alloca(argv_max * sizeof(const char *));
     const char * const *envp;
@@ -1524,8 +1532,12 @@ int execle (const char *path, const char *arg, ...) {
 }
 
 
+/* execlp function reimplementation taken from GNU C Library.
+   Copyright (C) 1991,93,96,97,98,99,2002,2005 Free Software Foundation, Inc.
+ */
 /* #include <unistd.h> */
-int execlp (const char *file, const char *arg, ...) {
+int execlp (const char *file, const char *arg, ...)
+{
     size_t argv_max = 1024;
     const char **argv = alloca(argv_max * sizeof(const char *));
     unsigned int i;
@@ -1724,8 +1736,13 @@ int execve (const char *filename, char *const argv [], char *const envp[])
 }
 
 
+/* execvp function reimplementation taken from GNU C Library.
+   Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
+   Free Software Foundation, Inc.
+ */
 /* #include <unistd.h> */
-int execvp (const char *file, char * const argv[]) {
+int execvp (const char *file, char * const argv[])
+{
     if (*file == '\0') {
         /* We check the simple case first. */
         errno = ENOENT;
@@ -2652,11 +2669,9 @@ long pathconf (const char *path, int name)
 
 #ifdef __GNUC__
 /*
-   popen reimplementation taken from uClibc.
+   popen function reimplementation taken from uClibc.
    Copyright (C) 2004       Manuel Novoa III    <mjn3@codepoet.org>
    Copyright (C) 2000-2006 Erik Andersen <andersen@uclibc.org>
-
-   glibc uses internal weak aliases which cannot be overriden.
  */
 /* #include <stdio.h> */
 struct popen_list_item {
@@ -2820,9 +2835,7 @@ ssize_t readlinkat (int dirfd, const char *path, char *buf, size_t bufsiz)
 
 
 /*
-   realpath reimplementation taken from Gnulib.
-
-   Return the canonical absolute name of a given file.
+   realpath function reimplementation taken from Gnulib.
    Copyright (C) 1996-2010 Free Software Foundation, Inc.
 */
 /* #include <stdlib.h> */
@@ -3248,10 +3261,6 @@ int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
 
 
 #ifdef __GNUC__
-/*
-   system reimplementation. glibc uses internal weak aliases which cannot be
-   overriden.
- */
 /* #include <sys/types.h> */
 /* #include <signal.h> */
 /* #include <stdlib.h> */
