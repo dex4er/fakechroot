@@ -3246,8 +3246,8 @@ int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
 
 #ifdef __GNUC__
 /*
-   system reimplementation taken from bionic. glibc uses internal weak aliases
-   which cannot be overriden.
+   system reimplementation. glibc uses internal weak aliases which cannot be
+   overriden.
  */
 /* #include <sys/types.h> */
 /* #include <signal.h> */
@@ -3256,27 +3256,25 @@ int symlinkat (const char *oldpath, int newdirfd, const char *newpath)
 /* #include <sys/wait.h> */
 int system (const char *command)
 {
-    pid_t pid;
+    int pid, pstat;
     sigset_t mask, omask;
     struct sigaction new_action_ign, old_action_int, old_action_quit;
-    int pstat;
-    char *argp[] = {"sh", "-c", NULL, NULL};
 
-    if (!command) /* just checking... */
-    return(1);
-
-    argp[2] = (char *)command;
+    if (command == 0)
+        return 1;
 
     sigemptyset(&mask);
     sigaddset(&mask, SIGCHLD);
     sigprocmask(SIG_BLOCK, &mask, &omask);
-    switch (pid = vfork()) {
-        case -1: /* error */
+
+    if ((pid = vfork()) < 0) {
         sigprocmask(SIG_SETMASK, &omask, NULL);
-        return(-1);
-        case 0: /* child */
+        return -1;
+    }
+    if (pid == 0) {
         sigprocmask(SIG_SETMASK, &omask, NULL);
-        execve("/bin/sh", argp, environ);
+
+        execl("/bin/sh", "sh", "-c", command, (char *) 0);
         _exit(127);
     }
 
