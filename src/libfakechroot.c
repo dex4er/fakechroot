@@ -114,6 +114,10 @@
 # define __set_errno(e) (errno = (e))
 #endif
 
+#ifndef HAVE_VFORK
+# define vfork fork
+#endif
+
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -576,7 +580,9 @@ wrapper_proto(openat64, int, (int, const char *, int, ...));
 wrapper_proto(opendir, DIR *, (const char *));
 #endif
 wrapper_proto(pathconf, long, (const char *, int));
+#ifdef __GNUC__
 wrapper_proto(popen, FILE *, (const char *, const char *));
+#endif
 wrapper_proto(readlink, READLINK_TYPE_RETURN, (const char *, char *, READLINK_TYPE_ARG3(/**/)));
 #ifdef HAVE_READLINKAT
 wrapper_proto(readlinkat, ssize_t, (int, const char *, char *, size_t));
@@ -2641,6 +2647,7 @@ long pathconf (const char *path, int name)
 }
 
 
+#ifdef __GNUC__
 /*
    popen reimplementation taken from uClibc.
    Copyright (C) 2004       Manuel Novoa III    <mjn3@codepoet.org>
@@ -2656,10 +2663,6 @@ struct popen_list_item {
 };
 
 static struct popen_list_item *popen_list /* = NULL (bss initialized) */;
-
-#ifndef HAVE_VFORK
-# define vfork fork
-#endif
 
 FILE *popen (const char *command, const char *modes)
 {
@@ -2740,6 +2743,7 @@ FREE_PI:
 RET_NULL:
     return NULL;
 }
+#endif
 
 
 /* #include <unistd.h> */
