@@ -5,7 +5,7 @@ srcdir=${srcdir:-.}
 
 prepare 28
 
-buf=`for i in $(seq 1 1024); do printf "A"; done`
+buf=`for i in $($SEQ 1 1024); do printf "A"; done`
 
 for chroot in chroot fakechroot; do
 
