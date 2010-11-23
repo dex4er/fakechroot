@@ -208,8 +208,11 @@ static int first = 0;
 static char *home_path=NULL;
 
 #ifndef HAVE_STRCHRNUL
+/* strchrnul function taken from GNU C Library.
+   Copyright (C) 1991,1993-1997,99,2000,2005 Free Software Foundation, Inc.
+ */
 /* Find the first occurrence of C in S or the final NUL byte.  */
-static char *strchrnul (const char *s, int c_in)
+static char * strchrnul (const char *s, int c_in)
 {
     const unsigned char *char_ptr;
     const unsigned long int *longword_ptr;
