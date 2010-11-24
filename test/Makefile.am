@@ -9,6 +9,7 @@ TESTS = \
     t/cp.t \
     t/execlp.t \
     t/escape-nested-chroot.t \
+    t/ftw.t \
     t/host.t \
     t/popen.t \
     t/pwd.t \
