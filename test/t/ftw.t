@@ -3,7 +3,7 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc
 
-prepare 2
+prepare 4
 
 for chroot in chroot fakechroot; do
 
@@ -11,16 +11,19 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        mkdir testtree/$chroot-dir
-        mkdir testtree/$chroot-dir/subdir
-        echo "something" > testtree/$chroot-dir/file
+        mkdir -p testtree/$chroot-dir/a/b/c
+        echo "something" > testtree/$chroot-dir/a/b/c/d
 
-        t=`$srcdir/$chroot.sh testtree /bin/test-ftw /$chroot-dir 2>&1 | sort | xargs echo`
-        test "$t" = "/$chroot-dir /$chroot-dir/file /$chroot-dir/subdir" || not
+        t=`echo $($srcdir/$chroot.sh testtree /bin/test-ftw /$chroot-dir 2>&1 | sort)`
+        test "$t" = "/$chroot-dir /$chroot-dir/a /$chroot-dir/a/b /$chroot-dir/a/b/c /$chroot-dir/a/b/c/d" || not
+        ok "$chroot ftw returns" $t
+
+        t=`echo $($srcdir/$chroot.sh testtree /bin/test-ftw $chroot-dir 2>&1 | sort)`
+        test "$t" = "$chroot-dir $chroot-dir/a $chroot-dir/a/b $chroot-dir/a/b/c $chroot-dir/a/b/c/d" || not
         ok "$chroot ftw returns" $t
 
     fi
 
 done
 
-#cleanup
+cleanup
