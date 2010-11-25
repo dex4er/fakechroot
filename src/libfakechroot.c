@@ -1900,89 +1900,21 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
 #ifdef HAVE_FTW
 #if !defined(HAVE___OPENDIR2)
 /* include <ftw.h> */
+static int (*ftw_fn_saved)(const char *file, const struct stat *sb, int flag);
+
+static int ftw_fn_wrapper (const char *file, const struct stat *sb, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return ftw_fn_saved(file, sb, flag);
+}
+
 int ftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd)
 {
-    size_t dir_len;
-    int dir_fd;
-    DIR *dir_d;
-    struct dirent *entry;
-
-    struct stat sb;
-
-    char *filename = NULL;
-    size_t filenamelen = 0;
-
-    int ret;
-
-    if (!dir)
-        return -1;
-
-    dir_len = strlen(dir);
-
-    dir_fd = open(dir, O_RDONLY|O_DIRECTORY);
-    dir_d = opendir(dir);
-
-    ret = fn(dir, &sb, (dir_fd == -1 || __lxstat(_STAT_VER, dir, &sb)) ? FTW_DNR : FTW_D);
-
-    if (ret || dir_fd == -1) {
-        close(dir_fd);
-        closedir(dir_d);
-        return ret;
-    }
-
-    while ((entry = readdir(dir_d))) {
-        int flg;
-        size_t entry_namelen;
-
-        if (entry->d_name[0] == '.') {
-            if (!entry->d_name[1]) continue;
-            if (entry->d_name[1] == '.' && !entry->d_name[2] ) continue;
-        }
-
-        entry_namelen = strlen(entry->d_name);
-        if (entry_namelen + dir_len + 2 > filenamelen) {
-            if (filenamelen > 0)
-                free(filename);
-            filename = malloc(filenamelen = entry_namelen + dir_len + 2);
-        }
-
-        if (dir_len == 1 && *dir == '/') {
-            filename[0] = '/';
-            memmove(filename + 1, entry->d_name, entry_namelen + 1);
-        }
-        else {
-            memmove(filename, dir, dir_len);
-            filename[dir_len] = '/';
-            memmove(filename + dir_len + 1, entry->d_name, entry_namelen + 1);
-        }
-
-        if (!__lxstat(_STAT_VER, filename, &sb)) {
-            if (S_ISLNK(sb.st_mode)) flg = FTW_SL;
-            else if (S_ISDIR(sb.st_mode)) flg = FTW_D;
-            else flg = FTW_F;
-        }
-        else flg = FTW_NS;
-
-        if (flg == FTW_D && nopenfd) {
-            ret = ftw(filename, fn, nopenfd-1);
-            if (ret)
-                goto err;
-        }
-        else {
-            ret = fn(filename, &sb, flg);
-            if (ret)
-                goto err;
-        }
-    }
-
-    ret = closedir(dir_d);
-
-err:
-    close(dir_fd);
-    if (filenamelen > 0)
-        free(filename);
-
-    return ret;
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
+    ftw_fn_saved = fn;
+    return nextcall(ftw)(dir, &ftw_fn_wrapper, nopenfd);
 }
 #endif
 #endif
