@@ -1089,22 +1089,42 @@ int __xstat64 (int ver, const char *filename, struct stat64 *buf)
 
 #ifdef HAVE__XFTW
 /* include <ftw.h> */
+static int (*_xftw_fn_saved)(const char *file, const struct stat *sb, int flag);
+
+static int _xftw_fn_wrapper (const char *file, const struct stat *sb, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return _xftw_fn_saved(file, sb, flag);
+}
+
 int _xftw (int mode, const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    return nextcall(_xftw)(mode, dir, fn, nopenfd);
+    _xftw_fn_saved = fn;
+    return nextcall(_xftw)(mode, dir, _xftw_fn_wrapper, nopenfd);
 }
 #endif
 
 
 #ifdef HAVE__XFTW64
 /* include <ftw.h> */
+static int (*_xftw64_fn_saved)(const char *file, const struct stat *sb, int flag);
+
+static int _xftw64_fn_wrapper (const char *file, const struct stat *sb, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return _xftw64_fn_saved(file, sb, flag);
+}
+
 int _xftw64 (int mode, const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    return nextcall(_xftw64)(mode, dir, fn, nopenfd);
+    _xftw64_fn_saved = fn;
+    return nextcall(_xftw64)(mode, dir, _xftw64_fn_wrapper, nopenfd);
 }
 #endif
 
@@ -1951,11 +1971,21 @@ int ftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int
 #ifdef HAVE_FTW64
 #if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW64)
 /* include <ftw.h> */
+static int (*ftw64_fn_saved)(const char *file, const struct stat64 *sb, int flag);
+
+static int ftw64_fn_wrapper (const char *file, const struct stat64 *sb, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return ftw64_fn_saved(file, sb, flag);
+}
+
 int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    return nextcall(ftw64)(dir, fn, nopenfd);
+    ftw64_fn_saved = fn;
+    return nextcall(ftw64)(dir, &ftw64_fn_wrapper, nopenfd);
 }
 #endif
 #endif
@@ -2535,22 +2565,42 @@ char *mktemp (char *template)
 
 #ifdef HAVE_NFTW
 /* #include <ftw.h> */
+static int (*nftw_fn_saved)(const char *file, const struct stat *sb, int flag, struct FTW *s);
+
+static int nftw_fn_wrapper (const char *file, const struct stat *sb, int flag, struct FTW *s)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return nftw_fn_saved(file, sb, flag, s);
+}
+
 int nftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag, struct FTW *s), int nopenfd, int flags)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    return nextcall(nftw)(dir, fn, nopenfd, flags);
+    nftw_fn_saved = fn;
+    return nextcall(nftw)(dir, nftw_fn_wrapper, nopenfd, flags);
 }
 #endif
 
 
 #ifdef HAVE_NFTW64
 /* #include <ftw.h> */
+static int (*nftw64_fn_saved)(const char *file, const struct stat64 *sb, int flag, struct FTW *s);
+
+static int nftw64_fn_wrapper (const char *file, const struct stat64 *sb, int flag, struct FTW *s)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return nftw64_fn_saved(file, sb, flag, s);
+}
+
 int nftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag, struct FTW *s), int nopenfd, int flags)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    return nextcall(nftw64)(dir, fn, nopenfd, flags);
+    nftw64_fn_saved = fn;
+    return nextcall(nftw64)(dir, nftw64_fn_wrapper, nopenfd, flags);
 }
 #endif
 
