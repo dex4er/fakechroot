@@ -102,7 +102,7 @@ static int	 fts_safe_changedir(FTS *, FTSENT *, int, char *);
 
 FTS *
 fts_open(char * const *argv, int options,
-    int (*compar)(const FTSENT **, const FTSENT **))
+    FTS_OPEN_TYPE_ARG3(compar))
 {
 	FTS *sp;
 	FTSENT *p, *root;
