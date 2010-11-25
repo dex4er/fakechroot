@@ -1,4 +1,4 @@
-AC_PREREQ(2.62)
+AC_PREREQ(2.64)
 AC_INIT([fakechroot], [2.14], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
@@ -6,7 +6,10 @@ AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
-AC_LANG_C
+AC_LANG([C])
+
+# --disable-static by default
+AC_DISABLE_STATIC
 
 # --with-libpath
 AC_ARG_WITH([libpath],
@@ -76,12 +79,14 @@ AC_CHECK_HEADERS(m4_normalize([
 ]))
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
 AC_TYPE_UID_T
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
+AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
+AC_TYPE_SSIZE_T
+AC_TYPE_UINT32_T
+AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for additional typedefs.
 AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, ACX_INCLUDES_HEADERS([sys/un.h]))
