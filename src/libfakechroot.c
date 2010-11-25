@@ -408,6 +408,12 @@ wrapper_proto(__xstat, int, (int, const char *, struct stat *));
 #ifdef HAVE___XSTAT64
 wrapper_proto(__xstat64, int, (int, const char *, struct stat64 *));
 #endif
+#ifdef HAVE__XFTW
+wrapper_proto(_xftw, int, (int, const char *, int (*)(const char *, const struct stat *, int), int));
+#endif
+#ifdef HAVE__XFTW64
+wrapper_proto(_xftw64, int, (int, const char *, int (*)(const char *, const struct stat64 *, int), int));
+#endif
 wrapper_proto(access, int, (const char *, int));
 wrapper_proto(acct, int, (const char *));
 #ifdef AF_UNIX
@@ -466,12 +472,12 @@ wrapper_proto(fts_open, FTS *, (char * const *, int, int (*)(const FTSENT **, co
 #endif
 #endif
 #ifdef HAVE_FTW
-#if !defined(HAVE___OPENDIR2)
+#if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
 wrapper_proto(ftw, int, (const char *, int (*)(const char *, const struct stat *, int), int));
 #endif
 #endif
 #ifdef HAVE_FTW64
-#if !defined(HAVE___OPENDIR2)
+#if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
 wrapper_proto(ftw64, int, (const char *, int (*)(const char *, const struct stat64 *, int), int));
 #endif
 #endif
@@ -1077,6 +1083,28 @@ int __xstat64 (int ver, const char *filename, struct stat64 *buf)
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     return nextcall(__xstat64)(ver, filename, buf);
+}
+#endif
+
+
+#ifdef HAVE__XFTW
+/* include <ftw.h> */
+int _xftw (int mode, const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
+    return nextcall(_xftw)(mode, dir, fn, nopenfd);
+}
+#endif
+
+
+#ifdef HAVE__XFTW64
+/* include <ftw.h> */
+int _xftw64 (int mode, const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
+{
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
+    return nextcall(_xftw64)(mode, dir, fn, nopenfd);
 }
 #endif
 
@@ -1898,7 +1926,7 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
 
 
 #ifdef HAVE_FTW
-#if !defined(HAVE___OPENDIR2)
+#if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
 /* include <ftw.h> */
 static int (*ftw_fn_saved)(const char *file, const struct stat *sb, int flag);
 
@@ -1921,7 +1949,7 @@ int ftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int
 
 
 #ifdef HAVE_FTW64
-#if !defined(HAVE___OPENDIR2)
+#if !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW64)
 /* include <ftw.h> */
 int ftw64 (const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
 {

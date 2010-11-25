@@ -109,6 +109,8 @@ __statfs
 __xmknod
 __xstat
 __xstat64
+_xftw
+_xftw64
 access
 acct
 bind
