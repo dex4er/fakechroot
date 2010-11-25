@@ -18,6 +18,7 @@ AC_DEFUN([ACX_CHECK_OPENDIR_CALLS_INTERNALLY],
             acx_var,
             [AC_RUN_IFELSE([AC_LANG_PROGRAM([
 $2
+@%:@define _ANSI_SOURCE
 @%:@include <stdlib.h>
 @%:@include <dirent.h>
 
