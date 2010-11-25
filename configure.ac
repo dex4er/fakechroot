@@ -29,11 +29,6 @@ AC_CHECK_PROGS([SEQ], [seq gseq])
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
 
-# Additional C macros
-AC_DEFINE([_ATFILE_SOURCE], [], [_ATFILE_SOURCE])
-AC_DEFINE([_GNU_SOURCE], [], [_GNU_SOURCE])
-AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
-
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
