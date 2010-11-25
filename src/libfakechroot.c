@@ -1965,8 +1965,6 @@ int ftw (const char *dir, int (*fn)(const char *file, const struct stat *sb, int
 
         if (flg == FTW_D && nopenfd) {
             ret = ftw(filename, fn, nopenfd-1);
-            if (fchdir(dir_fd) == -1)
-                ret = -1;
             if (ret)
                 goto err;
         }
