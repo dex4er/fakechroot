@@ -930,28 +930,44 @@ fts_alloc(FTS *sp, char *name, size_t namelen)
 	FTSENT *p;
 	size_t len;
 
+	struct ftsent_withstat {
+		FTSENT	ent;
+		struct	stat statbuf;
+	};
+
 	/*
 	 * The file name is a variable length array and no stat structure is
 	 * necessary if the user has set the nostat bit.  Allocate the FTSENT
 	 * structure, the file name and the stat structure in one chunk, but
-	 * be careful that the stat structure is reasonably aligned.  Since the
-	 * fts_name field is declared to be of size 1, the fts_name pointer is
-	 * namelen + 2 before the first possible address of the stat structure.
+	 * be careful that the stat structure is reasonably aligned.
 	 */
-	len = sizeof(FTSENT) + namelen;
-	if (!ISSET(FTS_NOSTAT))
-		len += sizeof(struct stat) + ALIGNBYTES;
+	if (ISSET(FTS_NOSTAT))
+		len = sizeof(FTSENT) + namelen + 1;
+	else
+		len = sizeof(struct ftsent_withstat) + namelen + 1;
+
 	if ((p = malloc(len)) == NULL)
 		return (NULL);
 
-	memset(p, 0, len);
-	p->fts_path = sp->fts_path;
-	p->fts_namelen = namelen;
-	p->fts_instr = FTS_NOINSTR;
-	if (!ISSET(FTS_NOSTAT))
-		p->fts_statp = (struct stat *)ALIGN(p->fts_name + namelen + 2);
-	memcpy(p->fts_name, name, namelen);
+	if (ISSET(FTS_NOSTAT)) {
+		p->fts_name = (char *)(p + 1);
+		p->fts_statp = NULL;
+	} else {
+		p->fts_name = (char *)((struct ftsent_withstat *)p + 1);
+		p->fts_statp = &((struct ftsent_withstat *)p)->statbuf;
+	}
 
+	/* Copy the name and guarantee NUL termination. */
+	memcpy(p->fts_name, name, namelen);
+	p->fts_name[namelen] = '\0';
+	p->fts_namelen = namelen;
+	p->fts_path = sp->fts_path;
+	p->fts_errno = 0;
+	p->fts_flags = 0;
+	p->fts_instr = FTS_NOINSTR;
+	p->fts_number = 0;
+	p->fts_pointer = NULL;
+	p->fts_fts = sp;
 	return (p);
 }
 
