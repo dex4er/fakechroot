@@ -13,17 +13,6 @@ for chroot in chroot fakechroot; do
 
         for option in 0 1 2 4 8 16 32 64 128 255; do
 
-            if [ $chroot = "fakechroot" ]; then
-                case "`uname -s`" in
-                    Linux|KFreeBSD)
-                    ;;
-                *)
-                    skip $(( $tap_plan / 2 )) "not implemented yet"
-                    continue
-                    ;;
-                esac
-            fi
-
             mkdir -p testtree/$chroot-$option-dir/a/b/c
             echo "something" > testtree/$chroot-$option-dir/a/b/c/d
 

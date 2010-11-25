@@ -280,6 +280,13 @@ This software is distributed under the BSD-style license.
 
 =item *
 
+__opendir2 function taken from FreeBSD.
+Copyright (c) 1983, 1993 The Regents of the University of California.
+Copyright (c) 2000 Daniel Eischen.
+This software is distributed under the BSD-style license.
+
+=item *
+
 popen function taken from uClibc.
 Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
 Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
