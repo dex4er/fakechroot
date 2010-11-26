@@ -20,9 +20,11 @@
 
 #include <config.h>
 
-#include <alloca.h>
 #include <stddef.h>
 #include <unistd.h>
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
 #include <stdlib.h>
 #include <fcntl.h>
 #include "strchrnul.h"

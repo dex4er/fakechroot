@@ -36,6 +36,7 @@ AC_DEFINE([FAKECHROOT], [PACKAGE_VERSION], [FAKECHROOT])
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(m4_normalize([
+alloca.h
 dirent.h
 dlfcn.h
 errno.h

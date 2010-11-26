@@ -22,8 +22,11 @@
 
 #define _GNU_SOURCE
 #include <stdarg.h>
-#include <alloca.h>
 #include <stddef.h>
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
+#include <stdlib.h>
 #include <unistd.h>
 #include "libfakechroot.h"
 

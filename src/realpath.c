@@ -23,9 +23,12 @@
 #ifdef HAVE___LXSTAT64
 # define _LARGEFILE64_SOURCE
 #endif
-#include <alloca.h>
 #include <stddef.h>
 #include <sys/stat.h>
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
+#include <stdlib.h>
 #include <unistd.h>
 #include "libfakechroot.h"
 
