@@ -57,6 +57,7 @@ for p in \
     '/usr/bin/id' \
     '/usr/bin/less' \
     '/usr/bin/ltrace' \
+    '/usr/bin/more' \
     '/usr/bin/perl' \
     '/usr/bin/readlink' \
     '/usr/bin/seq' \
