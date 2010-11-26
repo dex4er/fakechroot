@@ -27,7 +27,11 @@
 #include <stdio.h>
 #include "libfakechroot.h"
 
-#include "__xstat64.h"
+#ifdef HAVE___XSTAT64
+# include "__xstat64.h"
+#else
+# include "stat.h"
+#endif
 #include "getcwd.h"
 
 wrapper(chroot, int, (const char * path))
