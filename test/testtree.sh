@@ -87,12 +87,14 @@ for p in \
     'libc.so.*' \
     'libcrypt.so.*' \
     'libdl.so.*' \
+    'libedit.so.*' \
     'libgcc_s.so.*' \
+    'libm.so.*' \
+    'libncurses.so.*' \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
-    'libm.so.*' \
-    'libncurses.so.*' \
+    'libutil.so.*' \
     'linux-vdso.so.*'
 do
     for a in '' 32 64 exec; do
