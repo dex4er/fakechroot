@@ -13,6 +13,7 @@ for d in \
     /lib \
     /lib32 \
     /lib64 \
+    /libexec \
     /root \
     /sbin \
     /tmp \
@@ -70,12 +71,13 @@ for p in \
     '/usr/local/bin/strace'
 do
     for f in $p; do
-	cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
+        cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
     done
 done
 
 for p in \
     'ld-*.so' \
+    'ld-*.so.*' \
     'ld-linux.so.*' \
     'ld-linux-x86-64.so.*' \
     'ld-uClibc.so.*' \
@@ -93,11 +95,11 @@ for p in \
     'libncurses.so.*' \
     'linux-vdso.so.*'
 do
-    for a in '' 32 64; do
+    for a in '' 32 64 exec; do
         fp="/lib$a/$p"
         for f in $fp; do
-    	    cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
-    	done
+            cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
+        done
     done
 done
 
@@ -107,5 +109,7 @@ do
     test -x $p || continue
     cp -pf $p $destdir/bin
 done
+
+chflags -R 0 $destdir 2>/dev/null || true
 
 echo $destdir > $destdir/CHROOT
