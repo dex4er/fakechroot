@@ -11,6 +11,17 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
+        if [ $chroot = "fakechroot" ]; then
+            case "`uname -s`" in
+                Linux|KFreeBSD)
+                ;;
+            *)
+                skip $(( $tap_plan / 2 )) "not implemented yet"
+                continue
+                ;;
+            esac
+        fi
+
         mkdir -p testtree/$chroot-dir/a/b/c
         echo "something" > testtree/$chroot-dir/a/b/c/d
 
