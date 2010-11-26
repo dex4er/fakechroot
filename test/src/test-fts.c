@@ -6,12 +6,6 @@
 #include <stdio.h>
 
 
-static int callback(const char *fpath, const struct stat *sb, int typeflag) {
-    printf("%s\n", fpath);
-    return 0;
-}
-
-
 int main (int argc, char *argv[]) {
     FTS *tree;
     FTSENT *node;
