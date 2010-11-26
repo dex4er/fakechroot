@@ -18,4 +18,4 @@
 */
 
 
-extern char * strchrnul (const char * s, int c_in);
+char * strchrnul (const char *, int);

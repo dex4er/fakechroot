@@ -23,6 +23,7 @@
 #ifndef HAVE_STRCHRNUL
 
 #include <stdlib.h>
+#include "libfakechroot.h"
 
 
 /*
