@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <limits.h>
-#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 
