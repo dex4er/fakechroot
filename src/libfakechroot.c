@@ -466,9 +466,19 @@ wrapper_proto(freopen, FILE *, (const char *, const char *, FILE *));
 #ifdef HAVE_FREOPEN64
 wrapper_proto(freopen64, FILE *, (const char *, const char *, FILE *));
 #endif
+#ifdef HAVE_FTS_CHILDREN
+#if !defined(HAVE___OPENDIR2)
+wrapper_proto(fts_children, FTSENT *, (FTS *, int));
+#endif
+#endif
 #ifdef HAVE_FTS_OPEN
 #if !defined(HAVE___OPENDIR2)
 wrapper_proto(fts_open, FTS *, (char * const *, int, int (*)(const FTSENT **, const FTSENT **)));
+#endif
+#endif
+#ifdef HAVE_FTS_READ
+#if !defined(HAVE___OPENDIR2)
+wrapper_proto(fts_read, FTSENT *, (FTS *));
 #endif
 #endif
 #ifdef HAVE_FTW
@@ -1917,10 +1927,39 @@ FILE *freopen64 (const char *path, const char *mode, FILE *stream)
 #endif
 
 
-#ifdef HAVE_FTS_OPEN
+#ifdef HAVE_FTS_CHILDREN
 #if !defined(HAVE___OPENDIR2)
 /* #include <fts.h> */
-FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **)) {
+FTSENT * fts_children (FTS *ftsp, int options)
+{
+    FTSENT *entry, *newentry;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if ((entry = nextcall(fts_read)(ftsp)) == NULL)
+        return NULL;
+
+    /* Memory leak. We can't free this resource. */
+    if ((newentry = malloc(sizeof(FTSENT))) == NULL)
+        return NULL;
+
+    memmove(newentry, entry, sizeof(FTSENT));
+
+    if ((newentry->fts_path = malloc(entry->fts_pathlen + 1)) == NULL)
+        return NULL;
+
+    memmove(newentry->fts_path, entry->fts_path, entry->fts_pathlen);
+    narrow_chroot_path(newentry->fts_path, fakechroot_path, fakechroot_ptr);
+
+    return newentry;
+}
+#endif
+#endif
+
+
+#ifdef HAVE_FTS_OPEN
+#if !defined(HAVE___OPENDIR2)
+FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT **, const FTSENT **))
+{
     char *fakechroot_path, *fakechroot_buf;
     char *path;
     char * const *p;
@@ -1940,6 +1979,34 @@ FTS * fts_open (char * const *path_argv, int options, int (*compar)(const FTSENT
     }
 
     return nextcall(fts_open)(new_path_argv, options, compar);
+}
+#endif
+#endif
+
+
+#ifdef HAVE_FTS_READ
+#if !defined(HAVE___OPENDIR2)
+FTSENT * fts_read (FTS *ftsp)
+{
+    FTSENT *entry, *newentry;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    if ((entry = nextcall(fts_read)(ftsp)) == NULL)
+        return NULL;
+
+    /* Memory leak. We can't free this resource. */
+    if ((newentry = malloc(sizeof(FTSENT))) == NULL)
+        return NULL;
+
+    memmove(newentry, entry, sizeof(FTSENT));
+
+    if ((newentry->fts_path = malloc(entry->fts_pathlen + 1)) == NULL)
+        return NULL;
+
+    memmove(newentry->fts_path, entry->fts_path, entry->fts_pathlen);
+    narrow_chroot_path(newentry->fts_path, fakechroot_path, fakechroot_ptr);
+
+    return newentry;
 }
 #endif
 #endif

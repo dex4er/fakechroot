@@ -139,7 +139,9 @@ fopen
 fopen64
 freopen
 freopen64
+fts_children
 fts_open
+fts_read
 ftw
 ftw64
 futimesat

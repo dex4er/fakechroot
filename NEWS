@@ -2,10 +2,11 @@
 
 25 Nov 2010
 
-* Fixed +realpath+(3) and +ftw+(3) functions.  +apt-ftparchive+ command
-  currently is working.
-* Fixed +canonicalize_file_name+(3), +ftw64+(3), +nftw+(3) and +nftw64+(3)
-  functions.
+* Fixes were made for +realpath+(3) and +ftw+(3) functions.  +apt-ftparchive+
+  command currently is working.
+* Fixes were made for +canonicalize_file_name+(3), +ftw64+(3), +nftw+(3) and
+  +nftw64+(3) functions.
+* New functions +fts_children+(3) and +fts_read+(3) were added.
 * Lazy dynamic symbol loading was implemented.  Thanks to Alexander Shishkin.
 * Fixed bug when +FAKECHROOT_EXCLUDE_PATH+ list was sometimes ignored.
 * All source code is now on LGPL license again.
