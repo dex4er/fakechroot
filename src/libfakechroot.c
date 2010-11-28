@@ -157,7 +157,7 @@
                 fakechroot_path = getenv("FAKECHROOT_BASE"); \
                 if (fakechroot_path != NULL) { \
                     if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
-                        errno = ENOMEM; \
+                        __set_errno(ENOMEM); \
                         return NULL; \
                     } \
                     strcpy(fakechroot_buf, fakechroot_path); \
@@ -1241,7 +1241,7 @@ int bind (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen)
         }
 
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
-            errno = ENAMETOOLONG;
+            __set_errno(ENAMETOOLONG);
             return -1;
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
@@ -1327,20 +1327,20 @@ int chroot (const char *path)
 
     debug("chroot(\"%s\")", path);
     if (path == NULL) {
-        errno = EFAULT;
+        __set_errno(EFAULT);
         return -1;
     }
     if (!*path) {
-        errno = ENOENT;
+        __set_errno(ENOENT);
         return -1;
     }
     if (*path != '/') {
         if (nextcall(getcwd)(cwd, FAKECHROOT_PATH_MAX) == NULL) {
-            errno = ENAMETOOLONG;
+            __set_errno(ENAMETOOLONG);
             return -1;
         }
         if (cwd == NULL) {
-            errno = EFAULT;
+            __set_errno(EFAULT);
             return -1;
         }
         if (strcmp(cwd, "/") == 0) {
@@ -1466,7 +1466,7 @@ int connect (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen)
         }
 
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
-            errno = ENAMETOOLONG;
+            __set_errno(ENAMETOOLONG);
             return -1;
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
@@ -1568,7 +1568,7 @@ int execl (const char *path, const char *arg, ...)
     debug("execl(\"%s\", \"%s\", ...)", path, arg);
     argv[0] = arg;
 
-    va_start (args, arg);
+    va_start(args, arg);
     i = 0;
     while (argv[i++] != NULL) {
         if (i == argv_max) {
@@ -1585,7 +1585,7 @@ int execl (const char *path, const char *arg, ...)
 
         argv[i] = va_arg (args, const char *);
     }
-    va_end (args);
+    va_end(args);
 
     return execve(path, (char * const *) argv, environ);
 }
@@ -1606,7 +1606,7 @@ int execle (const char *path, const char *arg, ...)
     debug("execle(\"%s\", \"%s\", ...)", path, arg);
     argv[0] = arg;
 
-    va_start (args, arg);
+    va_start(args, arg);
     i = 0;
     while (argv[i++] != NULL) {
         if (i == argv_max) {
@@ -1621,11 +1621,11 @@ int execle (const char *path, const char *arg, ...)
                         * sizeof(const char *));
         }
 
-        argv[i] = va_arg (args, const char *);
+        argv[i] = va_arg(args, const char *);
     }
 
-    envp = va_arg (args, const char * const *);
-    va_end (args);
+    envp = va_arg(args, const char * const *);
+    va_end(args);
 
     return execve(path, (char * const *) argv, (char * const *) envp);
 }
@@ -1646,7 +1646,7 @@ int execlp (const char *file, const char *arg, ...)
     debug("execlp(\"%s\", \"%s\", ...)", file, arg);
     argv[0] = arg;
 
-    va_start (args, arg);
+    va_start(args, arg);
     i = 0;
     while (argv[i++] != NULL) {
         if (i == argv_max) {
@@ -1661,9 +1661,9 @@ int execlp (const char *file, const char *arg, ...)
                         * sizeof(const char *));
         }
 
-        argv[i] = va_arg (args, const char *);
+        argv[i] = va_arg(args, const char *);
     }
-    va_end (args);
+    va_end(args);
 
     expand_chroot_path(file, fakechroot_path, fakechroot_buf);
     return execvp(file, (char * const *) argv);
@@ -1674,7 +1674,7 @@ int execlp (const char *file, const char *arg, ...)
 int execv (const char *path, char * const argv [])
 {
     debug("execv(\"%s\", {\"%s\", ...})", path, argv[0]);
-    return execve (path, argv, environ);
+    return execve(path, argv, environ);
 }
 
 /* Parse the FAKECHROOT_CMD_SUBST environment variable (the first
@@ -1685,19 +1685,19 @@ int execv (const char *path, char * const argv [])
  */
 static int try_cmd_subst (char *env, const char *filename, char *cmd_subst)
 {
-    int len = strlen (filename), len2;
+    int len = strlen(filename), len2;
     char *p;
 
     if (env == NULL) return 0;
 
     do {
-        p = strchrnul (env, ':');
+        p = strchrnul(env, ':');
 
-        if (strncmp (env, filename, len) == 0 && env[len] == '=') {
+        if (strncmp(env, filename, len) == 0 && env[len] == '=') {
             len2 = p - &env[len+1];
             if (len2 >= FAKECHROOT_PATH_MAX)
                 len2 = FAKECHROOT_PATH_MAX - 1;
-            strncpy (cmd_subst, &env[len+1], len2);
+            strncpy(cmd_subst, &env[len+1], len2);
             cmd_subst[len2] = '\0';
             return 1;
         }
@@ -1714,7 +1714,7 @@ int execve (const char *filename, char * const argv [], char * const envp[])
     int file;
     char hashbang[FAKECHROOT_PATH_MAX];
     size_t argv_max = 1024;
-    const char **newargv = alloca (argv_max * sizeof (const char *));
+    const char **newargv = alloca(argv_max * sizeof (const char *));
     char **newenvp, **ep;
     char *env;
     char tmp[FAKECHROOT_PATH_MAX], newfilename[FAKECHROOT_PATH_MAX], argv0[FAKECHROOT_PATH_MAX];
@@ -1740,13 +1740,13 @@ int execve (const char *filename, char * const argv [], char * const envp[])
     /* Copy envp to newenvp */
     newenvp = malloc( (sizeenvp + 1) * sizeof (char *) );
     if (newenvp == NULL) {
-        errno = ENOMEM;
+        __set_errno(ENOMEM);
         return -1;
     }
     for (ep = (char **) envp, newenvppos = 0; *ep != NULL; ++ep) {
         for (j = 0; j < nr_envkey; j++) {
-            len = strlen (envkey[j]);
-            if (strncmp (*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+            len = strlen(envkey[j]);
+            if (strncmp(*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
                 goto skip;
         }
         newenvp[newenvppos] = *ep;
@@ -1757,7 +1757,7 @@ int execve (const char *filename, char * const argv [], char * const envp[])
 
     strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
 
-    r = try_cmd_subst (getenv ("FAKECHROOT_CMD_SUBST"), filename, tmp);
+    r = try_cmd_subst(getenv ("FAKECHROOT_CMD_SUBST"), filename, tmp);
     if (r) {
         filename = tmp;
 
@@ -1773,21 +1773,21 @@ int execve (const char *filename, char * const argv [], char * const envp[])
     filename = tmp;
 
     if ((file = nextcall(open)(filename, O_RDONLY)) == -1) {
-        errno = ENOENT;
+        __set_errno(ENOENT);
         return -1;
     }
 
     i = read(file, hashbang, FAKECHROOT_PATH_MAX-2);
     close(file);
     if (i == -1) {
-        errno = ENOENT;
+        __set_errno(ENOENT);
         return -1;
     }
 
     /* Add our variables to newenvp */
     newenvp = realloc( newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *) );
     if (newenvp == NULL) {
-        errno = ENOMEM;
+        __set_errno(ENOMEM);
         return -1;
     }
     for (j = 0; j < nr_envkey; j++) {
@@ -1849,7 +1849,7 @@ int execvp (const char *file, char * const argv[])
     debug("execvp(\"%s\", {\"%s\", ...})", file, argv[0]);
     if (*file == '\0') {
         /* We check the simple case first. */
-        errno = ENOENT;
+        __set_errno(ENOENT);
         return -1;
     }
 
@@ -1924,7 +1924,7 @@ int execvp (const char *file, char * const argv[])
         if (got_eacces)
             /* At least one failure was due to permissions, so report that
              error.  */
-            errno = EACCES;
+            __set_errno(EACCES);
     }
 
     /* Return the error from the last attempt (probably ENOENT).  */
@@ -3124,25 +3124,25 @@ char *realpath (const char *name, char *resolved)
            either parameter is a null pointer.  We extend this to allow
            the RESOLVED parameter to be NULL in case the we are expected to
            allocate the room for the return value.  */
-        __set_errno (EINVAL);
+        __set_errno(EINVAL);
         return NULL;
     }
 
     if (name[0] == '\0') {
         /* As per Single Unix Specification V2 we must return an error if
            the name argument points to an empty string.  */
-        __set_errno (ENOENT);
+        __set_errno(ENOENT);
         return NULL;
     }
 
     path_max = FAKECHROOT_PATH_MAX;
 
     if (resolved == NULL) {
-        rpath = malloc (path_max);
+        rpath = malloc(path_max);
         if (rpath == NULL) {
             /* It's easier to set errno to ENOMEM than to rely on the
                'malloc-posix' gnulib module.  */
-            errno = ENOMEM;
+            __set_errno(ENOMEM);
             return NULL;
         }
     } else
@@ -3150,11 +3150,11 @@ char *realpath (const char *name, char *resolved)
     rpath_limit = rpath + path_max;
 
     if (name[0] != '/') {
-        if (!getcwd (rpath, path_max)) {
+        if (!getcwd(rpath, path_max)) {
             rpath[0] = '\0';
             goto error;
         }
-        dest = strchr (rpath, '\0');
+        dest = strchr(rpath, '\0');
     } else {
         rpath[0] = '/';
         dest = rpath + 1;
@@ -3200,7 +3200,7 @@ char *realpath (const char *name, char *resolved)
                 char *new_rpath;
 
                 if (resolved) {
-                    __set_errno (ENAMETOOLONG);
+                    __set_errno(ENAMETOOLONG);
                     if (dest > rpath + 1)
                         dest--;
                     *dest = '\0';
@@ -3211,11 +3211,11 @@ char *realpath (const char *name, char *resolved)
                     new_size += end - start + 1;
                 else
                     new_size += path_max;
-                new_rpath = (char *) realloc (rpath, new_size);
+                new_rpath = (char *) realloc(rpath, new_size);
                 if (new_rpath == NULL) {
                     /* It's easier to set errno to ENOMEM than to rely on the
                        'realloc-posix' gnulib module.  */
-                    errno = ENOMEM;
+                    __set_errno(ENOMEM);
                     goto error;
                 }
                 rpath = new_rpath;
@@ -3224,7 +3224,7 @@ char *realpath (const char *name, char *resolved)
                 dest = rpath + dest_offset;
             }
 
-            memcpy (dest, start, end - start);
+            memcpy(dest, start, end - start);
             dest += end - start;
             *dest = '\0';
 
@@ -3241,44 +3241,44 @@ char *realpath (const char *name, char *resolved)
                 size_t len;
 
                 if (++num_links > MAXSYMLINKS) {
-                    __set_errno (ELOOP);
+                    __set_errno(ELOOP);
                     goto error;
                 }
 
-                buf = malloc (path_max);
+                buf = malloc(path_max);
                 if (!buf) {
-                    errno = ENOMEM;
+                    __set_errno(ENOMEM);
                     goto error;
                 }
 
-                n = readlink (rpath, buf, path_max - 1);
+                n = readlink(rpath, buf, path_max - 1);
                 if (n < 0) {
                     int saved_errno = errno;
-                    free (buf);
-                    errno = saved_errno;
+                    free(buf);
+                    __set_errno(saved_errno);
                     goto error;
                 }
                 buf[n] = '\0';
 
                 if (!extra_buf) {
-                    extra_buf = malloc (path_max);
+                    extra_buf = malloc(path_max);
                     if (!extra_buf) {
-                        free (buf);
-                        errno = ENOMEM;
+                        free(buf);
+                        __set_errno(ENOMEM);
                         goto error;
                     }
                 }
 
-                len = strlen (end);
+                len = strlen(end);
                 if ((long int) (n + len) >= path_max) {
-                    free (buf);
-                    __set_errno (ENAMETOOLONG);
+                    free(buf);
+                    __set_errno(ENAMETOOLONG);
                     goto error;
                 }
 
                 /* Careful here, end may be a pointer into extra_buf... */
-                memmove (&extra_buf[n], end, len + 1);
-                name = end = memcpy (extra_buf, buf, n);
+                memmove(&extra_buf[n], end, len + 1);
+                name = end = memcpy(extra_buf, buf, n);
 
                 if (buf[0] == '/') {
                     dest = rpath + 1;     /* It's an absolute symlink */
@@ -3294,7 +3294,7 @@ char *realpath (const char *name, char *resolved)
                         dest++;
                 }
             } else if (!S_ISDIR (st.st_mode) && *end != '\0') {
-                __set_errno (ENOTDIR);
+                __set_errno(ENOTDIR);
                 goto error;
             }
         }
@@ -3306,17 +3306,17 @@ char *realpath (const char *name, char *resolved)
     *dest = '\0';
 
     if (extra_buf)
-        free (extra_buf);
+        free(extra_buf);
 
     return rpath;
 
 error: {
         int saved_errno = errno;
         if (extra_buf)
-            free (extra_buf);
+            free(extra_buf);
         if (resolved == NULL)
-            free (rpath);
-        errno = saved_errno;
+            free(rpath);
+        __set_errno(saved_errno);
     }
     return NULL;
 }
