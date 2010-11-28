@@ -139,6 +139,10 @@ The version of current fakechroot library.
 
 The root directory for fake chroot environment.
 
+=item B<FAKECHROOT_DEBUG>
+
+The fakechroot library will dump some debugging info is this variable is set.
+
 =item B<FAKECHROOT_AF_UNIX_PATH>
 
 The root directory for unix sockets.  The default value is the same as
