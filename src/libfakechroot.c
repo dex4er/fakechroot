@@ -208,7 +208,7 @@ static int first = 0;
 static char *home_path=NULL;
 
 
-static inline int debug (const char *fmt, ...)
+static int debug (const char *fmt, ...)
 {
     va_list ap;
     int ret;
