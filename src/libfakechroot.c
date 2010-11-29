@@ -26,6 +26,7 @@
 #include <config.h>
 
 #define _ATFILE_SOURCE
+#define _BSD_SOURCE
 #define _GNU_SOURCE
 #define __BSD_VISIBLE
 
