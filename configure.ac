@@ -1,5 +1,5 @@
 AC_PREREQ(2.62)
-AC_INIT([fakechroot], [2.13], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+AC_INIT([fakechroot], [2.13.1], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -250,7 +250,9 @@ AC_CHECK_FUNC_ARGTYPES([fts_open],
     [[int (*_)(const FTSENT * const *, const FTSENT * const *)], [int (*_)(const FTSENT **, const FTSENT **)]])
 
 AC_CHECK_FUNC_ARGTYPES([readlink],
-    [], [unistd.h],
+    [
+#define _BSD_SOURCE 1
+    ], [unistd.h],
     [[ssize_t], [const char *_], [char *_], [size_t _]],
     [[ssize_t], [int]],
     [[const char *_]],
@@ -258,7 +260,9 @@ AC_CHECK_FUNC_ARGTYPES([readlink],
     [[size_t _], [int _]])
 
 AC_CHECK_FUNC_ARGTYPES([scandir],
-    [], [dirent.h],
+    [
+#define _BSD_SOURCE 1
+    ], [dirent.h],
     [[int], [const char *_], [struct dirent ***_], [int(*_)(const struct dirent *)], [int(*_)(const void *,const void *)]],
     [[int]],
     [[const char *_]],
@@ -267,7 +271,10 @@ AC_CHECK_FUNC_ARGTYPES([scandir],
     [[int(*_)(const struct dirent **, const struct dirent **)], [int(*_)(const void *,const void *)]])
 
 AC_CHECK_FUNC_ARGTYPES([scandir64],
-    [], [dirent.h],
+    [
+#define _BSD_SOURCE 1
+#define _GNU_SOURCE 1
+    ], [dirent.h],
     [[int], [const char *_], [struct dirent64 ***_], [int(*_)(const struct dirent64 *)], [int(*_)(const void *,const void *)]],
     [[int]],
     [[const char *_]],
