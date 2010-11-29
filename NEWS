@@ -1,6 +1,6 @@
 == Version 2.13 ==
 
-25 Nov 2010
+29 Nov 2010
 
 * Fixes were made for +realpath+(3) and +ftw+(3) functions.  +apt-ftparchive+
   command currently is working.
