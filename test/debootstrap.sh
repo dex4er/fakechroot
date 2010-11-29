@@ -19,11 +19,12 @@ if [ $# -gt 0 ]; then
     destdir=$1
     shift
 else
-    destdir=testtree
+    destdir=`pwd -P`/testtree
 fi
 
 tarball=$vendor-$release-$arch.debs.tgz
 
+export FAKECHROOT_EXCLUDE_PATH=${FAKECHROOT_EXCLUDE_PATH:-/dev:/proc:/sys}
 export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv=/bin/true
 export FAKECHROOT_AF_UNIX_PATH=/tmp
 
@@ -41,6 +42,10 @@ fi
 
 fakeroot fakechroot /usr/sbin/debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
 
+# workaround for bug in mountall package
+rm -rf $destdir/dev
+mkdir -p $destdir/dev
+FAKECHROOT_EXCLUDE_PATH=/proc:/sys FAKECHROOT_CMD_SUBST=/bin/rm=/bin/true HOME=/root fakeroot fakechroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install mountall || true
 HOME=/root fakeroot fakechroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install -f
 
 cp -v `cd $srcdir; pwd`/../scripts/ldd.pl $destdir/usr/bin/ldd

@@ -6,7 +6,7 @@ if [ $# -gt 0 ]; then
     destdir=$1
     shift
 else
-    destdir=$srcdir/testtree
+    destdir=`cd $srcdir/testtree && pwd -P`
 fi
 
 if [ $# -gt 0 ]; then

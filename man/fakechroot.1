@@ -249,6 +249,9 @@ The version of current fakechroot library.
 .IP "\fB\s-1FAKECHROOT_BASE\s0\fR" 4
 .IX Item "FAKECHROOT_BASE"
 The root directory for fake chroot environment.
+.IP "\fB\s-1FAKECHROOT_DEBUG\s0\fR" 4
+.IX Item "FAKECHROOT_DEBUG"
+The fakechroot library will dump some debugging info is this variable is set.
 .IP "\fB\s-1FAKECHROOT_AF_UNIX_PATH\s0\fR" 4
 .IX Item "FAKECHROOT_AF_UNIX_PATH"
 The root directory for unix sockets.  The default value is the same as
@@ -336,13 +339,41 @@ behaviour.
 .IX Header "COPYING"
 fakechroot is distributed under the \s-1GNU\s0 Lesser General Public License (\s-1LGPL\s0
 2.1 or greater).
+.PP
+Additional copyrights:
+.IP "\(bu" 2
+execl function taken from \s-1GNU\s0 C Library.
+Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
+.IP "\(bu" 2
+execle function taken from \s-1GNU\s0 C Library.
+Copyright (C) 1991,97,98,99,2002,2005 Free Software Foundation, Inc.
+.IP "\(bu" 2
+execlp function taken from \s-1GNU\s0 C Library.
+Copyright (C) 1991,93,96,97,98,99,2002,2005 Free Software Foundation, Inc.
+.IP "\(bu" 2
+execvp function taken from \s-1GNU\s0 C Library.
+Copyright (C) 1991,92, 1995\-99, 2002, 2004, 2005, 2007, 2009
+Free Software Foundation, Inc.
+.IP "\(bu" 2
+popen function taken from uClibc.
+Copyright (c) 2004 Manuel Novoa \s-1III\s0 <mjn3@codepoet.org>
+Copyright (c) 2000\-2006 Erik Andersen <andersen@uclibc.org>
+.IP "\(bu" 2
+realpath function taken from Gnulib.
+Copyright (c) 1996\-2010 Free Software Foundation, Inc.
+.IP "\(bu" 2
+strchrnul function taken from \s-1GNU\s0 C Library.
+Copyright (C) 1991,1993\-1997,99,2000,2005 Free Software Foundation, Inc.
 .SH "AUTHORS"
 .IX Header "AUTHORS"
-Copyright (c) 2003\-2010 Piotr Roszatycki <dexter@debian.org>
-.PP
-Copyright (c) 2006\-2007 Lionel Tricon <lionel.tricon@free.fr>
+Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
+<dexter@debian.org>
 .PP
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
+.PP
+Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
+.PP
+Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIfakeroot\fR\|(1), \fIdebuild\fR\|(1), \fIdebootstrap\fR\|(8), \fIfebootstrap\fR\|(8),

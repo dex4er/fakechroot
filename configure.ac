@@ -1,5 +1,5 @@
 AC_PREREQ(2.62)
-AC_INIT([fakechroot], [2.12], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+AC_INIT([fakechroot], [2.13], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -30,9 +30,8 @@ AC_CHECK_PROGS([SEQ], [seq gseq])
 AC_CHECK_LIB([dl], [dlsym])
 
 # Additional C macros
-AC_DEFINE([_ATFILE_SOURCE], [], [_ATFILE_SOURCE])
-AC_DEFINE([_GNU_SOURCE], [], [_GNU_SOURCE])
-AC_DEFINE([__BSD_VISIBLE], [], [__BSD_VISIBLE])
+AC_DEFINE([FAKECHROOT], [1], [FAKECHROOT])
+AC_DEFINE([HAVE_CONFIG_H], [1], [HAVE_CONFIG_H])
 
 # Checks for header files.
 AC_HEADER_DIRENT
@@ -89,6 +88,7 @@ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS(m4_normalize([
+__chk_fail
 __fxstatat
 __fxstatat64
 __getcwd_chk
@@ -139,7 +139,9 @@ fopen
 fopen64
 freopen
 freopen64
+fts_children
 fts_open
+fts_read
 ftw
 ftw64
 futimesat
@@ -218,6 +220,7 @@ ulckpwdf
 utime
 utimensat
 utimes
+vfork
 ]))
 
 m4_foreach_w([function], [bind connect],

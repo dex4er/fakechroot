@@ -13,6 +13,7 @@ for d in \
     /lib \
     /lib32 \
     /lib64 \
+    /libexec \
     /root \
     /sbin \
     /tmp \
@@ -57,6 +58,7 @@ for p in \
     '/usr/bin/id' \
     '/usr/bin/less' \
     '/usr/bin/ltrace' \
+    '/usr/bin/more' \
     '/usr/bin/perl' \
     '/usr/bin/readlink' \
     '/usr/bin/seq' \
@@ -69,12 +71,13 @@ for p in \
     '/usr/local/bin/strace'
 do
     for f in $p; do
-	cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
+        cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
     done
 done
 
 for p in \
     'ld-*.so' \
+    'ld-*.so.*' \
     'ld-linux.so.*' \
     'ld-linux-x86-64.so.*' \
     'ld-uClibc.so.*' \
@@ -84,19 +87,21 @@ for p in \
     'libc.so.*' \
     'libcrypt.so.*' \
     'libdl.so.*' \
+    'libedit.so.*' \
     'libgcc_s.so.*' \
+    'libm.so.*' \
+    'libncurses.so.*' \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
-    'libm.so.*' \
-    'libncurses.so.*' \
+    'libutil.so.*' \
     'linux-vdso.so.*'
 do
-    for a in '' 32 64; do
+    for a in '' 32 64 exec; do
         fp="/lib$a/$p"
         for f in $fp; do
-    	    cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
-    	done
+            cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
+        done
     done
 done
 
@@ -106,5 +111,7 @@ do
     test -x $p || continue
     cp -pf $p $destdir/bin
 done
+
+chflags -R 0 $destdir 2>/dev/null || true
 
 echo $destdir > $destdir/CHROOT

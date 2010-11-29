@@ -139,6 +139,10 @@ The version of current fakechroot library.
 
 The root directory for fake chroot environment.
 
+=item B<FAKECHROOT_DEBUG>
+
+The fakechroot library will dump some debugging info is this variable is set.
+
 =item B<FAKECHROOT_AF_UNIX_PATH>
 
 The root directory for unix sockets.  The default value is the same as
@@ -242,13 +246,59 @@ behaviour.
 fakechroot is distributed under the GNU Lesser General Public License (LGPL
 2.1 or greater).
 
+Additional copyrights:
+
+=over 2
+
+=item *
+
+execl function taken from GNU C Library.
+Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
+
+=item *
+
+execle function taken from GNU C Library.
+Copyright (C) 1991,97,98,99,2002,2005 Free Software Foundation, Inc.
+
+=item *
+
+execlp function taken from GNU C Library.
+Copyright (C) 1991,93,96,97,98,99,2002,2005 Free Software Foundation, Inc.
+
+=item *
+
+execvp function taken from GNU C Library.
+Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
+Free Software Foundation, Inc.
+
+=item *
+
+popen function taken from uClibc.
+Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
+Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
+
+=item *
+
+realpath function taken from Gnulib.
+Copyright (c) 1996-2010 Free Software Foundation, Inc.
+
+=item *
+
+strchrnul function taken from GNU C Library.
+Copyright (C) 1991,1993-1997,99,2000,2005 Free Software Foundation, Inc.
+
+=back
+
 =head1 AUTHORS
 
-Copyright (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>
-
-Copyright (c) 2006-2007 Lionel Tricon <lionel.tricon@free.fr>
+Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
+<dexter@debian.org>
 
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
+
+Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
+
+Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
 
 =head1 SEE ALSO
 

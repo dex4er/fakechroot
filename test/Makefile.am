@@ -9,10 +9,13 @@ TESTS = \
     t/cp.t \
     t/execlp.t \
     t/escape-nested-chroot.t \
+    t/fts.t \
+    t/ftw.t \
     t/host.t \
     t/popen.t \
     t/pwd.t \
     t/readlink.t \
+    t/realpath.t \
     t/socket-af_unix.t \
     t/statfs.t \
     t/statvfs.t \

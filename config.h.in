@@ -32,6 +32,9 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* FAKECHROOT */
+#undef FAKECHROOT
+
 /* Define to the type of arg 1 for `fts_open'. */
 #undef FTS_OPEN_TYPE_ARG1
 
@@ -117,6 +120,9 @@
 
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
+
+/* HAVE_CONFIG_H */
+#undef HAVE_CONFIG_H
 
 /* Define to 1 if you have the `connect' function. */
 #undef HAVE_CONNECT
@@ -204,6 +210,9 @@
 /* Define to 1 if you have the `freopen64' function. */
 #undef HAVE_FREOPEN64
 
+/* Define to 1 if you have the `fts_children' function. */
+#undef HAVE_FTS_CHILDREN
+
 /* Define to 1 if you have the <fts.h> header file. */
 #undef HAVE_FTS_H
 
@@ -218,6 +227,9 @@
 
 /* Define to 1 if the type of return value for `fts_open' is `FTS *' */
 #undef HAVE_FTS_OPEN_TYPE_RETURN_FTS_P
+
+/* Define to 1 if you have the `fts_read' function. */
+#undef HAVE_FTS_READ
 
 /* Define to 1 if you have the `ftw' function. */
 #undef HAVE_FTW
@@ -645,11 +657,17 @@
 /* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
 #undef HAVE_UTIME_NULL
 
+/* Define to 1 if you have the `vfork' function. */
+#undef HAVE_VFORK
+
 /* Define to 1 if you have the `_xftw' function. */
 #undef HAVE__XFTW
 
 /* Define to 1 if you have the `_xftw64' function. */
 #undef HAVE__XFTW64
+
+/* Define to 1 if you have the `__chk_fail' function. */
+#undef HAVE___CHK_FAIL
 
 /* Define to 1 if you have the `__fxstatat' function. */
 #undef HAVE___FXSTATAT
@@ -798,15 +816,6 @@
 
 /* Version number of package */
 #undef VERSION
-
-/* _ATFILE_SOURCE */
-#undef _ATFILE_SOURCE
-
-/* _GNU_SOURCE */
-#undef _GNU_SOURCE
-
-/* __BSD_VISIBLE */
-#undef __BSD_VISIBLE
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const

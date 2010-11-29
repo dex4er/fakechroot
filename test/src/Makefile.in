@@ -35,8 +35,9 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 check_PROGRAMS = test-canonicalize_file_name$(EXEEXT) \
-	test-chroot$(EXEEXT) test-execlp$(EXEEXT) test-lstat$(EXEEXT) \
-	test-popen$(EXEEXT) test-scandir$(EXEEXT) \
+	test-chroot$(EXEEXT) test-execlp$(EXEEXT) test-fts$(EXEEXT) \
+	test-ftw$(EXEEXT) test-lstat$(EXEEXT) test-popen$(EXEEXT) \
+	test-realpath$(EXEEXT) test-scandir$(EXEEXT) \
 	test-socket-af_unix-client$(EXEEXT) \
 	test-socket-af_unix-server$(EXEEXT) test-statfs$(EXEEXT) \
 	test-statvfs$(EXEEXT) test-system$(EXEEXT)
@@ -64,12 +65,21 @@ test_chroot_LDADD = $(LDADD)
 test_execlp_SOURCES = test-execlp.c
 test_execlp_OBJECTS = test-execlp.$(OBJEXT)
 test_execlp_LDADD = $(LDADD)
+test_fts_SOURCES = test-fts.c
+test_fts_OBJECTS = test-fts.$(OBJEXT)
+test_fts_LDADD = $(LDADD)
+test_ftw_SOURCES = test-ftw.c
+test_ftw_OBJECTS = test-ftw.$(OBJEXT)
+test_ftw_LDADD = $(LDADD)
 test_lstat_SOURCES = test-lstat.c
 test_lstat_OBJECTS = test-lstat.$(OBJEXT)
 test_lstat_LDADD = $(LDADD)
 test_popen_SOURCES = test-popen.c
 test_popen_OBJECTS = test-popen.$(OBJEXT)
 test_popen_LDADD = $(LDADD)
+test_realpath_SOURCES = test-realpath.c
+test_realpath_OBJECTS = test-realpath.$(OBJEXT)
+test_realpath_LDADD = $(LDADD)
 test_scandir_SOURCES = test-scandir.c
 test_scandir_OBJECTS = test-scandir.$(OBJEXT)
 test_scandir_LDADD = $(LDADD)
@@ -104,13 +114,15 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = test-canonicalize_file_name.c test-chroot.c test-execlp.c \
-	test-lstat.c test-popen.c test-scandir.c \
-	test-socket-af_unix-client.c test-socket-af_unix-server.c \
-	test-statfs.c test-statvfs.c test-system.c
+	test-fts.c test-ftw.c test-lstat.c test-popen.c \
+	test-realpath.c test-scandir.c test-socket-af_unix-client.c \
+	test-socket-af_unix-server.c test-statfs.c test-statvfs.c \
+	test-system.c
 DIST_SOURCES = test-canonicalize_file_name.c test-chroot.c \
-	test-execlp.c test-lstat.c test-popen.c test-scandir.c \
-	test-socket-af_unix-client.c test-socket-af_unix-server.c \
-	test-statfs.c test-statvfs.c test-system.c
+	test-execlp.c test-fts.c test-ftw.c test-lstat.c test-popen.c \
+	test-realpath.c test-scandir.c test-socket-af_unix-client.c \
+	test-socket-af_unix-server.c test-statfs.c test-statvfs.c \
+	test-system.c
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -286,12 +298,21 @@ test-chroot$(EXEEXT): $(test_chroot_OBJECTS) $(test_chroot_DEPENDENCIES)
 test-execlp$(EXEEXT): $(test_execlp_OBJECTS) $(test_execlp_DEPENDENCIES) 
 	@rm -f test-execlp$(EXEEXT)
 	$(LINK) $(test_execlp_OBJECTS) $(test_execlp_LDADD) $(LIBS)
+test-fts$(EXEEXT): $(test_fts_OBJECTS) $(test_fts_DEPENDENCIES) 
+	@rm -f test-fts$(EXEEXT)
+	$(LINK) $(test_fts_OBJECTS) $(test_fts_LDADD) $(LIBS)
+test-ftw$(EXEEXT): $(test_ftw_OBJECTS) $(test_ftw_DEPENDENCIES) 
+	@rm -f test-ftw$(EXEEXT)
+	$(LINK) $(test_ftw_OBJECTS) $(test_ftw_LDADD) $(LIBS)
 test-lstat$(EXEEXT): $(test_lstat_OBJECTS) $(test_lstat_DEPENDENCIES) 
 	@rm -f test-lstat$(EXEEXT)
 	$(LINK) $(test_lstat_OBJECTS) $(test_lstat_LDADD) $(LIBS)
 test-popen$(EXEEXT): $(test_popen_OBJECTS) $(test_popen_DEPENDENCIES) 
 	@rm -f test-popen$(EXEEXT)
 	$(LINK) $(test_popen_OBJECTS) $(test_popen_LDADD) $(LIBS)
+test-realpath$(EXEEXT): $(test_realpath_OBJECTS) $(test_realpath_DEPENDENCIES) 
+	@rm -f test-realpath$(EXEEXT)
+	$(LINK) $(test_realpath_OBJECTS) $(test_realpath_LDADD) $(LIBS)
 test-scandir$(EXEEXT): $(test_scandir_OBJECTS) $(test_scandir_DEPENDENCIES) 
 	@rm -f test-scandir$(EXEEXT)
 	$(LINK) $(test_scandir_OBJECTS) $(test_scandir_LDADD) $(LIBS)
@@ -320,8 +341,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-canonicalize_file_name.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-chroot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-execlp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-fts.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-ftw.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-lstat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-popen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-realpath.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-scandir.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket-af_unix-client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-socket-af_unix-server.Po@am__quote@
