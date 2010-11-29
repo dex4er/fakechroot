@@ -252,34 +252,34 @@ Additional copyrights:
 
 =item *
 
-execl function reimplementation taken from GNU C Library.
+execl function taken from GNU C Library.
 Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
 
 =item *
 
-execle function reimplementation taken from GNU C Library.
+execle function taken from GNU C Library.
 Copyright (C) 1991,97,98,99,2002,2005 Free Software Foundation, Inc.
 
 =item *
 
-execlp function reimplementation taken from GNU C Library.
+execlp function taken from GNU C Library.
 Copyright (C) 1991,93,96,97,98,99,2002,2005 Free Software Foundation, Inc.
 
 =item *
 
-execvp function reimplementation taken from GNU C Library.
+execvp function taken from GNU C Library.
 Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
 Free Software Foundation, Inc.
 
 =item *
 
-popen function reimplementation taken from uClibc.
+popen function taken from uClibc.
 Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
 Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
 
 =item *
 
-realpath function reimplementation taken from Gnulib.
+realpath function taken from Gnulib.
 Copyright (c) 1996-2010 Free Software Foundation, Inc.
 
 =item *
