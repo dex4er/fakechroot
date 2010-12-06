@@ -84,121 +84,7 @@
 #include <sys/statvfs.h>
 #endif
 
-#if defined(PATH_MAX)
-#define FAKECHROOT_PATH_MAX PATH_MAX
-#elif defined(_POSIX_PATH_MAX)
-#define FAKECHROOT_PATH_MAX _POSIX_PATH_MAX
-#elif defined(MAXPATHLEN)
-#define FAKECHROOT_PATH_MAX MAXPATHLEN
-#else
-#define FAKECHROOT_PATH_MAX 2048
-#endif
-
-#ifndef UNIX_PATH_MAX
-#define UNIX_PATH_MAX 108
-#endif
-
-#ifdef AF_UNIX
-#ifndef SUN_LEN
-#define SUN_LEN(su) (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
-#endif
-
-#define SOCKADDR_UN(addr) (struct sockaddr_un *)(addr)
-#define SOCKADDR_UN_UNION(addr) (struct sockaddr_un *)((addr).__sockaddr_un__)
-
-#if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
-#define USE_ALIAS 1
-#endif
-
-#ifndef __set_errno
-# define __set_errno(e) (errno = (e))
-#endif
-
-#ifndef HAVE_VFORK
-# define vfork fork
-#endif
-
-#define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
-    { \
-        if ((path) != NULL && *((char *)(path)) != '\0') { \
-            fakechroot_path = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_path != NULL) { \
-                fakechroot_ptr = strstr((path), fakechroot_path); \
-                if (fakechroot_ptr == (path)) { \
-                    if (strlen((path)) == strlen(fakechroot_path)) { \
-                        ((char *)(path))[0] = '/'; \
-                        ((char *)(path))[1] = '\0'; \
-                    } else { \
-                        memmove((void*)(path), (path)+strlen(fakechroot_path), 1+strlen((path))-strlen(fakechroot_path)); \
-                    } \
-                } \
-            } \
-        } \
-    }
-
-#define expand_chroot_path(path, fakechroot_path, fakechroot_buf) \
-    { \
-        if (!fakechroot_localdir(path)) { \
-            if ((path) != NULL && *((char *)(path)) == '/') { \
-                fakechroot_path = getenv("FAKECHROOT_BASE"); \
-                if (fakechroot_path != NULL) { \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
-                } \
-            } \
-        } \
-    }
-
-#define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_buf) \
-    { \
-        if (!fakechroot_localdir(path)) { \
-            if ((path) != NULL && *((char *)(path)) == '/') { \
-                fakechroot_path = getenv("FAKECHROOT_BASE"); \
-                if (fakechroot_path != NULL) { \
-                    if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
-                        __set_errno(ENOMEM); \
-                        return NULL; \
-                    } \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
-                } \
-            } \
-        } \
-    }
-
-typedef void (*fakechroot_wrapperfn_t)(void);
-
-struct fakechroot_wrapper {
-    fakechroot_wrapperfn_t func;
-    fakechroot_wrapperfn_t nextfunc;
-    const char *name;
-};
-
-#define wrapper_proto(function, return_type, arguments) \
-    extern return_type function arguments; \
-    typedef return_type (*fakechroot_##function##_fn_t) arguments; \
-    struct fakechroot_wrapper fakechroot_##function##_wrapper_decl __attribute__((section("data.fakechroot"))) = { \
-        .func = (fakechroot_wrapperfn_t) function, \
-        .nextfunc = NULL, \
-        .name = #function \
-    };
-
-#define nextcall(function) \
-    ( \
-      (fakechroot_##function##_fn_t)( \
-          fakechroot_##function##_wrapper_decl.nextfunc ? \
-          fakechroot_##function##_wrapper_decl.nextfunc : \
-          fakechroot_loadfunc(&fakechroot_##function##_wrapper_decl) \
-      ) \
-    )
-
-#ifndef __GLIBC__
-extern char **environ;
-#endif
-
+#include "libfakechroot.h"
 
 
 /* Useful to exclude a list of directories or files */
@@ -209,7 +95,7 @@ static int first = 0;
 static char *home_path=NULL;
 
 
-static int debug (const char *fmt, ...)
+LOCAL int fakechroot_debug (const char *fmt, ...)
 {
     va_list ap;
     int ret;
@@ -446,7 +332,7 @@ wrapper_proto(bindtextdomain, char *, (const char *, const char *));
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 wrapper_proto(canonicalize_file_name, char *, (const char *));
 #endif
-wrapper_proto(chdir, int, (const char *));
+// wrapper_proto(chdir, int, (const char *));
 wrapper_proto(chmod, int, (const char *, mode_t));
 wrapper_proto(chown, int, (const char *, uid_t, gid_t));
 wrapper_proto(chroot, int, (const char *));
@@ -727,7 +613,7 @@ void fakechroot_init (void)
 
 
 /* Lazily load function */
-static inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
+LOCAL inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
 {
     char *msg;
     if (!(w->nextfunc = dlsym(RTLD_NEXT, w->name))) {;
@@ -740,7 +626,7 @@ static inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrap
 
 
 /* Check if path is on exclude list */
-static int fakechroot_localdir (const char *p_path)
+LOCAL int fakechroot_localdir (const char *p_path)
 {
     char *v_path = (char*)p_path;
     char *fakechroot_path, *fakechroot_ptr;
@@ -1281,16 +1167,6 @@ char *canonicalize_file_name (const char *name)
 #endif
 }
 #endif
-
-
-/* #include <unistd.h> */
-int chdir (const char *path)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
-}
 
 
 /* #include <sys/types.h> */
