@@ -26,8 +26,10 @@
 
 #if __GNUC__ >= 4
 # define LOCAL __attribute__ ((visibility("hidden")))
+# define SECTION_DATA_FAKECHROOT __attribute__((section("data.fakechroot")))
 #else
 # define LOCAL
+# define SECTION_DATA_FAKECHROOT
 #endif
 
 #if defined(PATH_MAX)
@@ -120,7 +122,7 @@
 #define wrapper_proto(function, return_type, arguments) \
     extern return_type function arguments; \
     typedef return_type (*fakechroot_##function##_fn_t) arguments; \
-    struct fakechroot_wrapper fakechroot_##function##_wrapper_decl __attribute__((section("data.fakechroot"))) = { \
+    struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
         .func = (fakechroot_wrapperfn_t) function, \
         .nextfunc = NULL, \
         .name = #function \
