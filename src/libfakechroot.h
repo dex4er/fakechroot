@@ -149,6 +149,6 @@ struct fakechroot_wrapper {
     const char *name;
 };
 
-LOCAL int fakechroot_debug (const char *fmt, ...);
-LOCAL inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w);
-LOCAL int fakechroot_localdir (const char *p_path);
+int fakechroot_debug (const char *fmt, ...);
+inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w);
+int fakechroot_localdir (const char *p_path);
