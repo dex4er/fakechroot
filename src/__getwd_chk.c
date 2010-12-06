@@ -20,16 +20,23 @@
 
 #include <config.h>
 
+#ifdef HAVE___GETWD_CHK
+
+#include <stddef.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(__getwd_chk, char *, (char * buf, size_t buflen))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    char *cwd;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    debug("__getwd_chk(&buf, %zd)", buflen);
+    if ((cwd = nextcall(__getwd_chk)(buf, buflen)) == NULL) {
+        return NULL;
+    }
+    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    return cwd;
 }
+
+#endif

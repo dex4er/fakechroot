@@ -20,16 +20,18 @@
 
 #include <config.h>
 
+#ifdef HAVE___XMKNOD
+
+#include <sys/stat.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(__xmknod, int, (int ver, const char * path, mode_t mode, dev_t * dev))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
+    debug("__xmknod(%d, \"%s\", 0%od, &dev)", ver, path, mode);
     expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    return nextcall(__xmknod)(ver, path, mode, dev);
 }
+
+#endif

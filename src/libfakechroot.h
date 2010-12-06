@@ -122,11 +122,16 @@
 #define wrapper_proto(function, return_type, arguments) \
     extern return_type function arguments; \
     typedef return_type (*fakechroot_##function##_fn_t) arguments; \
+    extern struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT;
+
+#define wrapper(function, return_type, arguments) \
+    wrapper_proto(function, return_type, arguments); \
     struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
         .func = (fakechroot_wrapperfn_t) function, \
         .nextfunc = NULL, \
         .name = #function \
-    };
+    }; \
+    return_type function arguments
 
 #define nextcall(function) \
     ( \

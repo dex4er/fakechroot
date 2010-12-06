@@ -20,16 +20,30 @@
 
 #include <config.h>
 
+#ifdef HAVE___OPEN64
+
+#include <stdarg.h>
+#include <fcntl.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+/* Internal libc function */
+wrapper(__open64, int, (const char * pathname, int flags, ...))
 {
+    int mode = 0;
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+
+    debug("__open64(\"%s\", %d, ...)", pathname, flags);
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+
+    if (flags & O_CREAT) {
+        va_list arg;
+        va_start(arg, flags);
+        mode = va_arg(arg, int);
+        va_end(arg);
+    }
+
+    return nextcall(__open64)(pathname, flags, mode);
 }
+
+#endif

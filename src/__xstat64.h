@@ -18,18 +18,4 @@
 */
 
 
-#include <config.h>
-
-#include "libfakechroot.h"
-
-
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
-}
+wrapper_proto(__xstat64, int, (int, const char *, struct stat64 *));

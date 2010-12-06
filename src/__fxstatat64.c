@@ -20,16 +20,19 @@
 
 #include <config.h>
 
+#ifdef HAVE___FXSTATAT64
+
+#define _GNU_SOURCE
+#include <sys/stat.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(__fxstatat64, int, (int ver, int dirfd, const char * pathname, struct stat64 * buf, int flags))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    debug("__fxstatat64(%d, %d, \"%s\", &buf, %d)", ver, dirfd, pathname, flags);
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    return nextcall(__fxstatat64)(ver, dirfd, pathname, buf, flags);
 }
+
+#endif

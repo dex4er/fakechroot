@@ -20,16 +20,20 @@
 
 #include <config.h>
 
+#ifdef HAVE___OPENAT_2
+
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+/* Internal libc function */
+wrapper(__openat_2, int, (int dirfd, const char * pathname, int flags))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+
+    debug("__openat_2(%d, \"%s\", %d)", dirfd, pathname, flags);
+    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+
+    return nextcall(__openat_2)(dirfd, pathname, flags);
 }
+
+#endif

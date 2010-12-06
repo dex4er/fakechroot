@@ -20,16 +20,19 @@
 
 #include <config.h>
 
+#ifdef HAVE___STATFS
+
+#include <sys/statfs.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(__statfs, int, (const char * path, struct statfs * buf))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
+    debug("__statfs(\"%s\", &buf)", path);
     expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    return nextcall(__statfs)(path, buf);
 }
+
+
+#endif

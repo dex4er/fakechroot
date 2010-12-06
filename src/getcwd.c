@@ -20,16 +20,19 @@
 
 #include <config.h>
 
+#include <stddef.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(getcwd, char *, (char * buf, size_t size))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    char *cwd;
+    char *fakechroot_path, *fakechroot_ptr;
+
+    debug("getcwd(&buf, %zd)", size);
+    if ((cwd = nextcall(getcwd)(buf, size)) == NULL) {
+        return NULL;
+    }
+    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    return cwd;
 }

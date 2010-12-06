@@ -20,16 +20,30 @@
 
 #include <config.h>
 
+#ifdef HAVE___LXSTAT
+
+#include <sys/stat.h>
+#include <unistd.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(__lxstat, int, (int ver, const char * filename, struct stat * buf))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX], tmp[FAKECHROOT_PATH_MAX];
+    int retval;
+    READLINK_TYPE_RETURN status;
+    const char* orig;
+
+    debug("__lxstat(%d, \"%s\", &buf)", ver, filename);
+    orig = filename;
+    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
+    retval = nextcall(__lxstat)(ver, filename, buf);
+    /* deal with http://bugs.debian.org/561991 */
+    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
+            buf->st_size = status;
+
+    return retval;
 }
+
+#endif

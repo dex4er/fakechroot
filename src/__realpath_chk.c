@@ -20,16 +20,21 @@
 
 #include <config.h>
 
+#ifdef HAVE___REALPATH_CHK
+
+#include <stddef.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
+extern void __chk_fail (void) __attribute__((__noreturn__));
 
-
-int chdir (const char *path)
+wrapper(__realpath_chk, char *, (const char * path, char * resolved, size_t resolvedlen))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    debug("__realpath_chk(\"%s\", &buf, %zd)", path, resolvedlen);
+    if (resolvedlen < FAKECHROOT_PATH_MAX)
+        __chk_fail();
+
+    return realpath(path, resolved);
 }
+
+#endif

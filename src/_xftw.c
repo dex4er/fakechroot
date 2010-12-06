@@ -20,16 +20,28 @@
 
 #include <config.h>
 
+#ifdef HAVE__XFTW
+
+#include <sys/stat.h>
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
+static int (* _xftw_fn_saved)(const char * file, const struct stat * sb, int flag);
 
+static int _xftw_fn_wrapper (const char * file, const struct stat * sb, int flag)
+{
+    char *fakechroot_path, *fakechroot_ptr;
+    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    return _xftw_fn_saved(file, sb, flag);
+}
 
-int chdir (const char *path)
+wrapper(_xftw, int, (int mode, const char * dir, int (* fn)(const char * file, const struct stat * sb, int flag), int nopenfd))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(chdir)(path);
+    debug("_xftw(%d, \"%s\", &fn, %d)", mode, dir, nopenfd);
+    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
+    _xftw_fn_saved = fn;
+    return nextcall(_xftw)(mode, dir, _xftw_fn_wrapper, nopenfd);
 }
+
+#endif

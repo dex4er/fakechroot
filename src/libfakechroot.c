@@ -255,72 +255,7 @@ static char * strchrnul (const char *s, int c_in)
 }
 #endif
 
-#ifdef HAVE___FXSTATAT
-wrapper_proto(__fxstatat, int, (int, int, const char *, struct stat *, int));
-#endif
-#ifdef HAVE___FXSTATAT64
-wrapper_proto(__fxstatat64, int, (int, int, const char *, struct stat64 *, int));
-#endif
-#ifdef HAVE___GETCWD_CHK
-wrapper_proto(__getcwd_chk, char *, (char *, size_t, size_t));
-#endif
-#ifdef HAVE___GETWD_CHK
-wrapper_proto(__getwd_chk, char *, (char *, size_t));
-#endif
-#ifdef HAVE___LXSTAT
-wrapper_proto(__lxstat, int, (int, const char *, struct stat *));
-#endif
-#ifdef HAVE___LXSTAT64
-wrapper_proto(__lxstat64, int, (int, const char *, struct stat64 *));
-#endif
-#ifdef HAVE___OPEN
-wrapper_proto(__open, int, (const char *, int, ...));
-#endif
-#ifdef HAVE___OPEN_2
-wrapper_proto(__open_2, int, (const char *, int));
-#endif
-#ifdef HAVE___OPEN64
-wrapper_proto(__open64, int, (const char *, int, ...));
-#endif
-#ifdef HAVE___OPEN64_2
-wrapper_proto(__open64_2, int, (const char *, int));
-#endif
-#ifdef HAVE___OPENAT_2
-wrapper_proto(__openat_2, int, (int, const char *, int));
-#endif
-#ifdef HAVE___OPENAT64_2
-wrapper_proto(__openat64_2, int, (int, const char *, int));
-#endif
-#ifdef HAVE___OPENDIR2
-wrapper_proto(__opendir2, DIR *, (const char *, int));
-#endif
-#ifdef HAVE___REALPATH_CHK
-wrapper_proto(__realpath_chk, char *, (const char *, char *, size_t));
-#endif
-#ifdef HAVE___READLINK_CHK
-wrapper_proto(__readlink_chk, ssize_t, (const char *, char *, size_t, size_t));
-#endif
-#ifdef HAVE___READLINKAT_CHK
-wrapper_proto(__readlinkat_chk, ssize_t, (int, const char *, char *, size_t, size_t));
-#endif
-#ifdef HAVE___STATFS
-wrapper_proto(__statfs, int, (const char *, struct statfs *));
-#endif
-#ifdef HAVE___XMKNOD
-wrapper_proto(__xmknod, int, (int, const char *, mode_t, dev_t *));
-#endif
-#ifdef HAVE___XSTAT
-wrapper_proto(__xstat, int, (int, const char *, struct stat *));
-#endif
-#ifdef HAVE___XSTAT64
-wrapper_proto(__xstat64, int, (int, const char *, struct stat64 *));
-#endif
-#ifdef HAVE__XFTW
-wrapper_proto(_xftw, int, (int, const char *, int (*)(const char *, const struct stat *, int), int));
-#endif
-#ifdef HAVE__XFTW64
-wrapper_proto(_xftw64, int, (int, const char *, int (*)(const char *, const struct stat64 *, int), int));
-#endif
+
 wrapper_proto(access, int, (const char *, int));
 wrapper_proto(acct, int, (const char *));
 #ifdef AF_UNIX
@@ -335,7 +270,6 @@ wrapper_proto(canonicalize_file_name, char *, (const char *));
 // wrapper_proto(chdir, int, (const char *));
 wrapper_proto(chmod, int, (const char *, mode_t));
 wrapper_proto(chown, int, (const char *, uid_t, gid_t));
-wrapper_proto(chroot, int, (const char *));
 #ifdef AF_UNIX
 wrapper_proto(connect, int, (int, CONNECT_TYPE_ARG2(/**/), socklen_t));
 #endif
@@ -404,7 +338,6 @@ wrapper_proto(futimesat, int, (int, const char *, const struct timeval [2]));
 #ifdef HAVE_GET_CURRENT_DIR_NAME
 wrapper_proto(get_current_dir_name, char *, (void));
 #endif
-wrapper_proto(getcwd, char *, (char *, size_t));
 #ifdef AF_UNIX
 wrapper_proto(getpeername, int, (int, GETPEERNAME_TYPE_ARG2(/**/), socklen_t *));
 #endif
@@ -574,505 +507,6 @@ wrapper_proto(utimensat, int, (int, const char *, const struct timespec [2], int
 wrapper_proto(utimes, int, (const char *, const struct timeval [2]));
 
 
-/* Bootstrap the library */
-void fakechroot_init (void) __attribute__((constructor));
-void fakechroot_init (void)
-{
-    int i,j;
-    struct passwd* passwd = NULL;
-    char *pointer;
-
-    debug("fakechroot_init()");
-    if (!first) {
-        first = 1;
-
-        /* We get a list of directories or files */
-        pointer = getenv("FAKECHROOT_EXCLUDE_PATH");
-        if (pointer) {
-            for (i=0; list_max<32 ;) {
-                for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
-                exclude_list[list_max] = malloc(j-i+2);
-                memset(exclude_list[list_max], '\0', j-i+2);
-                strncpy(exclude_list[list_max], &(pointer[i]), j-i);
-                exclude_length[list_max] = strlen(exclude_list[list_max]);
-                list_max++;
-                if (pointer[j] != ':') break;
-                i=j+1;
-            }
-        }
-
-        /* We get the home of the user */
-        passwd = getpwuid(getuid());
-        if (passwd && passwd->pw_dir) {
-            home_path = malloc(strlen(passwd->pw_dir)+2);
-            strcpy(home_path, passwd->pw_dir);
-            strcat(home_path, "/");
-        }
-    }
-}
-
-
-/* Lazily load function */
-LOCAL inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
-{
-    char *msg;
-    if (!(w->nextfunc = dlsym(RTLD_NEXT, w->name))) {;
-        msg = dlerror();
-        fprintf(stderr, "%s: %s: %s\n", PACKAGE, w->name, msg != NULL ? msg : "unresolved symbol");
-        exit(EXIT_FAILURE);
-    }
-    return w->nextfunc;
-}
-
-
-/* Check if path is on exclude list */
-LOCAL int fakechroot_localdir (const char *p_path)
-{
-    char *v_path = (char*)p_path;
-    char *fakechroot_path, *fakechroot_ptr;
-    char cwd_path[FAKECHROOT_PATH_MAX];
-    int i, len;
-
-    if (!p_path) return 0;
-
-    if (!first) fakechroot_init();
-
-    /* We need to expand ~ paths */
-    if (home_path!=NULL && p_path[0]=='~') {
-        strcpy(cwd_path, home_path);
-        strcat(cwd_path, &(p_path[1]));
-        v_path = cwd_path;
-    }
-
-    /* We need to expand relative paths */
-    if (p_path[0] != '/') {
-        nextcall(getcwd)(cwd_path, FAKECHROOT_PATH_MAX);
-        v_path = cwd_path;
-        narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
-    }
-
-    /* We try to find if we need direct access to a file */
-    len = strlen(v_path);
-    for (i=0; i<list_max; i++) {
-        if (exclude_length[i]>len ||
-            v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
-            strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
-        if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
-    }
-
-    return 0;
-}
-
-
-#ifdef HAVE___FXSTATAT
-/* #define _ATFILE_SOURCE */
-/* #include <fcntl.h> */
-/* #include <sys/stat.h> */
-int __fxstatat (int ver, int dirfd, const char *pathname, struct stat *buf, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__fxstatat(%d, %d, \"%s\", &buf, %d)", ver, dirfd, pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-    return nextcall(__fxstatat)(ver, dirfd, pathname, buf, flags);
-}
-#endif
-
-
-#ifdef HAVE___FXSTATAT64
-/* #define _ATFILE_SOURCE */
-/* #include <fcntl.h> */
-/* #include <sys/stat.h> */
-int __fxstatat64 (int ver, int dirfd, const char *pathname, struct stat64 *buf, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__fxstatat64(%d, %d, \"%s\", &buf, %d)", ver, dirfd, pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-    return nextcall(__fxstatat64)(ver, dirfd, pathname, buf, flags);
-}
-#endif
-
-
-#ifdef HAVE___GETCWD_CHK
-/* #include <unistd.h> */
-char * __getcwd_chk (char *buf, size_t size, size_t buflen)
-{
-    char *cwd;
-    char *fakechroot_path, *fakechroot_ptr;
-
-    debug("__getcwd_chk(&buf, %zd, %zd)", size, buflen);
-    if ((cwd = nextcall(__getcwd_chk)(buf, size, buflen)) == NULL) {
-        return NULL;
-    }
-    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
-    return cwd;
-}
-#endif
-
-
-#ifdef HAVE___GETWD_CHK
-/* #include <unistd.h> */
-char * __getwd_chk (char *buf, size_t buflen)
-{
-    char *cwd;
-    char *fakechroot_path, *fakechroot_ptr;
-
-    debug("__getwd_chk(&buf, %zd)", buflen);
-    if ((cwd = nextcall(__getwd_chk)(buf, buflen)) == NULL) {
-        return NULL;
-    }
-    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
-    return cwd;
-}
-#endif
-
-
-#ifdef HAVE___LXSTAT
-/* #include <sys/stat.h> */
-/* #include <unistd.h> */
-int __lxstat (int ver, const char *filename, struct stat *buf)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX], tmp[FAKECHROOT_PATH_MAX];
-    int retval;
-    READLINK_TYPE_RETURN status;
-    const char* orig;
-
-    debug("__lxstat(%d, \"%s\", &buf)", ver, filename);
-    orig = filename;
-    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
-    retval = nextcall(__lxstat)(ver, filename, buf);
-    /* deal with http://bugs.debian.org/561991 */
-    if ((buf->st_mode & S_IFMT) == S_IFLNK)
-        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
-            buf->st_size = status;
-
-    return retval;
-}
-#endif
-
-
-#ifdef HAVE___LXSTAT64
-/* #include <sys/stat.h> */
-/* #include <unistd.h> */
-int __lxstat64 (int ver, const char *filename, struct stat64 *buf)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX], tmp[FAKECHROOT_PATH_MAX];
-    int retval;
-    READLINK_TYPE_RETURN status;
-    const char* orig;
-
-    debug("__lxstat64(%d, \"%s\", &buf)", ver, filename);
-    orig = filename;
-    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
-    retval = nextcall(__lxstat64)(ver, filename, buf);
-    /* deal with http://bugs.debian.org/561991 */
-    if ((buf->st_mode & S_IFMT) == S_IFLNK)
-        if ((status = readlink(orig, tmp, sizeof(tmp)-1)) != -1)
-            buf->st_size = status;
-
-    return retval;
-}
-#endif
-
-
-#ifdef HAVE___OPEN
-/* Internal libc function */
-int __open (const char *pathname, int flags, ...)
-{
-    int mode = 0;
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__open(\"%s\", %d, ...)", pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-
-    if (flags & O_CREAT) {
-        va_list arg;
-        va_start (arg, flags);
-        mode = va_arg (arg, int);
-        va_end (arg);
-    }
-
-    return nextcall(__open)(pathname, flags, mode);
-}
-#endif
-
-
-#ifdef HAVE___OPEN_2
-/* Internal libc function */
-int __open_2 (const char *pathname, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__open_2(\"%s\", %d)", pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-
-    return nextcall(__open_2)(pathname, flags);
-}
-#endif
-
-
-#ifdef HAVE___OPEN64
-/* Internal libc function */
-int __open64 (const char *pathname, int flags, ...)
-{
-    int mode = 0;
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__open64(\"%s\", %d, ...)", pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-
-    if (flags & O_CREAT) {
-        va_list arg;
-        va_start (arg, flags);
-        mode = va_arg (arg, int);
-        va_end (arg);
-    }
-
-    return nextcall(__open64)(pathname, flags, mode);
-}
-#endif
-
-
-#ifdef HAVE___OPEN64_2
-/* Internal libc function */
-int __open64_2 (const char *pathname, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__open64_2(\"%s\", %d)", pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-
-    return nextcall(__open64_2)(pathname, flags);
-}
-#endif
-
-
-#ifdef HAVE___OPENAT_2
-/* Internal libc function */
-int __openat_2 (int dirfd, const char *pathname, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__openat_2(%d, \"%s\", %d)", dirfd, pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-
-    return nextcall(__openat_2)(dirfd, pathname, flags);
-}
-#endif
-
-
-#ifdef HAVE___OPENAT64_2
-/* Internal libc function */
-int __openat64_2 (int dirfd, const char *pathname, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__openat64_2(%d, \"%s\", %d)", dirfd, pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
-
-    return nextcall(__openat64_2)(dirfd, pathname, flags);
-}
-#endif
-
-
-#ifdef HAVE___OPENDIR2
-/* Internal libc function */
-/* #include <dirent.h> */
-DIR *__opendir2 (const char *name, int flags)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__opendir2(\"%s\", %d)", name, flags);
-    expand_chroot_path(name, fakechroot_path, fakechroot_buf);
-    return nextcall(__opendir2)(name, flags);
-}
-#endif
-
-
-#ifdef HAVE___READLINK_CHK
-/* #include <unistd.h> */
-ssize_t __readlink_chk (const char *path, char *buf, size_t bufsiz, size_t buflen)
-{
-    int status;
-    char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__readlink_chk(\"%s\", &buf, %zd, %zd)", path, bufsiz, buflen);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-
-    if ((status = nextcall(__readlink_chk)(path, tmp, FAKECHROOT_PATH_MAX-1, buflen)) == -1) {
-        return -1;
-    }
-    tmp[status] = '\0';
-
-    fakechroot_path = getenv("FAKECHROOT_BASE");
-    if (fakechroot_path != NULL) {
-        fakechroot_ptr = strstr(tmp, fakechroot_path);
-        if (fakechroot_ptr != tmp) {
-            tmpptr = tmp;
-        } else {
-            tmpptr = tmp + strlen(fakechroot_path);
-            status -= strlen(fakechroot_path);
-        }
-        if (strlen(tmpptr) > bufsiz) {
-            status = bufsiz;
-        }
-        strncpy(buf, tmpptr, status);
-    } else {
-        strncpy(buf, tmp, status);
-    }
-    return status;
-}
-#endif
-
-
-#ifdef HAVE___READLINKAT_CHK
-/* #include <unistd.h> */
-ssize_t __readlinkat_chk (int dirfd, const char *path, char *buf, size_t bufsiz, size_t buflen)
-{
-    int status;
-    char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    debug("__readlinkat_chk(%d, \"%s\", &buf, %zd, %zd)", dirfd, path, bufsiz, buflen);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-
-    if ((status = nextcall(__readlinkat_chk)(dirfd, path, tmp, FAKECHROOT_PATH_MAX-1, buflen)) == -1) {
-        return -1;
-    }
-    tmp[status] = '\0';
-
-    fakechroot_path = getenv("FAKECHROOT_BASE");
-    if (fakechroot_path != NULL) {
-        fakechroot_ptr = strstr(tmp, fakechroot_path);
-        if (fakechroot_ptr != tmp) {
-            tmpptr = tmp;
-        } else {
-            tmpptr = tmp + strlen(fakechroot_path);
-            status -= strlen(fakechroot_path);
-        }
-        if (strlen(tmpptr) > bufsiz) {
-            status = bufsiz;
-        }
-        strncpy(buf, tmpptr, status);
-    } else {
-        strncpy(buf, tmp, status);
-    }
-    return status;
-}
-#endif
-
-
-#ifdef HAVE___REALPATH_CHK
-/* #include <stdlib.h> */
-/* #include <sys/cdefs.h> */
-
-extern void __chk_fail (void) __attribute__ ((__noreturn__));
-
-char * __realpath_chk (const char *path, char *resolved, size_t resolvedlen)
-{
-    debug("__realpath_chk(\"%s\", &buf, %zd)", path, resolvedlen);
-    if (resolvedlen < FAKECHROOT_PATH_MAX)
-        __chk_fail ();
-
-    return realpath (path, resolved);
-}
-#endif
-
-
-#ifdef HAVE___STATFS
-/* #include <sys/vfs.h> */
-int __statfs (const char *path, struct statfs *buf)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__statfs(\"%s\", &buf)", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(__statfs)(path, buf);
-}
-#endif
-
-
-#ifdef HAVE___XMKNOD
-/* #include <sys/stat.h> */
-/* #include <unistd.h> */
-int __xmknod (int ver, const char *path, mode_t mode, dev_t *dev)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__xmknod(%d, \"%s\", 0%od, &dev)", ver, path, mode);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
-    return nextcall(__xmknod)(ver, path, mode, dev);
-}
-#endif
-
-
-#ifdef HAVE___XSTAT
-/* #include <sys/stat.h> */
-/* #include <unistd.h> */
-int __xstat (int ver, const char *filename, struct stat *buf)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__xstat(%d, \"%s\", %d, &buf)", ver, filename);
-    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
-    return nextcall(__xstat)(ver, filename, buf);
-}
-#endif
-
-
-#ifdef HAVE___XSTAT64
-/* #include <sys/stat.h> */
-/* #include <unistd.h> */
-int __xstat64 (int ver, const char *filename, struct stat64 *buf)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__xstat64(%d, \"%s\", %d, &buf)", ver, filename);
-    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
-    return nextcall(__xstat64)(ver, filename, buf);
-}
-#endif
-
-
-#ifdef HAVE__XFTW
-/* include <ftw.h> */
-static int (*_xftw_fn_saved)(const char *file, const struct stat *sb, int flag);
-
-static int _xftw_fn_wrapper (const char *file, const struct stat *sb, int flag)
-{
-    char *fakechroot_path, *fakechroot_ptr;
-    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
-    return _xftw_fn_saved(file, sb, flag);
-}
-
-int _xftw (int mode, const char *dir, int (*fn)(const char *file, const struct stat *sb, int flag), int nopenfd)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("_xftw(%d, \"%s\", &fn, %d)", mode, dir, nopenfd);
-    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    _xftw_fn_saved = fn;
-    return nextcall(_xftw)(mode, dir, _xftw_fn_wrapper, nopenfd);
-}
-#endif
-
-
-#ifdef HAVE__XFTW64
-/* include <ftw.h> */
-static int (*_xftw64_fn_saved)(const char *file, const struct stat *sb, int flag);
-
-static int _xftw64_fn_wrapper (const char *file, const struct stat *sb, int flag)
-{
-    char *fakechroot_path, *fakechroot_ptr;
-    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
-    return _xftw64_fn_saved(file, sb, flag);
-}
-
-int _xftw64 (int mode, const char *dir, int (*fn)(const char *file, const struct stat64 *sb, int flag), int nopenfd)
-{
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("_xftw64(%d, \"%s\", &fn, %d)", mode, dir, nopenfd);
-    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
-    _xftw64_fn_saved = fn;
-    return nextcall(_xftw64)(mode, dir, _xftw64_fn_wrapper, nopenfd);
-}
-#endif
-
-
 /* #include <unistd.h> */
 int access (const char *pathname, int mode)
 {
@@ -1188,123 +622,6 @@ int chown (const char *path, uid_t owner, gid_t group)
     debug("chown(\"%s\", %d, %d)", path, owner, group);
     expand_chroot_path(path, fakechroot_path, fakechroot_buf);
     return nextcall(chown)(path, owner, group);
-}
-
-
-/* #include <unistd.h> */
-int chroot (const char *path)
-{
-    char *ptr, *ld_library_path, *tmp, *fakechroot_path;
-    int status, len;
-    char dir[FAKECHROOT_PATH_MAX], cwd[FAKECHROOT_PATH_MAX];
-#if !defined(HAVE_SETENV)
-    char *envbuf;
-#endif
-    struct stat sb;
-
-    debug("chroot(\"%s\")", path);
-    if (path == NULL) {
-        __set_errno(EFAULT);
-        return -1;
-    }
-    if (!*path) {
-        __set_errno(ENOENT);
-        return -1;
-    }
-    if (*path != '/') {
-        if (nextcall(getcwd)(cwd, FAKECHROOT_PATH_MAX) == NULL) {
-            __set_errno(ENAMETOOLONG);
-            return -1;
-        }
-        if (cwd == NULL) {
-            __set_errno(EFAULT);
-            return -1;
-        }
-        if (strcmp(cwd, "/") == 0) {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "/%s", path);
-        }
-        else {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "%s/%s", cwd, path);
-        }
-    }
-    else {
-        fakechroot_path = getenv("FAKECHROOT_BASE");
-
-        if (fakechroot_path != NULL) {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_path, path);
-        }
-        else {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "%s", path);
-        }
-    }
-
-#if defined(HAVE___XSTAT) && defined(_STAT_VER)
-    if ((status = nextcall(__xstat)(_STAT_VER, dir, &sb)) != 0) {
-        return status;
-    }
-#else
-    if ((status = nextcall(stat)(dir, &sb)) != 0) {
-        return status;
-    }
-#endif
-
-    if ((sb.st_mode & S_IFMT) != S_IFDIR) {
-        return ENOTDIR;
-    }
-
-    ptr = rindex(dir, 0);
-    if (ptr > dir) {
-        ptr--;
-        while (*ptr == '/') {
-            *ptr-- = 0;
-        }
-    }
-
-    ptr = tmp = dir;
-    for (ptr=tmp=dir; *ptr; ptr++) {
-        if (*ptr == '/' &&
-                *(ptr+1) && *(ptr+1) == '.' &&
-                (!*(ptr+2) || (*(ptr+2) == '/'))
-        ) {
-            ptr++;
-        } else {
-            *(tmp++) = *ptr;
-        }
-    }
-    *tmp = 0;
-
-#if defined(HAVE_SETENV)
-    setenv("FAKECHROOT_BASE", dir, 1);
-#else
-    envbuf = malloc(FAKECHROOT_PATH_MAX+16);
-    snprintf(envbuf, FAKECHROOT_PATH_MAX+16, "FAKECHROOT_BASE=%s", dir);
-    putenv(envbuf);
-#endif
-    fakechroot_path = getenv("FAKECHROOT_BASE");
-
-    ld_library_path = getenv("LD_LIBRARY_PATH");
-    if (ld_library_path == NULL) {
-        ld_library_path = "";
-    }
-
-    if ((len = strlen(ld_library_path)+strlen(dir)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
-        return ENAMETOOLONG;
-    }
-
-    if ((tmp = malloc(len)) == NULL) {
-        return ENOMEM;
-    }
-
-    snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, dir, dir);
-#if defined(HAVE_SETENV)
-    setenv("LD_LIBRARY_PATH", tmp, 1);
-#else
-    envbuf = malloc(FAKECHROOT_PATH_MAX+16);
-    snprintf(envbuf, FAKECHROOT_PATH_MAX+16, "LD_LIBRARY_PATH=%s", tmp);
-    putenv(envbuf);
-#endif
-    free(tmp);
-    return 0;
 }
 
 
@@ -2055,21 +1372,6 @@ char * get_current_dir_name (void)
     return newptr;
 }
 #endif
-
-
-/* #include <unistd.h> */
-char * getcwd (char *buf, size_t size)
-{
-    char *cwd;
-    char *fakechroot_path, *fakechroot_ptr;
-
-    debug("getcwd(&buf, %zd)", size);
-    if ((cwd = nextcall(getcwd)(buf, size)) == NULL) {
-        return NULL;
-    }
-    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
-    return cwd;
-}
 
 
 #ifdef AF_UNIX
@@ -3579,3 +2881,98 @@ int utimes (const char *filename, const struct timeval tv[2])
     expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     return nextcall(utimes)(filename, tv);
 }
+
+
+#include "getcwd.h"
+
+
+/* Bootstrap the library */
+void fakechroot_init (void) __attribute__((constructor));
+void fakechroot_init (void)
+{
+    int i,j;
+    struct passwd* passwd = NULL;
+    char *pointer;
+
+    debug("fakechroot_init()");
+    if (!first) {
+        first = 1;
+
+        /* We get a list of directories or files */
+        pointer = getenv("FAKECHROOT_EXCLUDE_PATH");
+        if (pointer) {
+            for (i=0; list_max<32 ;) {
+                for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
+                exclude_list[list_max] = malloc(j-i+2);
+                memset(exclude_list[list_max], '\0', j-i+2);
+                strncpy(exclude_list[list_max], &(pointer[i]), j-i);
+                exclude_length[list_max] = strlen(exclude_list[list_max]);
+                list_max++;
+                if (pointer[j] != ':') break;
+                i=j+1;
+            }
+        }
+
+        /* We get the home of the user */
+        passwd = getpwuid(getuid());
+        if (passwd && passwd->pw_dir) {
+            home_path = malloc(strlen(passwd->pw_dir)+2);
+            strcpy(home_path, passwd->pw_dir);
+            strcat(home_path, "/");
+        }
+    }
+}
+
+
+/* Lazily load function */
+LOCAL inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
+{
+    char *msg;
+    if (!(w->nextfunc = dlsym(RTLD_NEXT, w->name))) {;
+        msg = dlerror();
+        fprintf(stderr, "%s: %s: %s\n", PACKAGE, w->name, msg != NULL ? msg : "unresolved symbol");
+        exit(EXIT_FAILURE);
+    }
+    return w->nextfunc;
+}
+
+
+/* Check if path is on exclude list */
+LOCAL int fakechroot_localdir (const char *p_path)
+{
+    char *v_path = (char*)p_path;
+    char *fakechroot_path, *fakechroot_ptr;
+    char cwd_path[FAKECHROOT_PATH_MAX];
+    int i, len;
+
+    if (!p_path) return 0;
+
+    if (!first) fakechroot_init();
+
+    /* We need to expand ~ paths */
+    if (home_path!=NULL && p_path[0]=='~') {
+        strcpy(cwd_path, home_path);
+        strcat(cwd_path, &(p_path[1]));
+        v_path = cwd_path;
+    }
+
+    /* We need to expand relative paths */
+    if (p_path[0] != '/') {
+        nextcall(getcwd)(cwd_path, FAKECHROOT_PATH_MAX);
+        v_path = cwd_path;
+        narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
+    }
+
+    /* We try to find if we need direct access to a file */
+    len = strlen(v_path);
+    for (i=0; i<list_max; i++) {
+        if (exclude_length[i]>len ||
+            v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
+            strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
+        if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+    }
+
+    return 0;
+}
+
+
