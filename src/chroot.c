@@ -36,10 +36,10 @@ wrapper(chroot, int, (const char * path))
     char *ptr, *ld_library_path, *tmp, *fakechroot_path;
     int status, len;
     char dir[FAKECHROOT_PATH_MAX], cwd[FAKECHROOT_PATH_MAX];
-#if !defined(HAVE_SETENV)
+#ifndef HAVE_SETENV
     char *envbuf;
 #endif
-#if defined(HAVE___XSTAT64) && defined(_STAT_VER)
+#ifdef HAVE___XSTAT64
     struct stat64 sb;
 #else
     struct stat sb;
@@ -81,7 +81,7 @@ wrapper(chroot, int, (const char * path))
         }
     }
 
-#if defined(HAVE___XSTAT64) && defined(_STAT_VER)
+#ifdef HAVE___XSTAT64
     if ((status = nextcall(__xstat64)(_STAT_VER, dir, &sb)) != 0) {
         return status;
     }
@@ -116,7 +116,7 @@ wrapper(chroot, int, (const char * path))
     }
     *tmp = 0;
 
-#if defined(HAVE_SETENV)
+#ifdef HAVE_SETENV
     setenv("FAKECHROOT_BASE", dir, 1);
 #else
     envbuf = malloc(FAKECHROOT_PATH_MAX+16);
@@ -139,7 +139,7 @@ wrapper(chroot, int, (const char * path))
     }
 
     snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, dir, dir);
-#if defined(HAVE_SETENV)
+#ifdef HAVE_SETENV
     setenv("LD_LIBRARY_PATH", tmp, 1);
 #else
     envbuf = malloc(FAKECHROOT_PATH_MAX+16);
