@@ -22,6 +22,7 @@
 
 #ifdef HAVE___XSTAT
 
+#define _ATFILE_SOURCE
 #include <sys/stat.h>
 #include "libfakechroot.h"
 

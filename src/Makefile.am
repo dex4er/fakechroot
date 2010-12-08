@@ -1,17 +1,17 @@
 pkglib_LTLIBRARIES = libfakechroot.la
 libfakechroot_la_SOURCES = \
-    __fxstatat64.c \
     __fxstatat.c \
+    __fxstatat64.c \
     __getcwd_chk.c \
     __getwd_chk.c \
-    __lxstat64.c \
     __lxstat.c \
-    __open_2.c \
-    __open64_2.c \
-    __open64.c \
-    __openat_2.c \
-    __openat64_2.c \
+    __lxstat64.c \
     __open.c \
+    __open64.c \
+    __open64_2.c \
+    __open_2.c \
+    __openat64_2.c \
+    __openat_2.c \
     __opendir2.c \
     __readlink_chk.c \
     __readlinkat_chk.c \
@@ -20,14 +20,122 @@ libfakechroot_la_SOURCES = \
     __xmknod.c \
     __xstat.c \
     __xstat64.c \
+    __xstat64.h \
     _xftw.c \
     _xftw64.c \
+    access.c \
+    acct.c \
+    bind.c \
+    bindtextdomain.c \
+    canonicalize_file_name.c \
     chdir.c \
+    chmod.c \
+    chown.c \
     chroot.c \
+    connect.c \
+    creat.c \
+    creat64.c \
+    dlmopen.c \
+    dlopen.c \
+    eaccess.c \
+    euidaccess.c \
+    execl.c \
+    execle.c \
+    execlp.c \
+    execv.c \
+    execve.c \
+    execvp.c \
+    fchmodat.c \
+    fchownat.c \
+    fopen.c \
+    fopen64.c \
+    freopen.c \
+    freopen64.c \
+    fts_children.c \
+    fts_open.c \
+    fts_read.c \
+    ftw.c \
+    ftw64.c \
+    futimesat.c \
+    get_current_dir_name.c \
     getcwd.c \
     getcwd.h \
+    getpeername.c \
+    getsockname.c \
+    getwd.c \
+    getxattr.c \
+    glob.c \
+    glob64.c \
+    glob_pattern_p.c \
+    inotify_add_watch.c \
+    lchmod.c \
+    lchown.c \
+    lckpwdf.c \
+    lgetxattr.c \
     libfakechroot.c \
-    libfakechroot.h
+    libfakechroot.h \
+    link.c \
+    linkat.c \
+    listxattr.c \
+    llistxattr.c \
+    lremovexattr.c \
+    lsetxattr.c \
+    lstat.c \
+    lstat64.c \
+    lutimes.c \
+    mkdir.c \
+    mkdirat.c \
+    mkdtemp.c \
+    mkfifo.c \
+    mkfifoat.c \
+    mknod.c \
+    mknodat.c \
+    mkstemp.c \
+    mkstemp64.c \
+    mktemp.c \
+    nftw.c \
+    nftw64.c \
+    open.c \
+    open.h \
+    open64.c \
+    openat.c \
+    openat64.c \
+    opendir.c \
+    pathconf.c \
+    popen.c \
+    readlink.c \
+    readlinkat.c \
+    realpath.c \
+    remove.c \
+    removexattr.c \
+    rename.c \
+    renameat.c \
+    revoke.c \
+    rmdir.c \
+    scandir.c \
+    scandir64.c \
+    setxattr.c \
+    stat.c \
+    stat64.c \
+    statfs.c \
+    statfs64.c \
+    statvfs.c \
+    statvfs64.c \
+    strchrnul.c \
+    strchrnul.h \
+    symlink.c \
+    symlinkat.c \
+    system.c \
+    tempnam.c \
+    tmpnam.c \
+    truncate.c \
+    truncate64.c \
+    ulckpwdf.c \
+    unlink.c \
+    unlinkat.c \
+    utime.c \
+    utimensat.c \
+    utimes.c
 libfakechroot_la_LDFLAGS = -avoid-version
 
 AM_CFLAGS = -g -Wall -Wno-deprecated-declarations

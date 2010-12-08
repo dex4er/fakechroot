@@ -18,4 +18,6 @@
 */
 
 
+#include <stddef.h>
+
 wrapper_proto(getcwd, char *, (char *, size_t));

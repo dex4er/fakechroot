@@ -18,4 +18,9 @@
 */
 
 
+#ifndef _LARGEFILE64_SOURCE
+# define _LARGEFILE64_SOURCE
+#endif
+#include <sys/stat.h>
+
 wrapper_proto(__xstat64, int, (int, const char *, struct stat64 *));

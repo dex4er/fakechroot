@@ -23,10 +23,7 @@
 #include "libfakechroot.h"
 
 
-wrapper_proto(chdir, int, (const char *));
-
-
-int chdir (const char *path)
+wrapper(chdir, int, (const char * path))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("chdir(\"%s\")", path);

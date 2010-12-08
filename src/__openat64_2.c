@@ -22,6 +22,7 @@
 
 #ifdef HAVE___OPENAT64_2
 
+#define _LARGEFILE64_SOURCE
 #include "libfakechroot.h"
 
 

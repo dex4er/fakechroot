@@ -22,7 +22,7 @@
 
 #ifdef HAVE__XFTW64
 
-#define _GNU_SOURCE
+#define _LARGEFILE64_SOURCE
 #include <sys/stat.h>
 #include "libfakechroot.h"
 

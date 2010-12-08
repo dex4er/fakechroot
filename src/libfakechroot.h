@@ -18,6 +18,7 @@
 */
 
 
+#include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,18 +48,9 @@
 #endif
 
 #ifdef AF_UNIX
-
 # ifndef SUN_LEN
 #  define SUN_LEN(su) (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 # endif
-
-# define SOCKADDR_UN(addr) (struct sockaddr_un *)(addr)
-# define SOCKADDR_UN_UNION(addr) (struct sockaddr_un *)((addr).__sockaddr_un__)
-
-#endif
-
-#if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
-# define USE_ALIAS 1
 #endif
 
 #ifndef __set_errno
@@ -119,19 +111,43 @@
         } \
     }
 
-#define wrapper_proto(function, return_type, arguments) \
-    extern return_type function arguments; \
-    typedef return_type (*fakechroot_##function##_fn_t) arguments; \
-    extern struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT;
+#define wrapper_decl_proto(function) \
+    extern struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
 
-#define wrapper(function, return_type, arguments) \
-    wrapper_proto(function, return_type, arguments); \
+#define wrapper_decl(function) \
     struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
         .func = (fakechroot_wrapperfn_t) function, \
         .nextfunc = NULL, \
         .name = #function \
-    }; \
+    }
+
+#define wrapper_fn_t(function, return_type, arguments) \
+    typedef return_type (*fakechroot_##function##_fn_t) arguments
+
+#define wrapper_proto(function, return_type, arguments) \
+    extern return_type function arguments; \
+    wrapper_fn_t(function, return_type, arguments); \
+    wrapper_decl_proto(function)
+
+#if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
+# define wrapper_proto_alias(function, return_type, arguments) \
+    extern return_type __REDIRECT (__##function##_alias, arguments, function); \
+    wrapper_fn_t(function, return_type, arguments); \
+    wrapper_decl_proto(function)
+#else
+# define wrapper_proto_alias(function, return_type, arguments) \
+    wrapper_proto(function, return_type, arguments)
+#endif
+
+#define wrapper(function, return_type, arguments) \
+    wrapper_proto(function, return_type, arguments); \
+    wrapper_decl(function); \
     return_type function arguments
+
+#define wrapper_alias(function, return_type, arguments) \
+    wrapper_proto_alias(function, return_type, arguments); \
+    wrapper_decl(function); \
+    return_type __##function##_alias arguments
 
 #define nextcall(function) \
     ( \
@@ -141,10 +157,6 @@
           fakechroot_loadfunc(&fakechroot_##function##_wrapper_decl) \
       ) \
     )
-
-#ifndef __GLIBC__
-extern char **environ;
-#endif
 
 typedef void (*fakechroot_wrapperfn_t)(void);
 

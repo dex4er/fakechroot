@@ -22,6 +22,7 @@
 
 #ifdef HAVE___OPEN64
 
+#define _LARGEFILE64_SOURCE
 #include <stdarg.h>
 #include <fcntl.h>
 #include "libfakechroot.h"
