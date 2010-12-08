@@ -106,6 +106,7 @@ __readlink_chk
 __readlinkat_chk
 __statfs
 __xmknod
+__xmknodat
 __xstat
 __xstat64
 _xftw

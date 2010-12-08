@@ -18,6 +18,7 @@ libfakechroot_la_SOURCES = \
     __realpath_chk.c \
     __statfs.c \
     __xmknod.c \
+    __xmknodat.c \
     __xstat.c \
     __xstat64.c \
     __xstat64.h \
