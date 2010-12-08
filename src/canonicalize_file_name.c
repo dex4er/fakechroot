@@ -22,6 +22,10 @@
 
 #ifdef HAVE_CANONICALIZE_FILE_NAME
 
+#ifdef HAVE___REALPATH_CHK
+# define _FORTIFY_SOURCE 2
+#endif
+#include <stdlib.h>
 #include "libfakechroot.h"
 
 
