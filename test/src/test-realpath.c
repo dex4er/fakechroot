@@ -5,7 +5,6 @@
 
 int main (int argc, char *argv[]) {
     char *path, *resolved_path, *returned_path;
-    int i, n;
 
     if (argc < 2 || argc > 3) {
         fprintf(stderr, "Usage: %s path [resolved_path]\n", argv[0]);
