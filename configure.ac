@@ -30,8 +30,7 @@ AC_CHECK_PROGS([SEQ], [seq gseq])
 AC_CHECK_LIB([dl], [dlsym])
 
 # Additional C macros
-AC_DEFINE([FAKECHROOT], [1], [FAKECHROOT])
-AC_DEFINE([HAVE_CONFIG_H], [1], [HAVE_CONFIG_H])
+AC_DEFINE([FAKECHROOT], [PACKAGE_VERSION], [FAKECHROOT])
 
 # Checks for header files.
 AC_HEADER_DIRENT
