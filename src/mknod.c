@@ -20,6 +20,8 @@
 
 #include <config.h>
 
+#ifndef HAVE___XMKNOD
+
 #include <sys/stat.h>
 #include "libfakechroot.h"
 
@@ -31,3 +33,5 @@ wrapper(mknod, int, (const char * pathname, mode_t mode, dev_t dev))
     expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
     return nextcall(mknod)(pathname, mode, dev);
 }
+
+#endif

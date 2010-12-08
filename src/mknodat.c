@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifdef HAVE_MKNODAT
+#if defined(HAVE_MKNODAT) && !defined(HAVE___XMKNODAT)
 
 #define _ATFILE_SOURCE
 #include <sys/stat.h>

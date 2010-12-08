@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifdef HAVE_STAT64
+#if defined(HAVE_STAT64) && !defined(HAVE___XSTAT64)
 
 #define _LARGEFILE64_SOURCE
 #include <sys/stat.h>

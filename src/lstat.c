@@ -20,7 +20,8 @@
 
 #include <config.h>
 
-#define _ATFILE_SOURCE
+#ifndef HAVE___LXSTAT
+
 #include <sys/stat.h>
 #include <unistd.h>
 #include "libfakechroot.h"
@@ -43,3 +44,5 @@ wrapper(lstat, int, (const char * file_name, struct stat * buf))
             buf->st_size = status;
     return retval;
 }
+
+#endif

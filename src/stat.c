@@ -20,6 +20,8 @@
 
 #include <config.h>
 
+#ifndef HAVE___XSTAT
+
 #include <sys/stat.h>
 #include "libfakechroot.h"
 
@@ -31,3 +33,5 @@ wrapper(stat, int, (const char * file_name, struct stat * buf))
     expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
     return nextcall(stat)(file_name, buf);
 }
+
+#endif
