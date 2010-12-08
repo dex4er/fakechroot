@@ -22,6 +22,7 @@
 
 #ifdef HAVE___GETCWD_CHK
 
+#define _FORTIFY_SOURCE 2
 #include <stddef.h>
 #include "libfakechroot.h"
 

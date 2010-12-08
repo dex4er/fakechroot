@@ -23,6 +23,7 @@
 #ifdef HAVE___READLINKAT_CHK
 
 #define _ATFILE_SOURCE
+#define _FORTIFY_SOURCE 2
 #include <stddef.h>
 #include "libfakechroot.h"
 
