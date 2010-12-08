@@ -407,7 +407,7 @@ void fakechroot_init (void)
 
 
 /* Lazily load function */
-LOCAL inline fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
+LOCAL fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w)
 {
     char *msg;
     if (!(w->nextfunc = dlsym(RTLD_NEXT, w->name))) {;
