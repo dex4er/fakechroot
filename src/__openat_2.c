@@ -22,6 +22,7 @@
 
 #ifdef HAVE___OPENAT_2
 
+#define _ATFILE_SOURCE
 #include "libfakechroot.h"
 
 

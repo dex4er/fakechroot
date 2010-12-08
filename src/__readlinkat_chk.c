@@ -22,6 +22,7 @@
 
 #ifdef HAVE___READLINKAT_CHK
 
+#define _ATFILE_SOURCE
 #include <stddef.h>
 #include "libfakechroot.h"
 

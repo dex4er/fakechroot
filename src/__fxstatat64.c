@@ -22,6 +22,7 @@
 
 #ifdef HAVE___FXSTATAT64
 
+#define _ATFILE_SOURCE
 #define _LARGEFILE64_SOURCE
 #include <sys/stat.h>
 #include "libfakechroot.h"
