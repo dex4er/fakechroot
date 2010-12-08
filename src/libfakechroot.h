@@ -130,11 +130,13 @@
     wrapper_decl_proto(function)
 
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
+# define wrapper_fn_name(function) __##function##_alias
 # define wrapper_proto_alias(function, return_type, arguments) \
-    extern return_type __REDIRECT (__##function##_alias, arguments, function); \
+    extern return_type __REDIRECT (wrapper_fn_name(function), arguments, function); \
     wrapper_fn_t(function, return_type, arguments); \
     wrapper_decl_proto(function)
 #else
+# define wrapper_fn_name(function) function
 # define wrapper_proto_alias(function, return_type, arguments) \
     wrapper_proto(function, return_type, arguments)
 #endif
@@ -147,7 +149,7 @@
 #define wrapper_alias(function, return_type, arguments) \
     wrapper_proto_alias(function, return_type, arguments); \
     wrapper_decl(function); \
-    return_type __##function##_alias arguments
+    return_type wrapper_fn_name(function) arguments
 
 #define nextcall(function) \
     ( \
