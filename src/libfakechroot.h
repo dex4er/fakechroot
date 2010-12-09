@@ -20,10 +20,13 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 
+
 #define debug fakechroot_debug
+
 
 #if __GNUC__ >= 4
 # define LOCAL __attribute__ ((visibility("hidden")))
@@ -32,6 +35,7 @@
 # define LOCAL
 # define SECTION_DATA_FAKECHROOT
 #endif
+
 
 #if defined(PATH_MAX)
 # define FAKECHROOT_PATH_MAX PATH_MAX
@@ -47,6 +51,7 @@
 # define UNIX_PATH_MAX 108
 #endif
 
+
 #ifdef AF_UNIX
 # ifndef SUN_LEN
 #  define SUN_LEN(su) (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
@@ -60,6 +65,7 @@
 #ifndef HAVE_VFORK
 # define vfork fork
 #endif
+
 
 #define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
     { \
@@ -110,6 +116,7 @@
             } \
         } \
     }
+
 
 #define wrapper_decl_proto(function) \
     extern struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
@@ -168,6 +175,7 @@ struct fakechroot_wrapper {
     const char *name;
 };
 
-int fakechroot_debug (const char *fmt, ...);
-fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *w);
-int fakechroot_localdir (const char *p_path);
+
+int fakechroot_debug (const char *, ...);
+fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
+int fakechroot_localdir (const char *);
