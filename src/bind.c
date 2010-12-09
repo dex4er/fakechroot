@@ -20,11 +20,15 @@
 
 #include <config.h>
 
+#ifdef HAVE_BIND
+
+#define _GNU_SOURCE
+#include <sys/socket.h>
+
 #ifdef AF_UNIX
 
-#include "libfakechroot.h"
-#include <sys/socket.h>
 #include <sys/un.h>
+#include "libfakechroot.h"
 
 #ifdef HAVE_BIND_TYPE_ARG2___CONST_SOCKADDR_ARG__
 # define SOCKADDR_UN(addr) ((addr).__sockaddr_un__)
@@ -68,5 +72,7 @@ wrapper(bind, int, (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen))
     }
     return nextcall(bind)(sockfd, addr, addrlen);
 }
+
+#endif
 
 #endif

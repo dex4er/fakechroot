@@ -226,7 +226,9 @@ vfork
 
 m4_foreach_w([function], [bind connect],
     [AC_CHECK_FUNC_ARGTYPES(function,
-        [], [sys/types.h sys/socket.h],
+        [
+#define _GNU_SOURCE
+        ], [sys/types.h sys/socket.h],
         [[int], [int _], [const struct sockaddr *_], [socklen_t _]],
         [[int]],
         [[int _]],
@@ -235,7 +237,9 @@ m4_foreach_w([function], [bind connect],
 
 m4_foreach_w([function], [getpeername getsockname],
     [AC_CHECK_FUNC_ARGTYPES(function,
-        [], [sys/types.h sys/socket.h],
+        [
+#define _GNU_SOURCE
+        ], [sys/types.h sys/socket.h],
         [[int], [int _], [struct sockaddr *_], [socklen_t _]],
         [[int]],
         [[int _]],

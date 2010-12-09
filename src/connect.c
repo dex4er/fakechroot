@@ -20,9 +20,13 @@
 
 #include <config.h>
 
+#ifdef HAVE_CONNECT
+
+#define _GNU_SOURCE
+#include <sys/socket.h>
+
 #ifdef AF_UNIX
 
-#include <sys/socket.h>
 #include <sys/un.h>
 #include "libfakechroot.h"
 
@@ -68,5 +72,7 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
     }
     return nextcall(connect)(sockfd, addr, addrlen);
 }
+
+#endif
 
 #endif

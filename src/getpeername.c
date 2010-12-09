@@ -20,11 +20,15 @@
 
 #include <config.h>
 
+#ifdef HAVE_GETPEERNAME
+
+#define _GNU_SOURCE
+#include <sys/socket.h>
+
 #ifdef AF_UNIX
 
-#include "libfakechroot.h"
-#include <sys/socket.h>
 #include <sys/un.h>
+#include "libfakechroot.h"
 
 #ifdef HAVE_GETPEERNAME_TYPE_ARG2___SOCKADDR_ARG__
 # define SOCKADDR_UN(addr) ((addr).__sockaddr_un__)
@@ -57,5 +61,7 @@ wrapper(getpeername, int, (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t * addrl
     *addrlen = SUN_LEN(&newaddr);
     return status;
 }
+
+#endif
 
 #endif
