@@ -287,6 +287,13 @@ AC_CHECK_FUNC_ARGTYPES([scandir64],
     [[int(*_)(const struct dirent64 *)], [int(*_)(struct dirent64 *)]],
     [[int(*_)(const struct dirent64 **, const struct dirent64 **)], [int(*_)(const void *,const void *)]])
 
+AC_CHECK_FUNC_ARGTYPES([utimes],
+    [], [sys/time.h],
+    [[int], [const char *_], [const struct timeval _@<:@2@:>@]],
+    [[int]],
+    [[const char *_]],
+    [[const struct timeval _@<:@2@:>@], [struct timeval _@<:@2@:>@]])
+
 AC_CONFIG_FILES(m4_normalize([
 Makefile
 man/Makefile

@@ -24,7 +24,7 @@
 #include "libfakechroot.h"
 
 
-wrapper(utimes, int, (const char * filename, const struct timeval tv [2]))
+wrapper(utimes, int, (const char * filename, UTIMES_TYPE_ARG2(tv)))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("utimes(\"%s\", &tv)", filename);
