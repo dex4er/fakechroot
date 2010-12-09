@@ -16,6 +16,7 @@ libfakechroot_la_SOURCES = \
     __readlink_chk.c \
     __readlinkat_chk.c \
     __realpath_chk.c \
+    __realpath_chk.h \
     __statfs.c \
     __xmknod.c \
     __xmknodat.c \

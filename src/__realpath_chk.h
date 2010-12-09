@@ -18,27 +18,4 @@
 */
 
 
-#include <config.h>
-
-#ifdef HAVE_CANONICALIZE_FILE_NAME
-
-#include <stdlib.h>
-#include "libfakechroot.h"
-
-#ifdef HAVE___REALPATH_CHK
-# include "__realpath_chk.h"
-#endif
-
-
-wrapper(canonicalize_file_name, char *, (const char * name))
-{
-    char *resolved = malloc(FAKECHROOT_PATH_MAX * 2);
-    debug("canonicalize_file_name(\"%s\")", name);
-#ifdef HAVE___REALPATH_CHK
-    return __realpath_chk(name, resolved, FAKECHROOT_PATH_MAX * 2);
-#else
-    return realpath(name, resolved);
-#endif
-}
-
-#endif
+wrapper_proto(__realpath_chk, char *, (const char *, char *, size_t));
