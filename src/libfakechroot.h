@@ -33,6 +33,12 @@
 # define LOCAL
 #endif
 
+#ifdef HAVE___ATTRIBUTE__CONSTRUCTOR
+# define CONSTRUCTOR __attribute__((constructor))
+#else
+# define CONSTRUCTOR
+#endif
+
 #if __GNUC__
 # define SECTION_DATA_FAKECHROOT __attribute__((section("data.fakechroot")))
 #else

@@ -30,6 +30,7 @@ AC_CHECK_PROGS([PROVE], [prove])
 AC_CHECK_PROGS([SEQ], [seq gseq])
 
 # Checks for compilator features
+AX_CHECK_C_ATTRIBUTE([constructor])
 AX_CHECK_C_ATTRIBUTE_VISIBILITY
 
 # Checks for libraries.

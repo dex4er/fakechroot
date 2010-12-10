@@ -65,7 +65,7 @@ LOCAL int fakechroot_debug (const char *fmt, ...)
 
 
 /* Bootstrap the library */
-void fakechroot_init (void) __attribute__((constructor));
+void fakechroot_init (void) CONSTRUCTOR;
 void fakechroot_init (void)
 {
     int i,j;
