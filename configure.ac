@@ -81,7 +81,7 @@ AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
 # Checks for additional typedefs.
-AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, AC_INCLUDES_HEADERS([sys/un.h]))
+AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, AX_INCLUDES_HEADERS([sys/un.h]))
 
 # Checks for library functions.
 AC_FUNC_ALLOCA
@@ -229,7 +229,7 @@ AC_CHECK_FUNCS(m4_normalize([
 
 # Check return type and arguments types for functions
 m4_foreach_w([function], [bind connect],
-    [AC_CHECK_FUNC_ARGTYPES(function,
+    [AX_CHECK_FUNC_ARGTYPES(function,
         [
 #define _GNU_SOURCE
         ], [sys/types.h sys/socket.h],
@@ -240,7 +240,7 @@ m4_foreach_w([function], [bind connect],
         [[socklen_t _]])])
 
 m4_foreach_w([function], [getpeername getsockname],
-    [AC_CHECK_FUNC_ARGTYPES(function,
+    [AX_CHECK_FUNC_ARGTYPES(function,
         [
 #define _GNU_SOURCE
         ], [sys/types.h sys/socket.h],
@@ -250,7 +250,7 @@ m4_foreach_w([function], [getpeername getsockname],
         [[__SOCKADDR_ARG _], [struct sockaddr *_]],
         [[socklen_t *__restrict _], [socket_t *_]])])
 
-AC_CHECK_FUNC_ARGTYPES([fts_open],
+AX_CHECK_FUNC_ARGTYPES([fts_open],
     [], [sys/types.h sys/stat.h fts.h],
     [[FTS *], [char * const *_], [int], [int (*_)(const FTSENT **, const FTSENT **)]],
     [[FTS *]],
@@ -258,7 +258,7 @@ AC_CHECK_FUNC_ARGTYPES([fts_open],
     [[int _]],
     [[int (*_)(const FTSENT * const *, const FTSENT * const *)], [int (*_)(const FTSENT **, const FTSENT **)]])
 
-AC_CHECK_FUNC_ARGTYPES([readlink],
+AX_CHECK_FUNC_ARGTYPES([readlink],
     [
 #define _BSD_SOURCE 1
     ], [unistd.h],
@@ -268,7 +268,7 @@ AC_CHECK_FUNC_ARGTYPES([readlink],
     [[char *_]],
     [[size_t _], [int _]])
 
-AC_CHECK_FUNC_ARGTYPES([scandir],
+AX_CHECK_FUNC_ARGTYPES([scandir],
     [
 #define _BSD_SOURCE 1
     ], [dirent.h],
@@ -279,7 +279,7 @@ AC_CHECK_FUNC_ARGTYPES([scandir],
     [[int(*_)(const struct dirent *)], [int(*_)(struct dirent *)]],
     [[int(*_)(const struct dirent **, const struct dirent **)], [int(*_)(const void *,const void *)]])
 
-AC_CHECK_FUNC_ARGTYPES([scandir64],
+AX_CHECK_FUNC_ARGTYPES([scandir64],
     [
 #define _BSD_SOURCE 1
 #define _GNU_SOURCE 1
@@ -291,7 +291,7 @@ AC_CHECK_FUNC_ARGTYPES([scandir64],
     [[int(*_)(const struct dirent64 *)], [int(*_)(struct dirent64 *)]],
     [[int(*_)(const struct dirent64 **, const struct dirent64 **)], [int(*_)(const void *,const void *)]])
 
-AC_CHECK_FUNC_ARGTYPES([utimes],
+AX_CHECK_FUNC_ARGTYPES([utimes],
     [], [sys/time.h],
     [[int], [const char *_], [const struct timeval _@<:@2@:>@]],
     [[int]],

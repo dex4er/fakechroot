@@ -7,9 +7,9 @@
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
 
-# AC_CHECK_FUNC_RAW_DECL(FUNCTION, PROLOGUE)
+# AX_CHECK_FUNC_RAW_DECL(FUNCTION, PROLOGUE)
 # -------------------------------------
-AC_DEFUN([AC_CHECK_FUNC_RAW_DECL],
+AC_DEFUN([AX_CHECK_FUNC_RAW_DECL],
     [AH_TEMPLATE([HAVE_RAW_DECL_]AS_TR_CPP($1),
             [Define to 1 if `$1' is declared even after undefining macros.])
         AS_VAR_PUSHDEF([ac_var], [ac_cv_have_raw_decl_$1])
