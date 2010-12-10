@@ -27,14 +27,17 @@
 #define debug fakechroot_debug
 
 
-#if __GNUC__ >= 4
-# define LOCAL __attribute__ ((visibility("hidden")))
-# define SECTION_DATA_FAKECHROOT __attribute__((section("data.fakechroot")))
+#if HAVE_C_ATTRIBUTE_VISIBILITY
+# define LOCAL __attribute__((visibility("hidden")))
 #else
 # define LOCAL
-# define SECTION_DATA_FAKECHROOT
 #endif
 
+#if __GNUC__
+# define SECTION_DATA_FAKECHROOT __attribute__((section("data.fakechroot")))
+#else
+# define SECTION_DATA_FAKECHROOT
+#endif
 
 #if defined(PATH_MAX)
 # define FAKECHROOT_PATH_MAX PATH_MAX
