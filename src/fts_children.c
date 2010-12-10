@@ -44,7 +44,7 @@ wrapper(fts_children, FTSENT *, (FTS * ftsp, int options))
     if ((newentry->fts_path = malloc(entry->fts_pathlen + 1)) == NULL)
         return NULL;
 
-    memmove(newentry->fts_path, entry->fts_path, entry->fts_pathlen);
+    memmove(newentry->fts_path, entry->fts_path, entry->fts_pathlen + 1);
     narrow_chroot_path(newentry->fts_path, fakechroot_path, fakechroot_ptr);
 
     return newentry;
