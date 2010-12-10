@@ -1,3 +1,7 @@
+# check_c_attribute_visibility.m4 - check if C compiler supports visibility
+#
+# This is renamed macro from Gnulib with added AH_TEMPLATE.
+
 # visibility.m4 serial 4 (gettext-0.18.2)
 dnl Copyright (C) 2005, 2008, 2010 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
@@ -18,13 +22,15 @@ dnl dependent semantics.
 dnl Does *not* test for #pragma GCC visibility push(hidden) - which is
 dnl "really only recommended for legacy code".
 dnl Set the variable CFLAG_VISIBILITY.
-dnl Defines and sets the variable HAVE_ATTRIBUTE_VISIBILITY.
+dnl Defines and sets the variable HAVE_VISIBILITY.
 
 AC_DEFUN([AX_CHECK_C_ATTRIBUTE_VISIBILITY],
 [
+  AH_TEMPLATE([HAVE___ATTRIBUTE__VISIBILITY],
+    [Define to 1 if the compiler supports simple visibility declarations.])
   AC_REQUIRE([AC_PROG_CC])
   CFLAG_VISIBILITY=
-  HAVE_C_ATTRIBUTE_VISIBILITY=0
+  HAVE_VISIBILITY=0
   if test -n "$GCC"; then
     dnl First, check whether -Werror can be added to the command line, or
     dnl whether it leads to an error because of some other option that the
@@ -67,11 +73,10 @@ AC_DEFUN([AX_CHECK_C_ATTRIBUTE_VISIBILITY],
     AC_MSG_RESULT([$gl_cv_cc_visibility])
     if test $gl_cv_cc_visibility = yes; then
       CFLAG_VISIBILITY="-fvisibility=hidden"
-      HAVE_C_ATTRIBUTE_VISIBILITY=1
+      HAVE_VISIBILITY=1
     fi
   fi
   AC_SUBST([CFLAG_VISIBILITY])
-  AC_SUBST([HAVE_C_ATTRIBUTE_VISIBILITY])
-  AC_DEFINE_UNQUOTED([HAVE_C_ATTRIBUTE_VISIBILITY], [$HAVE_C_ATTRIBUTE_VISIBILITY],
-    [Define to 1 or 0, depending whether the compiler supports simple visibility declarations.])
+  AC_SUBST([HAVE_VISIBILITY])
+  AC_DEFINE_UNQUOTED([HAVE___ATTRIBUTE__VISIBILITY], [$HAVE_VISIBILITY])
 ])

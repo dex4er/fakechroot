@@ -27,7 +27,7 @@
 #define debug fakechroot_debug
 
 
-#if HAVE_C_ATTRIBUTE_VISIBILITY
+#ifdef HAVE___ATTRIBUTE__VISIBILITY
 # define LOCAL __attribute__((visibility("hidden")))
 #else
 # define LOCAL
