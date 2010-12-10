@@ -18,6 +18,9 @@ AS_IF([test "x$with_libpath" = x],
     [AC_MSG_FAILURE([invalid libpath specified])])
 AC_SUBST(libpath, $with_libpath)
 
+# Additional C macros
+AC_DEFINE([FAKECHROOT], [PACKAGE_VERSION], [FAKECHROOT])
+
 # Checks for programs.
 AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
@@ -29,44 +32,41 @@ AC_CHECK_PROGS([SEQ], [seq gseq])
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
 
-# Additional C macros
-AC_DEFINE([FAKECHROOT], [PACKAGE_VERSION], [FAKECHROOT])
-
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(m4_normalize([
-alloca.h
-dirent.h
-dlfcn.h
-errno.h
-fcntl.h
-fts.h
-ftw.h
-glob.h
-libintl.h
-pwd.h
-shadow.h
-signal.h
-stdarg.h
-stdio.h
-stdlib.h
-string.h
-sys/inotify.h
-sys/mount.h
-sys/param.h
-sys/socket.h
-sys/stat.h
-sys/statfs.h
-sys/statvfs.h
-sys/times.h
-sys/types.h
-sys/un.h
-sys/vfs.h
-sys/wait.h
-sys/xattr.h
-unistd.h
-utime.h
+    alloca.h
+    dirent.h
+    dlfcn.h
+    errno.h
+    fcntl.h
+    fts.h
+    ftw.h
+    glob.h
+    libintl.h
+    pwd.h
+    shadow.h
+    signal.h
+    stdarg.h
+    stdio.h
+    stdlib.h
+    string.h
+    sys/inotify.h
+    sys/mount.h
+    sys/param.h
+    sys/socket.h
+    sys/stat.h
+    sys/statfs.h
+    sys/statvfs.h
+    sys/times.h
+    sys/types.h
+    sys/un.h
+    sys/vfs.h
+    sys/wait.h
+    sys/xattr.h
+    unistd.h
+    utime.h
 ]))
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -88,142 +88,143 @@ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS(m4_normalize([
-__chk_fail
-__fxstatat
-__fxstatat64
-__getcwd_chk
-__getwd_chk
-__lxstat
-__lxstat64
-__open
-__open_2
-__open64
-__open64_2
-__openat_2
-__openat64_2
-__opendir2
-__realpath_chk
-__readlink_chk
-__readlinkat_chk
-__statfs
-__xmknod
-__xmknodat
-__xstat
-__xstat64
-_xftw
-_xftw64
-access
-acct
-bind
-bindtextdomain
-canonicalize_file_name
-chdir
-chmod
-chown
-chroot
-connect
-creat
-creat64
-dlmopen
-dlopen
-eaccess
-euidaccess
-execl
-execle
-execlp
-execv
-execve
-execvp
-fchmodat
-fchownat
-fopen
-fopen64
-freopen
-freopen64
-fts_children
-fts_open
-fts_read
-ftw
-ftw64
-futimesat
-get_current_dir_name
-getcwd
-getpeername
-getsockname
-getwd
-getxattr
-glob
-glob64
-glob_pattern_p
-inotify_add_watch
-lchmod
-lchown
-lckpwdf
-lgetxattr
-link
-linkat
-listxattr
-llistxattr
-lremovexattr
-lsetxattr
-lstat
-lstat64
-lutimes
-mkdir
-mkdirat
-mkdtemp
-mknod
-mknodat
-mkfifo
-mkfifoat
-mkstemp
-mkstemp64
-mktemp
-nftw
-nftw64
-open
-open64
-openat
-openat64
-opendir
-pathconf
-popen
-readlink
-readlinkat
-realpath
-remove
-removexattr
-rename
-renameat
-revoke
-rmdir
-scandir
-scandir64
-setenv
-setxattr
-stat
-stat64
-statfs
-statfs64
-statvfs
-statvfs64
-strchrnul
-symlink
-symlinkat
-system
-tempnam
-tmpnam
-truncate
-truncate64
-unlink
-unlinkat
-ulckpwdf
-utime
-utimensat
-utimes
-vfork
+    __chk_fail
+    __fxstatat
+    __fxstatat64
+    __getcwd_chk
+    __getwd_chk
+    __lxstat
+    __lxstat64
+    __open
+    __open_2
+    __open64
+    __open64_2
+    __openat_2
+    __openat64_2
+    __opendir2
+    __realpath_chk
+    __readlink_chk
+    __readlinkat_chk
+    __statfs
+    __xmknod
+    __xmknodat
+    __xstat
+    __xstat64
+    _xftw
+    _xftw64
+    access
+    acct
+    bind
+    bindtextdomain
+    canonicalize_file_name
+    chdir
+    chmod
+    chown
+    chroot
+    connect
+    creat
+    creat64
+    dlmopen
+    dlopen
+    eaccess
+    euidaccess
+    execl
+    execle
+    execlp
+    execv
+    execve
+    execvp
+    fchmodat
+    fchownat
+    fopen
+    fopen64
+    freopen
+    freopen64
+    fts_children
+    fts_open
+    fts_read
+    ftw
+    ftw64
+    futimesat
+    get_current_dir_name
+    getcwd
+    getpeername
+    getsockname
+    getwd
+    getxattr
+    glob
+    glob64
+    glob_pattern_p
+    inotify_add_watch
+    lchmod
+    lchown
+    lckpwdf
+    lgetxattr
+    link
+    linkat
+    listxattr
+    llistxattr
+    lremovexattr
+    lsetxattr
+    lstat
+    lstat64
+    lutimes
+    mkdir
+    mkdirat
+    mkdtemp
+    mknod
+    mknodat
+    mkfifo
+    mkfifoat
+    mkstemp
+    mkstemp64
+    mktemp
+    nftw
+    nftw64
+    open
+    open64
+    openat
+    openat64
+    opendir
+    pathconf
+    popen
+    readlink
+    readlinkat
+    realpath
+    remove
+    removexattr
+    rename
+    renameat
+    revoke
+    rmdir
+    scandir
+    scandir64
+    setenv
+    setxattr
+    stat
+    stat64
+    statfs
+    statfs64
+    statvfs
+    statvfs64
+    strchrnul
+    symlink
+    symlinkat
+    system
+    tempnam
+    tmpnam
+    truncate
+    truncate64
+    unlink
+    unlinkat
+    ulckpwdf
+    utime
+    utimensat
+    utimes
+    vfork
 ]))
 
+# Check return type and arguments types for functions
 m4_foreach_w([function], [bind connect],
     [AC_CHECK_FUNC_ARGTYPES(function,
         [
@@ -294,12 +295,15 @@ AC_CHECK_FUNC_ARGTYPES([utimes],
     [[const char *_]],
     [[const struct timeval _@<:@2@:>@], [struct timeval _@<:@2@:>@]])
 
+# List of Makefiles
 AC_CONFIG_FILES(m4_normalize([
-Makefile
-man/Makefile
-src/Makefile
-scripts/Makefile
-test/Makefile
-test/src/Makefile
+    Makefile
+    man/Makefile
+    src/Makefile
+    scripts/Makefile
+    test/Makefile
+    test/src/Makefile
 ]))
+
+# Generate output
 AC_OUTPUT
