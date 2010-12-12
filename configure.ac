@@ -228,6 +228,10 @@ AC_CHECK_FUNCS(m4_normalize([
     vfork
 ]))
 
+# Check for internal dependencies
+ACX_CHECK_OPENDIR_CALLS_INTERNALLY([__open])
+ACX_CHECK_OPENDIR_CALLS_INTERNALLY([__opendir2])
+
 # Check return type and arguments types for functions
 m4_foreach_w([function], [bind connect],
     [AX_CHECK_FUNC_ARGTYPES(function,

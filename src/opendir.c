@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifndef HAVE___OPENDIR2
+#if !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2)
 
 #include <dirent.h>
 #include "libfakechroot.h"
