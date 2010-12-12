@@ -273,6 +273,13 @@ Free Software Foundation, Inc.
 
 =item *
 
+fts_* functions taken from OpenBSD.
+Copyright (c) 1990, 1993, 1994
+The Regents of the University of California.
+This software is distributed under the BSD-style license.
+
+=item *
+
 popen function taken from uClibc.
 Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
 Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>

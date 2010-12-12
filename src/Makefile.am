@@ -53,9 +53,7 @@ libfakechroot_la_SOURCES = \
     fopen64.c \
     freopen.c \
     freopen64.c \
-    fts_children.c \
-    fts_open.c \
-    fts_read.c \
+    fts.c \
     ftw.c \
     ftw64.c \
     futimesat.c \
