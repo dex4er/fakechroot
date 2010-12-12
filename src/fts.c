@@ -101,7 +101,7 @@ fts_open(char * const *argv, int options,
 	FTS *sp;
 	FTSENT *p, *root;
 	int nitems;
-	FTSENT *parent, *tmp;
+	FTSENT *parent, *tmp = NULL;
 	size_t len;
 
 	/* Options check. */
@@ -576,9 +576,9 @@ fts_build(FTS *sp, int type)
 	DIR *dirp;
 	void *oldaddr;
 	size_t len, maxlen;
-	int nitems, cderrno, descend, level, nlinks, nostat, doadjust;
+	int nitems, cderrno, descend, level, nlinks, nostat = 0, doadjust;
 	int saved_errno;
-	char *cp;
+	char *cp = NULL;
 
 	/* Set current node pointer. */
 	cur = sp->fts_cur;
