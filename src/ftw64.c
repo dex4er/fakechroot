@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#if defined(HAVE_FTW64) && !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW64)
+#if defined(HAVE_FTW64) && !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2) && !defined(HAVE__XFTW64)
 
 #define _LARGEFILE64_SOURCE
 #include <sys/stat.h>

@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#if defined(HAVE_FTW) && !defined(HAVE___OPENDIR2) && !defined(HAVE__XFTW)
+#if defined(HAVE_FTW) && !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2) && !defined(HAVE__XFTW)
 
 #include <sys/stat.h>
 #include "libfakechroot.h"
