@@ -127,10 +127,10 @@
 
 
 #define wrapper_decl_proto(function) \
-    extern struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
+    extern LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
 
 #define wrapper_decl(function) \
-    struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
+    LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
         .func = (fakechroot_wrapperfn_t) function, \
         .nextfunc = NULL, \
         .name = #function \
