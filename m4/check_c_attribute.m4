@@ -7,7 +7,7 @@
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
 
-# AX_CHECK_C_ATTRIBUTE([ATTRIBUTE], [HEADER])
+# ACX_CHECK_C_ATTRIBUTE([ATTRIBUTE], [HEADER])
 # -------------------------------------------
 AC_DEFUN([ACX_CHECK_C_ATTRIBUTE],
     [m4_define([myattr], m4_default([$1], [unused]))
@@ -27,7 +27,7 @@ static void foo(void) {
             [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
         AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP(myname), [1])
-                [acx_cv_c_attribute_]myattr[=yes]])
+                AS_VAR_SET(acx_var, [yes])])
         AS_VAR_POPDEF([acx_var])
         m4_undefine([myattr])
         m4_undefine([myname])

@@ -24,7 +24,7 @@ int foo __attribute__ ((section ("]mysect[")));
             [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
         AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP(myname), [1])
-                AS_VAR_SET(AS_TR_SH([acx_cv_c_attribute_section_]mysect), [yes])])
+                AS_VAR_SET(acx_var, [yes])])
         AS_VAR_POPDEF([acx_var])
         m4_undefine([mysect])
         m4_undefine([myname])

@@ -22,6 +22,6 @@ AC_DEFUN([ACX_CHECK_FUNC_RAW_DECL],
             [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
         AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_RAW_DECL_$1]), [1])
-                acx_cv_have_decl_$1=yes])
+                AS_VAR_SET(acx_var, [yes])])
         AS_VAR_POPDEF([acx_var])
 ])

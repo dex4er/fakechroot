@@ -31,7 +31,7 @@ exit(1);
             [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
         AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP(myname), [1])
-                [acx_cv_opendir_calls_internally_$1=yes]])
+                AS_VAR_SET(acx_var, [yes])])
         AS_VAR_POPDEF([acx_var])
         m4_undefine([myname])
 ])
