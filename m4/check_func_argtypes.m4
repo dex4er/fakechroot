@@ -8,35 +8,6 @@
 # version 2.1 of the License, or (at your option) any later version.
 
 
-# Compatibility with older autoconf
-m4_ifndef([m4_argn],
-        [m4_define([m4_argn],
-                [m4_car(m4_shiftn([$1], $@))])])
-
-
-# _AHX_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, TYPES-RETURN, [TYPES-ARG1,
-#     TYPES_ARG2, ...])
-# -----------------------------------------------------------------
-m4_define([_AHX_CHECK_FUNC_ARGTYPES],
-    [m4_foreach([mytype], [$2],
-            [m4_define([myname], [HAVE_$1_TYPE_RETURN_]mytype)
-                AH_TEMPLATE(AS_TR_CPP([myname]), [Define to 1 if the type of return value for `$1' is `]mytype['])
-                m4_undefine([myname])])
-        m4_if(m4_cmp(m4_count($@), 2), [1],
-                [m4_for([myargn], [3], m4_count($@), [1],
-                        [m4_foreach([mytype], m4_argn(myargn, $@),
-                            [m4_define([myargi], m4_eval(myargn - 2))
-                                m4_define([myname], [HAVE_$1_TYPE_ARG]myargi[_]mytype)
-                                AH_TEMPLATE(AS_TR_CPP([myname]), [Define to 1 if the type of arg ]myargi[ for `$1' is `]mytype['])
-                                m4_undefine([myargi])
-                                m4_undefine([myname])])])])])
-
-
-# _ACX_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
-# -------------------------------------
-m4_define([_ACX_CHECK_FUNC_ARGTYPES_QUOTE], [']AS_ESCAPE($1, [''])[' ])
-
-
 # ACX_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, PROLOGUE, HEADER-FILES, TYPES-DEFAULT,
 #     TYPES-RETURN, TYPES-ARG1, TYPES-ARG2, ...])
 # ----------------------------------------------------------------------------
@@ -107,3 +78,32 @@ AC_DEFUN([ACX_CHECK_FUNC_ARGTYPES],
                         AC_DEFINE_UNQUOTED(AS_TR_CPP([HAVE_$1_TYPE_ARG]myargi[_$]m4_eval(myargi + 1)), [1])
                         [rm -f conftest*]
                         m4_undefine([myargi])])])])
+
+
+# Compatibility with older autoconf
+m4_ifndef([m4_argn],
+        [m4_define([m4_argn],
+                [m4_car(m4_shiftn([$1], $@))])])
+
+
+# _AHX_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, TYPES-RETURN, [TYPES-ARG1,
+#     TYPES_ARG2, ...])
+# -----------------------------------------------------------------
+m4_define([_AHX_CHECK_FUNC_ARGTYPES],
+    [m4_foreach([mytype], [$2],
+            [m4_define([myname], [HAVE_$1_TYPE_RETURN_]mytype)
+                AH_TEMPLATE(AS_TR_CPP([myname]), [Define to 1 if the type of return value for `$1' is `]mytype['])
+                m4_undefine([myname])])
+        m4_if(m4_cmp(m4_count($@), 2), [1],
+                [m4_for([myargn], [3], m4_count($@), [1],
+                        [m4_foreach([mytype], m4_argn(myargn, $@),
+                            [m4_define([myargi], m4_eval(myargn - 2))
+                                m4_define([myname], [HAVE_$1_TYPE_ARG]myargi[_]mytype)
+                                AH_TEMPLATE(AS_TR_CPP([myname]), [Define to 1 if the type of arg ]myargi[ for `$1' is `]mytype['])
+                                m4_undefine([myargi])
+                                m4_undefine([myname])])])])])
+
+
+# _ACX_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
+# -------------------------------------
+m4_define([_ACX_CHECK_FUNC_ARGTYPES_QUOTE], [']AS_ESCAPE($1, [''])[' ])
