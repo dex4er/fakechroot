@@ -24,7 +24,7 @@ dnl "really only recommended for legacy code".
 dnl Set the variable CFLAG_VISIBILITY.
 dnl Defines and sets the variable HAVE_VISIBILITY.
 
-AC_DEFUN([AX_CHECK_C_ATTRIBUTE_VISIBILITY],
+AC_DEFUN([ACX_CHECK_C_ATTRIBUTE_VISIBILITY],
 [
   AH_TEMPLATE([HAVE___ATTRIBUTE__VISIBILITY],
     [Define to 1 if the compiler supports simple visibility declarations.])

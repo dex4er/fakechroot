@@ -9,14 +9,14 @@
 
 # AX_CHECK_C_ATTRIBUTE([ATTRIBUTE], [HEADER])
 # -------------------------------------------
-AC_DEFUN([AX_CHECK_C_ATTRIBUTE],
+AC_DEFUN([ACX_CHECK_C_ATTRIBUTE],
     [m4_define([myattr], m4_default([$1], [unused]))
         m4_define([myname], [HAVE___ATTRIBUTE__$1])
         AH_TEMPLATE(AS_TR_CPP(myname),
             [Define to 1 if compiler supports `__attribute__((]myattr[))' syntax.])
-        AS_VAR_PUSHDEF([ac_var], [ac_cv_c_attribute_]myattr)
+        AS_VAR_PUSHDEF([acx_var], [acx_cv_c_attribute_]myattr)
         AC_CACHE_CHECK([whether compiler supports __attribute__((]myattr[)) syntax],
-            ac_var,
+            acx_var,
             [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 $2
 static void foo(void) __attribute__ ((]myattr[));
@@ -24,11 +24,11 @@ static void foo(void) {
     return 0;
 }
                     ], [])],
-            [AS_VAR_SET(ac_var, [yes])], [AS_VAR_SET(ac_var, [no])])])
-        AS_VAR_IF(ac_var, [yes],
+            [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
+        AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP(myname), [1])
-                [ac_cv_c_attribute_]myattr[=yes]])
-        AS_VAR_POPDEF([ac_var])
+                [acx_cv_c_attribute_]myattr[=yes]])
+        AS_VAR_POPDEF([acx_var])
         m4_undefine([myattr])
         m4_undefine([myname])
 ])

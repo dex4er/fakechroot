@@ -14,10 +14,10 @@ m4_ifndef([m4_argn],
                 [m4_car(m4_shiftn([$1], $@))])])
 
 
-# _AX_CHECK_FUNC_ARGTYPES_TEMPLATE(FUNCTION-NAME, TYPES-RETURN, [TYPES-ARG1,
+# _AHX_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, TYPES-RETURN, [TYPES-ARG1,
 #     TYPES_ARG2, ...])
 # -----------------------------------------------------------------
-m4_define([_AX_CHECK_FUNC_ARGTYPES_TEMPLATE],
+m4_define([_AHX_CHECK_FUNC_ARGTYPES],
     [m4_foreach([mytype], [$2],
             [m4_define([myname], [HAVE_$1_TYPE_RETURN_]mytype)
                 AH_TEMPLATE(AS_TR_CPP([myname]), [Define to 1 if the type of return value for `$1' is `]mytype['])
@@ -32,12 +32,12 @@ m4_define([_AX_CHECK_FUNC_ARGTYPES_TEMPLATE],
                                 m4_undefine([myname])])])])])
 
 
-# _AX_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
+# _ACX_CHECK_FUNC_ARGTYPES_QUOTE(STRING)
 # -------------------------------------
-m4_define([_AX_CHECK_FUNC_ARGTYPES_QUOTE], [']AS_ESCAPE($1, [''])[' ])
+m4_define([_ACX_CHECK_FUNC_ARGTYPES_QUOTE], [']AS_ESCAPE($1, [''])[' ])
 
 
-# AX_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, PROLOGUE, HEADER-FILES, TYPES-DEFAULT,
+# ACX_CHECK_FUNC_ARGTYPES(FUNCTION-NAME, PROLOGUE, HEADER-FILES, TYPES-DEFAULT,
 #     TYPES-RETURN, TYPES-ARG1, TYPES-ARG2, ...])
 # ----------------------------------------------------------------------------
 # Determine the correct type to be passed to each of the FUNCTION-NAME
@@ -47,7 +47,7 @@ m4_define([_AX_CHECK_FUNC_ARGTYPES_QUOTE], [']AS_ESCAPE($1, [''])[' ])
 #
 # Example:
 #
-#   AX_CHECK_FUNC_ARGTYPES([readlink],
+#   ACX_CHECK_FUNC_ARGTYPES([readlink],
 #       [#define _BSD_SOURCE 1
 #       ], [unistd.h],
 #       [[ssize_t], [const char *_], [char *_], [size_t _]],
@@ -57,43 +57,43 @@ m4_define([_AX_CHECK_FUNC_ARGTYPES_QUOTE], [']AS_ESCAPE($1, [''])[' ])
 #       [[size_t _], [int _]])
 
 
-AC_DEFUN([AX_CHECK_FUNC_ARGTYPES],
-    [_AX_CHECK_FUNC_ARGTYPES_TEMPLATE([$1], m4_shiftn(4, $@))
+AC_DEFUN([ACX_CHECK_FUNC_ARGTYPES],
+    [_AHX_CHECK_FUNC_ARGTYPES([$1], m4_shiftn(4, $@))
         AC_CHECK_HEADERS([$3])
         AC_CACHE_CHECK([types of arguments for $1],
-            [ac_cv_func_$1_args],
-                [[for ac_return in ]m4_map([_AX_CHECK_FUNC_ARGTYPES_QUOTE], [$5]), [; do ]
+            [acx_cv_func_$1_args],
+                [[for acx_return in ]m4_map([_ACX_CHECK_FUNC_ARGTYPES_QUOTE], [$5]), [; do ]
                     m4_define([myarglist])
                     m4_define([myacarglist])
                     m4_define([myfuncarglist])
                     m4_for([myargn], [6], m4_count($@), [1],
-                        [m4_define([myacvar], [ac_arg]m4_eval(myargn - 5))
+                        [m4_define([myacvar], [acx_arg]m4_eval(myargn - 5))
                             m4_define([myacarglist], m4_make_list(myacarglist, myacvar))
                             m4_define([myarglist], m4_make_list(myarglist, myacvar[(arg]m4_eval(myargn - 5)[)]))
-                            m4_join([ ], [for], myacvar, [in], m4_map([_AX_CHECK_FUNC_ARGTYPES_QUOTE], m4_argn(myargn, $@)), [; do ])
+                            m4_join([ ], [for], myacvar, [in], m4_map([_ACX_CHECK_FUNC_ARGTYPES_QUOTE], m4_argn(myargn, $@)), [; do ])
                             m4_undefine([myacvar])])
                     AC_COMPILE_IFELSE(
                         [AC_LANG_PROGRAM(
-                                [AX_INCLUDES_HEADERS([$3], [$2])],
+                                [ACX_INCLUDES_HEADERS([$3], [$2])],
                                 [m4_for([myargn], [6], m4_count($@), [1],
-                                    [m4_define([myacvar], [ac_arg]m4_eval(myargn - 5))
+                                    [m4_define([myacvar], [acx_arg]m4_eval(myargn - 5))
                                         [@%:@define ]myacvar[(_) $]myacvar
                                         m4_undefine([myacvar])])]
-                                [extern $ac_return $1 (]m4_join([, ], myarglist)[);])],
+                                [extern $acx_return $1 (]m4_join([, ], myarglist)[);])],
                             [m4_define([myaccvargs], m4_if(m4_cmp(m4_count(myacarglist), 0), [1],
                                 [;$]m4_join([;$], myacarglist)))
-                                [ac_cv_func_$1_args="$ac_return]myaccvargs["; break ]m4_eval(m4_count($@) - 4)
+                                [acx_cv_func_$1_args="$acx_return]myaccvargs["; break ]m4_eval(m4_count($@) - 4)
                                 m4_undefine([myaccvargs])])
                     m4_for([myargn], [5], m4_count($@), [1], [
                         done])
-                    [: ${ac_cv_func_$1_args='(default) ]m4_join([;], $4)['}]
+                    [: ${acx_cv_func_$1_args='(default) ]m4_join([;], $4)['}]
                     m4_undefine([myarglist])
                     m4_undefine([myacarglist])
                     m4_undefine([myfuncarglist])])
         [
-            ac_save_IFS=$IFS; IFS=';'
-            set dummy `echo "$ac_cv_func_$1_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`
-            IFS=$ac_save_IFS
+            acx_save_IFS=$IFS; IFS=';'
+            set dummy `echo "$acx_cv_func_$1_args" | sed 's/^(default) //' | sed 's/\*/\*/g'`
+            IFS=$acx_save_IFS
             shift
             ]
         AC_DEFINE_UNQUOTED(AS_TR_CPP([$1_TYPE_RETURN]), $[1],

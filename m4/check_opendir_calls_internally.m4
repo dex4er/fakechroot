@@ -13,9 +13,9 @@ AC_DEFUN([ACX_CHECK_OPENDIR_CALLS_INTERNALLY],
     [m4_define([myname], [OPENDIR_CALLS_$1])
         AH_TEMPLATE(AS_TR_CPP(myname),
             [Define to 1 if opendir function calls $1 function internally.])
-        AS_VAR_PUSHDEF([ac_var], [ac_cv_opendir_calls_internally_$1])
+        AS_VAR_PUSHDEF([acx_var], [acx_cv_opendir_calls_internally_$1])
         AC_CACHE_CHECK([whether opendir function calls $1 function internally],
-            ac_var,
+            acx_var,
             [AC_RUN_IFELSE([AC_LANG_PROGRAM([
 $2
 #include <stdlib.h>
@@ -28,10 +28,10 @@ void $1() {
 opendir("/");
 exit(1);
                     ])],
-            [AS_VAR_SET(ac_var, [yes])], [AS_VAR_SET(ac_var, [no])])])
-        AS_VAR_IF(ac_var, [yes],
+            [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
+        AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP(myname), [1])
-                [ac_cv_opendir_calls_internally_$1=yes]])
-        AS_VAR_POPDEF([ac_var])
+                [acx_cv_opendir_calls_internally_$1=yes]])
+        AS_VAR_POPDEF([acx_var])
         m4_undefine([myname])
 ])
