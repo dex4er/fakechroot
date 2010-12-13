@@ -48,7 +48,11 @@
 /* Largest alignment size needed, minus one.
    Usually long double is the worst case.  */
 #ifndef ALIGNBYTES
-# define ALIGNBYTES (__alignof__ (long double) - 1)
+# ifdef HAVE___ALIGNOF__
+#  define ALIGNBYTES (__alignof__ (long double) - 1)
+# else
+#  define ALIGNBYTES 15
+# endif
 #endif
 /* Align P to that size.  */
 #ifndef ALIGN
