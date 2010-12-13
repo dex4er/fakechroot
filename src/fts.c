@@ -61,7 +61,7 @@
 
 #define FTS_MAXLEVEL 0x7fff
 
-#ifndef _D_ALLOC_NAMELEN
+#ifndef _D_ALLOC_NAMLEN
 # ifdef HAVE_STRUCT_DIRENT_D_NAMLEN
 #  define _D_EXACT_NAMLEN(d) ((d)->d_namlen)
 #  define _D_ALLOC_NAMLEN(d) (_D_EXACT_NAMLEN (d) + 1)
