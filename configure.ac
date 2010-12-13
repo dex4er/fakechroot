@@ -31,6 +31,7 @@ AC_CHECK_PROGS([SEQ], [seq gseq])
 
 # Checks for compilator features
 ACX_CHECK_C_ATTRIBUTE([constructor])
+ACX_CHECK_C_ATTRIBUTE_SECTION([data.fakechroot])
 ACX_CHECK_C_ATTRIBUTE_VISIBILITY
 
 # Checks for libraries.

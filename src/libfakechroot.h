@@ -39,7 +39,7 @@
 # define CONSTRUCTOR
 #endif
 
-#if __GNUC__
+#ifdef HAVE___ATTRIBUTE__SECTION_DATA_FAKECHROOT
 # define SECTION_DATA_FAKECHROOT __attribute__((section("data.fakechroot")))
 #else
 # define SECTION_DATA_FAKECHROOT
