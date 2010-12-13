@@ -18,8 +18,8 @@ AC_DEFUN([ACX_CHECK_OPENDIR_CALLS_INTERNALLY],
             acx_var,
             [AC_RUN_IFELSE([AC_LANG_PROGRAM([
 $2
-#include <stdlib.h>
-#include <dirent.h>
+@%:@include <stdlib.h>
+@%:@include <dirent.h>
 
 void $1() {
     exit(0);
