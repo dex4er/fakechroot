@@ -90,6 +90,7 @@ AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for additional typedefs.
 AC_CHECK_MEMBERS([struct sockaddr_un.sun_len],,, ACX_INCLUDES_HEADERS([sys/un.h]))
+AC_CHECK_MEMBERS([struct _ftsent.fts_fts],,, ACX_INCLUDES_HEADERS([sys/types.h fts.h]))
 
 # Checks for library functions.
 AC_FUNC_ALLOCA
