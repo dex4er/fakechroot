@@ -19,8 +19,8 @@ AC_DEFUN([ACX_CHECK_C_ATTRIBUTE],
             acx_var,
             [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 $2
-static void foo(void) __attribute__ ((]myattr[));
-static void foo(void) {
+static int foo(void) __attribute__ ((]myattr[));
+static int foo(void) {
     return 0;
 }
                     ], [])],
