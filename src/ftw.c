@@ -832,14 +832,14 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
   if (cwdfd != -1)
     {
       int save_err = errno;
-      if (__fchdir (cwdfd));
+      if (__fchdir (cwdfd)) {};
       close_not_cancel_no_status (cwdfd);
       __set_errno (save_err);
     }
   else if (cwd != NULL)
     {
       int save_err = errno;
-      if (__chdir (cwd));
+      if (__chdir (cwd)) {};
       free (cwd);
       __set_errno (save_err);
     }
