@@ -93,8 +93,6 @@ libfakechroot_la_SOURCES = \
     mkstemp.c \
     mkstemp64.c \
     mktemp.c \
-    nftw.c \
-    nftw64.c \
     open.c \
     open.h \
     open64.c \
