@@ -110,6 +110,8 @@ fts_open(char * const *argv, int options,
 	FTSENT *parent, *tmp = NULL;
 	size_t len;
 
+	debug("fts_open({\"%s\", ...}, %d, &compar)", **argv, options);
+
 	/* Options check. */
 	if (options & ~FTS_OPTIONMASK) {
 		errno = EINVAL;
@@ -239,6 +241,8 @@ fts_close(FTS *sp)
 	FTSENT *freep, *p;
 	int rfd, error = 0;
 
+	debug("fts_close(&sp)");
+
 	/*
 	 * This still works if we haven't read anything -- the dummy structure
 	 * points to the root list, so we step through to the end of the root
@@ -291,6 +295,8 @@ fts_read(FTS *sp)
 	int instr;
 	char *t;
 	int saved_errno;
+
+	debug("fts_read(&sp)");
 
 	/* If finished or unrecoverable error, return NULL. */
 	if (sp->fts_cur == NULL || ISSET(FTS_STOP))
@@ -482,6 +488,7 @@ name:		t = sp->fts_path + NAPPEND(p->fts_parent);
 int
 fts_set(FTS *sp, FTSENT *p, int instr)
 {
+	debug("fts_set(&sp, &p, %d)", instr);
 	if (instr && instr != FTS_AGAIN && instr != FTS_FOLLOW &&
 	    instr != FTS_NOINSTR && instr != FTS_SKIP) {
 		errno = EINVAL;
@@ -496,6 +503,8 @@ fts_children(FTS *sp, int instr)
 {
 	FTSENT *p;
 	int fd;
+
+	debug("fts_children(&sp, %d)", instr);
 
 	if (instr && instr != FTS_NAMEONLY) {
 		errno = EINVAL;
