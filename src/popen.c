@@ -49,7 +49,7 @@ wrapper(popen, FILE *, (const char * command, const char * modes))
     int pipe_fd[2];
     int parent_fd;
     int child_fd;
-    int child_writing;                  /* Doubles as the desired child fildes. */
+    volatile int child_writing;         /* Doubles as the desired child fildes. */
     pid_t pid;
 
     debug("popen(\"%s\", \"%s\")", command, modes);
