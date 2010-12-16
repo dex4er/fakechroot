@@ -18,6 +18,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
+#define __FTW64_C
 #define FTW_NAME ftw64
 #define NFTW_NAME nftw64
 #define NFTW_OLD_NAME __old_nftw64

@@ -22,7 +22,8 @@
 # include <config.h>
 #endif
 
-#ifdef HAVE_FTW
+#if ((!defined(__FTW64_C) && HAVE_FTW) || (defined(__FTW64_C) && HAVE_FTW64)) \
+ && !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2) && !defined(HAVE__XFTW)
 
 #define _GNU_SOURCE
 
@@ -866,7 +867,7 @@ FTW_NAME (path, func, descriptors)
   return ftw_startup (path, 0, func, descriptors, 0);
 }
 
-#ifdef HAVE_NFTW
+#if ((!defined(__FTW64_C) && HAVE_NFTW) || (defined(__FTW64_C) && HAVE_NFTW64))
 #ifndef _LIBC
 int
 NFTW_NAME (path, func, descriptors, flags)
