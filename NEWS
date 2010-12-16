@@ -1,11 +1,12 @@
 == Version 2.14 ==
 
-12 Dec 2010
+16 Dec 2010
 
 * The source code was refactored: all functions was moved to separated files.
 * The +opendir+(3) function is compiled only if it doesn't call other function
   internally.  It fixes +opendir+(3), +fts_open+(3) and +ftw+(3) functions.
 * The +fts_*+(3) functions were reimplemented based on OpenBSD source.
+* The +__opendir2+(3) function was reimplemented based on FreeBSD source.
 * Fixes were made for older GNU C Library.
 
 == Version 2.13.1 ==
