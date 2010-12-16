@@ -18,9 +18,13 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifdef HAVE_CONFIG_H
+#ifndef FAKECHROOT
 # include <config.h>
 #endif
+
+#ifdef HAVE_FTW
+
+#define _GNU_SOURCE
 
 #if __GNUC__
 # define alloca __builtin_alloca
@@ -76,6 +80,8 @@ char *alloca ();
 # include <sys/stat.h>
 #endif
 
+#include "libfakechroot.h"
+
 #if ! _LIBC && !HAVE_DECL_STPCPY && !defined stpcpy
 char *stpcpy ();
 #endif
@@ -91,15 +97,23 @@ char *stpcpy ();
 #ifndef _LIBC
 # undef __chdir
 # define __chdir chdir
+# undef __close
+# define __close close
 # undef __closedir
 # define __closedir closedir
 # undef __fchdir
 # define __fchdir fchdir
+# undef __fdopendir
+# define __fdopendir fdopendir
 # undef __getcwd
 # define __getcwd(P, N) xgetcwd ()
 extern char *xgetcwd (void);
 # undef __mempcpy
 # define __mempcpy mempcpy
+# undef __open
+# define __open open
+# undef __openat64
+# define __openat64 openat64
 # undef __opendir
 # define __opendir opendir
 # undef __readdir64
@@ -789,14 +803,14 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
   if (cwdfd != -1)
     {
       int save_err = errno;
-      __fchdir (cwdfd);
+      if (__fchdir (cwdfd));
       close_not_cancel_no_status (cwdfd);
       __set_errno (save_err);
     }
   else if (cwd != NULL)
     {
       int save_err = errno;
-      __chdir (cwd);
+      if (__chdir (cwd));
       free (cwd);
       __set_errno (save_err);
     }
@@ -824,6 +838,7 @@ FTW_NAME (path, func, descriptors)
   return ftw_startup (path, 0, func, descriptors, 0);
 }
 
+#ifdef HAVE_NFTW
 #ifndef _LIBC
 int
 NFTW_NAME (path, func, descriptors, flags)
@@ -878,4 +893,7 @@ NFTW_OLD_NAME (path, func, descriptors, flags)
 
 compat_symbol (libc, NFTW_OLD_NAME, NFTW_NAME, GLIBC_2_1);
 # endif
+#endif
+#endif
+
 #endif
