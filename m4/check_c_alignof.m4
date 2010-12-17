@@ -16,7 +16,7 @@ AC_DEFUN([ACX_CHECK_C_ALIGNOF],
         AS_VAR_PUSHDEF([acx_var], [acx_cv_c_alignof])
         AC_CACHE_CHECK([whether compiler supports __alignof__ syntax],
             acx_var,
-            [AC_RUN_IFELSE([AC_LANG_PROGRAM([
+            [AC_LINK_IFELSE([AC_LANG_PROGRAM([
 $1
 @%:@include <stdio.h>
                     ], [
