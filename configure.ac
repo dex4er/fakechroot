@@ -217,6 +217,7 @@ AC_CHECK_FUNCS(m4_normalize([
     statfs64
     statvfs
     statvfs64
+    stpcpy
     strchrnul
     symlink
     symlinkat

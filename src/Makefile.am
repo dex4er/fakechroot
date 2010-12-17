@@ -121,6 +121,7 @@ libfakechroot_la_SOURCES = \
     statfs64.c \
     statvfs.c \
     statvfs64.c \
+    stpcpy.c \
     strchrnul.c \
     strchrnul.h \
     symlink.c \
