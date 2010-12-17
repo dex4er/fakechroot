@@ -16,7 +16,10 @@ AC_DEFUN([ACX_CHECK_OPENDIR_CALLS_INTERNALLY],
         AS_VAR_PUSHDEF([acx_var], [acx_cv_opendir_calls_internally_$1])
         AC_CACHE_CHECK([whether opendir function calls $1 function internally],
             acx_var,
-            [AC_RUN_IFELSE([AC_LANG_PROGRAM([
+            [
+                AS_VAR_COPY([save_cross_compiling], [cross_compiling])
+                AS_VAR_SET([cross_compiling], [no])
+                AC_RUN_IFELSE([AC_LANG_PROGRAM([
 $2
 @%:@define _ANSI_SOURCE
 @%:@include <stdlib.h>
@@ -25,11 +28,13 @@ $2
 void $1() {
     exit(0);
 }
-                    ], [
+                        ], [
 opendir("/");
 exit(1);
                     ])],
-            [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])])
+                    [AS_VAR_SET(acx_var, [yes])], [AS_VAR_SET(acx_var, [no])])
+                AS_VAR_COPY([cross_compiling], [save_cross_compiling])
+            ])
         AS_VAR_IF(acx_var, [yes],
             [AC_DEFINE_UNQUOTED(AS_TR_CPP(myname), [1])
                 AS_VAR_SET(acx_var, [yes])])
