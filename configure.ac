@@ -1,6 +1,7 @@
 AC_PREREQ(2.64)
 AC_INIT([fakechroot], [2.14], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
-AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
