@@ -110,6 +110,7 @@ libfakechroot_la_SOURCES = \
     renameat.c \
     revoke.c \
     rmdir.c \
+    rpl_lstat.c \
     scandir.c \
     scandir64.c \
     setxattr.c \
