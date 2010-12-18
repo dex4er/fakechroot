@@ -111,8 +111,8 @@ char *alloca ();
 
 #include "libfakechroot.h"
 
-#if ! _LIBC && !HAVE_DECL_STPCPY && !defined stpcpy
-char *stpcpy ();
+#if ! _LIBC && !HAVE_STPCPY && !defined stpcpy
+char *stpcpy (char *, const char *);
 #endif
 
 #if ! _LIBC && ! defined HAVE_MEMPCPY && ! defined mempcpy
