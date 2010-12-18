@@ -95,8 +95,6 @@ AC_CHECK_MEMBERS([struct _ftsent.fts_fts],,, ACX_INCLUDES_HEADERS([sys/types.h s
 ACX_CHECK_FTS_NAME_TYPE
 
 # Checks for library functions.
-AC_FUNC_ALLOCA
-ASX_NO_CROSS_COMPILING(AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK)
 AC_CHECK_FUNCS(m4_normalize([
     __chk_fail
     __fxstatat
@@ -235,6 +233,8 @@ AC_CHECK_FUNCS(m4_normalize([
     utimes
     vfork
 ]))
+AC_FUNC_ALLOCA
+ASX_NO_CROSS_COMPILING([AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
 
 # Check for internal dependencies
 ACX_CHECK_OPENDIR_CALLS_INTERNALLY([__open])
