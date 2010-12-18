@@ -12,12 +12,16 @@ int main (int argc, char *argv[]) {
     FTS *tree;
     FTSENT *node;
 
-    char **paths = argv + 1;
+    int options;
+    char **paths;
 
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s path [path...]\n", argv[0]);
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s options path [path...]\n", argv[0]);
         exit(2);
     }
+
+    options = atoi(argv[1]);
+    paths = argv + 2;
 
     if ((tree = fts_open(paths, 0, 0)) == NULL) {
         perror("fts_open");

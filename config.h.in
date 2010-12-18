@@ -121,9 +121,6 @@
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
-/* HAVE_CONFIG_H */
-#undef HAVE_CONFIG_H
-
 /* Define to 1 if you have the `connect' function. */
 #undef HAVE_CONNECT
 
@@ -361,15 +358,14 @@
 /* Define to 1 if you have the `lstat64' function. */
 #undef HAVE_LSTAT64
 
-/* Define to 1 if `lstat' has the bug that it succeeds when given the
-   zero-length file name argument. */
-#undef HAVE_LSTAT_EMPTY_STRING_BUG
-
 /* Define to 1 if you have the `lutimes' function. */
 #undef HAVE_LUTIMES
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mempcpy' function. */
+#undef HAVE_MEMPCPY
 
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
@@ -430,6 +426,9 @@
 
 /* Define to 1 if you have the `popen' function. */
 #undef HAVE_POPEN
+
+/* Define to 1 if the system has the type `ptrdiff_t'. */
+#undef HAVE_PTRDIFF_T
 
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
@@ -534,10 +533,6 @@
 /* Define to 1 if you have the `statvfs64' function. */
 #undef HAVE_STATVFS64
 
-/* Define to 1 if `stat' has the bug that it succeeds when given the
-   zero-length file name argument. */
-#undef HAVE_STAT_EMPTY_STRING_BUG
-
 /* Define to 1 if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H
 
@@ -550,6 +545,9 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* Define to 1 if you have the `stpcpy' function. */
+#undef HAVE_STPCPY
+
 /* Define to 1 if you have the `strchrnul' function. */
 #undef HAVE_STRCHRNUL
 
@@ -561,6 +559,15 @@
 
 /* Define to 1 if `sun_len' is a member of `struct sockaddr_un'. */
 #undef HAVE_STRUCT_SOCKADDR_UN_SUN_LEN
+
+/* Define to 1 if `fts_fts' is a member of `struct _ftsent'. */
+#undef HAVE_STRUCT__FTSENT_FTS_FTS
+
+/* Define to 1 if `fts_name' is a member of `struct _ftsent'. */
+#undef HAVE_STRUCT__FTSENT_FTS_NAME
+
+/* Define to 1 if the type of struct _ftsent.fts_name is `char *' */
+#undef HAVE_STRUCT__FTSENT_FTS_NAME_TYPE_CHAR_P
 
 /* Define to 1 if you have the `symlink' function. */
 #undef HAVE_SYMLINK
@@ -602,6 +609,9 @@
 
 /* Define to 1 if you have the <sys/times.h> header file. */
 #undef HAVE_SYS_TIMES_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
@@ -651,11 +661,14 @@
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
+/* Define to 1 if the type of arg 1 for `utimes' is `const char *_' */
+#undef HAVE_UTIMES_TYPE_ARG1_CONST_CHAR_P_
+
+/* Define to 1 if the type of return value for `utimes' is `int' */
+#undef HAVE_UTIMES_TYPE_RETURN_INT
+
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
-
-/* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
-#undef HAVE_UTIME_NULL
 
 /* Define to 1 if you have the `vfork' function. */
 #undef HAVE_VFORK
@@ -665,6 +678,19 @@
 
 /* Define to 1 if you have the `_xftw64' function. */
 #undef HAVE__XFTW64
+
+/* Define to 1 if compiler supports `__alignof__' syntax. */
+#undef HAVE___ALIGNOF__
+
+/* Define to 1 if compiler supports `__attribute__((constructor))' syntax. */
+#undef HAVE___ATTRIBUTE__CONSTRUCTOR
+
+/* Define to 1 if compiler supports
+   `__attribute__((section("data.fakechroot")))' syntax. */
+#undef HAVE___ATTRIBUTE__SECTION_DATA_FAKECHROOT
+
+/* Define to 1 if the compiler supports simple visibility declarations. */
+#undef HAVE___ATTRIBUTE__VISIBILITY
 
 /* Define to 1 if you have the `__chk_fail' function. */
 #undef HAVE___CHK_FAIL
@@ -723,6 +749,9 @@
 /* Define to 1 if you have the `__xmknod' function. */
 #undef HAVE___XMKNOD
 
+/* Define to 1 if you have the `__xmknodat' function. */
+#undef HAVE___XMKNODAT
+
 /* Define to 1 if you have the `__xstat' function. */
 #undef HAVE___XSTAT
 
@@ -736,6 +765,12 @@
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
+
+/* Define to 1 if opendir function calls __open function internally. */
+#undef OPENDIR_CALLS___OPEN
+
+/* Define to 1 if opendir function calls __opendir2 function internally. */
+#undef OPENDIR_CALLS___OPENDIR2
 
 /* Name of package */
 #undef PACKAGE
@@ -811,14 +846,22 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#undef TIME_WITH_SYS_TIME
+/* Define to the type of arg 1 for `utimes'. */
+#undef UTIMES_TYPE_ARG1
+
+/* Define to the type of arg 2 for `utimes'. */
+#undef UTIMES_TYPE_ARG2
+
+/* Define to the type of return value for `utimes'. */
+#undef UTIMES_TYPE_RETURN
 
 /* Version number of package */
 #undef VERSION
 
-/* Define to empty if `const' does not conform to ANSI C. */
-#undef const
+/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT32_T
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
@@ -829,8 +872,18 @@
 /* Define to `long int' if <sys/types.h> does not define. */
 #undef off_t
 
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t
+
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
+/* Define to `int' if <sys/types.h> does not define. */
+#undef ssize_t
+
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t
+
+/* Define to the type of an unsigned integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint32_t

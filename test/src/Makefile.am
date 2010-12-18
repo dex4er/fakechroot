@@ -5,6 +5,7 @@ check_PROGRAMS = \
     test-fts \
     test-ftw \
     test-lstat \
+    test-opendir \
     test-popen \
     test-realpath \
     test-scandir \

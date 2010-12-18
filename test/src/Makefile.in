@@ -33,22 +33,29 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-target_triplet = @target@
 check_PROGRAMS = test-canonicalize_file_name$(EXEEXT) \
 	test-chroot$(EXEEXT) test-execlp$(EXEEXT) test-fts$(EXEEXT) \
-	test-ftw$(EXEEXT) test-lstat$(EXEEXT) test-popen$(EXEEXT) \
-	test-realpath$(EXEEXT) test-scandir$(EXEEXT) \
-	test-socket-af_unix-client$(EXEEXT) \
+	test-ftw$(EXEEXT) test-lstat$(EXEEXT) test-opendir$(EXEEXT) \
+	test-popen$(EXEEXT) test-realpath$(EXEEXT) \
+	test-scandir$(EXEEXT) test-socket-af_unix-client$(EXEEXT) \
 	test-socket-af_unix-server$(EXEEXT) test-statfs$(EXEEXT) \
 	test-statvfs$(EXEEXT) test-system$(EXEEXT)
 subdir = test/src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/check_func_argtypes.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/check_c_alignof.m4 \
+	$(top_srcdir)/m4/check_c_attribute.m4 \
+	$(top_srcdir)/m4/check_c_attribute_section.m4 \
+	$(top_srcdir)/m4/check_c_attribute_visibility.m4 \
+	$(top_srcdir)/m4/check_fts_name_type.m4 \
+	$(top_srcdir)/m4/check_func_argtypes.m4 \
+	$(top_srcdir)/m4/check_opendir_calls_internally.m4 \
 	$(top_srcdir)/m4/includes_headers.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/m4/no_cross_compiling.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -74,6 +81,9 @@ test_ftw_LDADD = $(LDADD)
 test_lstat_SOURCES = test-lstat.c
 test_lstat_OBJECTS = test-lstat.$(OBJEXT)
 test_lstat_LDADD = $(LDADD)
+test_opendir_SOURCES = test-opendir.c
+test_opendir_OBJECTS = test-opendir.$(OBJEXT)
+test_opendir_LDADD = $(LDADD)
 test_popen_SOURCES = test-popen.c
 test_popen_OBJECTS = test-popen.$(OBJEXT)
 test_popen_LDADD = $(LDADD)
@@ -114,15 +124,15 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = test-canonicalize_file_name.c test-chroot.c test-execlp.c \
-	test-fts.c test-ftw.c test-lstat.c test-popen.c \
+	test-fts.c test-ftw.c test-lstat.c test-opendir.c test-popen.c \
 	test-realpath.c test-scandir.c test-socket-af_unix-client.c \
 	test-socket-af_unix-server.c test-statfs.c test-statvfs.c \
 	test-system.c
 DIST_SOURCES = test-canonicalize_file_name.c test-chroot.c \
-	test-execlp.c test-fts.c test-ftw.c test-lstat.c test-popen.c \
-	test-realpath.c test-scandir.c test-socket-af_unix-client.c \
-	test-socket-af_unix-server.c test-statfs.c test-statvfs.c \
-	test-system.c
+	test-execlp.c test-fts.c test-ftw.c test-lstat.c \
+	test-opendir.c test-popen.c test-realpath.c test-scandir.c \
+	test-socket-af_unix-client.c test-socket-af_unix-server.c \
+	test-statfs.c test-statvfs.c test-system.c
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -137,6 +147,7 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -151,6 +162,7 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
+HAVE_VISIBILITY = @HAVE_VISIBILITY@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -238,11 +250,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
-target = @target@
 target_alias = @target_alias@
-target_cpu = @target_cpu@
-target_os = @target_os@
-target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
@@ -307,6 +315,9 @@ test-ftw$(EXEEXT): $(test_ftw_OBJECTS) $(test_ftw_DEPENDENCIES)
 test-lstat$(EXEEXT): $(test_lstat_OBJECTS) $(test_lstat_DEPENDENCIES) 
 	@rm -f test-lstat$(EXEEXT)
 	$(LINK) $(test_lstat_OBJECTS) $(test_lstat_LDADD) $(LIBS)
+test-opendir$(EXEEXT): $(test_opendir_OBJECTS) $(test_opendir_DEPENDENCIES) 
+	@rm -f test-opendir$(EXEEXT)
+	$(LINK) $(test_opendir_OBJECTS) $(test_opendir_LDADD) $(LIBS)
 test-popen$(EXEEXT): $(test_popen_OBJECTS) $(test_popen_DEPENDENCIES) 
 	@rm -f test-popen$(EXEEXT)
 	$(LINK) $(test_popen_OBJECTS) $(test_popen_LDADD) $(LIBS)
@@ -344,6 +355,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-fts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-ftw.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-lstat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-opendir.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-popen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-realpath.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-scandir.Po@am__quote@
