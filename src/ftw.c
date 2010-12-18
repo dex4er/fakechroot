@@ -135,8 +135,7 @@ char *stpcpy (char *, const char *);
 # undef __fdopendir
 # define __fdopendir fdopendir
 # undef __getcwd
-# define __getcwd(P, N) xgetcwd ()
-extern char *xgetcwd (void);
+# define __getcwd(P, N) getcwd ()
 # undef __mempcpy
 # define __mempcpy mempcpy
 # undef __open
