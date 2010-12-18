@@ -179,6 +179,7 @@ AC_CHECK_FUNCS(m4_normalize([
     lstat
     lstat64
     lutimes
+    mempcpy
     mkdir
     mkdirat
     mkdtemp
