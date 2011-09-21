@@ -40,6 +40,7 @@ for p in \
     '/bin/chmod' \
     '/bin/csh' \
     '/bin/cp' \
+    '/bin/dash' \
     '/bin/echo' \
     '/bin/grep' \
     '/bin/ln' \
