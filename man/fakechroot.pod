@@ -294,9 +294,8 @@ This software is distributed under the BSD-style license.
 
 =item *
 
-popen function taken from uClibc.
-Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
-Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
+popen function taken from OpenBSD.
+Copyright (c) 1988, 1993 The Regents of the University of California.
 
 =item *
 
