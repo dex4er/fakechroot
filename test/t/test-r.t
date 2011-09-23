@@ -15,7 +15,7 @@ for chroot in chroot fakechroot; do
 
         # /bin/dash uses stat64(2) and /bin/bash uses faccessat(2)
 
-        t=`$srcdir/$chroot.sh testtree $SHELL -c "test -r /tmp/$chroot-test-r.txt && echo ok || echo not ok" 2>&1`
+        t=`$srcdir/$chroot.sh testtree ${SHELL:-/bin/sh} -c "test -r /tmp/$chroot-test-r.txt && echo ok || echo not ok" 2>&1`
         test "$t" = "ok" || not
         ok "$chroot test -r is" $t
     fi
