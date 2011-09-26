@@ -196,6 +196,13 @@ int rpl_lstat (const char *, struct stat *);
 # define NFTW_FUNC_T __nftw_func_t
 #endif
 
+#define macro_stringify(name) macro_stringify2(name)
+#define macro_stringify2(name) #name
+#define FTW_NAME_STRING macro_stringify(FTW_NAME)
+#define NFTW_NAME_STRING macro_stringify(NFTW_NAME)
+#define NFTW_OLD_NAME_STRING macro_stringify(NFTW_OLD_NAME)
+#define NFTW_NEW_NAME_STRING macro_stringify(NFTW_NEW_NAME)
+
 /* We define PATH_MAX if the system does not provide a definition.
    This does not artificially limit any operation.  PATH_MAX is simply
    used as a guesstimate for the expected maximal path length.
@@ -863,6 +870,7 @@ FTW_NAME (path, func, descriptors)
      FTW_FUNC_T func;
      int descriptors;
 {
+  debug(FTW_NAME_STRING "(\"%s\", &func, %d)", path, descriptors);
   return ftw_startup (path, 0, func, descriptors, 0);
 }
 
@@ -875,6 +883,7 @@ NFTW_NAME (path, func, descriptors, flags)
      int descriptors;
      int flags;
 {
+  debug(NFTW_NAME_STRING "(\"%s\", &func, %d, %d)", path, descriptors, flags);
   return ftw_startup (path, 1, func, descriptors, flags);
 }
 #else
@@ -890,6 +899,7 @@ NFTW_NEW_NAME (path, func, descriptors, flags)
      int descriptors;
      int flags;
 {
+  debug(NFTW_NEW_NAME_STRING "(\"%s\", &func, %d, %d)", path, descriptors, flags);
   if (flags
       & ~(FTW_PHYS | FTW_MOUNT | FTW_CHDIR | FTW_DEPTH | FTW_ACTIONRETVAL))
     {
@@ -915,6 +925,7 @@ NFTW_OLD_NAME (path, func, descriptors, flags)
      int descriptors;
      int flags;
 {
+  debug(NFTW_OLD_NAME_STRING "(\"%s\", &func, %d, %d)", path, descriptors, flags);
   flags &= (FTW_PHYS | FTW_MOUNT | FTW_CHDIR | FTW_DEPTH);
   return ftw_startup (path, 1, func, descriptors, flags);
 }

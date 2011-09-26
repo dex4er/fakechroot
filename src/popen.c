@@ -70,6 +70,8 @@ popen(const char *program, const char *type)
 	int pdes[2];
 	pid_t pid;
 
+	debug("popen(\"%s\", \"%s\")", program, type);
+
 	if ((*type != 'r' && *type != 'w') || type[1] != '\0') {
 		errno = EINVAL;
 		return (NULL);
@@ -160,6 +162,8 @@ pclose(FILE *iop)
 	struct pid *cur, *last;
 	int pstat;
 	pid_t pid;
+
+	debug("popen(iop)");
 
 	/* Find the appropriate file pointer. */
 	_MUTEX_LOCK(&pidlist_lock);
