@@ -33,7 +33,7 @@ In the current version, the fakechroot does not provide the fakeroot(1)
 functionality! You might to call fakechroot with fakeroot command, if you
 want to emulate root environment, i.e.:
 
- $ fakeroot fakechroot /usr/sbin/chroot /tmp/debian /bin/sh
+ $ fakechroot fakeroot /usr/sbin/chroot /tmp/debian /bin/sh
  # id
  uid=0(root) gid=0(root) groups=0(root)
 
@@ -84,9 +84,9 @@ An example session with fakechroot:
  :/bin:/usr/bin/X11
  $ export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/usr/bin/ischro
  ot=/bin/true:/usr/bin/mkfifo=/bin/true
- $ fakeroot fakechroot debootstrap --variant=fakechroot sid /tmp/sid
+ $ fakechroot fakeroot debootstrap --variant=fakechroot sid /tmp/sid
 
- $ fakeroot fakechroot chroot /tmp/sid /bin/bash
+ $ fakechroot fakeroot chroot /tmp/sid /bin/bash
  # cd /
  # echo deb http://ftp.debian.org/debian sid main contrib non-free >
  /etc/apt/sources.list
@@ -103,6 +103,15 @@ An example session with fakechroot:
  $ cd hello-*
  $ debuild --preserve-env -b
  $ exit
+
+=head1 FAKEROOT
+
+fakeroot(1) is a complementary tool which emulates root environment.
+fakeroot and fakechroot might wrap the same C library functions, i.e.
+mknod(2) function.  It is important to start fake environment in proper
+order. fakeroot should be started inside fakechroot:
+
+ $ fakechroot fakeroot chroot /tmp/sid /bin/mknod /tmp/device c 1 2
 
 =head1 SECURITY ASPECTS
 
