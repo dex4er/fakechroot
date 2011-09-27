@@ -82,8 +82,9 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
- $ export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/usr/bin/ischro
- ot=/bin/true:/usr/bin/mkfifo=/bin/true
+ $ export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/sbin/ldconfig=
+ /bin/true:/usr/bin/ischroot=/bin/true:/usr/bin/ldd=/usr/bin/ldd.fakec
+ hroot:/usr/bin/mkfifo=/bin/true
  $ fakechroot fakeroot debootstrap --variant=fakechroot sid /tmp/sid
 
  $ fakechroot fakeroot chroot /tmp/sid /bin/bash
@@ -185,15 +186,23 @@ It is suggested to substitute at least:
 
 =item *
 
-/sbin/insserv
+/sbin/insserv=/bin/true
 
 =item *
 
-/usr/bin/ischroot
+/sbin/ldconfig=/bin/ldconfig
 
 =item *
 
-/usr/bin/mkfifo
+/usr/bin/ischroot=/bin/true
+
+=item *
+
+/usr/bin/ldd=/usr/bin/ldd.fakechroot
+
+=item *
+
+/usr/bin/mkfifo=/bin/true
 
 =back
 

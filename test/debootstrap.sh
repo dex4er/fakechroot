@@ -1,9 +1,8 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
 
-export PATH=$srcdir/bin:$PATH
+test -d $srcdir/bin && export PATH=$srcdir/bin:$PATH
 
 run () {
     HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
@@ -25,7 +24,7 @@ fi
 tarball=$vendor-$release-$arch.debs.tgz
 
 export FAKECHROOT_EXCLUDE_PATH=${FAKECHROOT_EXCLUDE_PATH:-/dev:/proc:/sys}
-export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/usr/bin/ischroot=/bin/true:/usr/bin/mkfifo=/bin/true
+export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/sbin/ldconfig=/bin/true:/usr/bin/ischroot=/bin/true:/usr/bin/ldd=/usr/bin/ldd.fakechroot:/usr/bin/mkfifo=/bin/true
 export FAKECHROOT_AF_UNIX_PATH=/tmp
 
 debootstrap_opts="--arch=$arch --variant=fakechroot"
