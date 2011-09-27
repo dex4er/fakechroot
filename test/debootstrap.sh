@@ -41,14 +41,6 @@ fi
 
 fakechroot fakeroot /usr/sbin/debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
 
-# workaround for bug in mountall package
-rm -rf $destdir/dev
-mkdir -p $destdir/dev
-FAKECHROOT_EXCLUDE_PATH=/proc:/sys FAKECHROOT_CMD_SUBST=/bin/rm=/bin/true HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install mountall || true
-HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install -f
-
-cp -v `cd $srcdir; pwd`/../scripts/ldd.pl $destdir/usr/bin/ldd
-
 HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
 run sh -c 'cat /etc/apt/sources.list | sed "s/^deb/deb-src/" >> /etc/apt/sources.list'
