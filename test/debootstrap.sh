@@ -25,7 +25,7 @@ fi
 tarball=$vendor-$release-$arch.debs.tgz
 
 export FAKECHROOT_EXCLUDE_PATH=${FAKECHROOT_EXCLUDE_PATH:-/dev:/proc:/sys}
-export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv=/bin/true
+export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/usr/bin/ischroot=/bin/true:/usr/bin/mkfifo=/bin/true
 export FAKECHROOT_AF_UNIX_PATH=/tmp
 
 debootstrap_opts="--arch=$arch --variant=fakechroot"

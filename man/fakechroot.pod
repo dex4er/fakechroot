@@ -82,8 +82,8 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
- $ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv
- =/bin/true
+ $ export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/usr/bin/ischro
+ ot=/bin/true:/usr/bin/mkfifo=/bin/true
  $ fakeroot fakechroot debootstrap --variant=fakechroot sid /tmp/sid
 
  $ fakeroot fakechroot chroot /tmp/sid /bin/bash
@@ -169,6 +169,26 @@ install sysvinit binary package.
 
 Give as many substitute commands as you want, separated by C<:>
 (colon) characters.
+
+It is suggested to substitute at least:
+
+=over 2
+
+=item *
+
+/sbin/insserv
+
+=item *
+
+/usr/bin/ischroot
+
+=item *
+
+/usr/bin/mkfifo
+
+=back
+
+to make debootstrap(8) working.
 
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
