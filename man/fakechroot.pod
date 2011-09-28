@@ -206,7 +206,7 @@ It is suggested to substitute at least:
 
 =back
 
-to make debootstrap(8) working.
+to make debootstrap(8) working correctly.
 
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
