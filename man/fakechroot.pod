@@ -247,8 +247,8 @@ environment variable:
 =item o
 
 Statically linked binaries doesn't work, especially ldconfig(8), so you have
-to wrap this command with dummy version and i.e. set the dpkg diversion, see:
-dpkg-divert(8).
+to wrap this command with dummy version and i.e. set the dpkg diversion (see:
+dpkg-divert(8)) or use B<FAKECHROOT_CMD_SUBST> environment variable.
 
 =item o
 
