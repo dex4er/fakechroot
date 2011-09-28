@@ -1,6 +1,6 @@
-== Version 2.xx ==
+== Version 2.15 ==
 
-xx Xxx 2011
+29 Sep 2011
 
 * New function +faccessat+(2) was added.  It fixes +test -r+ command.
   Thanks to Johannes Schauer.
