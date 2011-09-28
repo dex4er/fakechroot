@@ -59,6 +59,8 @@ rpl_lstat (const char *file, struct stat *sbuf)
   size_t len;
   int lstat_result = orig_lstat (file, sbuf);
 
+  debug("rpl_lstat(\"%s\", &sbuf)", file);
+
   if (lstat_result != 0)
     return lstat_result;
 

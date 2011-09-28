@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="8 Sep 2010"
+# pod2man --section=1 --release="Debian" --center=" " --date="21 Sep 2011"
 #
 =head1 NAME
 
@@ -33,7 +33,7 @@ In the current version, the fakechroot does not provide the fakeroot(1)
 functionality! You might to call fakechroot with fakeroot command, if you
 want to emulate root environment, i.e.:
 
- $ fakeroot fakechroot /usr/sbin/chroot /tmp/debian /bin/sh
+ $ fakechroot fakeroot /usr/sbin/chroot /tmp/debian /bin/sh
  # id
  uid=0(root) gid=0(root) groups=0(root)
 
@@ -82,11 +82,12 @@ An example session with fakechroot:
 
  $ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
  :/bin:/usr/bin/X11
- $ export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true:/sbin/insserv
- =/bin/true
- $ fakeroot fakechroot debootstrap --variant=fakechroot sid /tmp/sid
+ $ export FAKECHROOT_CMD_SUBST=/sbin/insserv=/bin/true:/sbin/ldconfig=
+ /bin/true:/usr/bin/ischroot=/bin/true:/usr/bin/ldd=/usr/bin/ldd.fakec
+ hroot:/usr/bin/mkfifo=/bin/true
+ $ fakechroot fakeroot debootstrap --variant=fakechroot sid /tmp/sid
 
- $ fakeroot fakechroot chroot /tmp/sid /bin/bash
+ $ fakechroot fakeroot chroot /tmp/sid /bin/bash
  # cd /
  # echo deb http://ftp.debian.org/debian sid main contrib non-free >
  /etc/apt/sources.list
@@ -103,6 +104,15 @@ An example session with fakechroot:
  $ cd hello-*
  $ debuild --preserve-env -b
  $ exit
+
+=head1 FAKEROOT
+
+fakeroot(1) is a complementary tool which emulates root environment.
+fakeroot and fakechroot might wrap the same C library functions, i.e.
+mknod(2) function.  It is important to start fake environment in proper
+order. fakeroot should be started inside fakechroot:
+
+ $ fakechroot fakeroot chroot /tmp/sid /bin/mknod /tmp/device c 1 2
 
 =head1 SECURITY ASPECTS
 
@@ -170,6 +180,34 @@ install sysvinit binary package.
 Give as many substitute commands as you want, separated by C<:>
 (colon) characters.
 
+It is suggested to substitute at least:
+
+=over 2
+
+=item *
+
+/sbin/insserv=/bin/true
+
+=item *
+
+/sbin/ldconfig=/bin/ldconfig
+
+=item *
+
+/usr/bin/ischroot=/bin/true
+
+=item *
+
+/usr/bin/ldd=/usr/bin/ldd.fakechroot
+
+=item *
+
+/usr/bin/mkfifo=/bin/true
+
+=back
+
+to make debootstrap(8) working correctly.
+
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
 Fakechroot is implemented by wrapping system calls.  This is accomplished by
@@ -209,8 +247,8 @@ environment variable:
 =item o
 
 Statically linked binaries doesn't work, especially ldconfig(8), so you have
-to wrap this command with dummy version and i.e. set the dpkg diversion, see:
-dpkg-divert(8).
+to wrap this command with dummy version and i.e. set the dpkg diversion (see:
+dpkg-divert(8)) or use B<FAKECHROOT_CMD_SUBST> environment variable.
 
 =item o
 
@@ -294,9 +332,8 @@ This software is distributed under the BSD-style license.
 
 =item *
 
-popen function taken from uClibc.
-Copyright (c) 2004 Manuel Novoa III <mjn3@codepoet.org>
-Copyright (c) 2000-2006 Erik Andersen <andersen@uclibc.org>
+popen function taken from OpenBSD.
+Copyright (c) 1988, 1993 The Regents of the University of California.
 
 =item *
 
@@ -323,8 +360,7 @@ Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 =head1 AUTHORS
 
-Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
-<dexter@debian.org>
+Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
 
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 

@@ -132,7 +132,7 @@ fts_open(char * const *argv, int options,
 	 * Start out with 1K of path space, and enough, in any case,
 	 * to hold the user's paths.
 	 */
-	if (fts_palloc(sp, MAX(fts_maxarglen(argv), MAXPATHLEN)))
+	if (fts_palloc(sp, MAX(fts_maxarglen(argv), FAKECHROOT_PATH_MAX)))
 		goto mem1;
 
 	/* Allocate/initialize root's parent. */

@@ -46,7 +46,7 @@ while test "X$1" != "X--"; do
        PATHS=
        ;;
     -v|--version)
-       echo "fakechroot version @VERSION@"
+       echo "fakechroot version $FAKECHROOT_VERSION"
        exit 0
        ;;
     -s|--use-system-libs)
@@ -64,13 +64,17 @@ shift #get rid of the '--'
 # make sure the preload is available
 if [ -n "$PATHS" ]
 then
+    new_paths=
     for dir in `echo $PATHS | sed 's/:/ /g'`
     do
+	dir=`eval echo $dir`
+	new_paths="${new_paths:+$new_paths:}$dir"
 	if test -r "$dir/$LIB"
 	then
 	    libfound=yes
 	fi
     done
+    PATHS=$new_paths
 else
     if test -r "$LIB"
     then

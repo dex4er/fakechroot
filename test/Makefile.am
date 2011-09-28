@@ -22,6 +22,7 @@ TESTS = \
     t/statvfs.t \
     t/symlink.t \
     t/system.t \
+    t/test-r.t \
     t/touch.t \
     #
 

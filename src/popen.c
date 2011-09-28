@@ -1,125 +1,197 @@
+/*	$OpenBSD: popen.c,v 1.18 2007/11/26 19:26:46 kurt Exp $ */
 /*
-    libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
-*/
-
+ * Copyright (c) 1988, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * This code is derived from software written by Ken Arnold and
+ * published in UNIX Review, Vol. 6, No. 8.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 
 #include <config.h>
 
 #ifdef __GNUC__
 
-#include <stdio.h>
+#include <sys/param.h>
+#include <sys/wait.h>
+
+#include <signal.h>
+#include <errno.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <paths.h>
+
 #include "libfakechroot.h"
 
+#define _MUTEX_LOCK(a)
+#define _MUTEX_UNLOCK(a)
+
+static struct pid {
+	struct pid *next;
+	FILE *fp;
+	pid_t pid;
+} *pidlist;
+
+
+#if 0
+static void *pidlist_lock = NULL;
+#endif
+
+FILE *
+popen(const char *program, const char *type)
+{
+	struct pid * volatile cur;
+	FILE *iop;
+	int pdes[2];
+	pid_t pid;
+
+	debug("popen(\"%s\", \"%s\")", program, type);
+
+	if ((*type != 'r' && *type != 'w') || type[1] != '\0') {
+		errno = EINVAL;
+		return (NULL);
+	}
+
+	if ((cur = malloc(sizeof(struct pid))) == NULL)
+		return (NULL);
+
+	if (pipe(pdes) < 0) {
+		free(cur);
+		return (NULL);
+	}
+
+	_MUTEX_LOCK(&pidlist_lock);
+	switch (pid = vfork()) {
+	case -1:			/* Error. */
+		_MUTEX_UNLOCK(&pidlist_lock);
+		(void)close(pdes[0]);
+		(void)close(pdes[1]);
+		free(cur);
+		return (NULL);
+		/* NOTREACHED */
+	case 0:				/* Child. */
+	    {
+		struct pid *pcur;
+		/*
+		 * because vfork() instead of fork(), must leak FILE *,
+		 * but luckily we are terminally headed for an execl()
+		 */
+		for (pcur = pidlist; pcur; pcur = pcur->next)
+			close(fileno(pcur->fp));
+
+		if (*type == 'r') {
+			int tpdes1 = pdes[1];
+
+			(void) close(pdes[0]);
+			/*
+			 * We must NOT modify pdes, due to the
+			 * semantics of vfork.
+			 */
+			if (tpdes1 != STDOUT_FILENO) {
+				(void)dup2(tpdes1, STDOUT_FILENO);
+				(void)close(tpdes1);
+				tpdes1 = STDOUT_FILENO;
+			}
+		} else {
+			(void)close(pdes[1]);
+			if (pdes[0] != STDIN_FILENO) {
+				(void)dup2(pdes[0], STDIN_FILENO);
+				(void)close(pdes[0]);
+			}
+		}
+		execl(_PATH_BSHELL, "sh", "-c", program, (char *)NULL);
+		_exit(127);
+		/* NOTREACHED */
+	    }
+	}
+	_MUTEX_UNLOCK(&pidlist_lock);
+
+	/* Parent; assume fdopen can't fail. */
+	if (*type == 'r') {
+		iop = fdopen(pdes[0], type);
+		(void)close(pdes[1]);
+	} else {
+		iop = fdopen(pdes[1], type);
+		(void)close(pdes[0]);
+	}
+
+	/* Link into list of file descriptors. */
+	cur->fp = iop;
+	cur->pid =  pid;
+	_MUTEX_LOCK(&pidlist_lock);
+	cur->next = pidlist;
+	pidlist = cur;
+	_MUTEX_UNLOCK(&pidlist_lock);
+
+	return (iop);
+}
 
 /*
-   popen function taken from uClibc.
-   Copyright (C) 2004       Manuel Novoa III    <mjn3@codepoet.org>
-   Copyright (C) 2000-2006 Erik Andersen <andersen@uclibc.org>
+ * pclose --
+ *	Pclose returns -1 if stream is not associated with a `popened' command,
+ *	if already `pclosed', or waitpid returns an error.
  */
-
-struct popen_list_item {
-    struct popen_list_item *next;
-    FILE *f;
-    pid_t pid;
-};
-
-static struct popen_list_item *popen_list /* = NULL (bss initialized) */;
-
-wrapper(popen, FILE *, (const char * command, const char * modes))
+int
+pclose(FILE *iop)
 {
-    FILE *fp;
-    struct popen_list_item *pi;
-    struct popen_list_item *po;
-    int pipe_fd[2];
-    int parent_fd;
-    int child_fd;
-    volatile int child_writing;         /* Doubles as the desired child fildes. */
-    pid_t pid;
+	struct pid *cur, *last;
+	int pstat;
+	pid_t pid;
 
-    debug("popen(\"%s\", \"%s\")", command, modes);
-    child_writing = 0;                  /* Assume child is writing. */
-    if (modes[0] != 'w') {              /* Parent not writing... */
-        ++child_writing;                /* so child must be writing. */
-        if (modes[0] != 'r') {  /* Oops!  Parent not reading either! */
-            __set_errno(EINVAL);
-            goto RET_NULL;
-        }
-    }
+	debug("popen(iop)");
 
-    if (!(pi = malloc(sizeof(struct popen_list_item)))) {
-        goto RET_NULL;
-    }
+	/* Find the appropriate file pointer. */
+	_MUTEX_LOCK(&pidlist_lock);
+	for (last = NULL, cur = pidlist; cur; last = cur, cur = cur->next)
+		if (cur->fp == iop)
+			break;
 
-    if (pipe(pipe_fd)) {
-        goto FREE_PI;
-    }
+	if (cur == NULL) {
+		_MUTEX_UNLOCK(&pidlist_lock);
+		return (-1);
+	}
 
-    child_fd = pipe_fd[child_writing];
-    parent_fd = pipe_fd[1-child_writing];
+	/* Remove the entry from the linked list. */
+	if (last == NULL)
+		pidlist = cur->next;
+	else
+		last->next = cur->next;
+	_MUTEX_UNLOCK(&pidlist_lock);
 
-    if (!(fp = fdopen(parent_fd, modes))) {
-        close(parent_fd);
-        close(child_fd);
-        goto FREE_PI;
-    }
+	(void)fclose(iop);
 
-    if ((pid = vfork()) == 0) { /* Child of vfork... */
-        close(parent_fd);
-        if (child_fd != child_writing) {
-            dup2(child_fd, child_writing);
-            close(child_fd);
-        }
+	do {
+		pid = waitpid(cur->pid, &pstat, 0);
+	} while (pid == -1 && errno == EINTR);
 
-        /* SUSv3 requires that any previously popen()'d streams in the
-         * parent shall be closed in the child. */
-        for (po = popen_list ; po ; po = po->next) {
-            fclose(po->f);
-        }
+	free(cur);
 
-        execl("/bin/sh", "sh", "-c", command, (char *)0);
-
-        /* SUSv3 mandates an exit code of 127 for the child if the
-         * command interpreter can not be invoked. */
-        _exit(127);
-    }
-
-    /* We need to close the child filedes whether vfork failed or
-     * it succeeded and we're in the parent. */
-    close(child_fd);
-
-    if (pid > 0) {                              /* Parent of vfork... */
-        pi->pid = pid;
-        pi->f = fp;
-        pi->next = popen_list;
-        popen_list = pi;
-
-        return fp;
-    }
-
-    /* If we get here, vfork failed. */
-    fclose(fp);                                 /* Will close parent_fd. */
-
-FREE_PI:
-    free(pi);
-
-RET_NULL:
-    return NULL;
+	return (pid == -1 ? -1 : pstat);
 }
 
 #endif

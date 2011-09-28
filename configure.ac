@@ -1,5 +1,5 @@
 AC_PREREQ(2.64)
-AC_INIT([fakechroot], [2.14], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+AC_INIT([fakechroot], [2.15], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 AM_INIT_AUTOMAKE
@@ -142,6 +142,7 @@ AC_CHECK_FUNCS(m4_normalize([
     execv
     execve
     execvp
+    faccessat
     fchmodat
     fchownat
     fopen

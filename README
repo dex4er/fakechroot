@@ -23,7 +23,7 @@ DESCRIPTION
     functionality! You might to call fakechroot with fakeroot command, if
     you want to emulate root environment, i.e.:
 
-     $ fakeroot fakechroot /usr/sbin/chroot /tmp/debian /bin/sh
+     $ fakechroot fakeroot /usr/sbin/chroot /tmp/debian /bin/sh
      # id
      uid=0(root) gid=0(root) groups=0(root)
 
@@ -40,8 +40,7 @@ COPYING
     (LGPL 2.1 or greater).
 
 AUTHORS
-    Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
-    <dexter@debian.org>
+    Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
 
     Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 
