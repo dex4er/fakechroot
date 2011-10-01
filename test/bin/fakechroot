@@ -13,5 +13,5 @@ chroot=`command -v chroot`
 FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$chroot=$abs_top_srcdir/scripts/chroot.fakechroot"
 export FAKECHROOT_CMD_SUBST
 
-"$abs_top_srcdir/scripts/fakechroot" --config-dir "$abs_top_srcdir/scripts" --lib "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
+"$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
 exit $?
