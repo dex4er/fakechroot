@@ -108,7 +108,7 @@ fi
 paths="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
 lib="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
 
-detect=`LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" FAKECHROOT_DETECT=1 /bin/true 2>&1`
+detect=`LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" FAKECHROOT_DETECT=1 /bin/echo 2>&1`
 case "$detect" in
     fakechroot*)
         libfound=yes

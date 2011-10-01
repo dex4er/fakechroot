@@ -191,7 +191,7 @@ to standard output and current process is terminated with status from
 this variable.  It can be a method to check if fakechroot is preloaded
 correctly.
 
- $ case "`FAKECHROOT_DETECT=1 /bin/true`" in fakechroot*) echo LOADED;; esac
+ $ case "`FAKECHROOT_DETECT=1 /bin/echo`" in fakechroot*) echo LOADED;; esac
 
 =item B<FAKECHROOT_DEBUG>
 
