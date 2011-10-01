@@ -30,7 +30,7 @@ wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
 
-    debug("readlink(\"%s\", &buf, %d)", path, bufsiz);
+    debug("readlink(\"%s\", &buf, %zd)", path, bufsiz);
     expand_chroot_path(path, fakechroot_path, fakechroot_buf);
 
     if ((status = nextcall(readlink)(path, tmp, FAKECHROOT_PATH_MAX-1)) == -1) {
