@@ -11,8 +11,13 @@ for d in \
     /bin \
     /etc \
     /lib \
+    /lib/*-*-* \
     /lib32 \
     /lib64 \
+    /usr/lib \
+    /usr/lib/*-*-* \
+    /usr/lib32 \
+    /usr/lib64 \
     /libexec \
     /root \
     /sbin \
@@ -20,8 +25,10 @@ for d in \
     /usr/bin \
     /usr/lib \
     /usr/sbin \
-    /usr/local/bin
+    /usr/local/bin \
+    /usr/local/lib
 do
+    test -d $d || continue
     mkdir -p $destdir/$d
 done
 
@@ -98,9 +105,19 @@ for p in \
     'libutil.so.*' \
     'linux-vdso.so.*'
 do
-    for a in '' 32 64 exec; do
-        fp="/lib$a/$p"
-        for f in $fp; do
+    for d in \
+        /lib \
+        /lib/*-*-* \
+        /lib32 \
+        /lib64 \
+        /usr/lib \
+        /usr/lib/*-*-* \
+        /usr/lib32 \
+        /usr/lib64 \
+        /usr/local/lib
+    do
+        test -d "$d" || continue
+        for f in $d/$p; do
             cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
         done
     done
