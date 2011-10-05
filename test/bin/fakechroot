@@ -1,22 +1,21 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
 
-if [ "$1" = "-s" ] || [ "$1" = "--use-system-libs" ]; then
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH${LD_LIBRARY_PATH:+:}/usr/lib:/lib"
-    export LD_LIBRARY_PATH
-    shift
-fi
-
-if [ "$1" = "--" ]; then
-    shift
-fi
-
-prepare_env
-
-if [ $# -gt 0 ]; then
-    exec "$@"
+if [ -f src/.libs/libfakechroot.so ]; then
+    lib=`cd \`pwd\`/src/.libs 2>/dev/null && pwd`/libfakechroot.so
+elif [ -f ../src/.libs/libfakechroot.so ]; then
+    lib=`cd \`pwd\`/../src/.libs 2>/dev/null && pwd`/libfakechroot.so
 else
-    exec $SHELL
+    lib=/usr/local/lib/fakechroot/libfakechroot.so
 fi
+
+if [ -x scripts/fakechroot ]; then
+    fakechroot=`cd \`pwd\`/scripts 2>/dev/null && pwd`/fakechroot
+elif [ -x ../scripts/fakechroot ]; then
+    fakechroot=`cd \`pwd\`/../scripts 2>/dev/null && pwd`/fakechroot
+else
+    fakechroot=/usr/local/bin/fakechroot
+fi
+
+exec "$fakechroot" --lib "$lib" "$@"
