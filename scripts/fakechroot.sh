@@ -67,18 +67,18 @@ then
     new_paths=
     for dir in `echo $PATHS | sed 's/:/ /g'`
     do
-	dir=`eval echo $dir`
-	new_paths="${new_paths:+$new_paths:}$dir"
-	if test -r "$dir/$LIB"
-	then
-	    libfound=yes
-	fi
+        dir=`eval echo $dir`
+        new_paths="${new_paths:+$new_paths:}$dir"
+        if test -r "$dir/$LIB"
+        then
+            libfound=yes
+        fi
     done
     PATHS=$new_paths
 else
     if test -r "$LIB"
     then
-	libfound=yes
+        libfound=yes
     fi
 fi
 
