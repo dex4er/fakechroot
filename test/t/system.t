@@ -8,7 +8,7 @@ prepare 2
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
-        skip 2 "not root"
+        skip $(( $tap_plan / 2 )) "not root"
     else
 
         echo 'something' > testtree/$chroot-file
