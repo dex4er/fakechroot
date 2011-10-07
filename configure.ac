@@ -2,8 +2,11 @@ AC_PREREQ(2.64)
 AC_INIT([fakechroot], [2.16], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
-AM_INIT_AUTOMAKE
+
+AM_INIT_AUTOMAKE([1.10 foreign])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
+
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
