@@ -65,7 +65,7 @@ while test "x$1" != "x--"; do
             exit 0
             ;;
         -s|--use-system-libs)
-            paths="$PATHS:/usr/lib:/lib"
+            paths="${paths:+$paths:}/usr/lib:/lib"
             ;;
         -h|--help)
             usage
