@@ -24,6 +24,7 @@ usage () {
     fakechroot -h|--help
 
 Environment types:
+    default (depends on command)
     clean
     chroot
     debootstrap"
@@ -81,7 +82,7 @@ while [ $# -gt 0 ]; do
             ;;
         -e|--environment)
             case "$1" in
-                clean|chroot|debootstrap)
+                default|clean|chroot|debootstrap)
                     environment=$1
                     ;;
                 *)
