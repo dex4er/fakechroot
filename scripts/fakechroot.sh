@@ -37,14 +37,14 @@ paths=@libpath@
 # Get options
 getopttest=`getopt --version`
 case $getopttest in
-getopt*)
-    # GNU getopt
-    opts=`getopt -l lib: -l use-system-libs -l version -l help -- +l:svh "$@"`
-    ;;
-*)
-    # POSIX getopt ?
-    opts=`getopt l:svh "$@"`
-    ;;
+    getopt*)
+        # GNU getopt
+        opts=`getopt -l lib: -l use-system-libs -l version -l help -- +l:svh "$@"`
+        ;;
+    *)
+        # POSIX getopt ?
+        opts=`getopt l:svh "$@"`
+        ;;
 esac
 
 if test "$?" -ne 0; then
