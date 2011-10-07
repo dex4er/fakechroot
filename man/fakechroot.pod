@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="21 Sep 2011"
+# pod2man --section=1 --release="Debian" --center=" " --date="7 Oct 2011"
 #
 =head1 NAME
 
@@ -11,6 +11,12 @@ S<[B<-s>|B<--use-system-libs>]>
 S<[B<-l>|B<--lib> I<library>]>
 S<[B<-->]>
 S<[I<command>]>
+
+B<fakechroot>
+S<[B<-h>|B<--help>]>
+
+B<fakechroot>
+S<[B<-v>|B<--version>]>
 
 =head1 DESCRIPTION
 

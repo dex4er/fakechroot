@@ -1,112 +1,121 @@
 #!/bin/sh
 
-usage () {
-cat - >&2 <<EOF
-fakechroot, create a fake chroot environment.
-   usage: fakechroot [-l|--lib fakechrootlib]
-                     [-s|--use-system-libs]
-                     [-h|--help] [-v|--version]
-                     [--] [command]
-EOF
-  exit 1
-}
+# fakechroot
+#
+# Script which sets fake chroot environment
+#
+# (c) 2011 Piotr Roszatycki <dexter@debian.org>, LGPL
 
-LIB=lib@fakechroot_transformed@.so
-PATHS=@libpath@
-
-FAKECHROOT=true
-export FAKECHROOT
 
 FAKECHROOT_VERSION=@VERSION@
-export FAKECHROOT_VERSION
 
-libfound=no
 
-GETOPTEST=`getopt --version`
-case $GETOPTEST in
-getopt*) # GNU getopt
-    TEMP=`getopt -l lib: -l use-system-libs -l version -l help -- +l:svh "$@"`
+die () {
+    echo "$@" 1>&2
+    exit 1
+}
+
+
+usage () {
+    die "Usage:
+    fakechroot [-l|--lib fakechrootlib] [-s|--use-system-libs] [--] [command]
+    fakechroot -v|--version
+    fakechroot -h|--help"
+}
+
+
+if [ "x$FAKECHROOT" = "xtrue" ]; then
+    die "fakechroot: nested operation is not supported"
+fi
+
+
+# Default location of preloaded library
+lib=libfakechroot.so
+paths=@libpath@
+
+
+# Get options
+getopttest=`getopt --version`
+case $getopttest in
+getopt*)
+    # GNU getopt
+    opts=`getopt -l lib: -l use-system-libs -l version -l help -- +l:svh "$@"`
     ;;
-*) # POSIX getopt ?
-    TEMP=`getopt l:svh "$@"`
+*)
+    # POSIX getopt ?
+    opts=`getopt l:svh "$@"`
     ;;
 esac
 
 if test "$?" -ne 0; then
-  usage
+    usage
 fi
 
-eval set -- "$TEMP"
+eval set -- "$opts"
 
-while test "X$1" != "X--"; do
-  case "$1" in
-    -l|--lib)
-       shift
-       LIB=`eval echo "$1"`
-       PATHS=
-       ;;
-    -v|--version)
-       echo "fakechroot version $FAKECHROOT_VERSION"
-       exit 0
-       ;;
-    -s|--use-system-libs)
-       PATHS="$PATHS:/usr/lib:/lib"
-       ;;
-    -h|--help)
-       usage
-       ;;
-  esac
-  shift
+while test "x$1" != "x--"; do
+    case "$1" in
+        -l|--lib)
+            shift
+            lib=`eval echo "$1"`
+            paths=
+            ;;
+        -v|--version)
+            echo "fakechroot version $FAKECHROOT_VERSION"
+            exit 0
+            ;;
+        -s|--use-system-libs)
+            paths="$PATHS:/usr/lib:/lib"
+            ;;
+        -h|--help)
+            usage
+            ;;
+    esac
+    shift
 done
 
-shift #get rid of the '--'
+shift
 
-# make sure the preload is available
-if [ -n "$PATHS" ]
+
+# Make sure the preload is available
+libfound=no
+
+if [ -n "$paths" ]
 then
     new_paths=
-    for dir in `echo $PATHS | sed 's/:/ /g'`
+    for dir in `echo $paths | sed 's/:/ /g'`
     do
         dir=`eval echo $dir`
         new_paths="${new_paths:+$new_paths:}$dir"
-        if test -r "$dir/$LIB"
+        if test -r "$dir/$lib"
         then
             libfound=yes
         fi
     done
-    PATHS=$new_paths
+    paths=$new_paths
 else
-    if test -r "$LIB"
+    if test -r "$lib"
     then
         libfound=yes
     fi
 fi
 
-if test $libfound = no
+if [ $libfound = no ]
 then
-    echo >&2 "fakechroot: preload library not found, aborting."
-    exit 1
+    die "fakechroot: preload library not found, aborting."
 fi
 
-# Keep other library paths
-if test -n "$LD_LIBRARY_PATH"; then
-  PATHS="$PATHS:$LD_LIBRARY_PATH"
-fi
-# ...and preloaded libs
-if test -n "$LD_PRELOAD"; then
-  LIB="$LIB $LD_PRELOAD"
-fi
+
+# Set new environment
+FAKECHROOT=true
+LD_LIBRARY_PATH="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
+LD_PRELOAD="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
+export FAKECHROOT FAKECHROOT_VERSION LD_LIBRARY_PATH LD_PRELOAD
 
 if test -z "$*"; then
-  LD_LIBRARY_PATH="$PATHS"
-  LD_PRELOAD="$LIB"
-  export LD_LIBRARY_PATH LD_PRELOAD
-  exec ${SHELL:-/bin/sh}
+    exec ${SHELL:-/bin/sh}
 else
-  LD_LIBRARY_PATH="$PATHS"
-  LD_PRELOAD="$LIB"
-  export LD_LIBRARY_PATH LD_PRELOAD
-  exec "$@"
+    exec "$@"
 fi
 
-exit 1
+die "fakechroot: cannot execute: $@"
