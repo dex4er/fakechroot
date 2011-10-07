@@ -18,9 +18,15 @@ die () {
 
 usage () {
     die "Usage:
-    fakechroot [-l|--lib fakechrootlib] [-s|--use-system-libs] [--] [command]
+    fakechroot [-l|--lib fakechrootlib] [-s|--use-system-libs]
+               [-e|--environment type] [--] [command]
     fakechroot -v|--version
-    fakechroot -h|--help"
+    fakechroot -h|--help
+
+Environment types:
+    clean
+    chroot
+    debootstrap"
 }
 
 
@@ -29,9 +35,10 @@ if [ "x$FAKECHROOT" = "xtrue" ]; then
 fi
 
 
-# Default location of preloaded library
+# Default settings
 lib=libfakechroot.so
 paths=@libpath@
+environment=default
 
 
 # Get options
@@ -39,42 +46,67 @@ getopttest=`getopt --version`
 case $getopttest in
     getopt*)
         # GNU getopt
-        opts=`getopt -l lib: -l use-system-libs -l version -l help -- +l:svh "$@"`
+        opts=`getopt -q -l lib: -l use-system-libs -l environment -l version -l help -- +l:se:vh "$@"`
         ;;
     *)
         # POSIX getopt ?
-        opts=`getopt l:svh "$@"`
+        opts=`getopt l:se:vh "$@"`
         ;;
 esac
 
-if test "$?" -ne 0; then
+if [ "$?" -ne 0 ]; then
     usage
 fi
 
 eval set -- "$opts"
 
-while test "x$1" != "x--"; do
-    case "$1" in
-        -l|--lib)
-            shift
-            lib=`eval echo "$1"`
-            paths=
+while [ $# -gt 0 ]; do
+    opt=$1
+    shift
+    case "$opt" in
+        -h|--help)
+            usage
             ;;
         -v|--version)
             echo "fakechroot version $FAKECHROOT_VERSION"
             exit 0
             ;;
+        -l|--lib)
+            lib=`eval echo "$1"`
+            paths=
+            shift
+            ;;
         -s|--use-system-libs)
             paths="${paths:+$paths:}/usr/lib:/lib"
             ;;
-        -h|--help)
-            usage
+        -e|--environment)
+            case "$1" in
+                clean|chroot|debootstrap)
+                    environment=$1
+                    ;;
+                *)
+                    die "fakechroot: unknown environment: $1"
+                    ;;
+            esac
+            shift
+            ;;
+        --)
+            break
             ;;
     esac
-    shift
 done
 
-shift
+if [ "x$environment" = xdefault ]; then
+    cmd=`basename "$1"`
+    case "$cmd" in
+        chroot|debootstrap)
+            environment=$cmd
+            ;;
+        *)
+            environment=clean
+            ;;
+    esac
+fi
 
 
 # Make sure the preload is available
@@ -87,14 +119,14 @@ then
     do
         dir=`eval echo $dir`
         new_paths="${new_paths:+$new_paths:}$dir"
-        if test -r "$dir/$lib"
+        if [ -r "$dir/$lib" ]
         then
             libfound=yes
         fi
     done
     paths=$new_paths
 else
-    if test -r "$lib"
+    if [ -r "$lib" ]
     then
         libfound=yes
     fi
@@ -112,7 +144,8 @@ LD_LIBRARY_PATH="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
 LD_PRELOAD="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
 export FAKECHROOT FAKECHROOT_VERSION LD_LIBRARY_PATH LD_PRELOAD
 
-if test -z "$*"; then
+
+if [ -z "$*" ]; then
     exec ${SHELL:-/bin/sh}
 else
     exec "$@"
