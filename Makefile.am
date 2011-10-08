@@ -6,6 +6,6 @@ SUBDIRS = man src scripts test
 EXTRA_DIST = LICENSE NEWS README THANKS autogen.sh makedist.sh
 
 test: all
-	$(MAKE) $(AM_MAKEFLAGS) -C test test
+	( cd test && $(MAKE) $(AM_MAKEFLAGS) test )
 
 .PHONY: test
