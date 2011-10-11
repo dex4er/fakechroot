@@ -19,7 +19,8 @@ die () {
 usage () {
     die "Usage:
     fakechroot [-l|--lib fakechrootlib] [-s|--use-system-libs]
-               [-e|--environment type] [--] [command]
+               [-e|--environment type] [-c|--config-dir directory]
+               [--] [command]
     fakechroot -v|--version
     fakechroot -h|--help"
 }
@@ -43,7 +44,7 @@ getopttest=`getopt --version`
 case $getopttest in
     getopt*)
         # GNU getopt
-        opts=`getopt -q -l lib: -l use-system-libs -l confdir: -l environment -l version -l help -- +l:sc:e:vh "$@"`
+        opts=`getopt -q -l lib: -l use-system-libs -l config-dir: -l environment -l version -l help -- +l:sc:e:vh "$@"`
         ;;
     *)
         # POSIX getopt ?
@@ -76,7 +77,7 @@ while [ $# -gt 0 ]; do
         -s|--use-system-libs)
             paths="${paths:+$paths:}/usr/lib:/lib"
             ;;
-        -c|--confdir)
+        -c|--config-dir)
             confdir=$1
             shift
             ;;
