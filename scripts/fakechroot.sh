@@ -21,17 +21,11 @@ usage () {
     fakechroot [-l|--lib fakechrootlib] [-s|--use-system-libs]
                [-e|--environment type] [--] [command]
     fakechroot -v|--version
-    fakechroot -h|--help
-
-Environment types:
-    default (depends on command)
-    clean
-    chroot
-    debootstrap"
+    fakechroot -h|--help"
 }
 
 
-if [ "x$FAKECHROOT" = "xtrue" ]; then
+if [ "$FAKECHROOT" = "true" ]; then
     die "fakechroot: nested operation is not supported"
 fi
 
@@ -39,7 +33,9 @@ fi
 # Default settings
 lib=libfakechroot.so
 paths=@libpath@
-environment=default
+sysconfdir=@sysconfdir@
+confdir=
+environment=
 
 
 # Get options
@@ -47,11 +43,11 @@ getopttest=`getopt --version`
 case $getopttest in
     getopt*)
         # GNU getopt
-        opts=`getopt -q -l lib: -l use-system-libs -l environment -l version -l help -- +l:se:vh "$@"`
+        opts=`getopt -q -l lib: -l use-system-libs -l confdir: -l environment -l version -l help -- +l:sc:e:vh "$@"`
         ;;
     *)
         # POSIX getopt ?
-        opts=`getopt l:se:vh "$@"`
+        opts=`getopt l:sc:e:vh "$@"`
         ;;
 esac
 
@@ -80,15 +76,12 @@ while [ $# -gt 0 ]; do
         -s|--use-system-libs)
             paths="${paths:+$paths:}/usr/lib:/lib"
             ;;
+        -c|--confdir)
+            confdir=$1
+            shift
+            ;;
         -e|--environment)
-            case "$1" in
-                default|clean|chroot|debootstrap)
-                    environment=$1
-                    ;;
-                *)
-                    die "fakechroot: unknown environment: $1"
-                    ;;
-            esac
+            environment=$1
             shift
             ;;
         --)
@@ -97,16 +90,12 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-if [ "x$environment" = xdefault ]; then
-    cmd=`basename "$1"`
-    case "$cmd" in
-        chroot|debootstrap)
-            environment=$cmd
-            ;;
-        *)
-            environment=clean
-            ;;
-    esac
+if [ -z "$environment" ]; then
+    if [ "$1" = "fakeroot" ]; then
+        environment=`basename "$2"`
+    else
+        environment=`basename "$1"`
+    fi
 fi
 
 
@@ -141,11 +130,22 @@ fi
 
 # Set new environment
 FAKECHROOT=true
-LD_LIBRARY_PATH="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
-LD_PRELOAD="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
-export FAKECHROOT FAKECHROOT_VERSION LD_LIBRARY_PATH LD_PRELOAD
+export FAKECHROOT FAKECHROOT_VERSION
 
 
+# Additional environment setting from configuration file
+for e in $environment default; do
+    for d in $confdir $HOME/.fakechroot $sysconfdir; do
+        f=$d/$environment.env
+        if [ -f $f ]; then
+            . $f
+            break 2
+        fi
+    done
+done
+
+
+# Execute command
 if [ -z "$*" ]; then
     exec ${SHELL:-/bin/sh}
 else
