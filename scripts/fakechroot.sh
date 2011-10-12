@@ -128,6 +128,9 @@ then
     die "fakechroot: preload library not found, aborting."
 fi
 
+paths="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
+lib="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
+
 
 # Set new environment
 FAKECHROOT=true
@@ -148,9 +151,9 @@ done
 
 # Execute command
 if [ -z "$*" ]; then
-    exec ${SHELL:-/bin/sh}
+    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" exec ${SHELL:-/bin/sh}
 else
-    exec "$@"
+    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" exec "$@"
 fi
 
 die "fakechroot: cannot execute: $@"
