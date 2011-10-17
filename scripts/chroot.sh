@@ -8,8 +8,30 @@
 #
 # (c) 2011 Piotr Roszatycki <dexter@debian.org>, LGPL
 
-if [ "$FAKECHROOT_CMD_SUBST" != "${FAKECHROOT_CMD_SUBST#/usr/sbin/chroot.real=}" ]; then
-    chroot=/usr/sbin/chroot.real
+
+load_ldsoconf () {
+    file="$1"
+    newroot="$2"
+
+    sed -e 's/#.*//' -e '/^ *$/d' "$newroot$file" 2>/dev/null | while read line; do
+        case "$line" in
+            include*)
+                include=`echo "$line" | sed -e 's/^include  *//' -e 's/ *$//'`
+                for incfile in `eval echo $newroot$include`; do
+                    incfile="${incfile#$newroot}"
+                    load_ldsoconf "$incfile" "$newroot"
+                done
+                ;;
+            *)
+                echo "$newroot$line"
+                ;;
+        esac
+    done
+}
+
+
+if [ "$FAKECHROOT_CMD_SUBST" != "${FAKECHROOT_CMD_SUBST#@sbindir@/chroot.real=}" ]; then
+    chroot=@sbindir@/chroot.real
 else
     chroot=chroot
 fi
@@ -37,10 +59,12 @@ if [ -n "$newroot" ]; then
     IFS="$IFS_bak"
 
     # append newroot to each directory from new /etc/ld.so.conf
-    # ...
+    paths_ldsoconf=`load_ldsoconf "/etc/ld.so.conf" "$newroot" | while read line; do printf ":%s" "$line"; done`
+    paths_ldsoconf="${paths_ldsoconf#:}"
 
-    paths="$paths:$LD_LIBRARY_PATH"
+    paths="$paths${paths_ldsoconf:+:$paths_ldsoconf}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    paths="${paths#:}"
 fi
 
-# echo "$paths"
+# call real chroot
 LD_LIBRARY_PATH="$paths" exec $chroot "$@"
