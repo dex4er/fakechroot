@@ -181,6 +181,15 @@ The version of current fakechroot library.
 
 The root directory for fake chroot environment.
 
+=item B<FAKECHROOT_DETECT>
+
+If this variable is set then C<fakechroot I<version>> string is printed
+to standard output and current process is terminated with status from
+this variable.  It can be a method to check if fakechroot is preloaded
+correctly.
+
+ $ case "`FAKECHROOT_DETECT=1 /bin/true`" in fakechroot*) echo LOADED;; esac
+
 =item B<FAKECHROOT_DEBUG>
 
 The fakechroot library will dump some debugging info is this variable is set.

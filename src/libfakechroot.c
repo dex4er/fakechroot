@@ -72,6 +72,11 @@ void fakechroot_init (void)
     struct passwd* passwd = NULL;
     char *pointer;
 
+    if ((pointer = getenv("FAKECHROOT_DETECT"))) {
+        printf("%s %s\n", PACKAGE, VERSION);
+        exit(atoi(pointer));
+    }
+
     debug("fakechroot_init()");
     if (!first) {
         first = 1;
