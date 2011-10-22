@@ -82,8 +82,7 @@ void fakechroot_init (void)
         first = 1;
 
         /* We get a list of directories or files */
-        pointer = getenv("FAKECHROOT_EXCLUDE_PATH");
-        if (pointer) {
+        if ((pointer = getenv("FAKECHROOT_EXCLUDE_PATH"))) {
             for (i=0; list_max<32 ;) {
                 for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
                 exclude_list[list_max] = malloc(j-i+2);
