@@ -1,7 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
-    <dexter@debian.org>
+    Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
     Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
     Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
 
