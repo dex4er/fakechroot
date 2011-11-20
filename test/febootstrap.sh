@@ -1,9 +1,9 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
+. "$srcdir/common.inc"
 
-export PATH=$srcdir/bin:$PATH
+export PATH="$srcdir/bin:$PATH"
 
 run () {
     HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
@@ -33,7 +33,7 @@ fi
 
 febootstrap $vendor-$release $destdir
 
-cp -v `cd $srcdir; pwd`/../scripts/ldd.pl $destdir/usr/bin/ldd
+cp -v "`cd $srcdir; pwd`/../scripts/ldd.pl" $destdir/usr/bin/ldd
 cp -v /etc/resolv.conf $destdir/etc
 rm -fv $destdir/etc/yum.repos.d/*update*.repo
 sed -i 's/^enabled=0/enabled=1/' $destdir/etc/yum.repos.d/*.repo

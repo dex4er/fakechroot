@@ -2,7 +2,7 @@
 
 srcdir=${srcdir:-.}
 
-test -d $srcdir/bin && export PATH=$srcdir/bin:$PATH
+test -d "$srcdir/bin" && export PATH="$srcdir/bin:$PATH"
 
 run () {
     HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
