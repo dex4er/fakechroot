@@ -37,7 +37,7 @@
 
 wrapper(chroot, int, (const char * path))
 {
-    char *ptr, *ld_library_path, *tmp, *fakechroot_path;
+    char *ptr, *ld_library_path, *separator, *tmp, *fakechroot_path;
     int status, len;
     char dir[FAKECHROOT_PATH_MAX], cwd[FAKECHROOT_PATH_MAX];
 #ifdef HAVE___XSTAT64
@@ -121,11 +121,15 @@ wrapper(chroot, int, (const char * path))
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
     ld_library_path = getenv("LD_LIBRARY_PATH");
-    if (ld_library_path == NULL) {
+    if (ld_library_path != NULL && strlen(ld_library_path) > 0) {
+        separator = ":";
+    }
+    else {
         ld_library_path = "";
+        separator = "";
     }
 
-    if ((len = strlen(ld_library_path)+strlen(dir)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
+    if ((len = strlen(ld_library_path)+strlen(separator)+strlen(dir)*2+sizeof("/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
         return ENAMETOOLONG;
     }
 
@@ -133,7 +137,7 @@ wrapper(chroot, int, (const char * path))
         return ENOMEM;
     }
 
-    snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, dir, dir);
+    snprintf(tmp, len, "%s%s%s/usr/lib:%s/lib", ld_library_path, separator, dir, dir);
     setenv("LD_LIBRARY_PATH", tmp, 1);
     free(tmp);
     return 0;
