@@ -105,35 +105,22 @@ fi
 
 
 # Make sure the preload is available
-libfound=no
+paths="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
+lib="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
 
-if [ -n "$paths" ]
-then
-    new_paths=
-    for dir in `echo $paths | sed 's/:/ /g'`
-    do
-        dir=`eval echo $dir`
-        new_paths="${new_paths:+$new_paths:}$dir"
-        if [ -r "$dir/$lib" ]
-        then
-            libfound=yes
-        fi
-    done
-    paths=$new_paths
-else
-    if [ -r "$lib" ]
-    then
+detect=`LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" FAKECHROOT_DETECT=1 /bin/true 2>&1`
+case "$detect" in
+    fakechroot*)
         libfound=yes
-    fi
-fi
+        ;;
+    *)
+        libfound=no
+esac
 
 if [ $libfound = no ]
 then
     die "fakechroot: preload library not found, aborting."
 fi
-
-paths="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
-lib="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
 
 
 # Set new environment
