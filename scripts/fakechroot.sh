@@ -38,6 +38,10 @@ sysconfdir=@sysconfdir@
 confdir=
 environment=
 
+if [ "$paths" = "no" ]; then
+    paths=
+fi
+
 
 # Get options
 getopttest=`getopt --version`
