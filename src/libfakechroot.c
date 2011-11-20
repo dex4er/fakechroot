@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <pwd.h>
 #include <dlfcn.h>
+#include "setenv.h"
 #include "libfakechroot.h"
 
 
@@ -101,6 +102,9 @@ void fakechroot_init (void)
             strcpy(home_path, passwd->pw_dir);
             strcat(home_path, "/");
         }
+
+        setenv("FAKECHROOT", "true", 1);
+        setenv("FAKECHROOT_VERSION", FAKECHROOT, 1);
     }
 }
 

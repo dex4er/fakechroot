@@ -117,15 +117,9 @@ case "$detect" in
         libfound=no
 esac
 
-if [ $libfound = no ]
-then
+if [ $libfound = no ]; then
     die "fakechroot: preload library not found, aborting."
 fi
-
-
-# Set new environment
-FAKECHROOT=true
-export FAKECHROOT FAKECHROOT_VERSION
 
 
 # Additional environment setting from configuration file
