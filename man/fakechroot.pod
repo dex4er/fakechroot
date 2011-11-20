@@ -1,5 +1,6 @@
 # pod2man --section=1 --release="Debian" --center=" " --date="7 Oct 2011"
 #
+
 =head1 NAME
 
 fakechroot - gives a fake chroot environment
@@ -44,6 +45,8 @@ want to emulate root environment, i.e.:
  $ fakechroot fakeroot /usr/sbin/chroot /tmp/debian /bin/sh
  # id
  uid=0(root) gid=0(root) groups=0(root)
+
+=for readme stop
 
 =head1 OPTIONS
 
@@ -146,6 +149,8 @@ order. fakeroot should be started inside fakechroot:
 
  $ fakechroot fakeroot chroot /tmp/sid /bin/mknod /tmp/device c 1 2
 
+=for readme continue
+
 =head1 SECURITY ASPECTS
 
 fakechroot is a regular, non-setuid program.  It does not enhance a user's
@@ -154,6 +159,8 @@ privileges, or decrease the host's system security.
 fakechroot should not be used as a tool for enhancing system security i.e. by
 separating (sandboxing) applications.  It is very easy to escape from a fake
 chroot environment.
+
+=for readme stop
 
 =head1 FILES
 
@@ -320,10 +327,17 @@ behaviour.
 
 =back
 
+=for readme continue
+
 =head1 SEE ALSO
 
 fakeroot(1), debuild(1), debootstrap(8), febootstrap(8),
 http://fakechroot.alioth.debian.org/
+
+=head1 BUGS
+
+If you find the bug or want to implement new features, please report it at
+L<https://github.com/fakechroot/fakechroot/issues>
 
 =head1 AUTHORS
 
@@ -339,6 +353,8 @@ Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
 
 fakechroot is distributed under the GNU Lesser General Public License (LGPL
 2.1 or greater).
+
+=for readme stop
 
 Additional copyrights:
 
