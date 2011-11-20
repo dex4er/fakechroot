@@ -81,9 +81,9 @@ C<FAKECHROOT_EXCLUDE_PATH> or C<FAKECHROOT_CMD_SUBST>.  The variable
 C<paths> should be used instead C<LD_LIBRARY_PATH> and variable C<lib>
 should be used instead C<LD_PRELOAD>.
 
-The environment type is guessed based on command name.  If I<command>
-argument is fakeroot(1) this argument is ommited and next argument is
-taken as environment type.
+The environment type is guessed based on command name with optional extension
+removed (i.e.: F<.sh>).  If I<command> argument is fakeroot(1) this argument
+is ommited and next argument is taken as environment type.
 
 The configuration file name is F<I<type>.env> and can be located at
 F<$HOME/.fakechroot> and F</etc/fakechroot> directories.

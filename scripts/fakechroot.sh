@@ -123,11 +123,11 @@ fi
 
 
 # Additional environment setting from configuration file
-for e in $environment default; do
-    for d in $confdir $HOME/.fakechroot $sysconfdir; do
-        f=$d/$environment.env
-        if [ -f $f ]; then
-            . $f
+for e in "$environment" "${environment%.*}" default; do
+    for d in "$confdir" "$HOME/.fakechroot" "$sysconfdir"; do
+        f="$d/$e.env"
+        if [ -f "$f" ]; then
+            . "$f"
             break 2
         fi
     done
