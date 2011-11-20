@@ -114,6 +114,8 @@ libfakechroot_la_SOURCES = \
     rpl_lstat.c \
     scandir.c \
     scandir64.c \
+    setenv.c \
+    setenv.h \
     setxattr.c \
     stat.c \
     stat.h \
