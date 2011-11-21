@@ -80,7 +80,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     char *envkey[] = { "FAKECHROOT", "FAKECHROOT_BASE",
                        "FAKECHROOT_VERSION", "FAKECHROOT_EXCLUDE_PATH",
-                       "FAKECHROOT_CMD_SUBST",
+                       "FAKECHROOT_CMD_SUBST", "FAKECHROOT_DEBUG",
                        "LD_LIBRARY_PATH", "LD_PRELOAD" };
     const int nr_envkey = sizeof envkey / sizeof envkey[0];
 
