@@ -136,9 +136,11 @@ done
 
 # Execute command
 if [ -z "$*" ]; then
-    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" exec ${SHELL:-/bin/sh}
+    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" ${SHELL:-/bin/sh}
+    result=$?
 else
-    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" exec "$@"
+    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" "$@"
+    result=$?
 fi
 
-die "fakechroot: cannot execute: $@"
+exit $result
