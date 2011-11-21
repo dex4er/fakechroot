@@ -11,7 +11,11 @@ else
 fi
 
 if [ $# -gt 0 ]; then
-    HOME=/root exec /usr/sbin/chroot $destdir "$@"
+    HOME=/root /usr/sbin/chroot $destdir "$@"
+    result=$?
 else
-    HOME=/root exec /usr/sbin/chroot $destdir $SHELL
+    HOME=/root /usr/sbin/chroot $destdir $SHELL -i
+    result=$?
 fi
+
+exit $result

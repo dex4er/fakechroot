@@ -4,4 +4,5 @@
 pwd=`dirname $0`
 abs_top_srcdir=${abs_top_srcdir:-`cd "$pwd/../.." 2>/dev/null && pwd -P`}
 
-exec "$abs_top_srcdir/scripts/fakechroot" --config-dir "$abs_top_srcdir/scripts" --lib "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
+"$abs_top_srcdir/scripts/fakechroot" --config-dir "$abs_top_srcdir/scripts" --lib "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
+exit $?
