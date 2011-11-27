@@ -153,7 +153,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     newenvp[newenvppos] = NULL;
 
     if (do_cmd_subst) {
-        return nextcall(execve)(substfilename, (char * const *)newargv, newenvp);
+        return nextcall(execve)(substfilename, (char * const *)argv, newenvp);
     }
 
     expand_chroot_path(filename, fakechroot_path, fakechroot_buf);

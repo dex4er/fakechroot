@@ -47,7 +47,6 @@ wrapper(chroot, int, (const char * path))
     struct stat sb;
 #endif
 
-    debug("chroot(\"%s\")", path);
     if (path == NULL) {
         __set_errno(EFAULT);
         return -1;
