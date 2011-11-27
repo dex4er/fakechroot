@@ -21,6 +21,7 @@
 #include <config.h>
 
 #define _GNU_SOURCE
+#include <errno.h>
 #include <stddef.h>
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>

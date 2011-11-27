@@ -20,6 +20,7 @@
 
 #include <config.h>
 
+#include <errno.h>
 #include <stddef.h>
 #include <unistd.h>
 #ifdef HAVE_ALLOCA_H

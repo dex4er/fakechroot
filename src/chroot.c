@@ -21,6 +21,7 @@
 #include <config.h>
 
 #define _GNU_SOURCE
+#include <errno.h>
 #include <stddef.h>
 #include <sys/stat.h>
 #include <unistd.h>

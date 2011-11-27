@@ -28,6 +28,7 @@
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #endif
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "libfakechroot.h"
@@ -119,9 +120,9 @@ wrapper(realpath, char *, (const char * name, char * resolved))
 
         if (end - start == 0)
             break;
-        else if (end - start == 1 && start[0] == '.')
-            /* nothing */;
-        else if (end - start == 2 && start[0] == '.' && start[1] == '.') {
+        else if (end - start == 1 && start[0] == '.') {
+            /* nothing */
+        } else if (end - start == 2 && start[0] == '.' && start[1] == '.') {
             /* Back up to previous component, ignore if at root already.  */
             if (dest > rpath + 1)
                 while ((--dest)[-1] != '/');

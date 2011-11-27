@@ -128,6 +128,7 @@ popen(const char *program, const char *type)
 		_exit(127);
 		/* NOTREACHED */
 	    }
+		break;
 	}
 	_MUTEX_UNLOCK(&pidlist_lock);
 
