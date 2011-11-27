@@ -41,15 +41,21 @@
  */
 static int try_cmd_subst (char *env, const char *filename, char *cmd_subst)
 {
-    int len = strlen(filename), len2;
+    int len, len2;
     char *p;
+    char *fn = filename;
 
-    if (env == NULL) return 0;
+    if (env == NULL || filename == NULL) return 0;
+
+    /* Remove trailing dot from filename */
+    if (fn[0] == '.' && fn[1] == '/')
+        fn++;
+    len = strlen(fn);
 
     do {
         p = strchrnul(env, ':');
 
-        if (strncmp(env, filename, len) == 0 && env[len] == '=') {
+        if (strncmp(env, fn, len) == 0 && env[len] == '=') {
             len2 = p - &env[len+1];
             if (len2 >= FAKECHROOT_PATH_MAX)
                 len2 = FAKECHROOT_PATH_MAX - 1;
