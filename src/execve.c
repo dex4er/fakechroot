@@ -44,7 +44,8 @@ static int try_cmd_subst (char *env, const char *filename, char *cmd_subst)
     int len, len2;
     char *p;
 
-    if (env == NULL || filename == NULL) return 0;
+    if (env == NULL || filename == NULL)
+    	return 0;
 
     /* Remove trailing dot from filename */
     if (filename[0] == '.' && filename[1] == '/')
@@ -84,10 +85,16 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     size_t sizeenvp;
     char c;
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    char *envkey[] = { "FAKECHROOT", "FAKECHROOT_BASE",
-                       "FAKECHROOT_VERSION", "FAKECHROOT_EXCLUDE_PATH",
-                       "FAKECHROOT_CMD_SUBST", "FAKECHROOT_DEBUG",
-                       "LD_LIBRARY_PATH", "LD_PRELOAD" };
+    char *envkey[] = {
+    	"FAKECHROOT",
+    	"FAKECHROOT_BASE",
+        "FAKECHROOT_CMD_SUBST",
+        "FAKECHROOT_DEBUG",
+        "FAKECHROOT_EXCLUDE_PATH",
+        "FAKECHROOT_VERSION",
+        "LD_LIBRARY_PATH",
+        "LD_PRELOAD"
+    };
     const int nr_envkey = sizeof envkey / sizeof envkey[0];
 
     debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp[0]);
