@@ -1,8 +1,9 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
+abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
 
-test -d "$srcdir/bin" && export PATH="$srcdir/bin:$PATH"
+test -d "$abs_srcdir/bin" && export PATH="$abs_srcdir/bin:$PATH"
 
 run () {
     HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
