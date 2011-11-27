@@ -621,7 +621,6 @@ fail:
 	{
 	  char *endp = strchr (runp, '\0');
 
-	  // XXX Should store the d_type values as well?!
 	  result = process_entry (data, &dir, runp, endp - runp, DT_UNKNOWN);
 
 	  runp = endp + 1;
