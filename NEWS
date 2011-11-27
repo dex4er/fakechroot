@@ -1,3 +1,13 @@
+== Version UNRELEASED ==
+
+* The fakechroot script loads additional environment settings from
+  configuration directory (+--config-dir+ option). By default additional
+  settings are provided for +chroot+(8) and +debootstrap+(8) commands.
+* Wrapped +chroot+(8) command loads +ld.so.conf+ paths to +LD_LIBRARY_PATH+
+  environment variable.
+* The +debootstrap+(8) command works with default, buildd and minbase
+  variants.
+
 == Version 2.15 ==
 
 29 Sep 2011
