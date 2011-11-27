@@ -22,8 +22,7 @@
 # include <config.h>
 #endif
 
-#if ((!defined(__FTW64_C) && HAVE_FTW) || (defined(__FTW64_C) && HAVE_FTW64)) \
- && !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2) && !defined(HAVE__XFTW)
+#ifdef HAVE_FTW
 
 #define _GNU_SOURCE
 
