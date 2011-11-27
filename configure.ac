@@ -35,6 +35,7 @@ AC_PROG_CC
 AC_PROG_LN_S
 AC_CHECK_PROGS([PROVE], [prove])
 AC_CHECK_PROGS([SEQ], [seq gseq])
+AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:$PATH])
 
 # Checks for compilator features
 ACX_CHECK_C_ALIGNOF

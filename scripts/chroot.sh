@@ -67,4 +67,4 @@ if [ -n "$newroot" ]; then
 fi
 
 # call real chroot
-LD_LIBRARY_PATH="$paths" exec $chroot "$@"
+env LD_LIBRARY_PATH="$paths" exec $chroot "$@"
