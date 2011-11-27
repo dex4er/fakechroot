@@ -37,8 +37,9 @@ m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
 missing
-scripts/fakechroot
+scripts/*.env
 scripts/*.fakechroot
+scripts/fakechroot
 stamp-h1
 test/*.debs.tgz
 test/src/test-*

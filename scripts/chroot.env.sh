@@ -8,8 +8,8 @@ fi
 chroot=`command -v chroot 2>/dev/null`
 
 cmd_subst="
-    $chroot=/usr/local/sbin/chroot.fakechroot
-    /usr/local/sbin/chroot.real=$chroot
+    $chroot=@sbindir@/chroot.fakechroot
+    @sbindir@/chroot.real=$chroot
     /sbin/ldconfig=/bin/true
     /usr/bin/ischroot=/bin/true
     /usr/bin/ldd=@bindir@/ldd.fakechroot
