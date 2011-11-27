@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="7 Oct 2011"
+# pod2man --section=1 --release="Debian" --center=" " --date="27 Nov 2011"
 #
 
 =head1 NAME
@@ -35,7 +35,7 @@ F</usr/lib/fakechroot/libfakechroot.so> which is loaded through the
 C<LD_PRELOAD> mechanism of the dynamic loader.  (See ld.so(8))
 
 In fake chroot you can install Debian bootstrap with `debootstrap
---variant=fakechroot' command.  In this environment you can use i.e. 
+--variant=fakechroot' command.  In this environment you can use i.e.
 apt-get(8) command to install another packages from common user's account.
 
 In the current version, the fakechroot does not provide the fakeroot(1)
@@ -218,6 +218,10 @@ A list of command substitutions.  If a program tries to execute one of
 the commands given (path relative to the chroot, trailing dot is removed) then
 the substitute command runs instead (path to substitute command is not
 chrooted).
+
+The substituted command inherits C<FAKECHROOT_*> variables but the original
+C<FAKECHROOT_BASE> variable which is saved as C<FAKECHROOT_BASE_ORIG>.  It
+means that substituted command runs outside fakechroot environment.
 
 For example:
 

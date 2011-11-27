@@ -39,13 +39,13 @@
  *
  * FAKECHROOT_CMD_SUBST=cmd=subst:cmd=subst:...
  */
-static int try_cmd_subst (char *env, const char *filename, char *cmd_subst)
+static int try_cmd_subst (char * env, const char * filename, char * cmd_subst)
 {
     int len, len2;
     char *p;
 
     if (env == NULL || filename == NULL)
-    	return 0;
+        return 0;
 
     /* Remove trailing dot from filename */
     if (filename[0] == '.' && filename[1] == '/')
@@ -78,16 +78,19 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     size_t argv_max = 1024;
     const char **newargv = alloca(argv_max * sizeof (const char *));
     char **newenvp, **ep;
-    char *env;
-    char tmp[FAKECHROOT_PATH_MAX], newfilename[FAKECHROOT_PATH_MAX], argv0[FAKECHROOT_PATH_MAX];
+    char *key, *env;
+    char tmp[FAKECHROOT_PATH_MAX];
+    char substfilename[FAKECHROOT_PATH_MAX];
+    char newfilename[FAKECHROOT_PATH_MAX];
+    char argv0[FAKECHROOT_PATH_MAX];
     char *ptr;
-    unsigned int i, j, n, len, r, newenvppos;
+    unsigned int i, j, n, len, do_cmd_subst, newenvppos;
     size_t sizeenvp;
     char c;
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     char *envkey[] = {
-    	"FAKECHROOT",
-    	"FAKECHROOT_BASE",
+        "FAKECHROOT",
+        "FAKECHROOT_BASE",
         "FAKECHROOT_CMD_SUBST",
         "FAKECHROOT_DEBUG",
         "FAKECHROOT_DETECT",
@@ -99,6 +102,9 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     const int nr_envkey = sizeof envkey / sizeof envkey[0];
 
     debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp[0]);
+
+    strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
+    do_cmd_subst = try_cmd_subst(getenv("FAKECHROOT_CMD_SUBST"), argv0, substfilename);
 
     /* Scan envp and check its size */
     sizeenvp = 0;
@@ -124,17 +130,30 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     }
     newenvp[newenvppos] = NULL;
 
-    strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
+    /* Add our variables to newenvp */
+    newenvp = realloc(newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *));
+    if (newenvp == NULL) {
+        __set_errno(ENOMEM);
+        return -1;
+    }
+    for (j = 0; j < nr_envkey; j++) {
+        env = getenv(envkey[j]);
+        if (env != NULL) {
+            if (do_cmd_subst && strcmp(envkey[j], "FAKECHROOT_BASE") == 0)
+                key = "FAKECHROOT_BASE_ORIG";
+            else
+                key = envkey[j];
+            newenvp[newenvppos] = malloc(strlen(key) + strlen(env) + 3);
+            strcpy(newenvp[newenvppos], key);
+            strcat(newenvp[newenvppos], "=");
+            strcat(newenvp[newenvppos], env);
+            newenvppos++;
+        }
+    }
+    newenvp[newenvppos] = NULL;
 
-    r = try_cmd_subst(getenv ("FAKECHROOT_CMD_SUBST"), filename, tmp);
-    if (r) {
-        filename = tmp;
-
-        /* FAKECHROOT_CMD_SUBST escapes the chroot.  newenvp here does
-         * not contain LD_PRELOAD and the other special environment
-         * variables.
-         */
-        return nextcall(execve)(filename, argv, newenvp);
+    if (do_cmd_subst) {
+        return nextcall(execve)(substfilename, (char * const *)newargv, newenvp);
     }
 
     expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
@@ -152,24 +171,6 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         __set_errno(ENOENT);
         return -1;
     }
-
-    /* Add our variables to newenvp */
-    newenvp = realloc(newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *));
-    if (newenvp == NULL) {
-        __set_errno(ENOMEM);
-        return -1;
-    }
-    for (j = 0; j < nr_envkey; j++) {
-        env = getenv(envkey[j]);
-        if (env != NULL) {
-            newenvp[newenvppos] = malloc(strlen(envkey[j]) + strlen(env) + 3);
-            strcpy(newenvp[newenvppos], envkey[j]);
-            strcat(newenvp[newenvppos], "=");
-            strcat(newenvp[newenvppos], env);
-            newenvppos++;
-        }
-    }
-    newenvp[newenvppos] = NULL;
 
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!')
