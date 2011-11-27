@@ -5,7 +5,7 @@ cmd_subst="
     /sbin/insserv=/bin/true
     /sbin/ldconfig=/bin/true
     /usr/bin/ischroot=/bin/true
-    /usr/bin/ldd=/usr/bin/ldd.fakechroot
+    /usr/bin/ldd=@bindir@/ldd.fakechroot
     /usr/bin/mkfifo=/bin/true
 "
 
