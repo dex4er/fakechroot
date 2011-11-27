@@ -90,6 +90,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     	"FAKECHROOT_BASE",
         "FAKECHROOT_CMD_SUBST",
         "FAKECHROOT_DEBUG",
+        "FAKECHROOT_DETECT",
         "FAKECHROOT_EXCLUDE_PATH",
         "FAKECHROOT_VERSION",
         "LD_LIBRARY_PATH",
