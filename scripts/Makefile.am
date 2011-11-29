@@ -15,6 +15,7 @@ do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]libpath[@],$(libpath),g' \
                -e 's,[@]sbindir[@],$(sbindir),g' \
                -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
+               -e 's,[@]CHROOT[@],$(CHROOT),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 
 chroot.env: $(srcdir)/chroot.env.sh

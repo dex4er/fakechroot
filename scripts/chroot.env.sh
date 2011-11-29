@@ -6,6 +6,7 @@ if ! command -v chroot >/dev/null; then
 fi
 
 chroot=`command -v chroot 2>/dev/null`
+chroot="${chroot:-@CHROOT@}"
 
 cmd_subst="
     $chroot=@sbindir@/chroot.fakechroot
