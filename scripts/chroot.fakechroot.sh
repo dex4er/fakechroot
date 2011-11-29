@@ -29,8 +29,7 @@ load_ldsoconf () {
     done
 }
 
-
-if [ "$FAKECHROOT_CMD_SUBST" != "${FAKECHROOT_CMD_SUBST#@sbindir@/chroot.real=}" ]; then
+if [ "$FAKECHROOT_CMD_SUBST" != "${FAKECHROOT_CMD_SUBST#*@sbindir@/chroot.real=}" ]; then
     chroot=@sbindir@/chroot.real
 else
     chroot=chroot
@@ -67,4 +66,4 @@ if [ -n "$newroot" ]; then
 fi
 
 # call real chroot
-env LD_LIBRARY_PATH="$paths" exec $chroot "$@"
+env LD_LIBRARY_PATH="$paths" "$chroot" "$@"
