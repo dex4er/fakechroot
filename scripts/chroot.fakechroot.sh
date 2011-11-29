@@ -29,8 +29,8 @@ load_ldsoconf () {
     done
 }
 
-if [ "$FAKECHROOT_CMD_SUBST" != "${FAKECHROOT_CMD_SUBST#*@sbindir@/chroot.real=}" ]; then
-    chroot=@sbindir@/chroot.real
+if [ "$FAKECHROOT_CMD_SUBST" != "${FAKECHROOT_CMD_SUBST#*/usr/sbin/chroot.real=}" ]; then
+    chroot=/usr/sbin/chroot.real
 else
     chroot=chroot
 fi

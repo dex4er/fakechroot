@@ -2,15 +2,10 @@
 
 srcdir=${srcdir:-.}
 
-pwd=`dirname $0`
-abs_top_srcdir=${abs_top_srcdir:-`cd "$pwd/.." 2>/dev/null && pwd -P`}
-
 if ! command -v chroot >/dev/null; then
     PATH="${PATH:-/usr/bin:/bin}:/usr/sbin:/sbin"
     export PATH
 fi
-
-chroot=$abs_top_srcdir/scripts/chroot.fakechroot
 
 if [ $# -gt 0 ]; then
     destdir=$1
@@ -21,10 +16,10 @@ else
 fi
 
 if [ $# -gt 0 ]; then
-    env HOME=/root $chroot $destdir "$@"
+    env HOME=/root chroot $destdir "$@"
     result=$?
 else
-    env HOME=/root $chroot $destdir $SHELL -i
+    env HOME=/root chroot $destdir $SHELL -i
     result=$?
 fi
 
