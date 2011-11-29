@@ -18,8 +18,3 @@ cmd_subst="
 FAKECHROOT_EXCLUDE_PATH="${FAKECHROOT_EXCLUDE_PATH:+$FAKECHROOT_EXCLUDE_PATH:}/dev:/proc:/sys"
 FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$(echo $cmd_subst | tr ' ' ':')"
 export FAKECHROOT_EXCLUDE_PATH FAKECHROOT_CMD_SUBST
-
-if ! command -v chroot >/dev/null; then
-    PATH="${PATH:-/usr/bin:/bin}:/usr/sbin:/sbin"
-    export PATH
-fi
