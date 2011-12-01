@@ -62,6 +62,7 @@ for p in \
     '/bin/touch' \
     '/usr/bin/basename' \
     '/usr/bin/dirname' \
+    '/usr/bin/env' \
     '/usr/bin/find' \
     '/usr/bin/id' \
     '/usr/bin/less' \
