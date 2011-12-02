@@ -29,8 +29,11 @@ load_ldsoconf () {
     done
 }
 
-chroot=${FAKECHROOT_CMD_ORIG:-chroot}
-unset FAKECHROOT_CMD_ORIG
+chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
+FAKECHROOT_CMD_ORIG=
+
+base="$FAKECHROOT_BASE_ORIG"
+unset FAKECHROOT_BASE_ORIG
 
 for opt in "$@"; do
     case "$opt" in
@@ -50,12 +53,12 @@ if [ -n "$newroot" ]; then
     # append newroot to each directory from original LD_LIBRARY_PATH
     IFS_bak="$IFS" IFS=:
     for d in $LD_LIBRARY_PATH; do
-        paths="${paths:+$paths:}$FAKECHROOT_BASE_ORIG$newroot/${d#/}"
+        paths="${paths:+$paths:}$base$newroot/${d#/}"
     done
     IFS="$IFS_bak"
 
     # append newroot to each directory from new /etc/ld.so.conf
-    paths_ldsoconf=`load_ldsoconf "/etc/ld.so.conf" "$newroot" | while read line; do printf ":%s%s" "$FAKECHROOT_BASE_ORIG" "$line"; done`
+    paths_ldsoconf=`load_ldsoconf "/etc/ld.so.conf" "$newroot" | while read line; do printf ":%s%s" "$base" "$line"; done`
     paths_ldsoconf="${paths_ldsoconf#:}"
 
     paths="$paths${paths_ldsoconf:+:$paths_ldsoconf}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -63,5 +66,5 @@ if [ -n "$newroot" ]; then
 fi
 
 # call real chroot
-env LD_LIBRARY_PATH="$paths" FAKECHROOT_BASE_ORIG=$FAKECHROOT_BASE_ORIG FAKECHROOT_BASE=$FAKECHROOT_BASE_ORIG "$chroot" "$@"
+env LD_LIBRARY_PATH="$paths" FAKECHROOT_BASE="$base" "$chroot" "$@"
 exit $?

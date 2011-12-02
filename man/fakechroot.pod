@@ -263,7 +263,7 @@ It is suggested to substitute at least:
 to make debootstrap(8) working correctly.
 
 To prevent some looping, the command substitution is done only if
-C<FAKECHROOT_BASE_ORIG> variable is not set currently.
+C<FAKECHROOT_CMD_ORIG> variable is not set currently.
 
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 

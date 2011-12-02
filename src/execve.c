@@ -79,6 +79,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     const char **newargv = alloca(argv_max * sizeof (const char *));
     char **newenvp, **ep;
     char *key, *env;
+    char *cmdorig;
     char tmp[FAKECHROOT_PATH_MAX];
     char substfilename[FAKECHROOT_PATH_MAX];
     char newfilename[FAKECHROOT_PATH_MAX];
@@ -106,8 +107,12 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
 
-    if (!getenv("FAKECHROOT_BASE_ORIG"))
+    /* Substitute command only if FAKECHROOT_CMD_ORIG is not set. Unset variable if it is empty. */
+    cmdorig = getenv("FAKECHROOT_CMD_ORIG");
+    if (cmdorig == NULL)
         do_cmd_subst = try_cmd_subst(getenv("FAKECHROOT_CMD_SUBST"), argv0, substfilename);
+    else if (!*cmdorig)
+        unsetenv("FAKECHROOT_CMD_ORIG");
 
     /* Scan envp and check its size */
     sizeenvp = 0;
