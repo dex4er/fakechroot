@@ -27,6 +27,7 @@
 #define _GNU_SOURCE
 #include <stdarg.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <pwd.h>
 #include <dlfcn.h>
@@ -73,8 +74,12 @@ void fakechroot_init (void)
     char *pointer;
 
     if ((pointer = getenv("FAKECHROOT_DETECT"))) {
-        printf("%s %s\n", PACKAGE, VERSION);
-        exit(atoi(pointer));
+        /* printf causes coredump on FreeBSD */
+        if (write(STDOUT_FILENO, PACKAGE, sizeof(PACKAGE)-1) &&
+            write(STDOUT_FILENO, " ", 1) &&
+            write(STDOUT_FILENO, VERSION, sizeof(VERSION)-1) &&
+            write(STDOUT_FILENO, "\n", 1)) { /* -Wunused-result */ }
+        _Exit(atoi(pointer));
     }
 
     debug("fakechroot_init()");
