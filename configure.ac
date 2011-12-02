@@ -202,6 +202,7 @@ AC_CHECK_FUNCS(m4_normalize([
     opendir
     pathconf
     popen
+    rawmemchr
     readlink
     readlinkat
     realpath

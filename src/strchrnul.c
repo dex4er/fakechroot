@@ -21,6 +21,7 @@
 
 /* Specification.  */
 #include <string.h>
+#include "rawmemchr.h"
 #include "libfakechroot.h"
 
 /* Find the first occurrence of C in S or the final NUL byte.  */

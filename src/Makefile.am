@@ -102,6 +102,8 @@ libfakechroot_la_SOURCES = \
     opendir.c \
     pathconf.c \
     popen.c \
+    rawmemchr.c \
+    rawmemchr.h \
     readlink.c \
     readlinkat.c \
     realpath.c \
