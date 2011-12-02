@@ -31,6 +31,7 @@
 #include "strchrnul.h"
 #include "libfakechroot.h"
 #include "open.h"
+#include "unsetenv.h"
 
 
 /* Parse the FAKECHROOT_CMD_SUBST environment variable (the first

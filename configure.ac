@@ -232,6 +232,7 @@ AC_CHECK_FUNCS(m4_normalize([
     truncate64
     unlink
     unlinkat
+    unsetenv
     ulckpwdf
     utime
     utimensat
