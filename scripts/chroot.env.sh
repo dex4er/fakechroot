@@ -10,7 +10,6 @@ chroot="${chroot:-@CHROOT@}"
 
 cmd_subst="
     $chroot=@sbindir@/chroot.fakechroot
-    @sbindir@/chroot.real=$chroot
     /sbin/ldconfig=/bin/true
     /usr/bin/ischroot=/bin/true
     /usr/bin/ldd=@bindir@/ldd.fakechroot

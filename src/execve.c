@@ -84,13 +84,15 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     char newfilename[FAKECHROOT_PATH_MAX];
     char argv0[FAKECHROOT_PATH_MAX];
     char *ptr;
-    unsigned int i, j, n, len, do_cmd_subst, newenvppos;
+    unsigned int i, j, n, len, newenvppos;
+    unsigned int do_cmd_subst = 0;
     size_t sizeenvp;
     char c;
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     char *envkey[] = {
         "FAKECHROOT",
         "FAKECHROOT_BASE",
+        "FAKECHROOT_BASE_ORIG",
         "FAKECHROOT_CMD_SUBST",
         "FAKECHROOT_DEBUG",
         "FAKECHROOT_DETECT",
@@ -104,7 +106,9 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp[0]);
 
     strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
-    do_cmd_subst = try_cmd_subst(getenv("FAKECHROOT_CMD_SUBST"), argv0, substfilename);
+
+    if (!getenv("FAKECHROOT_BASE_ORIG"))
+        do_cmd_subst = try_cmd_subst(getenv("FAKECHROOT_CMD_SUBST"), argv0, substfilename);
 
     /* Scan envp and check its size */
     sizeenvp = 0;
@@ -132,17 +136,20 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     /* Add our variables to newenvp */
     newenvp = realloc(newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *));
+
     if (newenvp == NULL) {
         __set_errno(ENOMEM);
         return -1;
     }
+
     for (j = 0; j < nr_envkey; j++) {
         env = getenv(envkey[j]);
         if (env != NULL) {
             if (do_cmd_subst && strcmp(envkey[j], "FAKECHROOT_BASE") == 0)
                 key = "FAKECHROOT_BASE_ORIG";
-            else
+            else {
                 key = envkey[j];
+            }
             newenvp[newenvppos] = malloc(strlen(key) + strlen(env) + 3);
             strcpy(newenvp[newenvppos], key);
             strcat(newenvp[newenvppos], "=");
@@ -150,12 +157,23 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             newenvppos++;
         }
     }
-    newenvp[newenvppos] = NULL;
 
     if (do_cmd_subst) {
+        newenvp[newenvppos] = malloc(strlen("FAKECHROOT_CMD_ORIG=") + strlen(filename));
+        strcpy(newenvp[newenvppos], "FAKECHROOT_CMD_ORIG=");
+        strcat(newenvp[newenvppos], filename);
+        newenvppos++;
+    }
+
+    newenvp[newenvppos] = NULL;
+
+    /* Exec substituded command */
+    if (do_cmd_subst) {
+        debug("nextcall(execve)(\"%s\", {\"%s\", ...}, {\"%s\", ...})", substfilename, argv[0], newenvp[0]);
         return nextcall(execve)(substfilename, (char * const *)argv, newenvp);
     }
 
+    /* Check hashbang */
     expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     strcpy(tmp, filename);
     filename = tmp;

@@ -217,7 +217,8 @@ chrooted).
 
 The substituted command inherits C<FAKECHROOT_*> variables but the original
 C<FAKECHROOT_BASE> variable which is saved as C<FAKECHROOT_BASE_ORIG>.  It
-means that substituted command runs outside fakechroot environment.
+means that substituted command runs outside fakechroot environment.  Also
+original command name is saved as C<FAKECHROOT_CMD_ORIG>.
 
 For example:
 
@@ -260,6 +261,9 @@ It is suggested to substitute at least:
 =back
 
 to make debootstrap(8) working correctly.
+
+To prevent some looping, the command substitution is done only if
+C<FAKECHROOT_BASE_ORIG> variable is not set currently.
 
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
