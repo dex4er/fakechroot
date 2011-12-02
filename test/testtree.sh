@@ -65,6 +65,7 @@ for p in \
     '/usr/bin/env' \
     '/usr/bin/find' \
     '/usr/bin/id' \
+    '/usr/bin/ischroot' \
     '/usr/bin/less' \
     '/usr/bin/ltrace' \
     '/usr/bin/more' \
