@@ -2,7 +2,7 @@ sysconfdir = @sysconfdir@/@PACKAGE@
 
 src_wrappers = chroot.fakechroot.sh fakechroot.sh ldd.fakechroot.pl
 src_envs = chroot.env.sh debootstrap.env.sh
-example_scripts = restoremode.sh savemode.sh
+example_scripts = relocatesymlinks.sh restoremode.sh savemode.sh
 
 bin_SCRIPTS = fakechroot ldd.fakechroot
 sbin_SCRIPTS = chroot.fakechroot
