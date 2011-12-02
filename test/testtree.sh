@@ -105,6 +105,7 @@ for p in \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
+    'libtinfo.so.*' \
     'libutil.so.*' \
     'linux-vdso.so.*'
 do
