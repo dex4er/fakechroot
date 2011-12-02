@@ -78,6 +78,9 @@ void fakechroot_init (void)
     }
 
     debug("fakechroot_init()");
+    debug("FAKECHROOT_BASE=\"%s\"", getenv("FAKECHROOT_BASE"));
+    debug("FAKECHROOT_BASE_ORIG=\"%s\"", getenv("FAKECHROOT_BASE_ORIG"));
+
     if (!first) {
         first = 1;
 
