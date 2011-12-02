@@ -30,6 +30,7 @@ load_ldsoconf () {
 }
 
 chroot=${FAKECHROOT_CMD_ORIG:-chroot}
+unset FAKECHROOT_CMD_ORIG
 
 for opt in "$@"; do
     case "$opt" in

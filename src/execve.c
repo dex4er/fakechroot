@@ -92,7 +92,6 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     char *envkey[] = {
         "FAKECHROOT",
         "FAKECHROOT_BASE",
-        "FAKECHROOT_BASE_ORIG",
         "FAKECHROOT_CMD_SUBST",
         "FAKECHROOT_DEBUG",
         "FAKECHROOT_DETECT",
@@ -143,12 +142,11 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     }
 
     for (j = 0; j < nr_envkey; j++) {
-        env = getenv(envkey[j]);
+        key = envkey[j];
+        env = getenv(key);
         if (env != NULL) {
-            if (do_cmd_subst && strcmp(envkey[j], "FAKECHROOT_BASE") == 0)
+            if (do_cmd_subst && strcmp(key, "FAKECHROOT_BASE") == 0) {
                 key = "FAKECHROOT_BASE_ORIG";
-            else {
-                key = envkey[j];
             }
             newenvp[newenvppos] = malloc(strlen(key) + strlen(env) + 3);
             strcpy(newenvp[newenvppos], key);
