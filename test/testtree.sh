@@ -72,6 +72,7 @@ for p in \
     '/usr/bin/perl' \
     '/usr/bin/readlink' \
     '/usr/bin/seq' \
+    '/usr/bin/sort' \
     '/usr/bin/strace' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \
