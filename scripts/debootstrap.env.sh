@@ -2,6 +2,7 @@
 
 cmd_subst="
     /bin/mount=/bin/true
+    /sbin/devfs=/bin/true
     /sbin/insserv=/bin/true
     /sbin/ldconfig=/bin/true
     /usr/bin/ischroot=/bin/true
