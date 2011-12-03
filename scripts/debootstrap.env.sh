@@ -8,6 +8,8 @@ cmd_subst="
     /usr/bin/ischroot=/bin/true
     /usr/bin/ldd=@bindir@/ldd.fakechroot
     /usr/bin/mkfifo=/bin/true
+    /var/lib/dpkg/info/freebsd-utils.postinst=/bin/true
+    /var/lib/dpkg/info/kbdcontrol.postinst=/bin/true
 "
 
 FAKECHROOT_EXCLUDE_PATH="${FAKECHROOT_EXCLUDE_PATH:+$FAKECHROOT_EXCLUDE_PATH:}/dev:/proc:/sys"
