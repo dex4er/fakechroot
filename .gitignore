@@ -42,6 +42,8 @@ scripts/*.fakechroot
 scripts/fakechroot
 stamp-h1
 test/*.debs.tgz
+test/*.rpms.tgz
+test/rinse-cache
 test/src/test-*
 !test/src/test-*.c
 test/testtree

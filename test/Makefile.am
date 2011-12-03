@@ -36,8 +36,8 @@ EXTRA_DIST = $(TESTS) \
     common.inc \
     debootstrap.sh \
     fakechroot.sh \
-    febootstrap.sh \
     readlink.inc \
+    rinse.sh \
     seq.inc \
     tap.inc \
     testtree.sh \
