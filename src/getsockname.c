@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2011 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -31,8 +31,10 @@
 #include "libfakechroot.h"
 
 #ifdef HAVE_GETSOCKNAME_TYPE_ARG2___SOCKADDR_ARG__
+# define SOCKADDR(addr) ((addr).__sockaddr__)
 # define SOCKADDR_UN(addr) ((addr).__sockaddr_un__)
 #else
+# define SOCKADDR(addr) (addr)
 # define SOCKADDR_UN(addr) (addr)
 #endif
 
@@ -45,6 +47,11 @@ wrapper(getsockname, int, (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t * addrl
     char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("getsockname(%d, &addr, &addrlen)", s);
+
+    if (SOCKADDR(addr)->sa_family != AF_UNIX) {
+        return nextcall(getsockname)(s, addr, addrlen);
+    }
+
     newaddrlen = sizeof(struct sockaddr_un);
     memset(&newaddr, 0, newaddrlen);
     status = nextcall(getsockname)(s, (struct sockaddr *)&newaddr, &newaddrlen);

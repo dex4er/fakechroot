@@ -7,6 +7,8 @@
   environment variable.
 * The +debootstrap+(8) command works with default, buildd and minbase
   variants.
+* Fixes were made for +getpeeraddr+(3) and +getsockaddr+(3) functions.
+  +lwp-request+ command is working correctly.
 
 == Version 2.15 ==
 
