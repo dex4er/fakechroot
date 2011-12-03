@@ -6,7 +6,7 @@ abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
 test -d "$abs_srcdir/bin" && export PATH="$abs_srcdir/bin:$PATH"
 
 run () {
-    HOME=/root fakechroot /usr/sbin/chroot $destdir "$@"
+    HOME=/root fakechroot chroot $destdir "$@"
 }
 
 vendor=${VENDOR:-`lsb_release -s -i`}
@@ -20,7 +20,7 @@ if [ $# -gt 0 ]; then
     destdir=$1
     shift
 else
-    destdir=`pwd -P`/testtree
+    destdir="$abs_srcdir/testtree"
 fi
 
 tarball=$vendor-$release${variant:+-$variant}-$arch.debs.tgz
@@ -29,7 +29,7 @@ export FAKECHROOT_AF_UNIX_PATH=/tmp
 
 debootstrap_opts="--arch=$arch ${variant:+--variant=$variant}"
 if [ ! -f $tarball ]; then
-    FAKECHROOT=true fakeroot /usr/sbin/debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
+    FAKECHROOT=true fakeroot debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
 fi
 
 rm -rf $destdir
@@ -39,7 +39,7 @@ if ! which chroot >/dev/null; then
     export PATH
 fi
 
-fakechroot fakeroot /usr/sbin/debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
+fakechroot fakeroot debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
 
 HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
