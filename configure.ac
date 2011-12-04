@@ -1,9 +1,12 @@
 AC_PREREQ(2.64)
-AC_INIT([fakechroot], [2.15], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+AC_INIT([fakechroot], [2.16rc1], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
-AM_INIT_AUTOMAKE
+
+AM_INIT_AUTOMAKE([1.10 foreign])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
+
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_HEADER([config.h])
@@ -32,6 +35,7 @@ AC_PROG_CC
 AC_PROG_LN_S
 AC_CHECK_PROGS([PROVE], [prove])
 AC_CHECK_PROGS([SEQ], [seq gseq])
+AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:$PATH])
 
 # Checks for compilator features
 ACX_CHECK_C_ALIGNOF
@@ -198,6 +202,7 @@ AC_CHECK_FUNCS(m4_normalize([
     opendir
     pathconf
     popen
+    rawmemchr
     readlink
     readlinkat
     realpath
@@ -228,6 +233,7 @@ AC_CHECK_FUNCS(m4_normalize([
     truncate64
     unlink
     unlinkat
+    unsetenv
     ulckpwdf
     utime
     utimensat

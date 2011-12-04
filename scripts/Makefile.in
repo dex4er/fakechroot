@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -77,14 +78,23 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(bindir)"
-SCRIPTS = $(bin_SCRIPTS)
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sbindir)" \
+	"$(DESTDIR)$(sysconfdir)"
+SCRIPTS = $(bin_SCRIPTS) $(sbin_SCRIPTS)
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 SOURCES =
 DIST_SOURCES =
+DATA = $(sysconf_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -94,6 +104,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
+CHROOT = @CHROOT@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -197,21 +208,25 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
-sysconfdir = @sysconfdir@
+sysconfdir = @sysconfdir@/@PACKAGE@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+src_wrappers = chroot.fakechroot.sh fakechroot.sh ldd.fakechroot.pl
+src_envs = chroot.env.sh debootstrap.env.sh rinse.env.sh
+example_scripts = relocatesymlinks.sh restoremode.sh savemode.sh
 bin_SCRIPTS = fakechroot ldd.fakechroot
-EXTRA_DIST = fakechroot.sh ldd.pl restoremode.sh savemode.sh
-CLEANFILES = $(bin_SCRIPTS)
-do_subst = sed -e 's,[@]prefix[@],$(prefix),g' \
-	       -e 's,[@]bindir[@],$(bindir),g' \
-	       -e 's,[@]libdir[@],$(libdir),g' \
-	       -e 's,[@]pkglibdir[@],$(pkglibdir),g' \
-	       -e 's,[@]libpath[@],$(libpath),g' \
-	       -e 's,[@]fakechroot_transformed[@],'`echo fakechroot | sed -e '$(transform)'`',g' \
-	       -e 's,[@]VERSION[@],$(VERSION),g'
+sbin_SCRIPTS = chroot.fakechroot
+sysconf_DATA = chroot.env debootstrap.env rinse.env
+EXTRA_DIST = $(src_wrappers) $(src_envs) $(example_scripts)
+CLEANFILES = $(bin_SCRIPTS) $(sbin_SCRIPTS) $(sysconf_DATA)
+do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
+               -e 's,[@]libpath[@],$(libpath),g' \
+               -e 's,[@]sbindir[@],$(sbindir),g' \
+               -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
+               -e 's,[@]CHROOT[@],$(CHROOT),g' \
+               -e 's,[@]VERSION[@],$(VERSION),g'
 
 all: all-am
 
@@ -225,9 +240,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu scripts/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign scripts/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu scripts/Makefile
+	  $(AUTOMAKE) --foreign scripts/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -280,12 +295,66 @@ uninstall-binSCRIPTS:
 	test -n "$$list" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+install-sbinSCRIPTS: $(sbin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(sbindir)" || $(MKDIR_P) "$(DESTDIR)$(sbindir)"
+	@list='$(sbin_SCRIPTS)'; test -n "$(sbindir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n' \
+	    -e 'h;s|.*|.|' \
+	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
+	      if (++n[d] == $(am__install_max)) { \
+		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
+	    else { print "f", d "/" $$4, $$1 } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	     test -z "$$files" || { \
+	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(sbindir)$$dir'"; \
+	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(sbindir)$$dir" || exit $$?; \
+	     } \
+	; done
+
+uninstall-sbinSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(sbin_SCRIPTS)'; test -n "$(sbindir)" || exit 0; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	       sed -e 's,.*/,,;$(transform)'`; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(sbindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(sbindir)" && rm -f $$files
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-sysconfDATA: $(sysconf_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(sysconfdir)" || $(MKDIR_P) "$(DESTDIR)$(sysconfdir)"
+	@list='$(sysconf_DATA)'; test -n "$(sysconfdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(sysconfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(sysconfdir)" || exit $$?; \
+	done
+
+uninstall-sysconfDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(sysconf_DATA)'; test -n "$(sysconfdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(sysconfdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(sysconfdir)" && rm -f $$files
 tags: TAGS
 TAGS:
 
@@ -325,9 +394,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(SCRIPTS)
+all-am: Makefile $(SCRIPTS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(sysconfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -382,7 +451,8 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binSCRIPTS
+install-exec-am: install-binSCRIPTS install-sbinSCRIPTS \
+	install-sysconfDATA
 
 install-html: install-html-am
 
@@ -420,7 +490,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binSCRIPTS
+uninstall-am: uninstall-binSCRIPTS uninstall-sbinSCRIPTS \
+	uninstall-sysconfDATA
 
 .MAKE: install-am install-strip
 
@@ -431,19 +502,37 @@ uninstall-am: uninstall-binSCRIPTS
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
 	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-binSCRIPTS
+	install-sbinSCRIPTS install-strip install-sysconfDATA \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-binSCRIPTS uninstall-sbinSCRIPTS \
+	uninstall-sysconfDATA
 
 
-fakechroot: $(srcdir)/fakechroot.sh
-	$(do_subst) < $(srcdir)/fakechroot.sh > fakechroot
+chroot.env: $(srcdir)/chroot.env.sh
+	$(do_subst) < $(srcdir)/chroot.env.sh > $@
 	chmod +x $@
 
-ldd.fakechroot: $(srcdir)/ldd.pl
-	cp $(srcdir)/ldd.pl ldd.fakechroot
-	chmod +x ldd.fakechroot
+chroot.fakechroot: $(srcdir)/chroot.fakechroot.sh
+	$(do_subst) < $(srcdir)/chroot.fakechroot.sh > $@
+	chmod +x $@
+
+debootstrap.env: $(srcdir)/debootstrap.env.sh
+	$(do_subst) < $(srcdir)/debootstrap.env.sh > $@
+	chmod +x $@
+
+fakechroot: $(srcdir)/fakechroot.sh
+	$(do_subst) < $(srcdir)/fakechroot.sh > $@
+	chmod +x $@
+
+ldd.fakechroot: $(srcdir)/ldd.fakechroot.pl
+	$(do_subst) < $(srcdir)/ldd.fakechroot.pl > $@
+	chmod +x $@
+
+rinse.env: $(srcdir)/rinse.env.sh
+	$(do_subst) < $(srcdir)/rinse.env.sh > $@
+	chmod +x $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -102,6 +102,8 @@ libfakechroot_la_SOURCES = \
     opendir.c \
     pathconf.c \
     popen.c \
+    rawmemchr.c \
+    rawmemchr.h \
     readlink.c \
     readlinkat.c \
     realpath.c \
@@ -114,6 +116,8 @@ libfakechroot_la_SOURCES = \
     rpl_lstat.c \
     scandir.c \
     scandir64.c \
+    setenv.c \
+    setenv.h \
     setxattr.c \
     stat.c \
     stat.h \
@@ -135,6 +139,8 @@ libfakechroot_la_SOURCES = \
     ulckpwdf.c \
     unlink.c \
     unlinkat.c \
+    unsetenv.c \
+    unsetenv.h \
     utime.c \
     utimensat.c \
     utimes.c

@@ -66,6 +66,9 @@ test_canonicalize_file_name_SOURCES = test-canonicalize_file_name.c
 test_canonicalize_file_name_OBJECTS =  \
 	test-canonicalize_file_name.$(OBJEXT)
 test_canonicalize_file_name_LDADD = $(LDADD)
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
 test_chroot_SOURCES = test-chroot.c
 test_chroot_OBJECTS = test-chroot.$(OBJEXT)
 test_chroot_LDADD = $(LDADD)
@@ -116,13 +119,26 @@ am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_$(V))
+am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
+am__v_CC_0 = @echo "  CC    " $@;
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_$(V))
+am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
+am__v_CCLD_0 = @echo "  CCLD  " $@;
+AM_V_GEN = $(am__v_GEN_$(V))
+am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
+am__v_GEN_0 = @echo "  GEN   " $@;
 SOURCES = test-canonicalize_file_name.c test-chroot.c test-execlp.c \
 	test-fts.c test-ftw.c test-lstat.c test-opendir.c test-popen.c \
 	test-realpath.c test-scandir.c test-socket-af_unix-client.c \
@@ -139,6 +155,7 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -148,6 +165,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
+CHROOT = @CHROOT@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -269,9 +287,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu test/src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign test/src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu test/src/Makefile
+	  $(AUTOMAKE) --foreign test/src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -301,49 +319,49 @@ clean-checkPROGRAMS:
 	rm -f $$list
 test-canonicalize_file_name$(EXEEXT): $(test_canonicalize_file_name_OBJECTS) $(test_canonicalize_file_name_DEPENDENCIES) 
 	@rm -f test-canonicalize_file_name$(EXEEXT)
-	$(LINK) $(test_canonicalize_file_name_OBJECTS) $(test_canonicalize_file_name_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_canonicalize_file_name_OBJECTS) $(test_canonicalize_file_name_LDADD) $(LIBS)
 test-chroot$(EXEEXT): $(test_chroot_OBJECTS) $(test_chroot_DEPENDENCIES) 
 	@rm -f test-chroot$(EXEEXT)
-	$(LINK) $(test_chroot_OBJECTS) $(test_chroot_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_chroot_OBJECTS) $(test_chroot_LDADD) $(LIBS)
 test-execlp$(EXEEXT): $(test_execlp_OBJECTS) $(test_execlp_DEPENDENCIES) 
 	@rm -f test-execlp$(EXEEXT)
-	$(LINK) $(test_execlp_OBJECTS) $(test_execlp_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_execlp_OBJECTS) $(test_execlp_LDADD) $(LIBS)
 test-fts$(EXEEXT): $(test_fts_OBJECTS) $(test_fts_DEPENDENCIES) 
 	@rm -f test-fts$(EXEEXT)
-	$(LINK) $(test_fts_OBJECTS) $(test_fts_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_fts_OBJECTS) $(test_fts_LDADD) $(LIBS)
 test-ftw$(EXEEXT): $(test_ftw_OBJECTS) $(test_ftw_DEPENDENCIES) 
 	@rm -f test-ftw$(EXEEXT)
-	$(LINK) $(test_ftw_OBJECTS) $(test_ftw_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_ftw_OBJECTS) $(test_ftw_LDADD) $(LIBS)
 test-lstat$(EXEEXT): $(test_lstat_OBJECTS) $(test_lstat_DEPENDENCIES) 
 	@rm -f test-lstat$(EXEEXT)
-	$(LINK) $(test_lstat_OBJECTS) $(test_lstat_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_lstat_OBJECTS) $(test_lstat_LDADD) $(LIBS)
 test-opendir$(EXEEXT): $(test_opendir_OBJECTS) $(test_opendir_DEPENDENCIES) 
 	@rm -f test-opendir$(EXEEXT)
-	$(LINK) $(test_opendir_OBJECTS) $(test_opendir_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_opendir_OBJECTS) $(test_opendir_LDADD) $(LIBS)
 test-popen$(EXEEXT): $(test_popen_OBJECTS) $(test_popen_DEPENDENCIES) 
 	@rm -f test-popen$(EXEEXT)
-	$(LINK) $(test_popen_OBJECTS) $(test_popen_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_popen_OBJECTS) $(test_popen_LDADD) $(LIBS)
 test-realpath$(EXEEXT): $(test_realpath_OBJECTS) $(test_realpath_DEPENDENCIES) 
 	@rm -f test-realpath$(EXEEXT)
-	$(LINK) $(test_realpath_OBJECTS) $(test_realpath_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_realpath_OBJECTS) $(test_realpath_LDADD) $(LIBS)
 test-scandir$(EXEEXT): $(test_scandir_OBJECTS) $(test_scandir_DEPENDENCIES) 
 	@rm -f test-scandir$(EXEEXT)
-	$(LINK) $(test_scandir_OBJECTS) $(test_scandir_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_scandir_OBJECTS) $(test_scandir_LDADD) $(LIBS)
 test-socket-af_unix-client$(EXEEXT): $(test_socket_af_unix_client_OBJECTS) $(test_socket_af_unix_client_DEPENDENCIES) 
 	@rm -f test-socket-af_unix-client$(EXEEXT)
-	$(LINK) $(test_socket_af_unix_client_OBJECTS) $(test_socket_af_unix_client_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_socket_af_unix_client_OBJECTS) $(test_socket_af_unix_client_LDADD) $(LIBS)
 test-socket-af_unix-server$(EXEEXT): $(test_socket_af_unix_server_OBJECTS) $(test_socket_af_unix_server_DEPENDENCIES) 
 	@rm -f test-socket-af_unix-server$(EXEEXT)
-	$(LINK) $(test_socket_af_unix_server_OBJECTS) $(test_socket_af_unix_server_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_socket_af_unix_server_OBJECTS) $(test_socket_af_unix_server_LDADD) $(LIBS)
 test-statfs$(EXEEXT): $(test_statfs_OBJECTS) $(test_statfs_DEPENDENCIES) 
 	@rm -f test-statfs$(EXEEXT)
-	$(LINK) $(test_statfs_OBJECTS) $(test_statfs_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_statfs_OBJECTS) $(test_statfs_LDADD) $(LIBS)
 test-statvfs$(EXEEXT): $(test_statvfs_OBJECTS) $(test_statvfs_DEPENDENCIES) 
 	@rm -f test-statvfs$(EXEEXT)
-	$(LINK) $(test_statvfs_OBJECTS) $(test_statvfs_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_statvfs_OBJECTS) $(test_statvfs_LDADD) $(LIBS)
 test-system$(EXEEXT): $(test_system_OBJECTS) $(test_system_DEPENDENCIES) 
 	@rm -f test-system$(EXEEXT)
-	$(LINK) $(test_system_OBJECTS) $(test_system_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(test_system_OBJECTS) $(test_system_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -368,22 +386,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-system.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<

@@ -5,8 +5,8 @@ srcdir=${srcdir:-.}
 
 prepare 12
 
-$srcdir/testtree.sh testtree/testtree
-test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || bail_out "testtree/testtree"
+$srcdir/testtree.sh testtree/testtree2
+test "`cat testtree/testtree2/CHROOT`" = "testtree/testtree2" || bail_out "testtree/testtree"
 
 for chroot in chroot fakechroot; do
 
@@ -14,9 +14,9 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        for testtree in testtree /testtree ./testtree /./testtree testtree/. testtree/./.; do
-            t=`$srcdir/$chroot.sh testtree /usr/sbin/chroot $testtree /bin/cat /CHROOT`
-            test "$t" = "testtree/testtree" || not
+        for testtree in testtree2 /testtree2 ./testtree2 /./testtree2 testtree2/. testtree2/./.; do
+            t=`$srcdir/$chroot.sh testtree /usr/sbin/chroot $testtree /bin/cat /CHROOT 2>&1`
+            test "$t" = "testtree/testtree2" || not
             ok "$chroot chroot $testtree:" $t
         done
     fi

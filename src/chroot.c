@@ -21,10 +21,12 @@
 #include <config.h>
 
 #define _GNU_SOURCE
+#include <errno.h>
 #include <stddef.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "setenv.h"
 #include "libfakechroot.h"
 
 #ifdef HAVE___XSTAT64
@@ -36,12 +38,9 @@
 
 wrapper(chroot, int, (const char * path))
 {
-    char *ptr, *ld_library_path, *tmp, *fakechroot_path;
+    char *ptr, *ld_library_path, *separator, *tmp, *fakechroot_path;
     int status, len;
     char dir[FAKECHROOT_PATH_MAX], cwd[FAKECHROOT_PATH_MAX];
-#ifndef HAVE_SETENV
-    char *envbuf;
-#endif
 #ifdef HAVE___XSTAT64
     struct stat64 sb;
 #else
@@ -49,6 +48,7 @@ wrapper(chroot, int, (const char * path))
 #endif
 
     debug("chroot(\"%s\")", path);
+
     if (path == NULL) {
         __set_errno(EFAULT);
         return -1;
@@ -119,21 +119,19 @@ wrapper(chroot, int, (const char * path))
     }
     *tmp = 0;
 
-#ifdef HAVE_SETENV
     setenv("FAKECHROOT_BASE", dir, 1);
-#else
-    envbuf = malloc(FAKECHROOT_PATH_MAX+16);
-    snprintf(envbuf, FAKECHROOT_PATH_MAX+16, "FAKECHROOT_BASE=%s", dir);
-    putenv(envbuf);
-#endif
     fakechroot_path = getenv("FAKECHROOT_BASE");
 
     ld_library_path = getenv("LD_LIBRARY_PATH");
-    if (ld_library_path == NULL) {
+    if (ld_library_path != NULL && strlen(ld_library_path) > 0) {
+        separator = ":";
+    }
+    else {
         ld_library_path = "";
+        separator = "";
     }
 
-    if ((len = strlen(ld_library_path)+strlen(dir)*2+sizeof(":/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
+    if ((len = strlen(ld_library_path)+strlen(separator)+strlen(dir)*2+sizeof("/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
         return ENAMETOOLONG;
     }
 
@@ -141,14 +139,8 @@ wrapper(chroot, int, (const char * path))
         return ENOMEM;
     }
 
-    snprintf(tmp, len, "%s:%s/usr/lib:%s/lib", ld_library_path, dir, dir);
-#ifdef HAVE_SETENV
+    snprintf(tmp, len, "%s%s%s/usr/lib:%s/lib", ld_library_path, separator, dir, dir);
     setenv("LD_LIBRARY_PATH", tmp, 1);
-#else
-    envbuf = malloc(FAKECHROOT_PATH_MAX+16);
-    snprintf(envbuf, FAKECHROOT_PATH_MAX+16, "LD_LIBRARY_PATH=%s", tmp);
-    putenv(envbuf);
-#endif
     free(tmp);
     return 0;
 }

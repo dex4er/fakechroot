@@ -21,6 +21,7 @@
 #include <config.h>
 
 #define _GNU_SOURCE
+#include <errno.h>
 #include <stddef.h>
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
@@ -107,6 +108,7 @@ wrapper(execvp, int, (const char * file, char * const argv[]))
                  up finding no executable we can use, we want to diagnose
                  that we did find one but were denied access.  */
                 got_eacces = 1;
+                break;
             case ENOENT:
             case ESTALE:
             case ENOTDIR:

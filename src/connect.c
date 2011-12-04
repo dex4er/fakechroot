@@ -23,11 +23,13 @@
 #ifdef HAVE_CONNECT
 
 #define _GNU_SOURCE
+#include <sys/types.h>
 #include <sys/socket.h>
 
 #ifdef AF_UNIX
 
 #include <sys/un.h>
+#include <errno.h>
 #include "libfakechroot.h"
 
 #ifdef HAVE_CONNECT_TYPE_ARG2___CONST_SOCKADDR_ARG__

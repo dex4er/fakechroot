@@ -1,7 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003, 2005, 2007, 2008, 2009, 2010 Piotr Roszatycki
-    <dexter@debian.org>
+    Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
     Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
     Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
 
@@ -28,9 +27,11 @@
 #define _GNU_SOURCE
 #include <stdarg.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <pwd.h>
 #include <dlfcn.h>
+#include "setenv.h"
 #include "libfakechroot.h"
 
 
@@ -72,13 +73,25 @@ void fakechroot_init (void)
     struct passwd* passwd = NULL;
     char *pointer;
 
+    if ((pointer = getenv("FAKECHROOT_DETECT"))) {
+        /* printf causes coredump on FreeBSD */
+        if (write(STDOUT_FILENO, PACKAGE, sizeof(PACKAGE)-1) &&
+            write(STDOUT_FILENO, " ", 1) &&
+            write(STDOUT_FILENO, VERSION, sizeof(VERSION)-1) &&
+            write(STDOUT_FILENO, "\n", 1)) { /* -Wunused-result */ }
+        _Exit(atoi(pointer));
+    }
+
     debug("fakechroot_init()");
+    debug("FAKECHROOT_BASE=\"%s\"", getenv("FAKECHROOT_BASE"));
+    debug("FAKECHROOT_BASE_ORIG=\"%s\"", getenv("FAKECHROOT_BASE_ORIG"));
+    debug("FAKECHROOT_CMD_ORIG=\"%s\"", getenv("FAKECHROOT_CMD_ORIG"));
+
     if (!first) {
         first = 1;
 
         /* We get a list of directories or files */
-        pointer = getenv("FAKECHROOT_EXCLUDE_PATH");
-        if (pointer) {
+        if ((pointer = getenv("FAKECHROOT_EXCLUDE_PATH"))) {
             for (i=0; list_max<32 ;) {
                 for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
                 exclude_list[list_max] = malloc(j-i+2);
@@ -98,6 +111,9 @@ void fakechroot_init (void)
             strcpy(home_path, passwd->pw_dir);
             strcat(home_path, "/");
         }
+
+        setenv("FAKECHROOT", "true", 1);
+        setenv("FAKECHROOT_VERSION", FAKECHROOT, 1);
     }
 }
 

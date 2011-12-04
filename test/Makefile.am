@@ -36,8 +36,8 @@ EXTRA_DIST = $(TESTS) \
     common.inc \
     debootstrap.sh \
     fakechroot.sh \
-    febootstrap.sh \
     readlink.inc \
+    rinse.sh \
     seq.inc \
     tap.inc \
     testtree.sh \
@@ -47,7 +47,7 @@ EXTRA_DIST = $(TESTS) \
     #
 
 test:
-	$(MAKE) $(AM_MAKEFLAGS) -C src check
+	( cd src && $(MAKE) $(AM_MAKEFLAGS) check )
 	if [ -n "$(PROVE)" ]; then \
 	    cp -f $(srcdir)/proverc .proverc; \
 	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \

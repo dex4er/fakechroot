@@ -1,3 +1,17 @@
+== Version 2.16rc1 ==
+
+4 Dec 2011
+
+* The fakechroot script loads additional environment settings from
+  configuration directory (+--config-dir+ option). By default additional
+  settings are provided for +chroot+(8) and +debootstrap+(8) commands.
+* Wrapped +chroot+(8) command loads +ld.so.conf+ paths to +LD_LIBRARY_PATH+
+  environment variable.
+* The +debootstrap+(8) command works with default, buildd and minbase
+  variants.
+* Fixes were made for +getpeeraddr+(3) and +getsockaddr+(3) functions.
+  +lwp-request+ command is working correctly.
+
 == Version 2.15 ==
 
 29 Sep 2011

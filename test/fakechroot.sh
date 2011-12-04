@@ -1,7 +1,7 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
+FAKECHROOT="${FAKECHROOT:-$srcdir/bin/fakechroot}"
 
-export FAKECHROOT_EXCLUDE_PATH=${FAKECHROOT_EXCLUDE_PATH:-/dev:/proc}
-$srcdir/bin/fakechroot $srcdir/chroot.sh "$@"
+"$FAKECHROOT" "$srcdir/chroot.sh" "$@"
+exit $?

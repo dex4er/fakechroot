@@ -1,22 +1,17 @@
 #!/bin/sh
 
-srcdir=${srcdir:-.}
-. $srcdir/common.inc
+pwd=`dirname $0`
+abs_top_srcdir=${abs_top_srcdir:-`cd "$pwd/../.." 2>/dev/null && pwd -P`}
 
-if [ "$1" = "-s" ] || [ "$1" = "--use-system-libs" ]; then
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH${LD_LIBRARY_PATH:+:}/usr/lib:/lib"
-    export LD_LIBRARY_PATH
-    shift
+if ! command -v chroot >/dev/null; then
+    PATH="${PATH:-/usr/bin:/bin}:/usr/sbin:/sbin"
+    export PATH
 fi
 
-if [ "$1" = "--" ]; then
-    shift
-fi
+chroot=`command -v chroot`
 
-prepare_env
+FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$chroot=$abs_top_srcdir/scripts/chroot.fakechroot"
+export FAKECHROOT_CMD_SUBST
 
-if [ $# -gt 0 ]; then
-    exec "$@"
-else
-    exec $SHELL
-fi
+"$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
+exit $?

@@ -436,6 +436,9 @@
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
 
+/* Define to 1 if you have the `rawmemchr' function. */
+#undef HAVE_RAWMEMCHR
+
 /* Define to 1 if you have the `readlink' function. */
 #undef HAVE_READLINK
 
@@ -654,6 +657,9 @@
 
 /* Define to 1 if you have the `unlinkat' function. */
 #undef HAVE_UNLINKAT
+
+/* Define to 1 if you have the `unsetenv' function. */
+#undef HAVE_UNSETENV
 
 /* Define to 1 if you have the `utime' function. */
 #undef HAVE_UTIME

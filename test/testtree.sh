@@ -11,8 +11,13 @@ for d in \
     /bin \
     /etc \
     /lib \
+    /lib/*-*-* \
     /lib32 \
     /lib64 \
+    /usr/lib \
+    /usr/lib/*-*-* \
+    /usr/lib32 \
+    /usr/lib64 \
     /libexec \
     /root \
     /sbin \
@@ -20,8 +25,10 @@ for d in \
     /usr/bin \
     /usr/lib \
     /usr/sbin \
-    /usr/local/bin
+    /usr/local/bin \
+    /usr/local/lib
 do
+    test -d $d || continue
     mkdir -p $destdir/$d
 done
 
@@ -55,14 +62,17 @@ for p in \
     '/bin/touch' \
     '/usr/bin/basename' \
     '/usr/bin/dirname' \
+    '/usr/bin/env' \
     '/usr/bin/find' \
     '/usr/bin/id' \
+    '/usr/bin/ischroot' \
     '/usr/bin/less' \
     '/usr/bin/ltrace' \
     '/usr/bin/more' \
     '/usr/bin/perl' \
     '/usr/bin/readlink' \
     '/usr/bin/seq' \
+    '/usr/bin/sort' \
     '/usr/bin/strace' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \
@@ -95,12 +105,23 @@ for p in \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
+    'libtinfo.so.*' \
     'libutil.so.*' \
     'linux-vdso.so.*'
 do
-    for a in '' 32 64 exec; do
-        fp="/lib$a/$p"
-        for f in $fp; do
+    for d in \
+        /lib \
+        /lib/*-*-* \
+        /lib32 \
+        /lib64 \
+        /usr/lib \
+        /usr/lib/*-*-* \
+        /usr/lib32 \
+        /usr/lib64 \
+        /usr/local/lib
+    do
+        test -d "$d" || continue
+        for f in $d/$p; do
             cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
         done
     done
