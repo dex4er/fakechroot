@@ -236,27 +236,27 @@ It is suggested to substitute at least:
 
 =item *
 
-/bin/mount=/bin/true
+C</bin/mount=/bin/true>
 
 =item *
 
-/sbin/insserv=/bin/true
+C</sbin/insserv=/bin/true>
 
 =item *
 
-/sbin/ldconfig=/bin/ldconfig
+C</sbin/ldconfig=/bin/ldconfig>
 
 =item *
 
-/usr/bin/ischroot=/bin/true
+C</usr/bin/ischroot=/bin/true>
 
 =item *
 
-/usr/bin/ldd=/usr/bin/ldd.fakechroot
+C</usr/bin/ldd=/usr/bin/ldd.fakechroot>
 
 =item *
 
-/usr/bin/mkfifo=/bin/true
+C</usr/bin/mkfifo=/bin/true>
 
 =back
 
@@ -268,12 +268,12 @@ C<FAKECHROOT_CMD_ORIG> variable is not set currently.
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
 Fakechroot is implemented by wrapping system calls.  This is accomplished by
-setting LD_LIBRARY_PATH=/usr/lib/fakechroot and
+setting C<LD_LIBRARY_PATH=/usr/lib/fakechroot> and
 LD_PRELOAD=libfakechroot.so.  That library is loaded before the
 system's C library, and so most of the library functions are intercepted by
 it.  If you need to set either B<LD_LIBRARY_PATH> or B<LD_PRELOAD> from within
 a fakechroot environment, it should be set relative to the given paths, as in
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/
+C<LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/>
 
 =back
 
@@ -310,9 +310,9 @@ dpkg-divert(8)) or use B<FAKECHROOT_CMD_SUBST> environment variable.
 =item o
 
 ldd(1) also doesn't work.  You have to use C<alias
-ldd='LD_TRACE_LOADED_OBJECTS=1'> or to use a wrapper instead.  The example
-wrapper is available at F<scripts/> directory in fakechroot's source package
-and it is located at F</usr/share/doc/fakechroot/examples> directory.
+ldd='LD_TRACE_LOADED_OBJECTS=1'> or to use a wrapper instead.  The wrapper is
+installed as F<ldd.fakechroot> and can be used with C<FAKECHROOT_CMD_SUBST>
+environment variable.
 
 =item o
 
@@ -322,7 +322,7 @@ remove it from fake chroot environment.
 
 =item o
 
-lckpwdf() and ulckpwdf() are ignored so passwd(1) command should work
+lckpwdf(3) and ulckpwdf(3) are ignored so passwd(1) command should work
 
 =item o
 
