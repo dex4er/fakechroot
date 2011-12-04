@@ -22,10 +22,9 @@ DESCRIPTION
     shared library /usr/lib/fakechroot/libfakechroot.so which is loaded
     through the `LD_PRELOAD' mechanism of the dynamic loader. (See ld.so(8))
 
-    In fake chroot you can install Debian bootstrap with `debootstrap
-    --variant=fakechroot' command. In this environment you can use i.e.
-    apt-get(8) command to install another packages from common user's
-    account.
+    In fake chroot you can install Debian bootstrap with debootstrap(8)
+    command. In this environment you can use i.e. apt-get(8) command to
+    install another packages from common user's account.
 
     In the current version, the fakechroot does not provide the fakeroot(1)
     functionality! You might to call fakechroot with fakeroot command, if
