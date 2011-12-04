@@ -334,6 +334,11 @@ I<realuid> I<realuser>.
 debuild(1) cleans environment.  Use --preserve-env option to prevent this
 behaviour.
 
+=item o
+
+rpmbuild(8) uses own glob(3) implementation which breaks fakechroot so
+buildroot directory have to be the same inside and outside fakechroot.
+
 =back
 
 =for readme continue
