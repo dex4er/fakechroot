@@ -1,4 +1,6 @@
-== Version UNRELEASED ==
+== Version 2.16rc1 ==
+
+4 Dec 2011
 
 * The fakechroot script loads additional environment settings from
   configuration directory (+--config-dir+ option). By default additional
