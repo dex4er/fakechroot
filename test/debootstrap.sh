@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# This script setups new environment with debootstrap, installs necessary
+# packages with APT, downloads source package for hello, and builds the
+# binary package.
+#
+# It should work with any Debian-based system.
+
 srcdir=${srcdir:-.}
 abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
 

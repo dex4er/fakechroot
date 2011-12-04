@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# This script setups new environment with Rinse
+# (http://www.steve.org.uk/Software/rinse/), installs necessary packages
+# with Yum, downloads source package for hello, and builds the binary
+# package.
+#
+# It should work with systems supported by Rinse (CentOS, Fedora,
+# OpenSUSE).
+
 srcdir=${srcdir:-.}
 abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
 
@@ -30,8 +38,6 @@ fi
 
 tarball=$vendor-$release-$arch.rpms.tgz
 distribution=`echo $vendor | tr 'A-Z' 'a-z'`-`echo $release | sed 's/\..*//'`
-
-if false; then
 
 rm -rf rinse-cache
 mkdir rinse-cache
@@ -64,8 +70,6 @@ done
 run_fakeroot yum -y update
 
 run_fakeroot yum -y install gcc gettext make rpm-build tar yum-utils
-
-fi
 
 # rpmbuild has statically compiled glob() function so buildroot directory have to be the same inside and outside fakechroot.
 export FAKECHROOT_EXCLUDE_PATH=/tmp
