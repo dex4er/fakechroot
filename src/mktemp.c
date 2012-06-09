@@ -27,7 +27,7 @@ wrapper(mktemp, char *, (char * template))
 {
     char tmp[FAKECHROOT_PATH_MAX], *ptr, *ptr2;
     char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
-    int localdir = 0;
+    int localdir = 1;
 
     debug("mktemp(\"%s\")", template);
     tmp[FAKECHROOT_PATH_MAX-1] = '\0';
@@ -35,7 +35,7 @@ wrapper(mktemp, char *, (char * template))
     ptr = tmp;
 
     if (!fakechroot_localdir(ptr)) {
-        localdir = 1;
+        localdir = 0;
         expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_buf);
     }
 
