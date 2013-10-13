@@ -3,6 +3,11 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
+if ! command -v chroot >/dev/null; then
+    PATH="${PATH:-/usr/bin:/bin}:/usr/sbin:/sbin"
+    export PATH
+fi
+
 prepare 12
 
 $srcdir/testtree.sh testtree/testtree2
