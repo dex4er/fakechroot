@@ -27,7 +27,6 @@ wrapper(mktemp, char *, (char * template))
 {
     char tmp[FAKECHROOT_PATH_MAX], *ptr, *ptr2;
     char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
-    int localdir = 0;
 
     debug("mktemp(\"%s\")", template);
     tmp[FAKECHROOT_PATH_MAX-1] = '\0';
@@ -35,12 +34,11 @@ wrapper(mktemp, char *, (char * template))
     ptr = tmp;
 
     if (!fakechroot_localdir(ptr)) {
-        localdir = 1;
         expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_buf);
     }
 
     if (nextcall(mktemp)(ptr) == NULL) {
-        if (!localdir) free(ptr);
+        if (ptr != tmp) free(ptr);
         return NULL;
     }
 
@@ -48,6 +46,6 @@ wrapper(mktemp, char *, (char * template))
     narrow_chroot_path(ptr2, fakechroot_path, fakechroot_ptr);
 
     strncpy(template, ptr2, strlen(template));
-    if (!localdir) free(ptr);
+    if (ptr != tmp) free(ptr);
     return template;
 }
