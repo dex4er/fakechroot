@@ -22,14 +22,21 @@ for chroot in chroot fakechroot; do
             symlink="${symlink}a"
             destfile="${destfile}b"
 
-            rm -f "testtree/$symlink" "testtree/$destfile"
-            t=`$srcdir/$chroot.sh testtree /bin/ln -s $destfile $symlink 2>&1`
-            test "$t" = "" || not
-            ok "$chroot ln -s [$i]" $t
+            if ! touch "testtree/$destfile" 2>/dev/null; then
+                skip 2 "File name too long"
+            else
 
-            t=`$srcdir/$chroot.sh testtree $readlink $symlink 2>&1`
-            test "$t" = "$destfile" || not
-            ok "$chroot readlink [$i]" $t
+                rm -f "testtree/$symlink"
+
+                t=`$srcdir/$chroot.sh testtree /bin/ln -s $destfile $symlink 2>&1`
+                test "$t" = "" || not
+                ok "$chroot ln -s [$i]" $t
+
+                t=`$srcdir/$chroot.sh testtree $readlink $symlink 2>&1`
+                test "$t" = "$destfile" || not
+                ok "$chroot readlink [$i]" $t
+
+            fi
 
         done
 
