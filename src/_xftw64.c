@@ -36,7 +36,7 @@ static int _xftw64_fn_wrapper (const char * file, const struct stat * sb, int fl
     return _xftw64_fn_saved(file, sb, flag);
 }
 
-wrapper(_xftw, int, (int mode, const char * dir, int (* fn)(const char * file, const struct stat64 * sb, int flag), int nopenfd)
+wrapper(_xftw64, int, (int mode, const char * dir, int (* fn)(const char * file, const struct stat64 * sb, int flag), int nopenfd))
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("_xftw64(%d, \"%s\", &fn, %d)", mode, dir, nopenfd);
