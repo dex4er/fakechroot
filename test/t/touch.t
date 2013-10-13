@@ -1,11 +1,11 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
+. $srcdir/common.inc.sh
 
 prepare 16
 
-. $srcdir/touch.inc
+. $srcdir/touch.inc.sh
 
 if [ -z "$touch" ]; then
     skip 16 "touch not found"

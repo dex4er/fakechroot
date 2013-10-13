@@ -1,8 +1,8 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
-. $srcdir/readlink.inc
+. $srcdir/common.inc.sh
+. $srcdir/readlink.inc.sh
 
 imax=$(( 180 - $(pwd | wc -c) ))
 

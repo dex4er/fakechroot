@@ -4,7 +4,7 @@
 srcdir=${srcdir:-.}
 
 # include common script
-. $srcdir/common.inc
+. $srcdir/common.inc.sh
 
 # prepare tests. how many tests will be?
 prepare 2

@@ -25,5 +25,5 @@ prepare () {
     unset FAKECHROOT_CMD_SUBST FAKECHROOT_DEBUG FAKECHROOT_EXCLUDE_PATH
 }
 
-. "$srcdir/seq.inc"
-. "$srcdir/tap.inc"
+. "$srcdir/seq.inc.sh"
+. "$srcdir/tap.inc.sh"

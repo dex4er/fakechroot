@@ -33,15 +33,15 @@ CLEANFILES = .proverc
 EXTRA_DIST = $(TESTS) \
     proverc \
     chroot.sh \
-    common.inc \
+    common.inc.sh \
     debootstrap.sh \
     fakechroot.sh \
-    readlink.inc \
+    readlink.inc.sh \
     rinse.sh \
-    seq.inc \
-    tap.inc \
+    seq.inc.sh \
+    tap.inc.sh \
     testtree.sh \
-    touch.inc \
+    touch.inc.sh \
     bin/fakechroot \
     t/cmd-subst-pwd.sh \
     #
