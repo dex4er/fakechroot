@@ -4,7 +4,9 @@
 *.gz
 *.la
 *.lo
+*.log
 *.o
+*.trs
 .autotools
 .cproject
 .deps
@@ -17,6 +19,7 @@ Makefile.in
 aclocal.m4
 autom4te.cache
 build-tree-*
+compile
 config.*.cache
 config.cache
 config.guess
@@ -41,6 +44,7 @@ scripts/*.env
 scripts/*.fakechroot
 scripts/fakechroot
 stamp-h1
+test-driver
 test/*.debs.tgz
 test/*.rpms.tgz
 test/rinse-cache
