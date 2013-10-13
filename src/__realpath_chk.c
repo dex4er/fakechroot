@@ -24,10 +24,18 @@
 
 #define _FORTIFY_SOURCE 2
 #include <stddef.h>
+#include <stdlib.h>
 #include "libfakechroot.h"
 
 
+#ifdef HAVE___CHK_FAIL
 extern void __chk_fail (void) __attribute__((__noreturn__));
+#else
+__attribute__((__noreturn__)) void __chk_fail (void)
+{
+	exit(-1);
+}
+#endif
 
 wrapper(__realpath_chk, char *, (const char * path, char * resolved, size_t resolvedlen))
 {
