@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="27 Nov 2011"
+# pod2man --section=1 --release="Debian" --center=" " --date="2 Nov 2013"
 #
 
 =head1 NAME
@@ -90,6 +90,9 @@ F<$HOME/.fakechroot> and F</etc/fakechroot> directories.
 
 The default environment type is B<default> and its configuration file name is
 C<default.env>.
+
+The special environment B<none> means that no environment settings are loaded
+at all.
 
 =item B<-c>|B<--config-dir> I<directory>
 
@@ -355,7 +358,7 @@ L<https://github.com/fakechroot/fakechroot/issues>
 
 =head1 AUTHORS
 
-Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
+Copyright (c) 2003, 2005, 2007-2011, 2013 Piotr Roszatycki <dexter@debian.org>
 
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 

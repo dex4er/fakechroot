@@ -4,7 +4,7 @@
 #
 # Script which sets fake chroot environment
 #
-# (c) 2011 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2011, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 
 FAKECHROOT_VERSION=@VERSION@
@@ -151,15 +151,17 @@ fi
 
 
 # Additional environment setting from configuration file
-for e in "$environment" "${environment%.*}" default; do
-    for d in "$confdir" "$HOME/.fakechroot" "$sysconfdir"; do
-        f="$d/$e.env"
-        if [ -f "$f" ]; then
-            . "$f"
-            break 2
-        fi
+if [ "$environment" != "none" ]; then
+    for e in "$environment" "${environment%.*}" default; do
+        for d in "$confdir" "$HOME/.fakechroot" "$sysconfdir"; do
+            f="$d/$e.env"
+            if [ -f "$f" ]; then
+                . "$f"
+                break 2
+            fi
+        done
     done
-done
+fi
 
 
 # Execute command

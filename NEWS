@@ -4,6 +4,8 @@
 
 * The +ldd+(1) wrapper can work if overriden with +FAKECHROOT_CMD_SUBST+
   environment variable.
+* The special environment +none+ means that no environment settings are loaded
+  at all.
 * Fixes were made for +readline+(2) function if destination path is similar to
   +FAKECHROOT_PATH+.
 * Fixes were made for +mktemp+(3) function if used on a path in
