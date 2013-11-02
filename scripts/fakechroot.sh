@@ -48,7 +48,7 @@ getopttest=`getopt --version`
 case $getopttest in
     getopt*)
         # GNU getopt
-        opts=`getopt -q -l lib: -l use-system-libs -l config-dir: -l environment -l version -l help -- +l:sc:e:vh "$@"`
+        opts=`getopt -q -l lib: -l use-system-libs -l config-dir: -l environment: -l version -l help -- +l:sc:e:vh "$@"`
         ;;
     *)
         # POSIX getopt ?
