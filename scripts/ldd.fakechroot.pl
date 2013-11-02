@@ -4,7 +4,7 @@
 #
 # Replacement for ldd with usage of objdump
 #
-# (c) 2003-2010 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2003-2010, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 use strict;
 
@@ -18,6 +18,7 @@ my $Format = '';
 my $Ldsodir = "/lib";
 my @Ld_Library_Path = qw(/usr/lib /lib /usr/lib32 /lib32 /usr/lib64 /lib64);
 
+my $Base = $ENV{FAKECHROOT_BASE_ORIG};
 
 sub ldso {
     my ($lib) = @_;
@@ -53,6 +54,7 @@ sub ldso {
 
     push @Libs, $lib;
     if (-f $path) {
+        $path =~ s/^\Q$Base\E// if $Base;
         $Libs{$lib} = $path;
         objdump($path);
     }
@@ -64,7 +66,8 @@ sub objdump {
 
     foreach my $file (@files) {
         local *PIPE;
-        open PIPE, "objdump -p '$file' 2>/dev/null |";
+        open PIPE, "objdump -p '$Base$file' 2>/dev/null |";
+
         while (my $line = <PIPE>) {
             $line =~ s/^\s+//;
 
@@ -83,7 +86,7 @@ sub objdump {
                         }
                     }
 
-                    foreach my $lib (split /:/, $ENV{LD_PRELOAD}||'') {
+                    foreach my $lib (split /[:\s]/, $ENV{LD_PRELOAD}||'') {
                         ldso($lib);
                     }
                 }
@@ -101,7 +104,6 @@ sub objdump {
             if ($needed =~ /^ld(-linux)?(\.|-)/) {
                 $needed = "$Ldsodir/$needed";
             }
-
             ldso($needed);
         }
         close PIPE;
@@ -182,11 +184,11 @@ MAIN: {
         my $address = '0x' . '0' x ($Format =~ /^elf64-/ ? 16 : 8);
 
         foreach my $lib (@Libs) {
-            if ($lib =~ /^\//) {
-                printf "\t%s (%s)\n", $lib, $address;
-            }
-            elsif (defined $Libs{$lib}) {
+            if (defined $Libs{$lib}) {
                 printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
+            }
+            elsif ($lib =~ /^\//) {
+                printf "\t%s (%s)\n", $lib, $address;
             }
             else {
                 printf "\t%s => not found\n", $lib;

@@ -2,6 +2,8 @@
 
 ?? ??? ????
 
+* The +ldd+(1) wrapper can work if overriden with +FAKECHROOT_CMD_SUBST+
+  environment variable.
 * Fixes were made for +mktemp+(3) function if used on a path in
   +FAKECHROOT_EXCLUDE_PATHS+.
 * The +_xftw64+(glibc) function is reenabled. It had wrong wrapper.
@@ -10,7 +12,6 @@
 * New functions +mkostemp+(3), +mkostemp64+(3), +mkostemps+(3),
   +mkostemps64+(3), +mkstemps+(3) and +mkstemps64+(3) were implemented.
   It fixes +sed -i+ command.
-
 
 == Version 2.16 ==
 

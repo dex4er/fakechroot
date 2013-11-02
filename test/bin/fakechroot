@@ -9,8 +9,9 @@ if ! command -v chroot >/dev/null; then
 fi
 
 chroot=`command -v chroot`
+ldd=`command -v ldd`
 
-FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$chroot=$abs_top_srcdir/scripts/chroot.fakechroot"
+FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$chroot=$abs_top_srcdir/scripts/chroot.fakechroot:$ldd=$abs_top_srcdir/scripts/ldd.fakechroot"
 export FAKECHROOT_CMD_SUBST
 
 "$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
