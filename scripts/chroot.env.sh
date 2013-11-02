@@ -8,11 +8,24 @@ fi
 chroot=`command -v chroot 2>/dev/null`
 chroot="${chroot:-@CHROOT@}"
 
+env=`command -v env 2>/dev/null`
+env="${env:-@ENV@}"
+
+ischroot=`command -v ischroot 2>/dev/null`
+ischroot="${ischroot:-@ISCHROOT@}"
+
+ldconfig=`command -v ldconfig 2>/dev/null`
+ldconfig="${ldconfig:-@LDCONFIG@}"
+
+ldd=`command -v ldd 2>/dev/null`
+ldd="${ldd:-@LDD@}"
+
 cmd_subst="
     $chroot=@sbindir@/chroot.fakechroot
-    /sbin/ldconfig=/bin/true
-    /usr/bin/ischroot=/bin/true
-    /usr/bin/ldd=@bindir@/ldd.fakechroot
+    $env=@bindir@/env.fakechroot
+    $ischroot=/bin/true
+    $ldconfig=/bin/true
+    $ldd=@bindir@/ldd.fakechroot
 "
 
 FAKECHROOT_EXCLUDE_PATH="${FAKECHROOT_EXCLUDE_PATH:+$FAKECHROOT_EXCLUDE_PATH:}/dev:/proc:/sys"
