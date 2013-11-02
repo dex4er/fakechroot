@@ -74,6 +74,7 @@ static int try_cmd_subst (char * env, const char * filename, char * cmd_subst)
 
 wrapper(execve, int, (const char * filename, char * const argv [], char * const envp []))
 {
+    int status;
     int file;
     char hashbang[FAKECHROOT_PATH_MAX];
     size_t argv_max = 1024;
@@ -227,5 +228,9 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     newargv[n] = 0;
 
-    return nextcall(execve)(newfilename, (char * const *)newargv, newenvp);
+    status = nextcall(execve)(newfilename, (char * const *)newargv, newenvp);
+
+    free(newenvp);
+
+    return status;
 }
