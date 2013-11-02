@@ -43,9 +43,14 @@ wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK
         fakechroot_ptr = strstr(tmp, fakechroot_path);
         if (fakechroot_ptr != tmp) {
             tmpptr = tmp;
-        } else {
+        } else if (tmp[strlen(fakechroot_path)] == '\0') {
+            tmpptr = "/";
+            status = strlen(tmpptr);
+        } else if (tmp[strlen(fakechroot_path)] == '/') {
             tmpptr = tmp + strlen(fakechroot_path);
             status -= strlen(fakechroot_path);
+        } else {
+            tmpptr = tmp;
         }
         if (strlen(tmpptr) > bufsiz) {
             status = bufsiz;

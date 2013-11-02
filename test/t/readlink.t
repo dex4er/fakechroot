@@ -6,13 +6,19 @@ srcdir=${srcdir:-.}
 
 imax=$(( 180 - $(pwd | wc -c) ))
 
-prepare $(( 4 * $imax ))
+prepare $(( 1 + 4 * $imax ))
 
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then
         skip $(( $tap_plan / 2 )) "not root"
     else
+
+        destfile="$(pwd)/testtreex"
+        ln -s "$destfile" testtree/x
+        t=`$srcdir/$chroot.sh testtree $readlink x 2>&1`
+        test "$t" = "$destfile" || not
+        ok "$chroot readlink [\$PWD/testtreex]" $t
 
         symlink=$chroot-
         destfile=$chroot-

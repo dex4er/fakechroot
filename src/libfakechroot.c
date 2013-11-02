@@ -144,7 +144,7 @@ LOCAL int fakechroot_localdir (const char * p_path)
     if (!first) fakechroot_init();
 
     /* We need to expand ~ paths */
-    if (home_path!=NULL && p_path[0]=='~') {
+    if (home_path!=NULL && p_path[0]=='~' && (p_path[1]=='\0' || p_path[1]=='/')) {
         strcpy(cwd_path, home_path);
         strcat(cwd_path, &(p_path[1]));
         v_path = cwd_path;

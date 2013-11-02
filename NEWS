@@ -4,6 +4,8 @@
 
 * The +ldd+(1) wrapper can work if overriden with +FAKECHROOT_CMD_SUBST+
   environment variable.
+* Fixes were made for +readline+(2) function if destination path is similar to
+  +FAKECHROOT_PATH+.
 * Fixes were made for +mktemp+(3) function if used on a path in
   +FAKECHROOT_EXCLUDE_PATHS+.
 * The +_xftw64+(glibc) function is reenabled. It had wrong wrapper.
