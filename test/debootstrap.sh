@@ -33,17 +33,17 @@ tarball=$vendor-$release${variant:+-$variant}-$arch.debs.tgz
 
 export FAKECHROOT_AF_UNIX_PATH=/tmp
 
+if ! which chroot >/dev/null; then
+    PATH=$PATH:/usr/sbin:/sbin
+    export PATH
+fi
+
 debootstrap_opts="--arch=$arch ${variant:+--variant=$variant}"
 if [ ! -f $tarball ]; then
     FAKECHROOT=true fakeroot debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
 fi
 
 rm -rf $destdir
-
-if ! which chroot >/dev/null; then
-    PATH=$PATH:/usr/sbin:/sbin
-    export PATH
-fi
 
 fakechroot fakeroot debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
 
