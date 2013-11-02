@@ -186,12 +186,18 @@ AC_CHECK_FUNCS(m4_normalize([
     mkdir
     mkdirat
     mkdtemp
-    mknod
-    mknodat
     mkfifo
     mkfifoat
+    mknod
+    mknodat
+    mkostemp
+    mkostemp64
+    mkostemps
+    mkostemps64
     mkstemp
     mkstemp64
+    mkstemps
+    mkstemps64
     mktemp
     nftw
     nftw64

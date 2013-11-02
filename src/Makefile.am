@@ -91,8 +91,14 @@ libfakechroot_la_SOURCES = \
     mkfifoat.c \
     mknod.c \
     mknodat.c \
+    mkostemp.c \
+    mkostemp64.c \
+    mkostemps.c \
+    mkostemps64.c \
     mkstemp.c \
     mkstemp64.c \
+    mkstemps.c \
+    mkstemps64.c \
     mktemp.c \
     open.c \
     open.h \
