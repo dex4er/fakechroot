@@ -79,6 +79,7 @@ sub objdump {
                         if ($Format =~ /^elf64-/) {
                             push @Libs, 'linux-vdso.so.1';
                             $Libs{'linux-vdso.so.1'} = '';
+                            $Ldsodir = "/lib64";
                         }
                         else {
                             push @Libs, 'linux-gate.so.1';
@@ -183,7 +184,10 @@ MAIN: {
 
         my $address = '0x' . '0' x ($Format =~ /^elf64-/ ? 16 : 8);
 
+        my %seen;
+
         foreach my $lib (@Libs) {
+            next if $seen{$lib}++;
             if (defined $Libs{$lib}) {
                 printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
             }
