@@ -26,6 +26,38 @@ usage () {
 }
 
 
+next_cmd_fakechroot () {
+    if [ "$1" = "fakeroot" ]; then
+        shift
+        # skip the options
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                -h|-v)
+                    break
+                    ;;
+                -u|--unknown-is-real)
+                    shift
+                    ;;
+                -l|--lib|--faked|-s|-i|-b)
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+    fi
+
+    if [ -n "$1" -a "$1" != "-v" -a "$1" != "-h" ]; then
+        environment=`basename -- "$1"`
+    fi
+}
+
+
 if [ "$FAKECHROOT" = "true" ]; then
     die "fakechroot: nested operation is not supported"
 fi
@@ -96,11 +128,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$environment" ]; then
-    if [ "$1" = "fakeroot" ]; then
-        environment=`basename "$2"`
-    else
-        environment=`basename "$1"`
-    fi
+    next_cmd_fakechroot "$@"
 fi
 
 
