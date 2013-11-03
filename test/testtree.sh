@@ -82,12 +82,12 @@ for p in \
     '/usr/local/bin/strace'
 do
     for f in $p; do
-	if [ ! -e $f ]; then
-		f=$(which $(basename $f) 2> /dev/null )
-		if [ $? -ne 0 ]; then
-			continue
-		fi
-	fi
+        if [ ! -e $f ]; then
+                f=$(which $(basename $f) 2> /dev/null )
+                if [ $? -ne 0 ]; then
+                        continue
+                fi
+        fi
         cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
     done
 done
