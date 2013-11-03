@@ -16,10 +16,10 @@ else
 fi
 
 if [ $# -gt 0 ]; then
-    env HOME=/root chroot $destdir "$@"
+    HOME=/root chroot $destdir "$@"
     result=$?
 else
-    env HOME=/root chroot $destdir $SHELL -i
+    HOME=/root chroot $destdir $SHELL -i
     result=$?
 fi
 

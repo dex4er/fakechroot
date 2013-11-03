@@ -166,10 +166,10 @@ fi
 
 # Execute command
 if [ -z "$*" ]; then
-    env LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" ${SHELL:-/bin/sh}
+    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" ${SHELL:-/bin/sh}
     result=$?
 else
-    env LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" "$@"
+    LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" "$@"
     result=$?
 fi
 
