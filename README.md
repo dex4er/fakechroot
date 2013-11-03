@@ -10,7 +10,7 @@
 fakechroot runs a command in an environment were is additional possibility to
 use `chroot`(8) command without root privileges.  This is useful for allowing
 users to create own chrooted environment with possibility to install another
-packages without need for root privileges. 
+packages without need for root privileges.
 
 # News
 
@@ -47,7 +47,7 @@ library `/usr/lib/fakechroot/libfakechroot.so` which is loaded through the
 `LD_PRELOAD` mechanism of the dynamic loader.  (See `ld.so`(8))
 
 In fake chroot you can install Debian bootstrap with `debootstrap
---variant=fakechroot` command.  In this environment you can use i.e. 
+--variant=fakechroot` command.  In this environment you can use i.e.
 `apt-get`(8) command to install another packages from common user's account.
 
 # Where is it used?
@@ -59,9 +59,9 @@ fakechroot is mainly used as:
 
 fakechroot had found another purposes:
 
-* to be a part of [Klik](http://klik.atekon.de) application installer as kfakechroot project 
+* to be a part of [Klik](http://klik.atekon.de) application installer as kfakechroot project
 * to be a supporter for [pbuilder](http://pbuilder.alioth.debian.org/) building system
-* to be a supporter for [Apport](https://wiki.ubuntu.com/Apport) retracer 
-* to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images 
+* to be a supporter for [Apport](https://wiki.ubuntu.com/Apport) retracer
+* to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images
 * to be a part of [Slind](https://www.slind.org/Main_Page) - a minimal Debian-based distro for embedded devices as libfakechroot-cross project
 * to be a part of [cuntubuntu](https://play.google.com/store/apps/details?id=com.cuntubuntu) - Ubuntu for Android without root

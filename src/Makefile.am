@@ -111,6 +111,7 @@ libfakechroot_la_SOURCES = \
     rawmemchr.c \
     rawmemchr.h \
     readlink.c \
+    readlink.h \
     readlinkat.c \
     realpath.c \
     remove.c \

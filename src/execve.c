@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,8 @@
 #include "libfakechroot.h"
 #include "open.h"
 #include "unsetenv.h"
+#include "getcwd.h"
+#include "readlink.h"
 
 
 /* Parse the FAKECHROOT_CMD_SUBST environment variable (the first
@@ -98,12 +100,15 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         "FAKECHROOT_CMD_SUBST",
         "FAKECHROOT_DEBUG",
         "FAKECHROOT_DETECT",
+        "FAKECHROOT_ELFLOADER",
         "FAKECHROOT_EXCLUDE_PATH",
         "FAKECHROOT_VERSION",
         "LD_LIBRARY_PATH",
         "LD_PRELOAD"
     };
     const int nr_envkey = sizeof envkey / sizeof envkey[0];
+    char * elfloader = getenv("FAKECHROOT_ELFLOADER");
+    /* READLINK_TYPE_ARG3(linksize); */
 
     debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp[0]);
 
@@ -175,13 +180,34 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     /* Exec substituded command */
     if (do_cmd_subst) {
         debug("nextcall(execve)(\"%s\", {\"%s\", ...}, {\"%s\", ...})", substfilename, argv[0], newenvp[0]);
-        return nextcall(execve)(substfilename, (char * const *)argv, newenvp);
+        status = nextcall(execve)(substfilename, (char * const *)argv, newenvp);
+        goto error;
     }
 
     /* Check hashbang */
     expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
     strcpy(tmp, filename);
     filename = tmp;
+
+    /* Dereference layers of symlinks that Debian happily places in place of binaries using it's 'alternatives' cmd */
+    /*
+    while(1) {
+        debug("nextcall(readlink)(\"%s\")", filename);
+        linksize = nextcall(readlink)(filename, fakechroot_buf, sizeof(fakechroot_buf)-1);
+        debug("nextcall(readlink)(\"%s\") = %d", filename, linksize);
+        if ((int)linksize <= 0) {
+            debug("nextcall(readlink)(\"%s\") - break!", filename);
+            break;
+        }
+        fakechroot_buf[linksize] = 0;
+        debug("nextcall(readlink)(\"%s\") = '%s'", filename, fakechroot_buf);
+        strcpy(tmp, fakechroot_buf);
+
+        expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
+        strcpy(tmp, filename);
+        filename = tmp;
+    }
+    */
 
     if ((file = nextcall(open)(filename, O_RDONLY)) == -1) {
         __set_errno(ENOENT);
@@ -196,8 +222,22 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     }
 
     /* No hashbang in argv */
-    if (hashbang[0] != '#' || hashbang[1] != '!')
-        return nextcall(execve)(filename, argv, newenvp);
+    if (hashbang[0] != '#' || hashbang[1] != '!') {
+        if (!elfloader || !elfloader[0]) {
+            status = nextcall(execve)(filename, argv, newenvp);
+            goto error;
+        }
+        newargv[0] = elfloader;
+        ptr = argv0;
+        expand_chroot_path(ptr, fakechroot_path, fakechroot_buf);
+        strcpy(newfilename, ptr);
+        newargv[1] = newfilename;
+        for (i = 1; argv[i] != NULL && i<argv_max; i++)
+            newargv[i+1] = argv[i];
+        debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[1], newenvp[0]);
+        status = nextcall(execve)(elfloader, (char * const *)newargv, newenvp);
+        goto error;
+    }
 
     /* For hashbang we must fix argv[0] */
     hashbang[i] = hashbang[i+1] = 0;
@@ -228,8 +268,21 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     newargv[n] = 0;
 
-    status = nextcall(execve)(newfilename, (char * const *)newargv, newenvp);
+    if (!elfloader) {
+        status = nextcall(execve)(newfilename, (char * const *)newargv, newenvp);
+        goto error;
+    }
+    if (n >= argv_max - 1)
+        n = argv_max - 2;
+    newargv[n+1] = 0;
+    for (i = n; i >= 1; i--)
+        newargv[i] = newargv[i-1];
+    newargv[0] = elfloader;
+    newargv[1] = newfilename;
+    debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[1], newargv[2], newenvp[0]);
+    status = nextcall(execve)(elfloader, (char * const *)newargv, newenvp);
 
+error:
     free(newenvp);
 
     return status;

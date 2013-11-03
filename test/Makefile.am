@@ -8,6 +8,7 @@ TESTS = \
     t/cmd-subst.t \
     t/cp.t \
     t/execlp.t \
+    t/execve-elfloader.t \
     t/escape-nested-chroot.t \
     t/fts.t \
     t/ftw.t \

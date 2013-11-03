@@ -2,7 +2,10 @@
 
 ?? ??? ????
 
-* The `FAKECHROOT_EXCLUDE_PATH` environment overrides the default settings.
+* The `FAKECHROOT_ELFLOADER` environment variable changes the default dynamic
+  linker.
+* The `FAKECHROOT_EXCLUDE_PATH` environment variable overrides the default
+  settings.
 * The `ldd`(1) wrapper can work if overriden with `FAKECHROOT_CMD_SUBST`
   environment variable.
 * The new `env`(1) wrapper was added.  It preserves fakechroot environment even
