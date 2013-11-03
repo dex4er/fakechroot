@@ -1,73 +1,64 @@
-# NAME
+![logo](http://fakechroot.alioth.debian.org/img/fakechroot_logo.png)
+---
 
-fakechroot - gives a fake chroot environment
+*Home* | [Download](https://github.com/fakechroot/fakechroot/wiki/Download) | [Documentation](https://github.com/fakechroot/fakechroot/blob/master/man/fakechroot.pod) | [ChangeLog](https://github.com/fakechroot/fakechroot/blob/master/NEWS.md) | [Development](https://github.com/fakechroot/fakechroot/wiki/Development) | [ToDo](https://github.com/fakechroot/fakechroot/wiki/Todo) | [Links](ttps://github.com/fakechroot/fakechroot/wiki/Links)
 
-# SYNOPSIS
-
-__fakechroot__
-\[__\-s__|__\--use-system-libs__\]
-\[__\-l__|__\--lib__&nbsp;_library_\]
-\[__\-e__|__\--environment__&nbsp;_type_\]
-\[__\-c__|__\--config-dir__&nbsp;_directory_\]
-\[__\--__\]
-\[_command_\]
-
-__fakechroot__
-\[__\-h__|__\--help__\]
-
-__fakechroot__
-\[__\-v__|__\--version__\]
-
-# DESCRIPTION
+# What is it?
 
 fakechroot runs a command in an environment were is additional possibility to
-use chroot(8) command without root privileges.  This is useful for allowing
+use `chroot`(8) command without root privileges.  This is useful for allowing
 users to create own chrooted environment with possibility to install another
-packages without need for root privileges.
+packages without need for root privileges. 
 
-fakechroot replaces more library functions (chroot(2), open(2), etc.) by ones
-that simulate the effect the real library functions would have had, had the
-user really been in chroot.  These wrapper functions are in a shared library
-`/usr/lib/fakechroot/libfakechroot.so` which is loaded through the
-`LD_PRELOAD` mechanism of the dynamic loader.  (See ld.so(8))
+# News
 
-In fake chroot you can install Debian bootstrap with debootstrap(8)
-command.  In this environment you can use i.e. apt-get(8) command to install
-another packages from common user's account.
+### 11 Dec 2011
 
-In the current version, the fakechroot does not provide the fakeroot(1)
-functionality! You might to call fakechroot with fakeroot command, if you
-want to emulate root environment, i.e.:
+Version 2.16 is released. The fakechroot script loads additional environment
+settings from configuration directory (`--config-dir` option). By default
+additional settings are provided for `chroot`(8) and `debootstrap`(8)
+commands. Wrapped `chroot`(8) command loads `ld.so.conf` paths to
+`LD_LIBRARY_PATH` environment variable. Fixes were made for `getpeeraddr`(3)
+and `getsockaddr`(3) functions.
 
-    $ fakechroot fakeroot /usr/sbin/chroot /tmp/debian /bin/sh
-    # id
-    uid=0(root) gid=0(root) groups=0(root)
+### 29 Sep 2011
 
-# SECURITY ASPECTS
+Version 2.15 is released. New function `faccessat`(2) was added: it fixes
+`test -r` command. The `popen`(3) function were reimplemented based on OpenBSD
+source to prevent some coredumps with newer GNU C Library.
 
-fakechroot is a regular, non-setuid program.  It does not enhance a user's
-privileges, or decrease the host's system security.
+### 16 Dec 2010
 
-fakechroot should not be used as a tool for enhancing system security i.e. by
-separating (sandboxing) applications.  It is very easy to escape from a fake
-chroot environment.
+Version 2.14 is released. The source code was refactored: all functions was
+moved to separated files. The `opendir`(3) function is compiled only if it
+doesn't call other function internally.  It fixes `opendir`(3), `fts_open`(3)
+and `ftw`(3) functions. The `fts_*`(3) functions were reimplemented based on
+OpenBSD source. The `__opendir2`(3) function was reimplemented based on
+FreeBSD source. Fixes were made for older GNU C Library.
 
-# BUGS
+# How does it work?
 
-If you find the bug or want to implement new features, please report it at
-[https://github.com/fakechroot/fakechroot/issues](https://github.com/fakechroot/fakechroot/issues)
+fakechroot replaces more library functions (`chroot`(2), `open`(2), etc.) by
+ones that simulate the effect the real library functions would have had, had
+the user really been in chroot.  These wrapper functions are in a shared
+library `/usr/lib/fakechroot/libfakechroot.so` which is loaded through the
+`LD_PRELOAD` mechanism of the dynamic loader.  (See `ld.so`(8))
 
-# AUTHORS
+In fake chroot you can install Debian bootstrap with `debootstrap
+--variant=fakechroot` command.  In this environment you can use i.e. 
+`apt-get`(8) command to install another packages from common user's account.
 
-Copyright (c) 2003, 2005, 2007-2011, 2013 Piotr Roszatycki <dexter@debian.org>
+# Where is it used?
 
-Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
+fakechroot is mainly used as:
 
-Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
+* a variant of [debootstrap](http://code.erisian.com.au/Wiki/debootstrap), the tool which can set up new Debian or Ubuntu system.
+* a helper for [febootstrap](http://et.redhat.com/~rjones/febootstrap/), the tool which can set up new Fedora system.
 
-Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
+fakechroot had found another purposes:
 
-# COPYING
-
-fakechroot is distributed under the GNU Lesser General Public License (LGPL
-2.1 or greater).
+* to be a part of [Klik](http://klik.atekon.de) application installer as kfakechroot project 
+* to be a supporter for [pbuilder](http://pbuilder.alioth.debian.org/) building system
+* to be a supporter for [Apport](https://wiki.ubuntu.com/Apport) retracer 
+* to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images 
+* to be a part of [Slind](https://www.slind.org/Main_Page) - a minimal Debian-based distro for embedded devices as libfakechroot-cross project
