@@ -6,7 +6,7 @@ srcdir=${srcdir:-.}
 
 imax=$(( 180 - $(pwd | wc -c) ))
 
-prepare $(( 1 + 4 * $imax ))
+prepare $(( 2 + 4 * $imax ))
 
 for chroot in chroot fakechroot; do
 
@@ -15,7 +15,9 @@ for chroot in chroot fakechroot; do
     else
 
         destfile="$(pwd)/testtreex"
+        rm -f testtree/x
         ln -s "$destfile" testtree/x
+
         t=`$srcdir/$chroot.sh testtree $readlink x 2>&1`
         test "$t" = "$destfile" || not
         ok "$chroot readlink [\$PWD/testtreex]" $t
