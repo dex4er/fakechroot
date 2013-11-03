@@ -108,6 +108,7 @@ for p in \
     'libgcc_s.so.*' \
     'libm.so.*' \
     'libncurses.so.*' \
+    'libpcre.so.*' \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
