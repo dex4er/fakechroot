@@ -1,7 +1,9 @@
 ![logo](http://fakechroot.alioth.debian.org/img/fakechroot_logo.png)
 ---
 
-**Home** | [Download](https://github.com/fakechroot/fakechroot/wiki/Download) | [Documentation](https://github.com/fakechroot/fakechroot/blob/master/man/fakechroot.pod) | [ChangeLog](https://github.com/fakechroot/fakechroot/blob/master/NEWS.md) | [Development](https://github.com/fakechroot/fakechroot/wiki/Development) | [ToDo](https://github.com/fakechroot/fakechroot/wiki/Todo) | [Links](https://github.com/fakechroot/fakechroot/wiki/Links) | [![Build Status](https://travis-ci.org/dex4er/fakechroot.png?branch=master)](https://travis-ci.org/dex4er/fakechroot)
+**Home** | [Download](https://github.com/fakechroot/fakechroot/wiki/Download) | [Documentation](https://github.com/fakechroot/fakechroot/blob/master/man/fakechroot.pod) | [ChangeLog](https://github.com/fakechroot/fakechroot/blob/master/NEWS.md) | [Development](https://github.com/fakechroot/fakechroot/wiki/Development) | [ToDo](https://github.com/fakechroot/fakechroot/wiki/Todo) | [Links](https://github.com/fakechroot/fakechroot/wiki/Links)
+
+[![Build Status](https://travis-ci.org/dex4er/fakechroot.png?branch=master)](https://travis-ci.org/dex4er/fakechroot)
 
 # What is it?
 
@@ -62,3 +64,4 @@ fakechroot had found another purposes:
 * to be a supporter for [Apport](https://wiki.ubuntu.com/Apport) retracer 
 * to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images 
 * to be a part of [Slind](https://www.slind.org/Main_Page) - a minimal Debian-based distro for embedded devices as libfakechroot-cross project
+* to be a part of [cuntubuntu](https://play.google.com/store/apps/details?id=com.cuntubuntu) - Ubuntu for Android without root
