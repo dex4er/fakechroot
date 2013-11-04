@@ -13,7 +13,5 @@ FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}\
 `command -v env`=$abs_top_srcdir/scripts/env.fakechroot:\
 `command -v ldd`=$abs_top_srcdir/scripts/ldd.fakechroot"
 
-export FAKECHROOT_CMD_SUBST
-
-"$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
+"$abs_top_srcdir/scripts/env.fakechroot" - FAKECHROOT_CMD_SUBST="$FAKECHROOT_CMD_SUBST" HOME="$HOME" PATH="$PATH" SHELL="$SHELL" "$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
 exit $?

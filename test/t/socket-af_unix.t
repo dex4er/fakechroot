@@ -3,6 +3,8 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
+abs_srcdir=${abs_srcdir:-`cd "$pwd" 2>/dev/null && pwd -P`}
+
 prepare 8
 
 test_af_unix () {
@@ -33,7 +35,7 @@ for chroot in chroot fakechroot; do
         unset FAKECHROOT_AF_UNIX_PATH
         test_af_unix 1
 
-        export FAKECHROOT_AF_UNIX_PATH=`pwd -P`/testtree
+        export FAKECHROOT_AF_UNIX_PATH="$abs_srcdir/testtree"
         test_af_unix 2
 
     fi

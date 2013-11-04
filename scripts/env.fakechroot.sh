@@ -9,6 +9,7 @@
 
 
 args=
+extra_args=
 fakechroot_base=${FAKECHROOT_BASE_ORIG:-$FAKECHROOT_BASE}
 fakechroot_env=
 ignore_env=no
@@ -49,5 +50,10 @@ if [ -n "$fakechroot_base" ]; then
     fakechroot_env="$fakechroot_env FAKECHROOT_BASE='$fakechroot_base'"
 fi
 
-eval @ENV@ $args $fakechroot_env "$@"
+while [ $# -gt 0 ]; do
+    extra_args="$extra_args '$1'"
+    shift
+done
+
+eval @ENV@ $args $fakechroot_env $extra_args
 exit $?
