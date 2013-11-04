@@ -5,8 +5,6 @@ srcdir=${srcdir:-.}
 
 prepare 2
 
-fakedir=`cd testtree; pwd -P`
-
 for chroot in chroot fakechroot; do
 
     if [ $chroot = "chroot" ] && ! is_root; then

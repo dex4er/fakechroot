@@ -25,6 +25,7 @@ TESTS = \
     t/system.t \
     t/test-r.t \
     t/touch.t \
+    t/zzdebootstrap.t \
     #
 
 suffix =
