@@ -189,26 +189,6 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     strcpy(tmp, filename);
     filename = tmp;
 
-    /* Dereference layers of symlinks that Debian happily places in place of binaries using it's 'alternatives' cmd */
-    /*
-    while(1) {
-        debug("nextcall(readlink)(\"%s\")", filename);
-        linksize = nextcall(readlink)(filename, fakechroot_buf, sizeof(fakechroot_buf)-1);
-        debug("nextcall(readlink)(\"%s\") = %d", filename, linksize);
-        if ((int)linksize <= 0) {
-            debug("nextcall(readlink)(\"%s\") - break!", filename);
-            break;
-        }
-        fakechroot_buf[linksize] = 0;
-        debug("nextcall(readlink)(\"%s\") = '%s'", filename, fakechroot_buf);
-        strcpy(tmp, fakechroot_buf);
-
-        expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
-        strcpy(tmp, filename);
-        filename = tmp;
-    }
-    */
-
     if ((file = nextcall(open)(filename, O_RDONLY)) == -1) {
         __set_errno(ENOENT);
         return -1;
