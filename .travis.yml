@@ -4,7 +4,6 @@ compiler:
   - gcc
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get upgrade -qq
   - sudo apt-get install -qq automake debootstrap libtool lsb-release
 script: ./autogen.sh && ./configure && make && make test
 env:
