@@ -18,7 +18,8 @@ die () {
 
 usage () {
     die "Usage:
-    fakechroot [-l|--lib fakechrootlib] [-s|--use-system-libs]
+    fakechroot [-l|--lib fakechrootlib] [-d|--elfloader ldso]
+               [-s|--use-system-libs]
                [-e|--environment type] [-c|--config-dir directory]
                [--] [command]
     fakechroot -v|--version
@@ -80,11 +81,11 @@ getopttest=`getopt --version`
 case $getopttest in
     getopt*)
         # GNU getopt
-        opts=`getopt -q -l lib: -l use-system-libs -l config-dir: -l environment: -l version -l help -- +l:sc:e:vh "$@"`
+        opts=`getopt -q -l lib: -l elfloader: -l use-system-libs -l config-dir: -l environment: -l version -l help -- +l:d:sc:e:vh "$@"`
         ;;
     *)
         # POSIX getopt ?
-        opts=`getopt l:sc:e:vh "$@"`
+        opts=`getopt l:d:sc:e:vh "$@"`
         ;;
 esac
 
@@ -108,6 +109,11 @@ while [ $# -gt 0 ]; do
         -l|--lib)
             lib=`eval echo "$1"`
             paths=
+            shift
+            ;;
+        -d|--elfloader)
+            FAKECHROOT_ELFLOADER=$1
+            export FAKECHROOT_ELFLOADER
             shift
             ;;
         -s|--use-system-libs)

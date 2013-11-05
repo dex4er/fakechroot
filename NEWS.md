@@ -3,7 +3,7 @@
 ?? ??? ????
 
 * The `FAKECHROOT_ELFLOADER` environment variable changes the default dynamic
-  linker.
+  linker.  The `fakechroot` script provides `--elfloader` option.
 * The `FAKECHROOT_EXCLUDE_PATH` environment variable overrides the default
   settings.
 * The `ldd`(1) wrapper can work if overriden with `FAKECHROOT_CMD_SUBST`

@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="2 Nov 2013"
+# pod2man --section=1 --release="Debian" --center=" " --date="5 Nov 2013"
 #
 
 =head1 NAME
@@ -10,6 +10,7 @@ fakechroot - gives a fake chroot environment
 B<fakechroot>
 S<[B<-s>|B<--use-system-libs>]>
 S<[B<-l>|B<--lib> I<library>]>
+S<[B<-d>|B<--elfloader> I<ldso>]>
 S<[B<-e>|B<--environment> I<type>]>
 S<[B<-c>|B<--config-dir> I<directory>]>
 S<[B<-->]>
@@ -55,6 +56,10 @@ want to emulate root environment, i.e.:
 =item B<-l> I<library>|B<--lib> I<library>
 
 Specify an alternative wrapper library.
+
+=item B<-d> I<ldso>|B<--elfloader> I<ldso>
+
+Specify an alternative dynamic loader.
 
 =item B<-s>|B<--use-system-libs>
 
@@ -198,7 +203,7 @@ correctly.
 
 =item B<FAKECHROOT_DEBUG>
 
-The fakechroot library will dump some debugging info is this variable is set.
+The fakechroot library will dump some debugging info if this variable is set.
 
 =item B<FAKECHROOT_AF_UNIX_PATH>
 
@@ -282,10 +287,10 @@ C<FAKECHROOT_CMD_ORIG> variable is not set currently.
 
 Fakechroot is implemented by wrapping system calls.  This is accomplished by
 setting C<LD_LIBRARY_PATH=/usr/lib/fakechroot> and
-LD_PRELOAD=libfakechroot.so.  That library is loaded before the
+C<LD_PRELOAD=libfakechroot.so>.  This library is loaded before the
 system's C library, and so most of the library functions are intercepted by
 it.  If you need to set either B<LD_LIBRARY_PATH> or B<LD_PRELOAD> from within
-a fakechroot environment, it should be set relative to the given paths, as in
+a fakechroot environment, you need to preserve original values, eg.
 C<LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/>
 
 =back
@@ -296,20 +301,22 @@ C<LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/>
 
 =item o
 
-F</lib/ld-linux.so.2> is always loaded from real environment.  This path is
-hardcoded by linker for all binaries.
+F</lib/ld-linux.so.2> and F</lib64/ld-linux-x86-64.so.2> are always loaded
+from real environment.  This path is hardcoded by linker for all binaries.
+You can set the C<FAKECHROOT_ELFLOADER> environment variable or use
+C<--elfloader> option.
 
 =item o
 
 Every command executed within fakechroot needs to be linked to the same
 version of the C library as fakechroot itself.  If the libraries in chroot
-are not compatible, try to use B<--use-system-libs> option.
+are not compatible, try to use C<--use-system-libs> option.
 
 =item o
 
 You can provide symlinks to the outside.  The symlink have to be created
 before chroot is called.  It can be useful for accessing the real F</proc>
-and F</dev> directory.  You can also set the B<FAKECHROOT_EXCLUDE_PATH>
+and F</dev> directory.  You can also set the C<FAKECHROOT_EXCLUDE_PATH>
 environment variable:
 
  $ export FAKECHROOT_EXCLUDE_PATH=/tmp:/proc:/dev:/var/run
@@ -358,7 +365,7 @@ buildroot directory have to be the same inside and outside fakechroot.
 
 =head1 SEE ALSO
 
-fakeroot(1), debuild(1), debootstrap(8), febootstrap(8),
+fakeroot(1), debuild(1), debootstrap(8), rinse(8),
 http://fakechroot.alioth.debian.org/
 
 =head1 BUGS
