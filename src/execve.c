@@ -101,14 +101,21 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         "FAKECHROOT_DEBUG",
         "FAKECHROOT_DETECT",
         "FAKECHROOT_ELFLOADER",
+        "FAKECHROOT_ELFLOADER_OPT_ARGV0",
         "FAKECHROOT_EXCLUDE_PATH",
         "FAKECHROOT_VERSION",
+        "FAKEROOTKEY",
+        "FAKED_MODE",
         "LD_LIBRARY_PATH",
         "LD_PRELOAD"
     };
     const int nr_envkey = sizeof envkey / sizeof envkey[0];
-    char * elfloader = getenv("FAKECHROOT_ELFLOADER");
-    /* READLINK_TYPE_ARG3(linksize); */
+
+    char *elfloader = getenv("FAKECHROOT_ELFLOADER");
+    char *elfloader_opt_argv0 = getenv("FAKECHROOT_ELFLOADER_OPT_ARGV0");
+
+    if (elfloader && !*elfloader) elfloader = NULL;
+    if (elfloader_opt_argv0 && !*elfloader_opt_argv0) elfloader_opt_argv0 = NULL;
 
     debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp[0]);
 
@@ -203,18 +210,26 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!') {
-        if (!elfloader || !elfloader[0]) {
+        if (!elfloader) {
             status = nextcall(execve)(filename, argv, newenvp);
             goto error;
         }
-        newargv[0] = elfloader;
-        ptr = argv0;
-        expand_chroot_path(ptr, fakechroot_path, fakechroot_buf);
-        strcpy(newfilename, ptr);
-        newargv[1] = newfilename;
-        for (i = 1; argv[i] != NULL && i<argv_max; i++)
-            newargv[i+1] = argv[i];
-        debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[1], newenvp[0]);
+
+        for (i = 0, n = (elfloader_opt_argv0 ? 3 : 1); argv[i] != NULL && i < argv_max; ) {
+            newargv[n++] = argv[i++];
+        }
+
+        newargv[n] = 0;
+
+        n = 0;
+        newargv[n++] = elfloader;
+        if (elfloader_opt_argv0) {
+            newargv[n++] = elfloader_opt_argv0;
+            newargv[n++] = argv0;
+        }
+        newargv[n] = filename;
+
+        debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[n], newenvp[0]);
         status = nextcall(execve)(elfloader, (char * const *)newargv, newenvp);
         goto error;
     }
@@ -242,24 +257,33 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     newargv[n++] = argv0;
 
-    for (i = 1; argv[i] != NULL && i<argv_max; ) {
+    for (i = 1; argv[i] != NULL && i < argv_max; ) {
         newargv[n++] = argv[i++];
     }
 
     newargv[n] = 0;
 
-    if (!elfloader) {
+    if (!elfloader || !elfloader[0]) {
         status = nextcall(execve)(newfilename, (char * const *)newargv, newenvp);
         goto error;
     }
-    if (n >= argv_max - 1)
-        n = argv_max - 2;
-    newargv[n+1] = 0;
-    for (i = n; i >= 1; i--)
-        newargv[i] = newargv[i-1];
-    newargv[0] = elfloader;
-    newargv[1] = newfilename;
-    debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[1], newargv[2], newenvp[0]);
+
+    j = elfloader_opt_argv0 ? 3 : 1;
+    if (n >= argv_max - 1) {
+        n = argv_max - j - 1;
+    }
+    newargv[n+j] = 0;
+    for (i = n; i >= j; i--) {
+        newargv[i] = newargv[i-j];
+    }
+    n = 0;
+    newargv[n++] = elfloader;
+    if (elfloader_opt_argv0) {
+        newargv[n++] = elfloader_opt_argv0;
+        newargv[n++] = argv0;
+    }
+    newargv[n] = newfilename;
+    debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[1], newargv[n], newenvp[0]);
     status = nextcall(execve)(elfloader, (char * const *)newargv, newenvp);
 
 error:
