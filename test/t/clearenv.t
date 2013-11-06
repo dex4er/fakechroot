@@ -7,6 +7,9 @@ prepare 4
 
 chroot=fakechroot
 
+CLEARED=paranoid
+export CLEARED
+
 t=`LC_ALL=C $srcdir/$chroot.sh testtree /bin/sh -c 'CLEARED=something; echo $CLEARED' 2>&1`
 test "$t" = "something" || not
 ok "$chroot echo \$CLEARED returns" $t

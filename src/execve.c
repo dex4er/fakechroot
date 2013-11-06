@@ -101,7 +101,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     if (elfloader && !*elfloader) elfloader = NULL;
     if (elfloader_opt_argv0 && !*elfloader_opt_argv0) elfloader_opt_argv0 = NULL;
 
-    debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp[0]);
+    debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp ? envp[0] : "(null)");
 
     strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
 
@@ -114,8 +114,10 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     /* Scan envp and check its size */
     sizeenvp = 0;
-    for (ep = (char **)envp; *ep != NULL; ++ep) {
-        sizeenvp++;
+    if (envp) {
+        for (ep = (char **)envp; *ep != NULL; ++ep) {
+            sizeenvp++;
+        }
     }
 
     /* Copy envp to newenvp */
@@ -124,15 +126,18 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         __set_errno(ENOMEM);
         return -1;
     }
-    for (ep = (char **) envp, newenvppos = 0; *ep != NULL; ++ep) {
-        for (j = 0; j < preserve_env_list_count; j++) {
-            len = strlen(preserve_env_list[j]);
-            if (strncmp(*ep, preserve_env_list[j], len) == 0 && (*ep)[len] == '=')
-                goto skip;
+    newenvppos = 0;
+    if (envp) {
+        for (ep = (char **) envp; *ep != NULL; ++ep) {
+            for (j = 0; j < preserve_env_list_count; j++) {
+                len = strlen(preserve_env_list[j]);
+                if (strncmp(*ep, preserve_env_list[j], len) == 0 && (*ep)[len] == '=')
+                    goto skip;
+            }
+            newenvp[newenvppos] = *ep;
+            newenvppos++;
+        skip: ;
         }
-        newenvp[newenvppos] = *ep;
-        newenvppos++;
-    skip: ;
     }
     newenvp[newenvppos] = NULL;
 
