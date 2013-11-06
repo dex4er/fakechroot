@@ -141,7 +141,7 @@ fi
 # Autodetect if dynamic linker supports --argv0 option
 if [ -n "$FAKECHROOT_ELFLOADER" ]; then
     detect=`$FAKECHROOT_ELFLOADER --argv0 echo /bin/echo yes 2>&1`
-    if [ $detect = yes ]; then
+    if [ "$detect" = yes ]; then
         FAKECHROOT_ELFLOADER_OPT_ARGV0="--argv0"
         export FAKECHROOT_ELFLOADER_OPT_ARGV0
     fi
