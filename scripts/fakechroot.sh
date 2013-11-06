@@ -140,7 +140,7 @@ fi
 
 # Autodetect if dynamic linker supports --argv0 option
 if [ -n "$FAKECHROOT_ELFLOADER" ]; then
-    detect=`$FAKECHROOT_ELFLOADER --argv0 echo /bin/echo yes 2>&1`
+    detect=`$FAKECHROOT_ELFLOADER --argv0 echo @ECHO@ yes 2>&1`
     if [ "$detect" = yes ]; then
         FAKECHROOT_ELFLOADER_OPT_ARGV0="--argv0"
         export FAKECHROOT_ELFLOADER_OPT_ARGV0
@@ -152,7 +152,7 @@ fi
 paths="$paths${LD_LIBRARY_PATH:+${paths:+:}$LD_LIBRARY_PATH}"
 lib="$lib${LD_PRELOAD:+ $LD_PRELOAD}"
 
-detect=`LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" FAKECHROOT_DETECT=1 /bin/echo 2>&1`
+detect=`LD_LIBRARY_PATH="$paths" LD_PRELOAD="$lib" FAKECHROOT_DETECT=1 @ECHO@ 2>&1`
 case "$detect" in
     fakechroot*)
         libfound=yes

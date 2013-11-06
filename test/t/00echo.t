@@ -16,6 +16,8 @@ prepare 2
 #     check_if_it_is_ok || not
 #     ok "message"
 
+echo=${ECHO:-/bin/echo}
+
 # the same tests for real chroot and fakechroot
 for chroot in chroot fakechroot; do
 
@@ -25,7 +27,7 @@ for chroot in chroot fakechroot; do
     else
 
         # echo something
-        t=`$srcdir/$chroot.sh testtree /bin/echo something 2>&1`
+        t=`$srcdir/$chroot.sh testtree $echo something 2>&1`
         # check if it is ok or print "not"
         test "$t" = "something" || not
         # print "ok" message with unquoted test output
