@@ -160,6 +160,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         return -1;
     }
 
+    /* Preserve old environment variables */
     for (j = 0; j < nr_envkey; j++) {
         key = envkey[j];
         env = getenv(key);
@@ -215,6 +216,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             goto error;
         }
 
+        /* Run via elfloader */
         for (i = 0, n = (elfloader_opt_argv0 ? 3 : 1); argv[i] != NULL && i < argv_max; ) {
             newargv[n++] = argv[i++];
         }
@@ -263,11 +265,12 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     newargv[n] = 0;
 
-    if (!elfloader || !elfloader[0]) {
+    if (!elfloader) {
         status = nextcall(execve)(newfilename, (char * const *)newargv, newenvp);
         goto error;
     }
 
+    /* Run via elfloader */
     j = elfloader_opt_argv0 ? 3 : 1;
     if (n >= argv_max - 1) {
         n = argv_max - j - 1;
