@@ -83,7 +83,7 @@ for p in \
 do
     for f in $p; do
         if [ ! -e $f ]; then
-                f=$(which $(basename $f) 2> /dev/null )
+                f=$(command -v $(basename $f) 2> /dev/null )
                 if [ $? -ne 0 ]; then
                         continue
                 fi

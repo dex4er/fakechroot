@@ -33,7 +33,7 @@ tarball=$vendor-$release${variant:+-$variant}-$arch.debs.tgz
 
 export FAKECHROOT_AF_UNIX_PATH=/tmp
 
-if ! which chroot >/dev/null; then
+if ! command -v chroot >/dev/null 2>&1; then
     PATH=$PATH:/usr/sbin:/sbin
     export PATH
 fi

@@ -144,7 +144,7 @@ MAIN: {
         exit 1;
     }
 
-    if (not `which objdump`) {
+    if (not `command -v objdump`) {
         print STDERR "fakeldd: objdump: command not found: install binutils package\n";
         exit 1;
     }
