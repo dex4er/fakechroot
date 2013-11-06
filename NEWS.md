@@ -8,10 +8,11 @@
   settings.
 * The `ldd`(1) wrapper can work if overriden with `FAKECHROOT_CMD_SUBST`
   environment variable.
-* The new `env`(1) wrapper was added.  It preserves fakechroot environment even
+* New `env`(1) wrapper was added.  It preserves fakechroot environment even
   for `--ignore-environment` option.
 * The special environment `none` means that no environment settings are loaded
   at all.
+* New function `clearenv`(3) was added.  It preserves fakechroot environment.
 * Fixes were made for `readline`(2) function if destination path is similar to
   `FAKECHROOT_PATH`.
 * Fixes were made for `mktemp`(3) function if used on a path in

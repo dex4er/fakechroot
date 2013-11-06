@@ -34,6 +34,7 @@ libfakechroot_la_SOURCES = \
     chmod.c \
     chown.c \
     chroot.c \
+    clearenv.c \
     connect.c \
     creat.c \
     creat64.c \
@@ -108,6 +109,7 @@ libfakechroot_la_SOURCES = \
     opendir.c \
     pathconf.c \
     popen.c \
+    preserve_env_list.h \
     rawmemchr.c \
     rawmemchr.h \
     readlink.c \

@@ -5,6 +5,7 @@ TESTS = \
     t/canonicalize_file_name.t \
     t/chdir.t \
     t/chroot.t \
+    t/clearenv.t \
     t/cmd-subst.t \
     t/cp.t \
     t/execlp.t \

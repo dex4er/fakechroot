@@ -138,6 +138,7 @@ AC_CHECK_FUNCS(m4_normalize([
     chmod
     chown
     chroot
+    clearenv
     connect
     creat
     creat64
