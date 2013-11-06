@@ -35,7 +35,6 @@ extern char **environ;
 # include <alloca.h>
 #endif
 #include "libfakechroot.h"
-#include "preserve_env_list.h"
 
 
 wrapper(clearenv, int, (void))
@@ -43,15 +42,14 @@ wrapper(clearenv, int, (void))
     int j, n;
     char *key, *env;
     char **tmpkey, **tmpenv;
-    const int nr_envkey = sizeof preserve_env_list / sizeof preserve_env_list[0];
 
     debug("clearenv()");
 
     /* Preserve old environment variables */
-    tmpkey = alloca( (nr_envkey + 1) * sizeof (char *) );
-    tmpenv = alloca( (nr_envkey + 1) * sizeof (char *) );
+    tmpkey = alloca( (preserve_env_list_count + 1) * sizeof (char *) );
+    tmpenv = alloca( (preserve_env_list_count + 1) * sizeof (char *) );
 
-    for (j = 0, n = 0; j < nr_envkey; j++) {
+    for (j = 0, n = 0; j < preserve_env_list_count; j++) {
         key = preserve_env_list[j];
         env = getenv(key);
         if (env != NULL) {

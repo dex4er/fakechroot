@@ -43,6 +43,24 @@ static int first = 0;
 static char *home_path = NULL;
 
 
+/* List of environment variables to preserve on clearenv() */
+char *preserve_env_list[] = {
+    "FAKECHROOT_BASE",
+    "FAKECHROOT_CMD_SUBST",
+    "FAKECHROOT_DEBUG",
+    "FAKECHROOT_DETECT",
+    "FAKECHROOT_ELFLOADER",
+    "FAKECHROOT_ELFLOADER_OPT_ARGV0",
+    "FAKECHROOT_EXCLUDE_PATH",
+    "FAKECHROOT_VERSION",
+    "FAKEROOTKEY",
+    "FAKED_MODE",
+    "LD_LIBRARY_PATH",
+    "LD_PRELOAD"
+};
+const int preserve_env_list_count = sizeof preserve_env_list / sizeof preserve_env_list[0];
+
+
 LOCAL int fakechroot_debug (const char *fmt, ...)
 {
     va_list ap;

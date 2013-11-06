@@ -184,6 +184,9 @@ struct fakechroot_wrapper {
 };
 
 
+extern char *preserve_env_list[];
+extern const int preserve_env_list_count;
+
 int fakechroot_debug (const char *, ...);
 fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);

@@ -94,22 +94,6 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     size_t sizeenvp;
     char c;
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    char *envkey[] = {
-        "FAKECHROOT",
-        "FAKECHROOT_BASE",
-        "FAKECHROOT_CMD_SUBST",
-        "FAKECHROOT_DEBUG",
-        "FAKECHROOT_DETECT",
-        "FAKECHROOT_ELFLOADER",
-        "FAKECHROOT_ELFLOADER_OPT_ARGV0",
-        "FAKECHROOT_EXCLUDE_PATH",
-        "FAKECHROOT_VERSION",
-        "FAKEROOTKEY",
-        "FAKED_MODE",
-        "LD_LIBRARY_PATH",
-        "LD_PRELOAD"
-    };
-    const int nr_envkey = sizeof envkey / sizeof envkey[0];
 
     char *elfloader = getenv("FAKECHROOT_ELFLOADER");
     char *elfloader_opt_argv0 = getenv("FAKECHROOT_ELFLOADER_OPT_ARGV0");
@@ -141,9 +125,9 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         return -1;
     }
     for (ep = (char **) envp, newenvppos = 0; *ep != NULL; ++ep) {
-        for (j = 0; j < nr_envkey; j++) {
-            len = strlen(envkey[j]);
-            if (strncmp(*ep, envkey[j], len) == 0 && (*ep)[len] == '=')
+        for (j = 0; j < preserve_env_list_count; j++) {
+            len = strlen(preserve_env_list[j]);
+            if (strncmp(*ep, preserve_env_list[j], len) == 0 && (*ep)[len] == '=')
                 goto skip;
         }
         newenvp[newenvppos] = *ep;
@@ -153,16 +137,20 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     newenvp[newenvppos] = NULL;
 
     /* Add our variables to newenvp */
-    newenvp = realloc(newenvp, (newenvppos + nr_envkey + 1) * sizeof(char *));
+    newenvp = realloc(newenvp, (newenvppos + preserve_env_list_count + 2) * sizeof(char *));
 
     if (newenvp == NULL) {
         __set_errno(ENOMEM);
         return -1;
     }
 
+    newenvp[newenvppos] = malloc(strlen("FAKECHROOT=true") + 1);
+    strcpy(newenvp[newenvppos], "FAKECHROOT=true");
+    newenvppos++;
+
     /* Preserve old environment variables */
-    for (j = 0; j < nr_envkey; j++) {
-        key = envkey[j];
+    for (j = 0; j < preserve_env_list_count; j++) {
+        key = preserve_env_list[j];
         env = getenv(key);
         if (env != NULL) {
             if (do_cmd_subst && strcmp(key, "FAKECHROOT_BASE") == 0) {
