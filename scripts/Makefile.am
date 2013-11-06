@@ -16,6 +16,7 @@ do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]sbindir[@],$(sbindir),g' \
                -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
                -e 's,[@]CHROOT[@],$(CHROOT),g' \
+               -e 's,[@]ECHO[@],$(ECHO),g' \
                -e 's,[@]ENV[@],$(ENV),g' \
                -e 's,[@]EGREP[@],$(EGREP),g' \
                -e 's,[@]ISCHROOT[@],$(ISCHROOT),g' \
