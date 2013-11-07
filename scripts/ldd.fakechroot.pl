@@ -18,6 +18,9 @@ my $Format = '';
 my $Ldsodir = "/lib";
 my @Ld_Library_Path = qw(/usr/lib /lib /usr/lib32 /lib32 /usr/lib64 /lib64);
 
+my $Cwd = `pwd`;
+chomp $Cwd;
+
 my $Base = $ENV{FAKECHROOT_BASE_ORIG};
 
 sub ldso {
@@ -65,8 +68,10 @@ sub objdump {
     my (@files) = @_;
 
     foreach my $file (@files) {
+        $file = $file =~ m{^/} ? "$Base$file" : "$Cwd/$file";
+
         local *PIPE;
-        open PIPE, "objdump -p '$Base$file' 2>/dev/null |";
+        open PIPE, "objdump -p '$file' 2>/dev/null |";
 
         while (my $line = <PIPE>) {
             $line =~ s/^\s+//;
@@ -144,7 +149,7 @@ MAIN: {
         exit 1;
     }
 
-    if (not `command -v objdump`) {
+    if (not `sh -c 'command -v objdump'`) {
         print STDERR "fakeldd: objdump: command not found: install binutils package\n";
         exit 1;
     }
