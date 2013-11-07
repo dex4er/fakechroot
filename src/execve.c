@@ -78,18 +78,20 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 {
     int status;
     int file;
+    int is_base_orig = 0;
     char hashbang[FAKECHROOT_PATH_MAX];
     size_t argv_max = 1024;
     const char **newargv = alloca(argv_max * sizeof (const char *));
     char **newenvp, **ep;
     char *key, *env;
+    char tmpkey[1024], *tp;
     char *cmdorig;
     char tmp[FAKECHROOT_PATH_MAX];
     char substfilename[FAKECHROOT_PATH_MAX];
     char newfilename[FAKECHROOT_PATH_MAX];
     char argv0[FAKECHROOT_PATH_MAX];
     char *ptr;
-    unsigned int i, j, n, len, newenvppos;
+    unsigned int i, j, n, newenvppos;
     unsigned int do_cmd_subst = 0;
     size_t sizeenvp;
     char c;
@@ -121,52 +123,72 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     }
 
     /* Copy envp to newenvp */
-    newenvp = malloc( (sizeenvp + 1) * sizeof (char *) );
+    newenvp = malloc( (sizeenvp + preserve_env_list_count + 1) * sizeof (char *) );
     if (newenvp == NULL) {
         __set_errno(ENOMEM);
         return -1;
     }
     newenvppos = 0;
-    if (envp) {
-        for (ep = (char **) envp; *ep != NULL; ++ep) {
-            for (j = 0; j < preserve_env_list_count; j++) {
-                len = strlen(preserve_env_list[j]);
-                if (strncmp(*ep, preserve_env_list[j], len) == 0 && (*ep)[len] == '=')
-                    goto skip;
-            }
-            newenvp[newenvppos] = *ep;
-            newenvppos++;
-        skip: ;
-        }
-    }
-    newenvp[newenvppos] = NULL;
 
-    /* Add our variables to newenvp */
-    newenvp = realloc(newenvp, (newenvppos + preserve_env_list_count + 2) * sizeof(char *));
-
-    if (newenvp == NULL) {
-        __set_errno(ENOMEM);
-        return -1;
-    }
-
+    /* Create new envp */
     newenvp[newenvppos] = malloc(strlen("FAKECHROOT=true") + 1);
     strcpy(newenvp[newenvppos], "FAKECHROOT=true");
     newenvppos++;
 
-    /* Preserve old environment variables */
+    /* Preserve old environment variables if not overwritten by new */
     for (j = 0; j < preserve_env_list_count; j++) {
         key = preserve_env_list[j];
         env = getenv(key);
-        if (env != NULL) {
+        if (env != NULL && *env) {
             if (do_cmd_subst && strcmp(key, "FAKECHROOT_BASE") == 0) {
                 key = "FAKECHROOT_BASE_ORIG";
+                is_base_orig = 1;
+            }
+            if (envp) {
+                for (ep = (char **) envp; *ep != NULL; ++ep) {
+                    strncpy(tmpkey, *ep, 1024);
+                    tmpkey[1023] = 0;
+                    if ((tp = strchr(tmpkey, '=')) != NULL) {
+                        *tp = 0;
+                        if (strcmp(tmpkey, key) == 0) {
+                            goto skip1;
+                        }
+                    }
+                }
             }
             newenvp[newenvppos] = malloc(strlen(key) + strlen(env) + 3);
             strcpy(newenvp[newenvppos], key);
             strcat(newenvp[newenvppos], "=");
             strcat(newenvp[newenvppos], env);
             newenvppos++;
+        skip1: ;
         }
+    }
+
+    /* Append old envp to new envp */
+    if (envp) {
+        for (ep = (char **) envp; *ep != NULL; ++ep) {
+            strncpy(tmpkey, *ep, 1024);
+            tmpkey[1023] = 0;
+            if ((tp = strchr(tmpkey, '=')) != NULL) {
+                *tp = 0;
+                if (strcmp(tmpkey, "FAKECHROOT") == 0 ||
+                    (is_base_orig && strcmp(tmpkey, "FAKECHROOT_BASE") == 0))
+                {
+                    goto skip2;
+                }
+            }
+            newenvp[newenvppos] = *ep;
+            newenvppos++;
+        skip2: ;
+        }
+    }
+
+    newenvp[newenvppos] = NULL;
+
+    if (newenvp == NULL) {
+        __set_errno(ENOMEM);
+        return -1;
     }
 
     if (do_cmd_subst) {
