@@ -192,7 +192,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     }
 
     if (do_cmd_subst) {
-        newenvp[newenvppos] = malloc(strlen("FAKECHROOT_CMD_ORIG=") + strlen(filename));
+        newenvp[newenvppos] = malloc(strlen("FAKECHROOT_CMD_ORIG=") + strlen(filename) + 1);
         strcpy(newenvp[newenvppos], "FAKECHROOT_CMD_ORIG=");
         strcat(newenvp[newenvppos], filename);
         newenvppos++;
