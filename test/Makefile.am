@@ -40,7 +40,6 @@ EXTRA_DIST = $(TESTS) \
     common.inc.sh \
     debootstrap.sh \
     fakechroot.sh \
-    readlink.inc.sh \
     rinse.sh \
     seq.inc.sh \
     tap.inc.sh \

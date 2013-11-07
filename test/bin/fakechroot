@@ -3,10 +3,8 @@
 pwd=`dirname $0`
 abs_top_srcdir=${abs_top_srcdir:-`cd "$pwd/../.." 2>/dev/null && pwd -P`}
 
-if ! command -v chroot >/dev/null; then
-    PATH="${PATH:-/usr/bin:/bin}:/usr/sbin:/sbin"
-    export PATH
-fi
+PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+export PATH
 
 FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}\
 `command -v chroot`=$abs_top_srcdir/scripts/chroot.fakechroot:\

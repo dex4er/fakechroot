@@ -2,7 +2,9 @@
 
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
-. $srcdir/readlink.inc.sh
+
+readlink=`command -v readlink 2>/dev/null`
+readlink=${readlink:-/bin/readlink}
 
 prepare 18
 

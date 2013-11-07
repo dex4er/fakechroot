@@ -3,11 +3,6 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
-if ! command -v chroot >/dev/null; then
-    PATH="${PATH:-/usr/bin:/bin}:/usr/sbin:/sbin"
-    export PATH
-fi
-
 prepare 12
 
 $srcdir/testtree.sh testtree/testtree2
@@ -20,7 +15,7 @@ for chroot in chroot fakechroot; do
     else
 
         for testtree in testtree2 /testtree2 ./testtree2 /./testtree2 testtree2/. testtree2/./.; do
-            t=`$srcdir/$chroot.sh testtree chroot $testtree /bin/cat /CHROOT 2>&1`
+            t=`$srcdir/$chroot.sh testtree /usr/sbin/chroot $testtree /bin/cat /CHROOT 2>&1`
             test "$t" = "testtree/testtree2" || not
             ok "$chroot chroot $testtree:" $t
         done
