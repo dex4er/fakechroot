@@ -18,6 +18,7 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+build-aux
 build-tree-*
 compile
 config.*.cache
