@@ -37,4 +37,6 @@ wrapper(getwd, char *, (char * buf))
     return cwd;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

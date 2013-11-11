@@ -33,4 +33,6 @@ wrapper(lchmod, int, (const char * path, mode_t mode))
     return nextcall(lchmod)(path, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

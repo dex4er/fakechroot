@@ -47,4 +47,6 @@ wrapper(mkdtemp, char *, (char * template))
     return oldtemplate;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

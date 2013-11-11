@@ -40,4 +40,6 @@ LOCAL int setenv (const char *name, const char *value, int overwrite)
     return ret;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

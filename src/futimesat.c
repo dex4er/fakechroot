@@ -34,4 +34,6 @@ wrapper(futimesat, int, (int fd, const char * filename, const struct timeval tv 
     return nextcall(futimesat)(fd, filename, tv);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

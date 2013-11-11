@@ -33,4 +33,6 @@ wrapper(inotify_add_watch, int, (int fd, const char * pathname, uint32_t mask))
     return nextcall(inotify_add_watch)(fd, pathname, mask);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

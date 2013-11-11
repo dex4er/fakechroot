@@ -34,4 +34,6 @@ wrapper(mknodat, int, (int dirfd, const char * pathname, mode_t mode, dev_t dev)
     return nextcall(mknodat)(dirfd, pathname, mode, dev);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

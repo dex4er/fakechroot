@@ -30,4 +30,6 @@ LOCAL int unsetenv (const char *name) {
         return putenv((char *)name);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

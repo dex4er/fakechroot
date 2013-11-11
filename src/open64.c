@@ -45,4 +45,6 @@ wrapper_alias(open64, int, (const char * pathname, int flags, ...))
     return nextcall(open64)(pathname, flags, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

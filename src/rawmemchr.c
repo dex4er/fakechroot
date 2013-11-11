@@ -20,4 +20,6 @@ LOCAL void *rawmemchr(const void *s, int c)
         return (void *) r;      /* silence the warning */
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

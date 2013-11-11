@@ -34,4 +34,6 @@ wrapper(creat64, int, (const char * pathname, mode_t mode))
     return nextcall(creat64)(pathname, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

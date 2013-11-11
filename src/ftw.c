@@ -934,4 +934,6 @@ compat_symbol (libc, NFTW_OLD_NAME, NFTW_NAME, GLIBC_2_1);
 #endif
 #endif
 
+#else
+typedef int empty_translation_unit;
 #endif

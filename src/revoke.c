@@ -32,4 +32,6 @@ wrapper(revoke, int, (const char * file))
     return nextcall(revoke)(file);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

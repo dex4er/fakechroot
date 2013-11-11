@@ -33,4 +33,6 @@ wrapper(llistxattr, ssize_t, (const char *path, char *list, size_t size))
     return nextcall(llistxattr)(path, list, size);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

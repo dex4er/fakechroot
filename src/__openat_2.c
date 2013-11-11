@@ -34,4 +34,6 @@ wrapper(__openat_2, int, (int dirfd, const char * pathname, int flags))
     return nextcall(__openat_2)(dirfd, pathname, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -32,4 +32,6 @@ wrapper(euidaccess, int, (const char * pathname, int mode))
     return nextcall(euidaccess)(pathname, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

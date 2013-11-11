@@ -32,4 +32,6 @@ wrapper(removexattr, int, (const char * path, const char * name))
     return nextcall(removexattr)(path, name);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

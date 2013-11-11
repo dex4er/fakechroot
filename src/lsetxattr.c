@@ -33,4 +33,6 @@ wrapper(lsetxattr, int, (const char * path, const char * name, const void * valu
     return nextcall(lsetxattr)(path, name, value, size, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

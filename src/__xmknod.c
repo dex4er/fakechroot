@@ -33,4 +33,6 @@ wrapper(__xmknod, int, (int ver, const char * path, mode_t mode, dev_t * dev))
     return nextcall(__xmknod)(ver, path, mode, dev);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

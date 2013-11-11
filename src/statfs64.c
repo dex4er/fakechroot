@@ -34,4 +34,6 @@ wrapper(statfs64, int, (const char * path, struct statfs64 * buf))
     return nextcall(statfs64)(path, buf);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

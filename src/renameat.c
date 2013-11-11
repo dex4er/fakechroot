@@ -37,4 +37,6 @@ wrapper(renameat, int, (int olddirfd, const char * oldpath, int newdirfd, const 
     return nextcall(renameat)(olddirfd, oldpath, newdirfd, newpath);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

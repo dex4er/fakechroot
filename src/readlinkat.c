@@ -68,4 +68,6 @@ wrapper(readlinkat, ssize_t, (int dirfd, const char * path, char * buf, size_t b
     return linksize;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

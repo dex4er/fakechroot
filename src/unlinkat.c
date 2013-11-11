@@ -33,4 +33,6 @@ wrapper(unlinkat, int, (int dirfd, const char * pathname, int flags))
     return nextcall(unlinkat)(dirfd, pathname, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

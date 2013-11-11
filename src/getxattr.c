@@ -33,4 +33,6 @@ wrapper(getxattr, ssize_t, (const char * path, const char * name, void * value, 
     return nextcall(getxattr)(path, name, value, size);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -34,4 +34,6 @@ wrapper(dlmopen, void *, (Lmid_t nsid, const char * filename, int flag))
     return nextcall(dlmopen)(nsid, filename, flag);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

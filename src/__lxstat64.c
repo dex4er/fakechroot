@@ -23,9 +23,13 @@
 #ifdef HAVE___LXSTAT64
 
 #define _LARGEFILE64_SOURCE
+#define _XOPEN_SOURCE
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+
 #include "libfakechroot.h"
+#include "readlink.h"
 
 
 wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))
@@ -48,4 +52,6 @@ wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))
 }
 
 
+#else
+typedef int empty_translation_unit;
 #endif

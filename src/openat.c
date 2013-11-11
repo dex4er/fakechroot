@@ -45,4 +45,6 @@ wrapper_alias(openat, int, (int dirfd, const char * pathname, int flags, ...))
     return nextcall(openat)(dirfd, pathname, flags, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -195,4 +195,6 @@ pclose(FILE *iop)
         return (pid == -1 ? -1 : pstat);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

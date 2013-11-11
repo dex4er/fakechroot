@@ -39,4 +39,6 @@ wrapper(__getcwd_chk, char *, (char * buf, size_t size, size_t buflen))
     return cwd;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

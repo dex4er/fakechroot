@@ -33,4 +33,6 @@ wrapper(opendir, DIR *, (const char * name))
     return nextcall(opendir)(name);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -33,4 +33,6 @@ wrapper(lutimes, int, (const char * filename, const struct timeval tv [2]))
     return nextcall(lutimes)(filename, tv);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

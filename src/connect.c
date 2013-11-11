@@ -77,6 +77,10 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
     return nextcall(connect)(sockfd, addr, addrlen);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif
 
+#else
+typedef int empty_translation_unit;
 #endif

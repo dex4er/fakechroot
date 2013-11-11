@@ -32,4 +32,6 @@ wrapper(setxattr, int, (const char * path, const char * name, const void * value
     return nextcall(setxattr)(path, name, value, size, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

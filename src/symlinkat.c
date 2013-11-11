@@ -37,4 +37,6 @@ wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpat
     return nextcall(symlinkat)(oldpath, newdirfd, newpath);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

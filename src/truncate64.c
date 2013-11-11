@@ -34,4 +34,6 @@ wrapper(truncate64, int, (const char * path, off64_t length))
     return nextcall(truncate64)(path, length);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

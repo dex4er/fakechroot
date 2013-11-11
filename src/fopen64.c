@@ -34,4 +34,6 @@ wrapper(fopen64, FILE *, (const char * path, const char * mode))
     return nextcall(fopen64)(path, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

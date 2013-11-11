@@ -48,4 +48,6 @@ wrapper(mkstemps, int, (char * template, int suffixlen))
     return fd;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

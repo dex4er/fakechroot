@@ -34,4 +34,6 @@ wrapper(__open64_2, int, (const char * pathname, int flags))
     return nextcall(__open64_2)(pathname, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

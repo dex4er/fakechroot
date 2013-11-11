@@ -387,4 +387,6 @@ fail:
         return (NULL);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

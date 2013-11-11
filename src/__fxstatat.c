@@ -34,4 +34,6 @@ wrapper(__fxstatat, int, (int ver, int dirfd, const char * pathname, struct stat
     return nextcall(__fxstatat)(ver, dirfd, pathname, buf, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

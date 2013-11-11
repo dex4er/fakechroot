@@ -49,4 +49,6 @@ wrapper(mkostemps64, int, (char * template, int suffixlen, int flags))
     return fd;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

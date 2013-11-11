@@ -33,4 +33,6 @@ wrapper(scandir, int, (const char * dir, struct dirent *** namelist, SCANDIR_TYP
     return nextcall(scandir)(dir, namelist, filter, compar);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

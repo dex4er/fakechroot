@@ -45,4 +45,6 @@ wrapper(lstat, int, (const char * file_name, struct stat * buf))
     return retval;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

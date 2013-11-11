@@ -77,7 +77,6 @@
 # define vfork fork
 #endif
 
-
 #define narrow_chroot_path(path) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \

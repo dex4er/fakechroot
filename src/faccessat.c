@@ -34,4 +34,6 @@ wrapper(faccessat, int, (int dirfd, const char * pathname, int mode, int flags))
     return nextcall(faccessat)(dirfd, pathname, mode, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

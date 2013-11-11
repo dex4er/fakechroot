@@ -42,4 +42,6 @@ wrapper(_xftw, int, (int mode, const char * dir, int (* fn)(const char * file, c
     return nextcall(_xftw)(mode, dir, _xftw_fn_wrapper, nopenfd);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

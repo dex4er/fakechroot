@@ -47,4 +47,6 @@ wrapper(get_current_dir_name, char *, (void))
     return newptr;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -146,4 +146,6 @@ strchrnul (const char *s, int c_in)
   return (char *) char_ptr;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

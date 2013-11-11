@@ -46,4 +46,6 @@ wrapper(lstat64, int, (const char * file_name, struct stat64 * buf))
     return retval;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

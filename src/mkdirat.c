@@ -34,4 +34,6 @@ wrapper(mkdirat, int, (int dirfd, const char * pathname, mode_t mode))
     return nextcall(mkdirat)(dirfd, pathname, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

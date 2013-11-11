@@ -41,4 +41,6 @@ wrapper(canonicalize_file_name, char *, (const char * name))
 #endif
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

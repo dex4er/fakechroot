@@ -23,9 +23,13 @@
 #ifdef HAVE___LXSTAT
 
 #define _ATFILE_SOURCE
+#define _XOPEN_SOURCE
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+
 #include "libfakechroot.h"
+#include "readlink.h"
 
 
 wrapper(__lxstat, int, (int ver, const char * filename, struct stat * buf))
@@ -47,4 +51,6 @@ wrapper(__lxstat, int, (int ver, const char * filename, struct stat * buf))
     return retval;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

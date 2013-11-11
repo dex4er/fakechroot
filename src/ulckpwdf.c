@@ -31,4 +31,6 @@ wrapper(ulckpwdf, int, (void))
     return 0;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

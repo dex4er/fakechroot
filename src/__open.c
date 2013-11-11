@@ -45,4 +45,6 @@ wrapper(__open, int, (const char * pathname, int flags, ...))
     return nextcall(__open)(pathname, flags, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -32,4 +32,6 @@ wrapper(glob_pattern_p, int, (const char * pattern, int quote))
     return nextcall(glob_pattern_p)(pattern, quote);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

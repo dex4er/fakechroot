@@ -34,4 +34,6 @@ wrapper(__xstat64, int, (int ver, const char * filename, struct stat64 * buf))
     return nextcall(__xstat64)(ver, filename, buf);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

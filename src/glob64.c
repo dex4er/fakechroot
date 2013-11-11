@@ -57,4 +57,6 @@ wrapper(glob64, int, (const char * pattern, int flags, int (* errfunc) (const ch
     return rc;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

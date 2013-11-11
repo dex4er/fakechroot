@@ -31,4 +31,6 @@ wrapper(eaccess, int, (const char * pathname, int mode))
     return nextcall(eaccess)(pathname, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

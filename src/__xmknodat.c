@@ -34,4 +34,6 @@ wrapper(__xmknodat, int, (int ver, int dirfd, const char * path, mode_t mode, de
     return nextcall(__xmknodat)(ver, dirfd, path, mode, dev);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -32,4 +32,6 @@ wrapper(bindtextdomain, char *, (const char * domainname, const char * dirname))
     return nextcall(bindtextdomain)(domainname, dirname);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

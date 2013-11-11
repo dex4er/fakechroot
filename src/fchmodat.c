@@ -34,4 +34,6 @@ wrapper(fchmodat, int, (int dirfd, const char * path, mode_t mode, int flag))
     return nextcall(fchmodat)(dirfd, path, mode, flag);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

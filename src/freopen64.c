@@ -34,4 +34,6 @@ wrapper(freopen64, FILE *, (const char *path, const char *mode, FILE *stream))
     return nextcall(freopen64)(path, mode, stream);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

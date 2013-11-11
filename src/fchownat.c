@@ -34,4 +34,6 @@ wrapper(fchownat, int, (int dirfd, const char * path, uid_t owner, gid_t group, 
     return nextcall(fchownat)(dirfd, path, owner, group, flag);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

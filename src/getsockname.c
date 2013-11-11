@@ -69,6 +69,10 @@ wrapper(getsockname, int, (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t * addrl
     return status;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -33,4 +33,6 @@ wrapper(lgetxattr, ssize_t, (const char * path, const char * name, void * value,
     return nextcall(lgetxattr)(path, name, value, size);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

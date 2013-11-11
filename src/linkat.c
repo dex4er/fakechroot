@@ -37,4 +37,6 @@ wrapper(linkat, int, (int olddirfd, const char * oldpath, int newdirfd, const ch
     return nextcall(linkat)(olddirfd, oldpath, newdirfd, newpath, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

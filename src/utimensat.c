@@ -34,4 +34,6 @@ wrapper(utimensat, int, (int dirfd, const char * pathname, const struct timespec
     return nextcall(utimensat)(dirfd, pathname, times, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

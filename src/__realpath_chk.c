@@ -47,4 +47,6 @@ wrapper(__realpath_chk, char *, (const char * path, char * resolved, size_t reso
     return realpath(path, resolved);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif
