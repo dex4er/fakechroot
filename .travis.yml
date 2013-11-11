@@ -8,6 +8,7 @@ before_install:
 script: ./autogen.sh && ./configure && make && make test
 env:
   - TEST_DEBOOTSTRAP=1
+  - CFLAGS='-std=c11 -g -O2 -Wall -Wno-deprecated-declarations'
 branches:
   except:
     - /^archive\//
