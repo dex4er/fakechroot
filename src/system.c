@@ -22,10 +22,12 @@
 
 #ifdef __GNUC__
 
+#define _POSIX_SOURCE
+#define _BSD_SOURCE
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <unistd.h>
+#include <signal.h>
 #include "libfakechroot.h"
 
 

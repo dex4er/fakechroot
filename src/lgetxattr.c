@@ -22,6 +22,7 @@
 
 #ifdef HAVE_LGETXATTR
 
+#include <sys/types.h>
 #include <stddef.h>
 #include "libfakechroot.h"
 

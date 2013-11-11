@@ -61,7 +61,7 @@ static char sccsid[] = "@(#)opendir.c   8.8 (Berkeley) 5/1/95";
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD: src/lib/libc/gen/opendir.c,v 1.25.2.2.2.1 2010/06/14 02:09:06 kensmith Exp $");
 
-//#include "namespace.h"
+/*#include "namespace.h"*/
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
@@ -72,9 +72,9 @@ __FBSDID("$FreeBSD: src/lib/libc/gen/opendir.c,v 1.25.2.2.2.1 2010/06/14 02:09:0
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-//#include "un-namespace.h"
+/*#include "un-namespace.h"*/
 
-//#include "telldir.h"
+/*#include "telldir.h"*/
 
 #define _fcntl fcntl
 #define _fstat fstat

@@ -21,6 +21,7 @@
 #include <config.h>
 
 #define _ATFILE_SOURCE
+#include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
 

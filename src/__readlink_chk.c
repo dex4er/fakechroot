@@ -24,6 +24,7 @@
 
 #define _FORTIFY_SOURCE 2
 #include <stddef.h>
+#include <unistd.h>
 #include "libfakechroot.h"
 
 

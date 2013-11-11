@@ -22,6 +22,7 @@
 
 #ifdef HAVE_LCHMOD
 
+#include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
 

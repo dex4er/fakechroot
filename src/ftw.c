@@ -144,6 +144,8 @@ char *stpcpy (char *, const char *);
 # define __openat64 openat64
 # undef __opendir
 # define __opendir opendir
+# undef __rawmemchr
+# define __rawmemchr rawmemchr
 # undef __readdir64
 # define __readdir64 readdir
 # undef __stpcpy

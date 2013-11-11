@@ -119,9 +119,9 @@
 
 #define wrapper_decl(function) \
     LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
-        .func     = (fakechroot_wrapperfn_t) function, \
-        .nextfunc = NULL, \
-        .name     = #function \
+        (fakechroot_wrapperfn_t) function, \
+        NULL, \
+        #function \
     }
 
 #define wrapper_fn_t(function, return_type, arguments) \

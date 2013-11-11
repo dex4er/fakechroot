@@ -31,7 +31,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
+
 #include "libfakechroot.h"
+#include "readlink.h"
 
 
 /*

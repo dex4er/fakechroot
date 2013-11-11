@@ -20,6 +20,7 @@
 
 #include <config.h>
 
+#include <sys/types.h>
 #include <stddef.h>
 #include "libfakechroot.h"
 
