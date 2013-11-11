@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -26,15 +26,18 @@
 wrapper(mktemp, char *, (char * template))
 {
     char tmp[FAKECHROOT_PATH_MAX], *ptr, *ptr2;
-    char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
 
     debug("mktemp(\"%s\")", template);
+
     tmp[FAKECHROOT_PATH_MAX-1] = '\0';
     strncpy(tmp, template, FAKECHROOT_PATH_MAX-2);
     ptr = tmp;
 
-    if (!fakechroot_localdir(ptr)) {
-        expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_buf);
+    if (!fakechroot_localdir(tmp)) {
+        expand_chroot_path(ptr);
+        ptr2 = malloc(strlen(tmp));
+        strcpy(ptr2, ptr);
+        ptr = ptr2;
     }
 
     if (nextcall(mktemp)(ptr) == NULL) {
@@ -43,7 +46,7 @@ wrapper(mktemp, char *, (char * template))
     }
 
     ptr2 = ptr;
-    narrow_chroot_path(ptr2, fakechroot_path, fakechroot_ptr);
+    narrow_chroot_path(ptr2);
 
     strncpy(template, ptr2, strlen(template));
     if (ptr != tmp) free(ptr);

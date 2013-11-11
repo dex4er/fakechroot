@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -33,9 +33,10 @@ extern void __chk_fail (void) __attribute__((__noreturn__));
 #else
 __attribute__((__noreturn__)) void __chk_fail (void)
 {
-	exit(-1);
+        exit(-1);
 }
 #endif
+
 
 wrapper(__realpath_chk, char *, (const char * path, char * resolved, size_t resolvedlen))
 {

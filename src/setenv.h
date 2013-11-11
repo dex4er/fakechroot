@@ -18,4 +18,9 @@
 */
 
 
+#ifndef __SETENV_H
+#define __SETENV_H
+
 int setenv (const char *, const char *, int);
+
+#endif

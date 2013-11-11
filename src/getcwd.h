@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,11 @@
 */
 
 
+#ifndef __GETCWD_H
+#define __GETCWD_H
+
 #include <stddef.h>
 
 wrapper_proto(getcwd, char *, (char *, size_t));
+
+#endif

@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
+
+#ifndef __LIBFAKECHROOT_H
+#define __LIBFAKECHROOT_H
 
 #include <errno.h>
 #include <limits.h>
@@ -75,49 +78,35 @@
 #endif
 
 
-#define narrow_chroot_path(path, fakechroot_path, fakechroot_ptr) \
+#define narrow_chroot_path(path) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
-            fakechroot_path = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_path != NULL) { \
-                fakechroot_ptr = strstr((path), fakechroot_path); \
+            const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
+            if (fakechroot_base != NULL) { \
+                char *fakechroot_ptr = strstr((path), fakechroot_base); \
                 if (fakechroot_ptr == (path)) { \
-                    if (strlen((path)) == strlen(fakechroot_path)) { \
+                    const size_t fakechroot_base_len = strlen(fakechroot_base); \
+                    const size_t path_len = strlen(path); \
+                    if (path_len == fakechroot_base_len) { \
                         ((char *)(path))[0] = '/'; \
                         ((char *)(path))[1] = '\0'; \
-                    } else if ( ((char *)(path))[strlen(fakechroot_path)] == '/' ) { \
-                        memmove((void*)(path), (path)+strlen(fakechroot_path), 1+strlen((path))-strlen(fakechroot_path)); \
+                    } \
+                    else if ( ((char *)(path))[fakechroot_base_len] == '/' ) { \
+                        memmove((void *)(path), (path) + fakechroot_base_len, 1 + path_len - fakechroot_base_len); \
                     } \
                 } \
             } \
         } \
     }
 
-#define expand_chroot_path(path, fakechroot_path, fakechroot_buf) \
+#define expand_chroot_path(path) \
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL && *((char *)(path)) == '/') { \
-                fakechroot_path = getenv("FAKECHROOT_BASE"); \
-                if (fakechroot_path != NULL) { \
-                    strcpy(fakechroot_buf, fakechroot_path); \
-                    strcat(fakechroot_buf, (path)); \
-                    (path) = fakechroot_buf; \
-                } \
-            } \
-        } \
-    }
-
-#define expand_chroot_path_malloc(path, fakechroot_path, fakechroot_buf) \
-    { \
-        if (!fakechroot_localdir(path)) { \
-            if ((path) != NULL && *((char *)(path)) == '/') { \
-                fakechroot_path = getenv("FAKECHROOT_BASE"); \
-                if (fakechroot_path != NULL) { \
-                    if ((fakechroot_buf = malloc(strlen(fakechroot_path)+strlen(path)+1)) == NULL) { \
-                        __set_errno(ENOMEM); \
-                        return NULL; \
-                    } \
-                    strcpy(fakechroot_buf, fakechroot_path); \
+                const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
+                if (fakechroot_base != NULL) { \
+                    char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
+                    strcpy(fakechroot_buf, fakechroot_base); \
                     strcat(fakechroot_buf, (path)); \
                     (path) = fakechroot_buf; \
                 } \
@@ -131,9 +120,9 @@
 
 #define wrapper_decl(function) \
     LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
-        .func = (fakechroot_wrapperfn_t) function, \
+        .func     = (fakechroot_wrapperfn_t) function, \
         .nextfunc = NULL, \
-        .name = #function \
+        .name     = #function \
     }
 
 #define wrapper_fn_t(function, return_type, arguments) \
@@ -190,3 +179,5 @@ extern const int preserve_env_list_count;
 int fakechroot_debug (const char *, ...);
 fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
+
+#endif

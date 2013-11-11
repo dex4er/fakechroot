@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,9 +29,8 @@
 
 wrapper(stat64, int, (const char * file_name, struct stat64 * buf))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("stat64(\"%s\", &buf)", file_name);
-    expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(file_name);
     return nextcall(stat64)(file_name, buf);
 }
 

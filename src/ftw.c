@@ -274,7 +274,7 @@ static const int ftw_arr[] =
 
 /* Forward declarations of local functions.  */
 static int ftw_dir (struct ftw_data *data, struct STAT *st,
-		    struct dir_data *old_dir) internal_function;
+                    struct dir_data *old_dir) internal_function;
 
 
 static int
@@ -323,63 +323,63 @@ open_dir_stream (int *dfdp, struct ftw_data *data, struct dir_data *dirp)
   if (data->dirstreams[data->actdir] != NULL)
     {
       /* Oh, oh.  We must close this stream.  Get all remaining
-	 entries and store them as a list in the `content' member of
-	 the `struct dir_data' variable.  */
+         entries and store them as a list in the `content' member of
+         the `struct dir_data' variable.  */
       size_t bufsize = 1024;
       char *buf = malloc (bufsize);
 
       if (buf == NULL)
-	result = -1;
+        result = -1;
       else
-	{
-	  DIR *st = data->dirstreams[data->actdir]->stream;
-	  struct dirent64 *d;
-	  size_t actsize = 0;
+        {
+          DIR *st = data->dirstreams[data->actdir]->stream;
+          struct dirent64 *d;
+          size_t actsize = 0;
 
-	  while ((d = __readdir64 (st)) != NULL)
-	    {
-	      size_t this_len = NAMLEN (d);
-	      if (actsize + this_len + 2 >= bufsize)
-		{
-		  char *newp;
-		  bufsize += MAX (1024, 2 * this_len);
-		  newp = (char *) realloc (buf, bufsize);
-		  if (newp == NULL)
-		    {
-		      /* No more memory.  */
-		      int save_err = errno;
-		      free (buf);
-		      __set_errno (save_err);
-		      return -1;
-		    }
-		  buf = newp;
-		}
+          while ((d = __readdir64 (st)) != NULL)
+            {
+              size_t this_len = NAMLEN (d);
+              if (actsize + this_len + 2 >= bufsize)
+                {
+                  char *newp;
+                  bufsize += MAX (1024, 2 * this_len);
+                  newp = (char *) realloc (buf, bufsize);
+                  if (newp == NULL)
+                    {
+                      /* No more memory.  */
+                      int save_err = errno;
+                      free (buf);
+                      __set_errno (save_err);
+                      return -1;
+                    }
+                  buf = newp;
+                }
 
-	      *((char *) __mempcpy (buf + actsize, d->d_name, this_len))
-		= '\0';
-	      actsize += this_len + 1;
-	    }
+              *((char *) __mempcpy (buf + actsize, d->d_name, this_len))
+                = '\0';
+              actsize += this_len + 1;
+            }
 
-	  /* Terminate the list with an additional NUL byte.  */
-	  buf[actsize++] = '\0';
+          /* Terminate the list with an additional NUL byte.  */
+          buf[actsize++] = '\0';
 
-	  /* Shrink the buffer to what we actually need.  */
-	  data->dirstreams[data->actdir]->content = realloc (buf, actsize);
-	  if (data->dirstreams[data->actdir]->content == NULL)
-	    {
-	      int save_err = errno;
-	      free (buf);
-	      __set_errno (save_err);
-	      result = -1;
-	    }
-	  else
-	    {
-	      __closedir (st);
-	      data->dirstreams[data->actdir]->stream = NULL;
-	      data->dirstreams[data->actdir]->streamfd = -1;
-	      data->dirstreams[data->actdir] = NULL;
-	    }
-	}
+          /* Shrink the buffer to what we actually need.  */
+          data->dirstreams[data->actdir]->content = realloc (buf, actsize);
+          if (data->dirstreams[data->actdir]->content == NULL)
+            {
+              int save_err = errno;
+              free (buf);
+              __set_errno (save_err);
+              result = -1;
+            }
+          else
+            {
+              __closedir (st);
+              data->dirstreams[data->actdir]->stream = NULL;
+              data->dirstreams[data->actdir]->streamfd = -1;
+              data->dirstreams[data->actdir] = NULL;
+            }
+        }
     }
 
   /* Open the new stream.  */
@@ -388,40 +388,40 @@ open_dir_stream (int *dfdp, struct ftw_data *data, struct dir_data *dirp)
       assert (data->dirstreams[data->actdir] == NULL);
 
       if (dfdp != NULL && *dfdp != -1)
-	{
-	  int fd = openat64_not_cancel_3 (*dfdp, data->dirbuf + data->ftw.base,
-					  O_RDONLY | O_DIRECTORY | O_NDELAY);
-	  dirp->stream = NULL;
-	  if (fd != -1 && (dirp->stream = __fdopendir (fd)) == NULL)
-	    close_not_cancel_no_status (fd);
-	}
+        {
+          int fd = openat64_not_cancel_3 (*dfdp, data->dirbuf + data->ftw.base,
+                                          O_RDONLY | O_DIRECTORY | O_NDELAY);
+          dirp->stream = NULL;
+          if (fd != -1 && (dirp->stream = __fdopendir (fd)) == NULL)
+            close_not_cancel_no_status (fd);
+        }
       else
-	{
-	  const char *name;
+        {
+          const char *name;
 
-	  if (data->flags & FTW_CHDIR)
-	    {
-	      name = data->dirbuf + data->ftw.base;
-	      if (name[0] == '\0')
-		name = ".";
-	    }
-	  else
-	    name = data->dirbuf;
+          if (data->flags & FTW_CHDIR)
+            {
+              name = data->dirbuf + data->ftw.base;
+              if (name[0] == '\0')
+                name = ".";
+            }
+          else
+            name = data->dirbuf;
 
-	  dirp->stream = __opendir (name);
-	}
+          dirp->stream = __opendir (name);
+        }
 
       if (dirp->stream == NULL)
-	result = -1;
+        result = -1;
       else
-	{
-	  dirp->streamfd = dirfd (dirp->stream);
-	  dirp->content = NULL;
-	  data->dirstreams[data->actdir] = dirp;
+        {
+          dirp->streamfd = dirfd (dirp->stream);
+          dirp->content = NULL;
+          data->dirstreams[data->actdir] = dirp;
 
-	  if (++data->actdir == data->maxdir)
-	    data->actdir = 0;
-	}
+          if (++data->actdir == data->maxdir)
+            data->actdir = 0;
+        }
     }
 
   return result;
@@ -431,7 +431,7 @@ open_dir_stream (int *dfdp, struct ftw_data *data, struct dir_data *dirp)
 static int
 internal_function
 process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
-	       size_t namlen, int d_type)
+               size_t namlen, int d_type)
 {
   struct STAT st;
   int result = 0;
@@ -439,7 +439,7 @@ process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
   size_t new_buflen;
 
   if (name[0] == '.' && (name[1] == '\0'
-			 || (name[1] == '.' && name[2] == '\0')))
+                         || (name[1] == '.' && name[2] == '\0')))
     /* Don't process the "." and ".." entries.  */
     return 0;
 
@@ -452,7 +452,7 @@ process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
       data->dirbufsize = 2 * new_buflen;
       newp = (char *) realloc (data->dirbuf, data->dirbufsize);
       if (newp == NULL)
-	return -1;
+        return -1;
       data->dirbuf = newp;
     }
 
@@ -461,63 +461,63 @@ process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
   int statres;
   if (dir->streamfd != -1)
     statres = FXSTATAT (_STAT_VER, dir->streamfd, name, &st,
-			(data->flags & FTW_PHYS) ? AT_SYMLINK_NOFOLLOW : 0);
+                        (data->flags & FTW_PHYS) ? AT_SYMLINK_NOFOLLOW : 0);
   else
     {
       if ((data->flags & FTW_CHDIR) == 0)
-	name = data->dirbuf;
+        name = data->dirbuf;
 
       statres = ((data->flags & FTW_PHYS)
-		 ? LXSTAT (_STAT_VER, name, &st)
-		 : XSTAT (_STAT_VER, name, &st));
+                 ? LXSTAT (_STAT_VER, name, &st)
+                 : XSTAT (_STAT_VER, name, &st));
     }
 
   if (statres < 0)
     {
       if (errno != EACCES && errno != ENOENT)
-	result = -1;
+        result = -1;
       else if (data->flags & FTW_PHYS)
-	flag = FTW_NS;
+        flag = FTW_NS;
       else if (d_type == DT_LNK)
-	flag = FTW_SLN;
+        flag = FTW_SLN;
       else
-	{
-	  if (dir->streamfd != -1)
-	    statres = FXSTATAT (_STAT_VER, dir->streamfd, name, &st,
-				AT_SYMLINK_NOFOLLOW);
-	  else
-	    statres = LXSTAT (_STAT_VER, name, &st);
-	  if (statres == 0 && S_ISLNK (st.st_mode))
-	    flag = FTW_SLN;
-	  else
-	    flag = FTW_NS;
-	}
+        {
+          if (dir->streamfd != -1)
+            statres = FXSTATAT (_STAT_VER, dir->streamfd, name, &st,
+                                AT_SYMLINK_NOFOLLOW);
+          else
+            statres = LXSTAT (_STAT_VER, name, &st);
+          if (statres == 0 && S_ISLNK (st.st_mode))
+            flag = FTW_SLN;
+          else
+            flag = FTW_NS;
+        }
     }
   else
     {
       if (S_ISDIR (st.st_mode))
-	flag = FTW_D;
+        flag = FTW_D;
       else if (S_ISLNK (st.st_mode))
-	flag = FTW_SL;
+        flag = FTW_SL;
       else
-	flag = FTW_F;
+        flag = FTW_F;
     }
 
   if (result == 0
       && (flag == FTW_NS
-	  || !(data->flags & FTW_MOUNT) || st.st_dev == data->dev))
+          || !(data->flags & FTW_MOUNT) || st.st_dev == data->dev))
     {
       if (flag == FTW_D)
-	{
-	  if ((data->flags & FTW_PHYS)
-	      || (!find_object (data, &st)
-		  /* Remember the object.  */
-		  && (result = add_object (data, &st)) == 0))
-	    result = ftw_dir (data, &st, dir);
-	}
+        {
+          if ((data->flags & FTW_PHYS)
+              || (!find_object (data, &st)
+                  /* Remember the object.  */
+                  && (result = add_object (data, &st)) == 0))
+            result = ftw_dir (data, &st, dir);
+        }
       else
-	result = (*data->func) (data->dirbuf, &st, data->cvt_arr[flag],
-				&data->ftw);
+        result = (*data->func) (data->dirbuf, &st, data->cvt_arr[flag],
+                                &data->ftw);
     }
 
   if ((data->flags & FTW_ACTIONRETVAL) && result == FTW_SKIP_SUBTREE)
@@ -541,12 +541,12 @@ ftw_dir (struct ftw_data *data, struct STAT *st, struct dir_data *old_dir)
   /* Open the stream for this directory.  This might require that
      another stream has to be closed.  */
   result = open_dir_stream (old_dir == NULL ? NULL : &old_dir->streamfd,
-			    data, &dir);
+                            data, &dir);
   if (result != 0)
     {
       if (errno == EACCES)
-	/* We cannot read the directory.  Signal this with a special flag.  */
-	result = (*data->func) (data->dirbuf, st, FTW_DNR, &data->ftw);
+        /* We cannot read the directory.  Signal this with a special flag.  */
+        result = (*data->func) (data->dirbuf, st, FTW_DNR, &data->ftw);
 
       return result;
     }
@@ -556,29 +556,29 @@ ftw_dir (struct ftw_data *data, struct STAT *st, struct dir_data *old_dir)
     {
       result = (*data->func) (data->dirbuf, st, FTW_D, &data->ftw);
       if (result != 0)
-	{
-	  int save_err;
+        {
+          int save_err;
 fail:
-	  save_err = errno;
-	  __closedir (dir.stream);
-	  dir.streamfd = -1;
-	  __set_errno (save_err);
+          save_err = errno;
+          __closedir (dir.stream);
+          dir.streamfd = -1;
+          __set_errno (save_err);
 
-	  if (data->actdir-- == 0)
-	    data->actdir = data->maxdir - 1;
-	  data->dirstreams[data->actdir] = NULL;
-	  return result;
-	}
+          if (data->actdir-- == 0)
+            data->actdir = data->maxdir - 1;
+          data->dirstreams[data->actdir] = NULL;
+          return result;
+        }
     }
 
   /* If necessary, change to this directory.  */
   if (data->flags & FTW_CHDIR)
     {
       if (__fchdir (dirfd (dir.stream)) < 0)
-	{
-	  result = -1;
-	  goto fail;
-	}
+        {
+          result = -1;
+          goto fail;
+        }
     }
 
   /* Next, update the `struct FTW' information.  */
@@ -594,13 +594,13 @@ fail:
     {
       result = process_entry (data, &dir, d->d_name, NAMLEN (d), d->d_type);
       if (result != 0)
-	break;
+        break;
     }
 
   if (dir.stream != NULL)
     {
       /* The stream is still open.  I.e., we did not need more
-	 descriptors.  Simply close the stream now.  */
+         descriptors.  Simply close the stream now.  */
       int save_err = errno;
 
       assert (dir.content == NULL);
@@ -610,7 +610,7 @@ fail:
       __set_errno (save_err);
 
       if (data->actdir-- == 0)
-	data->actdir = data->maxdir - 1;
+        data->actdir = data->maxdir - 1;
       data->dirstreams[data->actdir] = NULL;
     }
   else
@@ -619,13 +619,13 @@ fail:
       char *runp = dir.content;
 
       while (result == 0 && *runp != '\0')
-	{
-	  char *endp = strchr (runp, '\0');
+        {
+          char *endp = strchr (runp, '\0');
 
-	  result = process_entry (data, &dir, runp, endp - runp, DT_UNKNOWN);
+          result = process_entry (data, &dir, runp, endp - runp, DT_UNKNOWN);
 
-	  runp = endp + 1;
-	}
+          runp = endp + 1;
+        }
 
       save_err = errno;
       free (dir.content);
@@ -647,26 +647,26 @@ fail:
   if (old_dir
       && (data->flags & FTW_CHDIR)
       && (result == 0
-	  || ((data->flags & FTW_ACTIONRETVAL)
-	      && (result != -1 && result != FTW_STOP))))
+          || ((data->flags & FTW_ACTIONRETVAL)
+              && (result != -1 && result != FTW_STOP))))
     {
       /* Change back to the parent directory.  */
       int done = 0;
       if (old_dir->stream != NULL)
-	if (__fchdir (dirfd (old_dir->stream)) == 0)
-	  done = 1;
+        if (__fchdir (dirfd (old_dir->stream)) == 0)
+          done = 1;
 
       if (!done)
-	{
-	  if (data->ftw.base == 1)
-	    {
-	      if (__chdir ("/") < 0)
-		result = -1;
-	    }
-	  else
-	    if (__chdir ("..") < 0)
-	      result = -1;
-	}
+        {
+          if (data->ftw.base == 1)
+            {
+              if (__chdir ("/") < 0)
+                result = -1;
+            }
+          else
+            if (__chdir ("..") < 0)
+              result = -1;
+        }
     }
 
   return result;
@@ -677,7 +677,7 @@ static int
 __attribute ((noinline))
 internal_function
 ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
-	     int flags)
+             int flags)
 {
   struct ftw_data data;
   struct STAT st;
@@ -697,7 +697,7 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
   data.maxdir = descriptors < 1 ? 1 : descriptors;
   data.actdir = 0;
   data.dirstreams = (struct dir_data **) alloca (data.maxdir
-						 * sizeof (struct dir_data *));
+                                                 * sizeof (struct dir_data *));
   memset (data.dirstreams, '\0', data.maxdir * sizeof (struct dir_data *));
 
   /* PATH_MAX is always defined when we get here.  */
@@ -739,40 +739,40 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
   if (flags & FTW_CHDIR)
     {
       /* We have to be able to go back to the current working
-	 directory.  The best way to do this is to use a file
-	 descriptor.  */
+         directory.  The best way to do this is to use a file
+         descriptor.  */
       cwdfd = __open (".", O_RDONLY | O_DIRECTORY);
       if (cwdfd == -1)
-	{
-	  /* Try getting the directory name.  This can be needed if
-	     the current directory is executable but not readable.  */
-	  if (errno == EACCES)
-	    /* GNU extension ahead.  */
-	    cwd =  __getcwd (NULL, 0);
+        {
+          /* Try getting the directory name.  This can be needed if
+             the current directory is executable but not readable.  */
+          if (errno == EACCES)
+            /* GNU extension ahead.  */
+            cwd =  __getcwd (NULL, 0);
 
-	  if (cwd == NULL)
-	    goto out_fail;
-	}
+          if (cwd == NULL)
+            goto out_fail;
+        }
       else if (data.maxdir > 1)
-	/* Account for the file descriptor we use here.  */
-	--data.maxdir;
+        /* Account for the file descriptor we use here.  */
+        --data.maxdir;
 
       if (data.ftw.base > 0)
-	{
-	  /* Change to the directory the file is in.  In data.dirbuf
-	     we have a writable copy of the file name.  Just NUL
-	     terminate it for now and change the directory.  */
-	  if (data.ftw.base == 1)
-	    /* I.e., the file is in the root directory.  */
-	    result = __chdir ("/");
-	  else
-	    {
-	      char ch = data.dirbuf[data.ftw.base - 1];
-	      data.dirbuf[data.ftw.base - 1] = '\0';
-	      result = __chdir (data.dirbuf);
-	      data.dirbuf[data.ftw.base - 1] = ch;
-	    }
-	}
+        {
+          /* Change to the directory the file is in.  In data.dirbuf
+             we have a writable copy of the file name.  Just NUL
+             terminate it for now and change the directory.  */
+          if (data.ftw.base == 1)
+            /* I.e., the file is in the root directory.  */
+            result = __chdir ("/");
+          else
+            {
+              char ch = data.dirbuf[data.ftw.base - 1];
+              data.dirbuf[data.ftw.base - 1] = '\0';
+              result = __chdir (data.dirbuf);
+              data.dirbuf[data.ftw.base - 1] = ch;
+            }
+        }
     }
 
   /* Get stat info for start directory.  */
@@ -781,56 +781,56 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
       const char *name;
 
       if (data.flags & FTW_CHDIR)
-	{
-	  name = data.dirbuf + data.ftw.base;
-	  if (name[0] == '\0')
-	    name = ".";
-	}
+        {
+          name = data.dirbuf + data.ftw.base;
+          if (name[0] == '\0')
+            name = ".";
+        }
       else
-	name = data.dirbuf;
+        name = data.dirbuf;
 
       if (((flags & FTW_PHYS)
-	   ? LXSTAT (_STAT_VER, name, &st)
-	   : XSTAT (_STAT_VER, name, &st)) < 0)
-	{
-	  if (!(flags & FTW_PHYS)
-	      && errno == ENOENT
-	      && LXSTAT (_STAT_VER, name, &st) == 0
-	      && S_ISLNK (st.st_mode))
-	    result = (*data.func) (data.dirbuf, &st, data.cvt_arr[FTW_SLN],
-				   &data.ftw);
-	  else
-	    /* No need to call the callback since we cannot say anything
-	       about the object.  */
-	    result = -1;
-	}
+           ? LXSTAT (_STAT_VER, name, &st)
+           : XSTAT (_STAT_VER, name, &st)) < 0)
+        {
+          if (!(flags & FTW_PHYS)
+              && errno == ENOENT
+              && LXSTAT (_STAT_VER, name, &st) == 0
+              && S_ISLNK (st.st_mode))
+            result = (*data.func) (data.dirbuf, &st, data.cvt_arr[FTW_SLN],
+                                   &data.ftw);
+          else
+            /* No need to call the callback since we cannot say anything
+               about the object.  */
+            result = -1;
+        }
       else
-	{
-	  if (S_ISDIR (st.st_mode))
-	    {
-	      /* Remember the device of the initial directory in case
-		 FTW_MOUNT is given.  */
-	      data.dev = st.st_dev;
+        {
+          if (S_ISDIR (st.st_mode))
+            {
+              /* Remember the device of the initial directory in case
+                 FTW_MOUNT is given.  */
+              data.dev = st.st_dev;
 
-	      /* We know this directory now.  */
-	      if (!(flags & FTW_PHYS))
-		result = add_object (&data, &st);
+              /* We know this directory now.  */
+              if (!(flags & FTW_PHYS))
+                result = add_object (&data, &st);
 
-	      if (result == 0)
-		result = ftw_dir (&data, &st, NULL);
-	    }
-	  else
-	    {
-	      int flag = S_ISLNK (st.st_mode) ? FTW_SL : FTW_F;
+              if (result == 0)
+                result = ftw_dir (&data, &st, NULL);
+            }
+          else
+            {
+              int flag = S_ISLNK (st.st_mode) ? FTW_SL : FTW_F;
 
-	      result = (*data.func) (data.dirbuf, &st, data.cvt_arr[flag],
-				     &data.ftw);
-	    }
-	}
+              result = (*data.func) (data.dirbuf, &st, data.cvt_arr[flag],
+                                     &data.ftw);
+            }
+        }
 
       if ((flags & FTW_ACTIONRETVAL)
-	  && (result == FTW_SKIP_SUBTREE || result == FTW_SKIP_SIBLINGS))
-	result = 0;
+          && (result == FTW_SKIP_SUBTREE || result == FTW_SKIP_SIBLINGS))
+        result = 0;
     }
 
   /* Return to the start directory (if necessary).  */

@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,25 +30,26 @@
 wrapper(glob64, int, (const char * pattern, int flags, int (* errfunc) (const char *, int), glob64_t * pglob))
 {
     int rc, i;
-    char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("glob64(\"%s\", %d, &errfunc, &pglob)", pattern, flags);
-    expand_chroot_path(pattern, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(pattern);
 
     rc = nextcall(glob64)(pattern, flags, errfunc, pglob);
     if (rc < 0)
         return rc;
 
     for (i = 0; i < pglob->gl_pathc; i++) {
-        strcpy(tmp,pglob->gl_pathv[i]);
-        fakechroot_path = getenv("FAKECHROOT_BASE");
-        if (fakechroot_path != NULL) {
-            fakechroot_ptr = strstr(tmp, fakechroot_path);
-            if (fakechroot_ptr != tmp) {
+        const char *fakechroot_base = getenv("FAKECHROOT_BASE");
+        char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
+
+        strcpy(tmp, pglob->gl_pathv[i]);
+
+        if (fakechroot_base != NULL) {
+            const char *ptr = strstr(tmp, fakechroot_base);
+            if (ptr != tmp) {
                 tmpptr = tmp;
             } else {
-                tmpptr = tmp + strlen(fakechroot_path);
+                tmpptr = tmp + strlen(fakechroot_base);
             }
             strcpy(pglob->gl_pathv[i], tmpptr);
         }

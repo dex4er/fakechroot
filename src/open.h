@@ -18,4 +18,9 @@
 */
 
 
+#ifndef __OPEN_H
+#define __OPEN_H
+
 wrapper_proto(open, int, (const char *, int, ...));
+
+#endif

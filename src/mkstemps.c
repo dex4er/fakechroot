@@ -30,19 +30,18 @@ wrapper(mkstemps, int, (char * template, int suffixlen))
 {
     char tmp[FAKECHROOT_PATH_MAX], *oldtemplate, *ptr;
     int fd;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("mkstemps(\"%s\", %d)", template, suffixlen);
     oldtemplate = template;
 
-    expand_chroot_path(template, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(template);
 
     if ((fd = nextcall(mkstemps)(template, suffixlen)) == -1) {
         return -1;
     }
     ptr = tmp;
     strcpy(ptr, template);
-    narrow_chroot_path(ptr, fakechroot_path, fakechroot_ptr);
+    narrow_chroot_path(ptr);
     if (ptr != NULL) {
         strcpy(oldtemplate, ptr);
     }

@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,16 +30,14 @@ static int (* _xftw_fn_saved)(const char * file, const struct stat * sb, int fla
 
 static int _xftw_fn_wrapper (const char * file, const struct stat * sb, int flag)
 {
-    char *fakechroot_path, *fakechroot_ptr;
-    narrow_chroot_path(file, fakechroot_path, fakechroot_ptr);
+    narrow_chroot_path(file);
     return _xftw_fn_saved(file, sb, flag);
 }
 
 wrapper(_xftw, int, (int mode, const char * dir, int (* fn)(const char * file, const struct stat * sb, int flag), int nopenfd))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("_xftw(%d, \"%s\", &fn, %d)", mode, dir, nopenfd);
-    expand_chroot_path(dir, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(dir);
     _xftw_fn_saved = fn;
     return nextcall(_xftw)(mode, dir, _xftw_fn_wrapper, nopenfd);
 }

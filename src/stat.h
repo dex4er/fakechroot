@@ -18,4 +18,9 @@
 */
 
 
+#ifndef __STAT_H
+#define __STAT_H
+
 wrapper_proto(stat, int, (const char *, struct stat *));
+
+#endif

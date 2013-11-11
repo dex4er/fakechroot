@@ -95,7 +95,6 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     unsigned int do_cmd_subst = 0;
     size_t sizeenvp;
     char c;
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     char *elfloader = getenv("FAKECHROOT_ELFLOADER");
     char *elfloader_opt_argv0 = getenv("FAKECHROOT_ELFLOADER_OPT_ARGV0");
@@ -208,7 +207,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     }
 
     /* Check hashbang */
-    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(filename);
     strcpy(tmp, filename);
     filename = tmp;
 
@@ -261,7 +260,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             if (i > j) {
                 if (n == 0) {
                     ptr = &hashbang[j];
-                    expand_chroot_path(ptr, fakechroot_path, fakechroot_buf);
+                    expand_chroot_path(ptr);
                     strcpy(newfilename, ptr);
                 }
                 newargv[n++] = &hashbang[j];

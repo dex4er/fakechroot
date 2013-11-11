@@ -87,17 +87,16 @@ LOCAL int fakechroot_debug (const char *fmt, ...)
 void fakechroot_init (void) CONSTRUCTOR;
 void fakechroot_init (void)
 {
-    int i,j;
-    struct passwd* passwd = NULL;
-    char *pointer;
+    char *detect = getenv("FAKECHROOT_DETECT");
 
-    if ((pointer = getenv("FAKECHROOT_DETECT"))) {
+
+    if (detect) {
         /* printf causes coredump on FreeBSD */
         if (write(STDOUT_FILENO, PACKAGE, sizeof(PACKAGE)-1) &&
             write(STDOUT_FILENO, " ", 1) &&
             write(STDOUT_FILENO, VERSION, sizeof(VERSION)-1) &&
             write(STDOUT_FILENO, "\n", 1)) { /* -Wunused-result */ }
-        _Exit(atoi(pointer));
+        _Exit(atoi(detect));
     }
 
     debug("fakechroot_init()");
@@ -106,26 +105,31 @@ void fakechroot_init (void)
     debug("FAKECHROOT_CMD_ORIG=\"%s\"", getenv("FAKECHROOT_CMD_ORIG"));
 
     if (!first) {
+        struct passwd *passwd = NULL;
+        char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
+
         first = 1;
 
         /* We get a list of directories or files */
-        if ((pointer = getenv("FAKECHROOT_EXCLUDE_PATH"))) {
-            for (i=0; list_max<32 ;) {
-                for (j=i; pointer[j]!=':' && pointer[j]!='\0'; j++);
-                exclude_list[list_max] = malloc(j-i+2);
-                memset(exclude_list[list_max], '\0', j-i+2);
-                strncpy(exclude_list[list_max], &(pointer[i]), j-i);
+        if (exclude_path) {
+            int i;
+            for (i = 0; list_max < 32; ) {
+                int j;
+                for (j = i; exclude_path[j] != ':' && exclude_path[j] != '\0'; j++);
+                exclude_list[list_max] = malloc(j - i + 2);
+                memset(exclude_list[list_max], '\0', j - i + 2);
+                strncpy(exclude_list[list_max], &(exclude_path[i]), j - i);
                 exclude_length[list_max] = strlen(exclude_list[list_max]);
                 list_max++;
-                if (pointer[j] != ':') break;
-                i=j+1;
+                if (exclude_path[j] != ':') break;
+                i = j + 1;
             }
         }
 
         /* We get the home of the user */
         passwd = getpwuid(getuid());
         if (passwd && passwd->pw_dir) {
-            home_path = malloc(strlen(passwd->pw_dir)+2);
+            home_path = malloc(strlen(passwd->pw_dir) + 2);
             strcpy(home_path, passwd->pw_dir);
             strcat(home_path, "/");
         }
@@ -152,14 +156,14 @@ LOCAL fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper * w)
 /* Check if path is on exclude list */
 LOCAL int fakechroot_localdir (const char * p_path)
 {
-    char *v_path = (char*)p_path;
-    char *fakechroot_path, *fakechroot_ptr;
+    char *v_path = (char *)p_path;
     char cwd_path[FAKECHROOT_PATH_MAX];
-    int i, len;
 
-    if (!p_path) return 0;
+    if (!p_path)
+        return 0;
 
-    if (!first) fakechroot_init();
+    if (!first)
+        fakechroot_init();
 
     /* We need to expand ~ paths */
     if (home_path!=NULL && p_path[0]=='~' && (p_path[1]=='\0' || p_path[1]=='/')) {
@@ -172,16 +176,20 @@ LOCAL int fakechroot_localdir (const char * p_path)
     if (p_path[0] != '/') {
         nextcall(getcwd)(cwd_path, FAKECHROOT_PATH_MAX);
         v_path = cwd_path;
-        narrow_chroot_path(v_path, fakechroot_path, fakechroot_ptr);
+        narrow_chroot_path(v_path);
     }
 
     /* We try to find if we need direct access to a file */
-    len = strlen(v_path);
-    for (i=0; i<list_max; i++) {
-        if (exclude_length[i]>len ||
-            v_path[exclude_length[i]-1]!=(exclude_list[i])[exclude_length[i]-1] ||
-            strncmp(exclude_list[i],v_path,exclude_length[i])!=0) continue;
-        if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+    {
+        const size_t len = strlen(v_path);
+        int i;
+
+        for (i=0; i<list_max; i++) {
+            if (exclude_length[i]>len ||
+                    v_path[exclude_length[i] - 1] != (exclude_list[i])[exclude_length[i] - 1] ||
+                    strncmp(exclude_list[i], v_path, exclude_length[i]) != 0) continue;
+            if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+        }
     }
 
     return 0;

@@ -18,4 +18,9 @@
 */
 
 
+#ifndef __UNSETENV_H
+#define __UNSETENV_H
+
 int unsetenv (const char *);
+
+#endif

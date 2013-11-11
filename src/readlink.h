@@ -17,4 +17,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
+#ifndef __READLINK_H
+#define __READLINK_H
+
 wrapper_proto(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK_TYPE_ARG3(bufsiz)));
+
+#endif

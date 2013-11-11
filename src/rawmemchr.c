@@ -13,11 +13,11 @@
 
 LOCAL void *rawmemchr(const void *s, int c)
 {
-	register const unsigned char *r = s;
+        register const unsigned char *r = s;
 
-	while (*r != ((unsigned char)c)) ++r;
+        while (*r != ((unsigned char)c)) ++r;
 
-	return (void *) r;	/* silence the warning */
+        return (void *) r;      /* silence the warning */
 }
 
 #endif
