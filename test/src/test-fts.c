@@ -23,7 +23,7 @@ int main (int argc, char *argv[]) {
     options = atoi(argv[1]);
     paths = argv + 2;
 
-    if ((tree = fts_open(paths, 0, 0)) == NULL) {
+    if ((tree = fts_open(paths, options, 0)) == NULL) {
         perror("fts_open");
         exit(1);
     }

@@ -25,30 +25,31 @@
 
 wrapper(mktemp, char *, (char * template))
 {
-    char tmp[FAKECHROOT_PATH_MAX], *ptr, *ptr2;
+    char tmp[FAKECHROOT_PATH_MAX];
+    char *ptr = tmp, *ptr2 = NULL;
 
     debug("mktemp(\"%s\")", template);
 
     tmp[FAKECHROOT_PATH_MAX-1] = '\0';
     strncpy(tmp, template, FAKECHROOT_PATH_MAX-2);
-    ptr = tmp;
 
     if (!fakechroot_localdir(tmp)) {
         expand_chroot_path(ptr);
-        ptr2 = malloc(strlen(tmp));
+        ptr2 = malloc(strlen(ptr));
         strcpy(ptr2, ptr);
         ptr = ptr2;
     }
 
-    if (nextcall(mktemp)(ptr) == NULL) {
-        if (ptr != tmp) free(ptr);
-        return NULL;
+    if (nextcall(mktemp)(ptr) == NULL || !*ptr) {
+        strcpy(template, "");
+        goto error;
     }
 
-    ptr2 = ptr;
-    narrow_chroot_path(ptr2);
+    narrow_chroot_path(ptr);
 
-    strncpy(template, ptr2, strlen(template));
-    if (ptr != tmp) free(ptr);
+    strncpy(template, ptr, strlen(template));
+
+error:
+    if (ptr2) free(ptr2);
     return template;
 }

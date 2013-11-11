@@ -7,6 +7,7 @@ check_PROGRAMS = \
     test-fts \
     test-ftw \
     test-lstat \
+    test-mktemp \
     test-opendir \
     test-popen \
     test-realpath \
@@ -18,3 +19,4 @@ check_PROGRAMS = \
     test-system \
     #
 
+AM_CFLAGS = -Wall -Wno-deprecated-declarations
