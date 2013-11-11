@@ -106,6 +106,7 @@ for p in \
     'libcrypt.so.*' \
     'libdl.so.*' \
     'libedit.so.*' \
+    'libelf.so.*' \
     'libgcc_s.so.*' \
     'libm.so.*' \
     'libncurses.so.*' \
