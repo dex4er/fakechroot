@@ -7,8 +7,7 @@ before_install:
   - sudo apt-get install -qq automake debootstrap libtool lsb-release
 script: ./autogen.sh && ./configure && make && make test
 env:
-  - TEST_DEBOOTSTRAP=1
-  - CFLAGS='-std=c11 -g -O2 -Wall -Wno-deprecated-declarations'
+  - CFLAGS='-std=c99 -g -O2 -Wall -Wno-deprecated-declarations' TEST_DEBOOTSTRAP=1
 branches:
   except:
     - /^archive\//
