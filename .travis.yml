@@ -1,13 +1,15 @@
 language: c
-compiler:
-  - clang
-  - gcc
 before_install:
   - sudo apt-get update -qq
+install:
   - sudo apt-get install -qq automake debootstrap libtool lsb-release
-script: ./autogen.sh && ./configure && make && make test
+script: ./autogen.sh && ./configure CC=$TRAVIS_CC && make && make test
 env:
-  - CFLAGS='-std=c99 -g -O2 -Wall -Wno-deprecated-declarations' TEST_DEBOOTSTRAP=1
+  global:
+    - TEST_DEBOOTSTRAP=1
+  matrix:
+    - TRAVIS_CC=gcc
+    - TRAVIS_CC=clang CFLAGS='-std=c11 -g -O2 -Wall -Wno-deprecated-declarations'
 branches:
   except:
     - /^archive\//
