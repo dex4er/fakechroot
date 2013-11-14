@@ -82,6 +82,7 @@ AC_CHECK_HEADERS(m4_normalize([
     sys/stat.h
     sys/statfs.h
     sys/statvfs.h
+    sys/syscall.h
     sys/times.h
     sys/types.h
     sys/un.h
@@ -110,6 +111,7 @@ ACX_CHECK_FTS_NAME_TYPE
 # Checks for library functions.
 AC_CHECK_FUNCS(m4_normalize([
     __chk_fail
+    __fxstat64
     __fxstatat
     __fxstatat64
     __getcwd_chk
@@ -157,6 +159,7 @@ AC_CHECK_FUNCS(m4_normalize([
     execve
     execvp
     faccessat
+    fchdir
     fchmodat
     fchownat
     fopen
@@ -240,6 +243,7 @@ AC_CHECK_FUNCS(m4_normalize([
     statvfs64
     stpcpy
     strchrnul
+    strlcpy
     symlink
     symlinkat
     system

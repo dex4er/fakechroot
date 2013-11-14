@@ -26,6 +26,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "rel2abs.h"
+#include "frel2abs.h"
+
 
 #define debug fakechroot_debug
 

@@ -30,16 +30,34 @@
 
 #include "libfakechroot.h"
 #include "readlink.h"
+#include "__lxstat64.h"
 
 
 wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))
+{
+    debug("__lxstat64(%d, \"%s\", &buf)", ver, filename);
+
+    if (!fakechroot_localdir(filename)) {
+        if (filename != NULL) {
+            char abs_filename[FAKECHROOT_PATH_MAX];
+            rel2abs(filename, abs_filename);
+            filename = abs_filename;
+        }
+    }
+
+    return __lxstat64_rel(ver, filename, buf);
+}
+
+
+/* Prevent looping with realpath() */
+LOCAL int __lxstat64_rel(int ver, const char * filename, struct stat64 * buf)
 {
     char tmp[FAKECHROOT_PATH_MAX];
     int retval;
     READLINK_TYPE_RETURN linksize;
     const char *orig_filename;
 
-    debug("__lxstat64(%d, \"%s\", &buf)", ver, filename);
+    debug("__lxstat64_rel(%d, \"%s\", &buf)", ver, filename);
     orig_filename = filename;
     expand_chroot_path(filename);
     retval = nextcall(__lxstat64)(ver, filename, buf);
