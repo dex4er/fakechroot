@@ -10,7 +10,7 @@ is_root () {
 }
 
 cleanup () {
-    rm -rf testtree
+    test -n "$TEST_NO_CLEANUP" && ! test "$TEST_NO_CLEANUP" = 0 || rm -rf testtree
 
     end
 }
