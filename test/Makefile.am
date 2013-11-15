@@ -16,6 +16,7 @@ TESTS = \
     t/fts.t \
     t/ftw.t \
     t/host.t \
+    t/mkstemps.t \
     t/mktemp.t \
     t/opendir.t \
     t/popen.t \

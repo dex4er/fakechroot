@@ -9,6 +9,7 @@ check_PROGRAMS = \
     test-ftw \
     test-lstat \
     test-mkstemp \
+    test-mkstemps \
     test-mktemp \
     test-opendir \
     test-popen \
