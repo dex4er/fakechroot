@@ -29,18 +29,24 @@
 #include "setenv.h"
 #include "libfakechroot.h"
 
+#include "strlcpy.h"
+#include "de_dotdot.h"
+
 #ifdef HAVE___XSTAT64
 # include "__xstat64.h"
 #else
 # include "stat.h"
 #endif
-#include "getcwd.h"
+
+#include "getcwd_real.h"
 
 wrapper(chroot, int, (const char * path))
 {
-    char *ptr, *ld_library_path, *separator, *tmp, *fakechroot_path;
+    char *ld_library_path, *separator;
+    const char *fakechroot_base = getenv("FAKECHROOT_BASE");
     int status, len;
-    char dir[FAKECHROOT_PATH_MAX], cwd[FAKECHROOT_PATH_MAX];
+    char cwd[FAKECHROOT_PATH_MAX];
+    char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
 #ifdef HAVE___XSTAT64
     struct stat64 sb;
 #else
@@ -57,72 +63,47 @@ wrapper(chroot, int, (const char * path))
         __set_errno(ENOENT);
         return -1;
     }
-    if (*path != '/') {
-        if (nextcall(getcwd)(cwd, FAKECHROOT_PATH_MAX) == NULL) {
-            __set_errno(ENAMETOOLONG);
-            return -1;
-        }
-        if (cwd == NULL) {
-            __set_errno(EFAULT);
-            return -1;
-        }
-        if (strcmp(cwd, "/") == 0) {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "/%s", path);
-        }
-        else {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "%s/%s", cwd, path);
-        }
+
+    if (getcwd_real(cwd, FAKECHROOT_PATH_MAX) == NULL) {
+        __set_errno(ENAMETOOLONG);
+        return -1;
+    }
+
+    if (fakechroot_base != NULL && strstr(cwd, fakechroot_base) == fakechroot_base) {
+        expand_chroot_path(path);
     }
     else {
-        fakechroot_path = getenv("FAKECHROOT_BASE");
-
-        if (fakechroot_path != NULL) {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_path, path);
+        if (*path == '/') {
+            expand_chroot_rel_path(path);
         }
         else {
-            snprintf(dir, FAKECHROOT_PATH_MAX, "%s", path);
+            snprintf(tmp, FAKECHROOT_PATH_MAX, "%s/%s", cwd, path);
+            de_dotdot(tmpptr);
+            path = tmpptr;
         }
     }
 
 #ifdef HAVE___XSTAT64
-    if ((status = nextcall(__xstat64)(_STAT_VER, dir, &sb)) != 0) {
+    if ((status = nextcall(__xstat64)(_STAT_VER, path, &sb)) != 0) {
         return status;
     }
 #else
-    if ((status = nextcall(stat)(dir, &sb)) != 0) {
+    if ((status = nextcall(stat)(path, &sb)) != 0) {
         return status;
     }
 #endif
 
     if ((sb.st_mode & S_IFMT) != S_IFDIR) {
-        return ENOTDIR;
+        __set_errno(ENOTDIR);
+        return -1;
     }
 
-    ptr = rindex(dir, 0);
-    if (ptr > dir) {
-        ptr--;
-        while (*ptr == '/') {
-            *ptr-- = 0;
-        }
+    if (setenv("FAKECHROOT_BASE", path, 1) == -1) {
+        return -1;
     }
-
-    ptr = tmp = dir;
-    for (ptr=tmp=dir; *ptr; ptr++) {
-        if (*ptr == '/' &&
-                *(ptr+1) && *(ptr+1) == '.' &&
-                (!*(ptr+2) || (*(ptr+2) == '/'))
-        ) {
-            ptr++;
-        } else {
-            *(tmp++) = *ptr;
-        }
-    }
-    *tmp = 0;
-
-    setenv("FAKECHROOT_BASE", dir, 1);
-    fakechroot_path = getenv("FAKECHROOT_BASE");
 
     ld_library_path = getenv("LD_LIBRARY_PATH");
+
     if (ld_library_path != NULL && strlen(ld_library_path) > 0) {
         separator = ":";
     }
@@ -131,16 +112,12 @@ wrapper(chroot, int, (const char * path))
         separator = "";
     }
 
-    if ((len = strlen(ld_library_path)+strlen(separator)+strlen(dir)*2+sizeof("/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
-        return ENAMETOOLONG;
+    if ((len = strlen(ld_library_path)+strlen(separator)+strlen(path)*2+sizeof("/usr/lib:/lib")) > FAKECHROOT_PATH_MAX) {
+        __set_errno(ENAMETOOLONG);
+        return -1;
     }
 
-    if ((tmp = malloc(len)) == NULL) {
-        return ENOMEM;
-    }
-
-    snprintf(tmp, len, "%s%s%s/usr/lib:%s/lib", ld_library_path, separator, dir, dir);
+    snprintf(tmp, len, "%s%s%s/usr/lib:%s/lib", ld_library_path, separator, path, path);
     setenv("LD_LIBRARY_PATH", tmp, 1);
-    free(tmp);
     return 0;
 }

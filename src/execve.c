@@ -32,7 +32,6 @@
 #include "libfakechroot.h"
 #include "open.h"
 #include "unsetenv.h"
-#include "getcwd.h"
 #include "readlink.h"
 
 

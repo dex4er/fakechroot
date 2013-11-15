@@ -36,7 +36,7 @@ wrapper(__readlinkat_chk, ssize_t, (int dirfd, const char * path, char * buf, si
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("__readlinkat_chk(%d, \"%s\", &buf, %zd, %zd)", dirfd, path, bufsiz, buflen);
-    expand_chroot_path(path);
+    expand_chroot_path_at(dirfd, path);
 
     if ((linksize = nextcall(__readlinkat_chk)(dirfd, path, tmp, FAKECHROOT_PATH_MAX-1, buflen)) == -1) {
         return -1;

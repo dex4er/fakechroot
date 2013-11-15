@@ -33,7 +33,8 @@ wrapper_alias(openat, int, (int dirfd, const char * pathname, int flags, ...))
 {
     int mode = 0;
     debug("openat(%d, \"%s\", %d, ...)", dirfd, pathname, flags);
-    expand_chroot_path(pathname);
+
+    expand_chroot_path_at(dirfd, pathname);
 
     if (flags & O_CREAT) {
         va_list arg;

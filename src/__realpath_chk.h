@@ -21,6 +21,10 @@
 #ifndef ____REALPATH_CHK_H
 #define ____REALPATH_CHK_H
 
+#include <config.h>
+
+#include "libfakechroot.h"
+
 wrapper_proto(__realpath_chk, char *, (const char *, char *, size_t));
 
 #endif

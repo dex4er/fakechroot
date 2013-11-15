@@ -21,10 +21,15 @@
 #ifndef ____XSTAT64_H
 #define ____XSTAT64_H
 
+#include <config.h>
+
 #ifndef _LARGEFILE64_SOURCE
 # define _LARGEFILE64_SOURCE
 #endif
+
 #include <sys/stat.h>
+
+#include "libfakechroot.h"
 
 wrapper_proto(__xstat64, int, (int, const char *, struct stat64 *));
 

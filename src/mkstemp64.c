@@ -34,7 +34,7 @@ wrapper(mkstemp64, int, (char * template))
     debug("mkstemp64(\"%s\")", template);
     oldtemplate = template;
 
-    expand_chroot_path(template);
+    expand_chroot_rel_path(template);
 
     if ((fd = nextcall(mkstemp64)(template)) == -1) {
         return -1;

@@ -23,14 +23,18 @@
 #ifdef HAVE___FXSTATAT
 
 #define _ATFILE_SOURCE
+#define _BSD_SOURCE
 #include <sys/stat.h>
+#include <limits.h>
+#include <stdlib.h>
+
 #include "libfakechroot.h"
 
 
 wrapper(__fxstatat, int, (int ver, int dirfd, const char * pathname, struct stat * buf, int flags))
 {
     debug("__fxstatat(%d, %d, \"%s\", &buf, %d)", ver, dirfd, pathname, flags);
-    expand_chroot_path(pathname);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(__fxstatat)(ver, dirfd, pathname, buf, flags);
 }
 

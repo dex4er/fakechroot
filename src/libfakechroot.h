@@ -80,6 +80,7 @@
 # define vfork fork
 #endif
 
+
 #define narrow_chroot_path(path) \
     { \
         if ((path) != NULL && *((char *)(path)) != '\0') { \
@@ -101,7 +102,7 @@
         } \
     }
 
-#define expand_chroot_path(path) \
+#define expand_chroot_rel_path(path) \
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL && *((char *)(path)) == '/') { \
@@ -112,6 +113,30 @@
                     strcat(fakechroot_buf, (path)); \
                     (path) = fakechroot_buf; \
                 } \
+            } \
+        } \
+    }
+
+#define expand_chroot_path(path) \
+    { \
+        if (!fakechroot_localdir(path)) { \
+            if ((path) != NULL) { \
+                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
+                rel2abs((path), fakechroot_abspath); \
+                (path) = fakechroot_abspath; \
+                expand_chroot_rel_path(path); \
+            } \
+        } \
+    }
+
+#define expand_chroot_path_at(dirfd, path) \
+    { \
+        if (!fakechroot_localdir(path)) { \
+            if ((path) != NULL) { \
+                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
+                frel2abs(dirfd, (path), fakechroot_abspath); \
+                (path) = fakechroot_abspath; \
+                expand_chroot_rel_path(path); \
             } \
         } \
     }

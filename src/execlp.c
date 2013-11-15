@@ -63,6 +63,5 @@ wrapper(execlp, int, (const char * file, const char * arg, ...))
     }
     va_end(args);
 
-    expand_chroot_path(file);
     return execvp(file, (char * const *) argv);
 }

@@ -34,7 +34,7 @@ wrapper(mkostemp, int, (char * template, int flags))
     debug("mkostemp(\"%s\", %d)", template, flags);
     oldtemplate = template;
 
-    expand_chroot_path(template);
+    expand_chroot_rel_path(template);
 
     if ((fd = nextcall(mkostemp)(template, flags)) == -1) {
         return -1;

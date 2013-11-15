@@ -30,7 +30,7 @@
 wrapper(utimensat, int, (int dirfd, const char * pathname, const struct timespec times [2], int flags))
 {
     debug("utimeat(%d, \"%s\", &buf, %d)", dirfd, pathname, flags);
-    expand_chroot_path(pathname);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(utimensat)(dirfd, pathname, times, flags);
 }
 

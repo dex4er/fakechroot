@@ -20,12 +20,29 @@
 
 #include <config.h>
 
+#include <string.h>
 #include "libfakechroot.h"
+#include "getcwd_real.h"
 
 
 wrapper(chdir, int, (const char * path))
 {
+    char cwd[FAKECHROOT_PATH_MAX];
+    const char *fakechroot_base = getenv("FAKECHROOT_BASE");
+
     debug("chdir(\"%s\")", path);
-    expand_chroot_path(path);
+
+    if (getcwd_real(cwd, FAKECHROOT_PATH_MAX) == NULL) {
+        return -1;
+    }
+    if (fakechroot_base != NULL) {
+        if (strstr(cwd, fakechroot_base) == path) {
+            expand_chroot_path(path);
+        }
+        else {
+            expand_chroot_rel_path(path);
+        }
+    }
+
     return nextcall(chdir)(path);
 }

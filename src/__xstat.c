@@ -23,7 +23,11 @@
 #ifdef HAVE___XSTAT
 
 #define _ATFILE_SOURCE
+#define _BSD_SOURCE
 #include <sys/stat.h>
+#include <limits.h>
+#include <stdlib.h>
+
 #include "libfakechroot.h"
 
 

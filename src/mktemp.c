@@ -21,35 +21,29 @@
 #include <config.h>
 
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 
 wrapper(mktemp, char *, (char * template))
 {
-    char tmp[FAKECHROOT_PATH_MAX];
-    char *ptr = tmp, *ptr2 = NULL;
+    char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
 
     debug("mktemp(\"%s\")", template);
 
-    tmp[FAKECHROOT_PATH_MAX-1] = '\0';
-    strncpy(tmp, template, FAKECHROOT_PATH_MAX-2);
+    strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
 
     if (!fakechroot_localdir(tmp)) {
-        expand_chroot_path(ptr);
-        ptr2 = malloc(strlen(ptr));
-        strcpy(ptr2, ptr);
-        ptr = ptr2;
+        expand_chroot_path(tmpptr);
     }
 
-    if (nextcall(mktemp)(ptr) == NULL || !*ptr) {
-        strcpy(template, "");
+    if (nextcall(mktemp)(tmpptr) == NULL || !*tmpptr || strlen(tmpptr) < 6) {
         goto error;
     }
 
-    narrow_chroot_path(ptr);
-
-    strncpy(template, ptr, strlen(template));
+    memmove(template + strlen(template) - 6, tmpptr + strlen(tmpptr) - 6, 6);
+    return template;
 
 error:
-    if (ptr2) free(ptr2);
+    *template = '\0';
     return template;
 }

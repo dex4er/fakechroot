@@ -23,6 +23,7 @@
 #ifdef HAVE___LXSTAT64
 # define _LARGEFILE64_SOURCE
 #endif
+
 #include <stddef.h>
 #include <sys/stat.h>
 #ifdef HAVE_ALLOCA_H
@@ -34,6 +35,13 @@
 
 #include "libfakechroot.h"
 #include "readlink.h"
+
+#ifdef HAVE___LXSTAT64
+# define _LARGEFILE64_SOURCE
+# include "__lxstat64.h"
+#else
+# include "lstat.h"
+#endif
 
 
 /*
@@ -171,10 +179,10 @@ wrapper(realpath, char *, (const char * name, char * resolved))
             *dest = '\0';
 
 #ifdef HAVE___LXSTAT64
-            if (__lxstat64 (_STAT_VER, rpath, &st) < 0)
+            if (__lxstat64_rel (_STAT_VER, rpath, &st) < 0)
                 goto error;
 #else
-            if (lstat (rpath, &st) < 0)
+            if (lstat_rel (rpath, &st) < 0)
                 goto error;
 #endif
 

@@ -25,14 +25,17 @@
 #include <config.h>
 
 #define _GNU_SOURCE
+
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pwd.h>
 #include <dlfcn.h>
+
 #include "setenv.h"
 #include "libfakechroot.h"
+#include "getcwd_real.h"
 
 
 /* Useful to exclude a list of directories or files */
@@ -166,7 +169,7 @@ LOCAL int fakechroot_localdir (const char * p_path)
         fakechroot_init();
 
     /* We need to expand ~ paths */
-    if (home_path!=NULL && p_path[0]=='~' && (p_path[1]=='\0' || p_path[1]=='/')) {
+    if (home_path != NULL && p_path[0] == '~' && (p_path[1] == '\0' || p_path[1] == '/')) {
         strcpy(cwd_path, home_path);
         strcat(cwd_path, &(p_path[1]));
         v_path = cwd_path;
@@ -174,7 +177,7 @@ LOCAL int fakechroot_localdir (const char * p_path)
 
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
-        nextcall(getcwd)(cwd_path, FAKECHROOT_PATH_MAX);
+        getcwd_real(cwd_path, FAKECHROOT_PATH_MAX);
         v_path = cwd_path;
         narrow_chroot_path(v_path);
     }
@@ -184,11 +187,11 @@ LOCAL int fakechroot_localdir (const char * p_path)
         const size_t len = strlen(v_path);
         int i;
 
-        for (i=0; i<list_max; i++) {
-            if (exclude_length[i]>len ||
+        for (i = 0; i < list_max; i++) {
+            if (exclude_length[i] > len ||
                     v_path[exclude_length[i] - 1] != (exclude_list[i])[exclude_length[i] - 1] ||
                     strncmp(exclude_list[i], v_path, exclude_length[i]) != 0) continue;
-            if (exclude_length[i]==len || v_path[exclude_length[i]]=='/') return 1;
+            if (exclude_length[i] == len || v_path[exclude_length[i]] == '/') return 1;
         }
     }
 

@@ -31,7 +31,7 @@
 wrapper(fchownat, int, (int dirfd, const char * path, uid_t owner, gid_t group, int flag))
 {
     debug("fchownat(%d, \"%s\", %d, %d, %d)", dirfd, path, owner, group, flag);
-    expand_chroot_path(path);
+    expand_chroot_path_at(dirfd, path);
     return nextcall(fchownat)(dirfd, path, owner, group, flag);
 }
 

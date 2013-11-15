@@ -24,14 +24,18 @@
 
 #define _ATFILE_SOURCE
 #define _LARGEFILE64_SOURCE
+#define _BSD_SOURCE
 #include <sys/stat.h>
+#include <limits.h>
+#include <stdlib.h>
+
 #include "libfakechroot.h"
 
 
 wrapper(__fxstatat64, int, (int ver, int dirfd, const char * pathname, struct stat64 * buf, int flags))
 {
     debug("__fxstatat64(%d, %d, \"%s\", &buf, %d)", ver, dirfd, pathname, flags);
-    expand_chroot_path(pathname);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(__fxstatat64)(ver, dirfd, pathname, buf, flags);
 }
 

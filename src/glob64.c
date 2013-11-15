@@ -32,7 +32,7 @@ wrapper(glob64, int, (const char * pattern, int flags, int (* errfunc) (const ch
     int rc, i;
 
     debug("glob64(\"%s\", %d, &errfunc, &pglob)", pattern, flags);
-    expand_chroot_path(pattern);
+    expand_chroot_rel_path(pattern);
 
     rc = nextcall(glob64)(pattern, flags, errfunc, pglob);
     if (rc < 0)

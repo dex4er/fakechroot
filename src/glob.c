@@ -29,7 +29,7 @@ wrapper(glob, int, (const char * pattern, int flags, int (* errfunc) (const char
     int rc, i;
 
     debug("glob(\"%s\", %d, &errfunc, &pglob)", pattern, flags);
-    expand_chroot_path(pattern);
+    expand_chroot_rel_path(pattern);
 
     rc = nextcall(glob)(pattern, flags, errfunc, pglob);
     if (rc < 0)

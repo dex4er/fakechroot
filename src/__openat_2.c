@@ -30,7 +30,7 @@
 wrapper(__openat_2, int, (int dirfd, const char * pathname, int flags))
 {
     debug("__openat_2(%d, \"%s\", %d)", dirfd, pathname, flags);
-    expand_chroot_path(pathname);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(__openat_2)(dirfd, pathname, flags);
 }
 

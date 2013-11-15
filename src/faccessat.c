@@ -30,7 +30,7 @@
 wrapper(faccessat, int, (int dirfd, const char * pathname, int mode, int flags))
 {
     debug("faccessat(%d, \"%s\", %d, %d)", dirfd, pathname, mode, flags);
-    expand_chroot_path(pathname);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(faccessat)(dirfd, pathname, mode, flags);
 }
 

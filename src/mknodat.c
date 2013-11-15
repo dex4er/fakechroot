@@ -30,7 +30,7 @@
 wrapper(mknodat, int, (int dirfd, const char * pathname, mode_t mode, dev_t dev))
 {
     debug("mknodat(%d, \"%s\", 0%od, %ld)", dirfd, pathname, mode, dev);
-    expand_chroot_path(pathname);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(mknodat)(dirfd, pathname, mode, dev);
 }
 
