@@ -20,6 +20,9 @@
 
 #include <config.h>
 
+#define _BSD_SOURCE
+#include <stdlib.h>
+
 #include "libfakechroot.h"
 #include "strlcpy.h"
 

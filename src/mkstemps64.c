@@ -24,28 +24,50 @@
 
 #define _BSD_SOURCE
 #define _LARGEFILE64_SOURCE
+#include <errno.h>
+#include <stdlib.h>
+
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 
 wrapper(mkstemps64, int, (char * template, int suffixlen))
 {
-    char tmp[FAKECHROOT_PATH_MAX], *oldtemplate, *ptr;
+    char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
+    char *xxxsrc, *xxxdst;
+    int xxxlen = 0;
     int fd;
 
-    debug("mkostemps64(\"%s\", %d)", template, suffixlen);
-    oldtemplate = template;
+    debug("mkstemps64(\"%s\", %d)", template, suffixlen);
 
-    expand_chroot_rel_path(template);
-
-    if ((fd = nextcall(mkstemps64)(template, suffixlen)) == -1) {
+    if (strlen(template)+suffixlen < 6) {
+        __set_errno(EINVAL);
         return -1;
     }
-    ptr = tmp;
-    strcpy(ptr, template);
-    narrow_chroot_path(ptr);
-    if (ptr != NULL) {
-        strcpy(oldtemplate, ptr);
+
+    strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
+
+    if (!fakechroot_localdir(tmp)) {
+        expand_chroot_path(tmpptr);
     }
+
+    for (xxxdst = template; *xxxdst; xxxdst++);
+    for (xxxdst -= 1 + suffixlen; *xxxdst == 'X'; xxxdst--, xxxlen++);
+    xxxdst++;
+
+    for (xxxsrc = tmpptr; *xxxsrc; xxxsrc++);
+    for (xxxsrc -= 1 + suffixlen; *xxxsrc == 'X'; xxxsrc--);
+    xxxsrc++;
+
+    if ((fd = nextcall(mkstemps64)(tmpptr, suffixlen)) == -1 || !*tmpptr) {
+        goto error;
+    }
+
+    memmove(xxxdst, xxxsrc, xxxlen);
+    return fd;
+
+error:
+    *template = '\0';
     return fd;
 }
 

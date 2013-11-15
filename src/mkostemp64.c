@@ -24,28 +24,44 @@
 
 #define _GNU_SOURCE
 #define _LARGEFILE64_SOURCE
+#include <stdlib.h>
+
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 
 wrapper(mkostemp64, int, (char * template, int flags))
 {
-    char tmp[FAKECHROOT_PATH_MAX], *oldtemplate, *ptr;
+    char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
+    char *xxxsrc, *xxxdst;
+    int xxxlen = 0;
     int fd;
 
     debug("mkostemp64(\"%s\", %d)", template, flags);
-    oldtemplate = template;
 
-    expand_chroot_rel_path(template);
+    strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
 
-    if ((fd = nextcall(mkostemp64)(template, flags)) == -1) {
-        return -1;
+    if (!fakechroot_localdir(tmp)) {
+        expand_chroot_path(tmpptr);
     }
-    ptr = tmp;
-    strcpy(ptr, template);
-    narrow_chroot_path(ptr);
-    if (ptr != NULL) {
-        strcpy(oldtemplate, ptr);
+
+    for (xxxdst = template; *xxxdst; xxxdst++);
+    for (xxxdst--; *xxxdst == 'X'; xxxdst--, xxxlen++);
+    xxxdst++;
+
+    for (xxxsrc = tmpptr; *xxxsrc; xxxsrc++);
+    for (xxxsrc--; *xxxsrc == 'X'; xxxsrc--);
+    xxxsrc++;
+
+    if ((fd = nextcall(mkostemp64)(tmpptr, flags)) == -1 || !*tmpptr) {
+        goto error;
     }
+
+    memmove(xxxdst, xxxsrc, xxxlen);
+    return fd;
+
+error:
+    *template = '\0';
     return fd;
 }
 
