@@ -8,8 +8,8 @@ plan 47
 de_dotdot="$srcdir/src/test-de_dotdot"
 
 set -- \
-	a a \
-	a/ a \
+    a a \
+    a/ a \
     /a /a \
     /a/ /a \
     /a/// /a \
@@ -62,5 +62,3 @@ while [ $# -gt 1 ]; do
     ok "test-de_dotdot $1 returns" $t
     shift 2
 done
-
-cleanup
