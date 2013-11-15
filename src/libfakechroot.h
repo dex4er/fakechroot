@@ -107,10 +107,9 @@
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL && *((char *)(path)) == '/') { \
                 const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
-                if (fakechroot_base != NULL) { \
+                if (fakechroot_base != NULL ) { \
                     char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
-                    strcpy(fakechroot_buf, fakechroot_base); \
-                    strcat(fakechroot_buf, (path)); \
+                    snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
                     (path) = fakechroot_buf; \
                 } \
             } \
@@ -206,5 +205,9 @@ extern const int preserve_env_list_count;
 int fakechroot_debug (const char *, ...);
 fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
+
+
+/* We don't want to define _BSD_SOURCE and include stdio.h */
+int snprintf(char *, size_t, const char *, ...);
 
 #endif
