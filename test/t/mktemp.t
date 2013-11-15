@@ -3,29 +3,33 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
-prepare 6
+prepare 12
 
 for chroot in chroot fakechroot; do
 
-    if [ $chroot = "chroot" ] && ! is_root; then
-        skip $(( $tap_plan / 2 )) "not root"
-    else
+    for mktemp in mktemp mkstemp; do
 
-        for template in /tmp/${chroot}XXXXXX tmp/${chroot}XXXXXX; do
-            match=`echo "$template" | tr 'X' '?'`
-            t=`$srcdir/$chroot.sh testtree /bin/test-mktemp $template 2>&1`
-            case "$t" in
-                $match) ;;
-                *) not
-            esac
-            ok "$chroot test-mktemp $template returns" $t
-        done
+        if [ $chroot = "chroot" ] && ! is_root; then
+            skip $(( $tap_plan / 4 )) "not root"
+        else
 
-        t=`$srcdir/$chroot.sh testtree /bin/test-mktemp wrong-template 2>/dev/null`
-        test -z "$t" || not
-        ok "$chroot test-mktemp wrong-template returns" $t
+            for template in /tmp/${chroot}${mktemp}XXXXXX tmp/${chroot}${mktemp}XXXXXX; do
+                match=`echo "$template" | tr 'X' '?'`
+                t=`$srcdir/$chroot.sh testtree /bin/test-$mktemp $template 2>&1`
+                case "$t" in
+                    $match) ;;
+                    *) not
+                esac
+                ok "$chroot test-$mktemp $template returns" $t
+            done
 
-    fi
+            t=`$srcdir/$chroot.sh testtree /bin/test-$mktemp wrong-template 2>/dev/null`
+            test -z "$t" || not
+            ok "$chroot test-$mktemp wrong-template returns" $t
+
+        fi
+
+    done
 
 done
 

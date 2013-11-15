@@ -27,27 +27,30 @@
 wrapper(mktemp, char *, (char * template))
 {
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
-    int offset;
+    char *xxxsrc, *xxxdst;
+    int xxxlen = 0;
 
     debug("mktemp(\"%s\")", template);
 
     strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
 
-    offset = strlen(tmp);
-    do {
-        offset--;
-    } while (offset && *(tmp+offset) == 'X');
-    offset++;
-
     if (!fakechroot_localdir(tmp)) {
         expand_chroot_path(tmpptr);
     }
 
-    if (nextcall(mktemp)(tmpptr) == NULL || !*tmpptr || strlen(tmpptr) < 6) {
+    for (xxxdst = template; *xxxdst; xxxdst++);
+    for (xxxdst--; *xxxdst == 'X'; xxxdst--, xxxlen++);
+    xxxdst++;
+
+    for (xxxsrc = tmpptr; *xxxsrc; xxxsrc++);
+    for (xxxsrc--; *xxxsrc == 'X'; xxxsrc--);
+    xxxsrc++;
+
+    if (nextcall(mktemp)(tmpptr) == NULL || !*tmpptr) {
         goto error;
     }
 
-    memmove(template + strlen(template) - 6, tmpptr + strlen(tmpptr) - 6, 6);
+    memmove(xxxdst, xxxsrc, xxxlen);
     return template;
 
 error:
