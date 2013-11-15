@@ -27,10 +27,17 @@
 wrapper(mktemp, char *, (char * template))
 {
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
+    int offset;
 
     debug("mktemp(\"%s\")", template);
 
     strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
+
+    offset = strlen(tmp);
+    do {
+        offset--;
+    } while (offset && *(tmp+offset) == 'X');
+    offset++;
 
     if (!fakechroot_localdir(tmp)) {
         expand_chroot_path(tmpptr);
