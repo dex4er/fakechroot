@@ -15,6 +15,14 @@ run () {
     HOME=/root fakechroot chroot $destdir "$@"
 }
 
+die () {
+    echo "$@" 1>&2
+    exit 1
+}
+
+command -v debootstrap >/dev/null 2>&1 || die 'debootstrap is missing. Install with: sudo apt-get install debootstrap'
+command -v lsb_release >/dev/null 2>&1 || die 'lsb_release is missing. Install with: sudo apt-get install lsb-release'
+
 vendor=${VENDOR:-`lsb_release -s -i`}
 release=${RELEASE:-`lsb_release -s -c`}
 variant=$VARIANT
@@ -45,7 +53,9 @@ fi
 
 rm -rf $destdir
 
-fakechroot fakeroot debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir
+ls -l $tarball
+
+fakechroot fakeroot debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
 
 HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
