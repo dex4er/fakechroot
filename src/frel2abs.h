@@ -21,6 +21,6 @@
 #ifndef __FREL2ABS_H
 #define __FREL2ABS_H
 
-char * frel2abs(int dirfd, const char * name, char * resolved);
+char * frel2abs(int, const char *, char *);
 
 #endif

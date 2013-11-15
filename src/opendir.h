@@ -25,6 +25,6 @@
 #include <dirent.h>
 #include "libfakechroot.h"
 
-wrapper_proto(opendir, DIR *, (const char * name));
+wrapper_proto(opendir, DIR *, (const char *));
 
 #endif

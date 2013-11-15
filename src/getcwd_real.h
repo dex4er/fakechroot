@@ -25,6 +25,6 @@
 #include <stddef.h>
 #include "libfakechroot.h"
 
-char * getcwd_real(char *pt, size_t size);
+char * getcwd_real(char *, size_t);
 
 #endif

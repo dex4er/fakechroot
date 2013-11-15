@@ -30,7 +30,9 @@
 
 #include "libfakechroot.h"
 #include "readlink.h"
-#include "__lxstat64.h"
+
+
+LOCAL int __lxstat64_rel(int, const char *, struct stat64 *);
 
 
 wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))

@@ -21,6 +21,6 @@
 #ifndef __REL2ABS_H
 #define __REL2ABS_H
 
-char * rel2abs(const char * name, char * resolved);
+char * rel2abs(const char *, char *);
 
 #endif

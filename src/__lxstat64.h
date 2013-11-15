@@ -31,9 +31,9 @@
 
 #include "libfakechroot.h"
 
-wrapper_proto(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf));
+wrapper_proto(__lxstat64, int, (int, const char *, struct stat64 *));
 
-int __lxstat64_rel(int ver, const char * filename, struct stat64 * buf);
+int __lxstat64_rel(int, const char *, struct stat64 *);
 
 #endif
 

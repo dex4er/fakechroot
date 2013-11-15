@@ -23,8 +23,8 @@
 
 #ifndef HAVE___LXSTAT
 
-wrapper_proto(lstat, int, (int ver, const char * filename, struct stat * buf));
+wrapper_proto(lstat, int, (int, const char *, struct stat *));
 
-int lstat_rel(const char * file_name, struct stat * buf);
+int lstat_rel(const char *, struct stat *);
 
 #endif

@@ -24,6 +24,6 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
-size_t strlcpy(char *dst, const char *src, size_t siz);
+size_t strlcpy(char *, const char *, size_t);
 
 #endif

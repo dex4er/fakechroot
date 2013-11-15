@@ -24,6 +24,6 @@
 
 #include "libfakechroot.h"
 
-wrapper_proto(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK_TYPE_ARG3(bufsiz)));
+wrapper_proto(readlink, READLINK_TYPE_RETURN, (const char *, char *, READLINK_TYPE_ARG3()));
 
 #endif
