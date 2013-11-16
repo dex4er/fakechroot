@@ -7,6 +7,11 @@ test -n "$TEST_DEBOOTSTRAP" && ! test "$TEST_DEBOOTSTRAP" = 0 || skip_all 'TEST_
 command -v debootstrap >/dev/null 2>&1 || skip_all 'debootstrap command is missing (sudo apt-get install debootstrap)'
 command -v lsb_release >/dev/null 2>&1 || skip_all 'lsb_release command is missing (sudo apt-get install lsb-release)'
 
+if [ -n "$TEST_DEBOOTSTRAP_CACHE" ]; then
+    DEBOOTSTRAP_CACHE=$TEST_DEBOOTSTRAP_CACHE
+    export DEBOOTSTRAP_CACHE
+fi
+
 plan 1
 
 unset FAKECHROOT_CMD_SUBST FAKECHROOT_DEBUG FAKECHROOT_EXCLUDE_PATH

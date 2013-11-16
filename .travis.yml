@@ -7,9 +7,13 @@ script: ./autogen.sh && ./configure CC=$TRAVIS_CC && make && make test
 env:
   global:
     - TEST_DEBOOTSTRAP=1
+    - TEST_DEBOOTSTRAP_CACHE=cache
   matrix:
     - TRAVIS_CC=gcc
     - TRAVIS_CC=clang CFLAGS='-std=c11 -g -O2 -Wall -Wno-deprecated-declarations'
+cache:
+  directories:
+    - test/cache
 branches:
   except:
     - /^archive\//

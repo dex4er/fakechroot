@@ -20,8 +20,8 @@ die () {
     exit 1
 }
 
-command -v debootstrap >/dev/null 2>&1 || die 'debootstrap is missing. Install with: sudo apt-get install debootstrap'
-command -v lsb_release >/dev/null 2>&1 || die 'lsb_release is missing. Install with: sudo apt-get install lsb-release'
+command -v debootstrap >/dev/null 2>&1 || die 'debootstrap command is missing (sudo apt-get install debootstrap)'
+command -v lsb_release >/dev/null 2>&1 || die 'lsb_release command is missing (sudo apt-get install lsb-release)'
 
 vendor=${VENDOR:-`lsb_release -s -i`}
 release=${RELEASE:-`lsb_release -s -c`}
@@ -37,7 +37,11 @@ else
     destdir="$abs_srcdir/testtree"
 fi
 
-tarball=$vendor-$release${variant:+-$variant}-$arch.debs.tgz
+if [ -n "$DEBOOTSTRAP_CACHE" ]; then
+    mkdir -p "$DEBOOTSTRAP_CACHE"
+fi
+
+tarball=`test -d "$DEBOOTSTRAP_CACHE" && cd "$DEBOOTSTRAP_CACHE"; pwd`/$vendor-$release${variant:+-$variant}-$arch.debs.tgz
 
 export FAKECHROOT_AF_UNIX_PATH=/tmp
 
@@ -55,7 +59,7 @@ rm -rf $destdir
 
 ls -l $tarball
 
-fakechroot fakeroot debootstrap --unpack-tarball="`pwd`/$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
+fakechroot fakeroot debootstrap --unpack-tarball="$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
 
 HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
