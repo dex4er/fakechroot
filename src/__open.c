@@ -32,12 +32,13 @@ wrapper(__open, int, (const char * pathname, int flags, ...))
 {
     int mode = 0;
 
+    va_list arg;
+    va_start(arg, flags);
+
     debug("__open(\"%s\", %d, ...)", pathname, flags);
     expand_chroot_path(pathname);
 
     if (flags & O_CREAT) {
-        va_list arg;
-        va_start(arg, flags);
         mode = va_arg(arg, int);
         va_end(arg);
     }

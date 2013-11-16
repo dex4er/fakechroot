@@ -32,6 +32,7 @@ wrapper(__xmknod, int, (int ver, const char * path, mode_t mode, dev_t * dev))
 {
     debug("__xmknod(%d, \"%s\", 0%od, &dev)", ver, path, mode);
     expand_chroot_path(path);
+    debug("[2] __xmknod(%d, \"%s\", 0%od, &dev)", ver, path, mode);
     return nextcall(__xmknod)(ver, path, mode, dev);
 }
 

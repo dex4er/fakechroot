@@ -66,16 +66,17 @@ const int preserve_env_list_count = sizeof preserve_env_list / sizeof preserve_e
 
 LOCAL int fakechroot_debug (const char *fmt, ...)
 {
-    va_list ap;
     int ret;
     char newfmt[2048];
+
+    va_list ap;
+    va_start(ap, fmt);
 
     if (!getenv("FAKECHROOT_DEBUG"))
         return 0;
 
     sprintf(newfmt, PACKAGE ": %s\n", fmt);
 
-    va_start(ap, fmt);
     ret = vfprintf(stderr, newfmt, ap);
     va_end(ap);
 

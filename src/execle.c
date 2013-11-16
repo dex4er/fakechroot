@@ -41,12 +41,13 @@ wrapper(execle, int, (const char * path, const char * arg, ...))
     const char **argv = alloca(argv_max * sizeof(const char *));
     const char * const *envp;
     unsigned int i;
+
     va_list args;
+    va_start(args, arg);
 
     debug("execle(\"%s\", \"%s\", ...)", path, arg);
     argv[0] = arg;
 
-    va_start(args, arg);
     i = 0;
     while (argv[i++] != NULL) {
         if (i == argv_max) {
