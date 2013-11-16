@@ -30,7 +30,7 @@
 
 wrapper(mkfifoat, int, (int dirfd, const char * pathname, mode_t mode))
 {
-    debug("mkfifoat(%d, \"%s\", 0%od)", dirfd, pathname, mode);
+    debug("mkfifoat(%d, \"%s\", 0%o)", dirfd, pathname, mode);
     expand_chroot_path_at(dirfd, pathname);
     return nextcall(mkfifoat)(dirfd, pathname, mode);
 }

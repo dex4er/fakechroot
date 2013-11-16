@@ -28,7 +28,7 @@
 
 wrapper(creat, int, (const char * pathname, mode_t mode))
 {
-    debug("creat(\"%s\", 0%od)", pathname, mode);
+    debug("creat(\"%s\", 0%o)", pathname, mode);
     expand_chroot_path(pathname);
     return nextcall(creat)(pathname, mode);
 }

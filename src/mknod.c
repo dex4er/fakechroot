@@ -28,7 +28,7 @@
 
 wrapper(mknod, int, (const char * pathname, mode_t mode, dev_t dev))
 {
-    debug("mknod(\"%s\", 0%od, %ld)", pathname, mode, dev);
+    debug("mknod(\"%s\", 0%o, %ld)", pathname, mode, dev);
     expand_chroot_path(pathname);
     return nextcall(mknod)(pathname, mode, dev);
 }

@@ -27,7 +27,7 @@
 
 wrapper(mkfifo, int, (const char * pathname, mode_t mode))
 {
-    debug("mkfifo(\"%s\", 0%od)", pathname, mode);
+    debug("mkfifo(\"%s\", 0%o)", pathname, mode);
     expand_chroot_path(pathname);
     return nextcall(mkfifo)(pathname, mode);
 }

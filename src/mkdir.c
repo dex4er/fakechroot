@@ -27,7 +27,7 @@
 
 wrapper(mkdir, int, (const char *pathname, mode_t mode))
 {
-    debug("mkdir(\"%s\", 0%od)", pathname, mode);
+    debug("mkdir(\"%s\", 0%o)", pathname, mode);
     expand_chroot_path(pathname);
     return nextcall(mkdir)(pathname, mode);
 }

@@ -27,7 +27,7 @@
 
 wrapper(chmod, int, (const char * path, mode_t mode))
 {
-    debug("chmod(\"%s\", 0%od)", path, mode);
+    debug("chmod(\"%s\", 0%o)", path, mode);
     expand_chroot_path(path);
     return nextcall(chmod)(path, mode);
 }

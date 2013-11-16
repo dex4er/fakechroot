@@ -30,7 +30,7 @@
 
 wrapper(fchmodat, int, (int dirfd, const char * path, mode_t mode, int flag))
 {
-    debug("fchmodat(%d, \"%s\", 0%od, %d)", dirfd, path, mode, flag);
+    debug("fchmodat(%d, \"%s\", 0%o, %d)", dirfd, path, mode, flag);
     expand_chroot_path_at(dirfd, path);
     return nextcall(fchmodat)(dirfd, path, mode, flag);
 }

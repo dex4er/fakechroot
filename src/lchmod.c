@@ -29,7 +29,7 @@
 
 wrapper(lchmod, int, (const char * path, mode_t mode))
 {
-    debug("lchmod(\"%s\", 0%od)", path, mode);
+    debug("lchmod(\"%s\", 0%o)", path, mode);
     expand_chroot_path(path);
     return nextcall(lchmod)(path, mode);
 }

@@ -33,7 +33,7 @@
 
 wrapper(__xstat64, int, (int ver, const char * filename, struct stat64 * buf))
 {
-    debug("__xstat64(%d, \"%s\", %d, &buf)", ver, filename);
+    debug("__xstat64(%d, \"%s\", &buf)", ver, filename);
     expand_chroot_path(filename);
     return nextcall(__xstat64)(ver, filename, buf);
 }
