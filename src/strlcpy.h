@@ -21,6 +21,8 @@
 #ifndef STRLCPY_H
 #define STRLCPY_H
 
+#define strlcpy __strlcpy
+
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
