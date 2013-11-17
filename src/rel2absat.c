@@ -35,12 +35,12 @@
 #include "open.h"
 
 
-LOCAL char * frel2abs(int dirfd, const char * name, char * resolved)
+LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
 {
     int cwdfd;
     char cwd[FAKECHROOT_PATH_MAX];
 
-    debug("frel2abs(%d, \"%s\", &resolved)", dirfd, name);
+    debug("rel2absat(%d, \"%s\", &resolved)", dirfd, name);
 
     if (name == NULL) {
         resolved = NULL;
@@ -73,7 +73,7 @@ LOCAL char * frel2abs(int dirfd, const char * name, char * resolved)
     de_dotdot(resolved);
 
 end:
-    debug("frel2abs(%d, \"%s\", \"%s\")", dirfd, name, resolved);
+    debug("rel2absat(%d, \"%s\", \"%s\")", dirfd, name, resolved);
     return resolved;
 
 error:
@@ -81,7 +81,7 @@ error:
         (void)close(cwdfd);
     }
     resolved = NULL;
-    debug("frel2abs(%d, \"%s\", NULL)", dirfd, name);
+    debug("rel2absat(%d, \"%s\", NULL)", dirfd, name);
     return resolved;
 }
 

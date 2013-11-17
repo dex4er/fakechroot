@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "rel2abs.h"
-#include "frel2abs.h"
+#include "rel2absat.h"
 
 
 #define debug fakechroot_debug
@@ -133,7 +133,7 @@
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL) { \
                 char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
-                frel2abs(dirfd, (path), fakechroot_abspath); \
+                rel2absat(dirfd, (path), fakechroot_abspath); \
                 (path) = fakechroot_abspath; \
                 expand_chroot_rel_path(path); \
             } \

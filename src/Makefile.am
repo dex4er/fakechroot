@@ -55,8 +55,6 @@ libfakechroot_la_SOURCES = \
     fchmodat.c \
     fchownat.c \
     fopen.c \
-    frel2abs.c \
-    frel2abs.h \
     fopen64.c \
     freopen.c \
     freopen64.c \
@@ -126,6 +124,8 @@ libfakechroot_la_SOURCES = \
     realpath.c \
     rel2abs.c \
     rel2abs.h \
+    rel2absat.c \
+    rel2absat.h \
     remove.c \
     removexattr.c \
     rename.c \
