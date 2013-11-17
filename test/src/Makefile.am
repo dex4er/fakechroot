@@ -2,7 +2,7 @@ check_PROGRAMS = \
     test-canonicalize_file_name \
     test-chroot \
     test-clearenv \
-    test-de_dotdot \
+    test-dedotdot \
     test-execlp \
     test-execve-null-envp \
     test-fts \

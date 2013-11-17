@@ -30,7 +30,7 @@
 #include "libfakechroot.h"
 
 #include "strlcpy.h"
-#include "de_dotdot.h"
+#include "dedotdot.h"
 
 #ifdef HAVE___XSTAT64
 # include "__xstat64.h"
@@ -78,7 +78,7 @@ wrapper(chroot, int, (const char * path))
         }
         else {
             snprintf(tmp, FAKECHROOT_PATH_MAX, "%s/%s", cwd, path);
-            de_dotdot(tmpptr);
+            dedotdot(tmpptr);
             path = tmpptr;
         }
     }

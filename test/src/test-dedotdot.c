@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "../../src/strlcpy.c"
-#include "../../src/de_dotdot.c"
+#include "../../src/dedotdot.c"
 
 int main (int argc, char *argv[]) {
     char *path;
@@ -15,7 +15,7 @@ int main (int argc, char *argv[]) {
 
     path = argv[1];
 
-    de_dotdot(path);
+    dedotdot(path);
     printf("%s\n", path);
 
     return 0;

@@ -26,7 +26,7 @@
 
 #include "libfakechroot.h"
 #include "strlcpy.h"
-#include "de_dotdot.h"
+#include "dedotdot.h"
 #include "getcwd_real.h"
 
 
@@ -56,7 +56,7 @@ LOCAL char * rel2abs(const char * name, char * resolved)
         snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
     }
 
-    de_dotdot(resolved);
+    dedotdot(resolved);
 
 end:
     debug("rel2abs(\"%s\", \"%s\")", name, resolved);

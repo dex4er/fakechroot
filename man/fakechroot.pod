@@ -396,7 +396,7 @@ Additional copyrights:
 
 =item *
 
-de_dotdot function taken from mini_httpd - small HTTP server
+dedotdot function taken from mini_httpd - small HTTP server
 Copyright (C) 1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
 
 =item *

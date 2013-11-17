@@ -52,7 +52,7 @@
 
 #include <string.h>
 
-LOCAL void de_dotdot(char* file)
+LOCAL void dedotdot(char * file)
 {
     char *cp, *cp2;
     int l;

@@ -5,7 +5,7 @@ srcdir=${srcdir:-.}
 
 plan 47
 
-de_dotdot="$srcdir/src/test-de_dotdot"
+dedotdot="$srcdir/src/test-dedotdot"
 
 set -- \
     a a \
@@ -57,8 +57,8 @@ set -- \
     /abcdef/ghijkl/mnopqr/.. /abcdef/ghijkl \
 
 while [ $# -gt 1 ]; do
-    t=`$de_dotdot "$1" 2>&1`
+    t=`$dedotdot "$1" 2>&1`
     test "$t" = "$2" || not
-    ok "test-de_dotdot $1 returns" $t
+    ok "test-dedotdot $1 returns" $t
     shift 2
 done

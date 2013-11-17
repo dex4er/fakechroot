@@ -21,6 +21,6 @@
 #ifndef __DE_DOTDOT_H
 #define __DE_DOTDOT_H
 
-void de_dotdot(char *);
+void dedotdot(char *);
 
 #endif

@@ -8,7 +8,7 @@ TESTS = \
     t/clearenv.t \
     t/cmd-subst.t \
     t/cp.t \
-    t/de_dotdot.t \
+    t/dedotdot.t \
     t/execlp.t \
     t/execve-elfloader.t \
     t/execve-null-envp.t \

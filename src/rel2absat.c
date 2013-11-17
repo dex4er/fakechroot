@@ -31,7 +31,7 @@
 
 #include "libfakechroot.h"
 #include "strlcpy.h"
-#include "de_dotdot.h"
+#include "dedotdot.h"
 #include "open.h"
 
 
@@ -70,7 +70,7 @@ LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
     (void)close(cwdfd);
 
     snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
-    de_dotdot(resolved);
+    dedotdot(resolved);
 
 end:
     debug("rel2absat(%d, \"%s\", \"%s\")", dirfd, name, resolved);

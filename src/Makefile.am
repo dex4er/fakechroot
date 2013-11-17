@@ -39,8 +39,8 @@ libfakechroot_la_SOURCES = \
     connect.c \
     creat.c \
     creat64.c \
-    de_dotdot.c \
-    de_dotdot.h \
+    dedotdot.c \
+    dedotdot.h \
     dlmopen.c \
     dlopen.c \
     eaccess.c \
