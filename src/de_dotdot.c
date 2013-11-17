@@ -57,13 +57,8 @@ LOCAL void de_dotdot(char* file)
     char *cp, *cp2;
     int l;
 
-    if (!file)
+    if (!file || !*file)
         return;
-
-    if (!*file) {
-        strcpy(file, ".");
-        return;
-    }
 
     if ((l = strlen(file)) > 0)
         for (cp = file + l - 1; cp > file && *cp == '/'; cp--)

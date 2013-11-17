@@ -41,6 +41,17 @@ LOCAL char * frel2abs(int dirfd, const char * name, char * resolved)
     char cwd[FAKECHROOT_PATH_MAX];
 
     debug("frel2abs(%d, \"%s\", &resolved)", dirfd, name);
+
+    if (name == NULL) {
+        resolved = NULL;
+        goto end;
+    }
+
+    if (*name == '\0') {
+        *resolved = '\0';
+        goto end;
+    }
+
     strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
 
     if ((cwdfd = nextcall(open)(".", O_RDONLY|O_DIRECTORY)) == -1) {
@@ -60,6 +71,8 @@ LOCAL char * frel2abs(int dirfd, const char * name, char * resolved)
 
     snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
     de_dotdot(resolved);
+
+end:
     debug("frel2abs(%d, \"%s\", \"%s\")", dirfd, name, resolved);
     return resolved;
 

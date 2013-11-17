@@ -74,6 +74,7 @@ for p in \
     '/usr/bin/seq' \
     '/usr/bin/sort' \
     '/usr/bin/strace' \
+    '/usr/bin/test' \
     '/usr/bin/touch' \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \

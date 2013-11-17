@@ -36,6 +36,16 @@ LOCAL char * rel2abs(const char * name, char * resolved)
 
     debug("rel2abs(\"%s\", &resolved)", name);
 
+    if (name == NULL) {
+        resolved = NULL;
+        goto end;
+    }
+
+    if (*name == '\0') {
+        *resolved = '\0';
+        goto end;
+    }
+
     getcwd_real(cwd, FAKECHROOT_PATH_MAX);
     narrow_chroot_path(cwd);
 
@@ -48,6 +58,7 @@ LOCAL char * rel2abs(const char * name, char * resolved)
 
     de_dotdot(resolved);
 
+end:
     debug("rel2abs(\"%s\", \"%s\")", name, resolved);
     return resolved;
 }
