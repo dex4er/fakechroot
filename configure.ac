@@ -64,7 +64,6 @@ AC_CHECK_HEADERS(m4_normalize([
     dlfcn.h
     errno.h
     fcntl.h
-    fts.h
     ftw.h
     glob.h
     libintl.h
@@ -72,6 +71,7 @@ AC_CHECK_HEADERS(m4_normalize([
     shadow.h
     signal.h
     stdarg.h
+    stdint.h
     stdio.h
     stdlib.h
     string.h
@@ -92,6 +92,10 @@ AC_CHECK_HEADERS(m4_normalize([
     unistd.h
     utime.h
 ]))
+
+AC_CHECK_HEADERS([fts.h], [], [], [
+#define _BSD_SOURCE
+])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
