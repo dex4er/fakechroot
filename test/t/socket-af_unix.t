@@ -15,7 +15,7 @@ test_af_unix () {
 
     sleep 3
     test -S testtree/tmp/$chroot-socket$n || not
-    ok "$chroot af_unix server socket created" $(cat testtree/tmp/$chroot-socket$n.log; ls testtree/tmp/$chroot-socket$n 2>&1)
+    ok "$chroot af_unix server socket created" `cat testtree/tmp/$chroot-socket$n.log; ls testtree/tmp/$chroot-socket$n 2>&1`
 
     t=`$srcdir/$chroot.sh testtree /bin/test-socket-af_unix-client /tmp/$chroot-socket$n something 2>&1`
     test "$t" = "something" || not
