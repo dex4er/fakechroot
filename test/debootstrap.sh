@@ -23,6 +23,7 @@ die () {
 command -v debootstrap >/dev/null 2>&1 || die 'debootstrap command is missing (sudo apt-get install debootstrap)'
 command -v fakeroot    >/dev/null 2>&1 || die 'fakeroot command is missing (sudo apt-get install fakeroot)'
 command -v lsb_release >/dev/null 2>&1 || die 'lsb_release command is missing (sudo apt-get install lsb-release)'
+command -v xzcat       >/dev/null 2>&1 || die 'xzcat command is missing (sudo apt-get install xz-utils)'
 
 vendor=${VENDOR:-`lsb_release -s -i`}
 release=${RELEASE:-`lsb_release -s -c`}

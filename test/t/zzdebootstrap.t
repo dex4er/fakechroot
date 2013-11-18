@@ -6,6 +6,7 @@ srcdir=${srcdir:-.}
 test -n "$TEST_DEBOOTSTRAP" && ! test "$TEST_DEBOOTSTRAP" = 0 || skip_all 'TEST_DEBOOTSTRAP is false'
 command -v debootstrap >/dev/null 2>&1 || skip_all 'debootstrap command is missing (sudo apt-get install debootstrap)'
 command -v fakeroot    >/dev/null 2>&1 || skip_all 'fakeroot command is missing (sudo apt-get install fakeroot)'
+command -v xzcat       >/dev/null 2>&1 || skip_all 'xzcat command is missing (sudo apt-get install xz-utils)'
 command -v lsb_release >/dev/null 2>&1 || skip_all 'lsb_release command is missing (sudo apt-get install lsb-release)'
 
 if [ -n "$TEST_DEBOOTSTRAP_CACHE" ]; then
