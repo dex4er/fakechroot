@@ -6,26 +6,31 @@
 # chroot environment.  It copies original LD_LIBRARY_PATH and adds prefix to
 # each directory for this variable.
 #
-# (c) 2011 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2011, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 
 load_ldsoconf () {
-    file="$1"
+    files="$1"
     newroot="$2"
 
-    sed -e 's/#.*//' -e '/^ *$/d' "$newroot$file" 2>/dev/null | while read line; do
-        case "$line" in
-            include*)
-                include=`echo "$line" | sed -e 's/^include  *//' -e 's/ *$//'`
-                for incfile in `eval echo $newroot$include`; do
-                    incfile="${incfile#$newroot}"
-                    load_ldsoconf "$incfile" "$newroot"
-                done
-                ;;
-            *)
-                echo "$newroot$line"
-                ;;
-        esac
+    for file in `eval echo $newroot$files`; do
+        file="${file#$newroot}"
+
+        sed -e 's/#.*//' -e '/^ *$/d' "$newroot$file" 2>/dev/null | while read line; do
+            case "$line" in
+                include*)
+                    include=`echo "$line" | sed -e 's/^include  *//' -e 's/ *$//'`
+                    for incfile in `eval echo $newroot$include`; do
+                        incfile="${incfile#$newroot}"
+                        load_ldsoconf "$incfile" "$newroot"
+                    done
+                    ;;
+                *)
+                    echo "$newroot$line"
+                    ;;
+            esac
+        done
+
     done
 }
 
@@ -57,7 +62,12 @@ if [ -n "$newroot" ]; then
     IFS="$IFS_bak"
 
     # append newroot to each directory from new /etc/ld.so.conf
-    paths_ldsoconf=`load_ldsoconf "/etc/ld.so.conf" "$newroot" | while read line; do printf ":%s%s" "$base" "$line"; done`
+    paths_ldsoconf=""
+    if [ -f "$newroot/etc/ld.so.conf" ]; then
+        paths_ldsoconf=`load_ldsoconf "/etc/ld.so.conf" "$newroot" | while read line; do printf ":%s%s" "$base" "$line"; done`
+    elif [ -d "$newroot/etc/ld.so.conf.d" ]; then
+        paths_ldsoconf=`load_ldsoconf "/etc/ld.so.conf.d/*" "$newroot" | while read line; do printf ":%s%s" "$base" "$line"; done`
+    fi
     paths_ldsoconf="${paths_ldsoconf#:}"
 
     paths="$paths${paths_ldsoconf:+:$paths_ldsoconf}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
