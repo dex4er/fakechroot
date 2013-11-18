@@ -27,7 +27,7 @@ command -v lsb_release >/dev/null 2>&1 || die 'lsb_release command is missing (s
 vendor=${VENDOR:-`lsb_release -s -i`}
 release=${RELEASE:-`lsb_release -s -c`}
 variant=$VARIANT
-type=`dpkg-architecture -qDEB_HOST_GNU_TYPE`
+type=`dpkg-architecture -qDEB_HOST_GNU_TYPE 2>/dev/null`
 systype=${type#*-}
 arch=${ARCH:-`dpkg-architecture -t$(arch)-$systype -qDEB_HOST_ARCH 2>/dev/null`}
 
