@@ -34,7 +34,10 @@ extern char **environ;
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #endif
+
 #include "libfakechroot.h"
+
+extern int __clearenv(void);
 
 
 wrapper(clearenv, int, (void))
@@ -65,7 +68,7 @@ wrapper(clearenv, int, (void))
     tmpenv[n] = NULL;
 
     /* Clear */
-    nextcall(clearenv)();
+    __clearenv();
 
     /* Set one variable explicitly so environ won't be NULL */
     setenv("FAKECHROOT", "true", 0);

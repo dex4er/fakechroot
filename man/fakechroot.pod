@@ -476,6 +476,13 @@ Copyright (C) 1997-2006, 2008-2010 Free Software Foundation, Inc.
 
 =item *
 
+setenv, clearenv, unsetenv functions taken from uClibc.
+Copyright (C) 1992,95,96,97,98,99,2000,2001 Free Software Foundation, Inc.
+This file is part of the GNU C Library.
+modified for uClibc by Erik Andersen <andersen@codepoet.org>
+
+=item *
+
 stpcpy function taken from Gnulib.
 Copyright (C) 1992, 1995, 1997-1998, 2006, 2009-2010 Free Software
 Foundation, Inc.

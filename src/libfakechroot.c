@@ -138,8 +138,8 @@ void fakechroot_init (void)
             strcat(home_path, "/");
         }
 
-        setenv("FAKECHROOT", "true", 1);
-        setenv("FAKECHROOT_VERSION", FAKECHROOT, 1);
+        __setenv("FAKECHROOT", "true", 1);
+        __setenv("FAKECHROOT_VERSION", FAKECHROOT, 1);
     }
 }
 

@@ -12,6 +12,8 @@
   for `--ignore-environment` option.
 * The special environment `none` means that no environment settings are loaded
   at all.
+* The function `setenv`(3) and `unsetenv`(3) was reimplemented, to prevent
+  problems with binaries which brings own implementation of these functions.
 * New function `clearenv`(3) was added.  It preserves fakechroot environment.
 * It is safe to use relative paths which won't escape from fake chroot.
 * Fixes were made for `readline`(2) function if destination path is similar to

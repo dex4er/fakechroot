@@ -160,8 +160,6 @@ libfakechroot_la_SOURCES = \
     ulckpwdf.c \
     unlink.c \
     unlinkat.c \
-    unsetenv.c \
-    unsetenv.h \
     utime.c \
     utimensat.c \
     utimes.c
