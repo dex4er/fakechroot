@@ -3,14 +3,14 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
-prepare 12
+prepare 18
 
 for chroot in chroot fakechroot; do
 
-    for mktemp in mktemp mkstemp; do
+    for mktemp in mktemp mkstemp mkdtemp; do
 
         if [ $chroot = "chroot" ] && ! is_root; then
-            skip $(( $tap_plan / 4 )) "not root"
+            skip $(( $tap_plan / 6 )) "not root"
         else
 
             for template in /tmp/${chroot}${mktemp}XXXXXX tmp/${chroot}${mktemp}XXXXXX; do

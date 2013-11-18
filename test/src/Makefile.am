@@ -8,6 +8,7 @@ check_PROGRAMS = \
     test-fts \
     test-ftw \
     test-lstat \
+    test-mkdtemp \
     test-mkstemp \
     test-mkstemps \
     test-mktemp \

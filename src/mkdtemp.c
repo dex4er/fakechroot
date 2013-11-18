@@ -22,29 +22,45 @@
 
 #ifdef HAVE_MKDTEMP
 
+#define _BSD_SOURCE
+#include <stdlib.h>
+
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 
 wrapper(mkdtemp, char *, (char * template))
 {
-    char tmp[FAKECHROOT_PATH_MAX], *oldtemplate, *ptr;
+    char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
+    char *xxxsrc, *xxxdst;
+    int xxxlen = 0;
 
     debug("mkdtemp(\"%s\")", template);
-    oldtemplate = template;
 
-    expand_chroot_path(template);
+    strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
 
-    if (nextcall(mkdtemp)(template) == NULL) {
-        return NULL;
+    if (!fakechroot_localdir(tmp)) {
+        expand_chroot_path(tmpptr);
     }
-    ptr = tmp;
-    strcpy(ptr, template);
-    narrow_chroot_path(ptr);
-    if (ptr == NULL) {
-        return NULL;
+
+    for (xxxdst = template; *xxxdst; xxxdst++);
+    for (xxxdst--; *xxxdst == 'X'; xxxdst--, xxxlen++);
+    xxxdst++;
+
+    for (xxxsrc = tmpptr; *xxxsrc; xxxsrc++);
+    for (xxxsrc--; *xxxsrc == 'X'; xxxsrc--);
+    xxxsrc++;
+
+    if (nextcall(mkdtemp)(tmpptr) == NULL || !*tmpptr) {
+        goto error;
     }
-    strcpy(oldtemplate, ptr);
-    return oldtemplate;
+
+    memmove(xxxdst, xxxsrc, xxxlen);
+    return template;
+
+error:
+    *template = '\0';
+    return template;
 }
 
 #else
