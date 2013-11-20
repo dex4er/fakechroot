@@ -35,7 +35,6 @@ load_ldsoconf () {
 }
 
 chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
-FAKECHROOT_CMD_ORIG=
 
 base="$FAKECHROOT_BASE_ORIG"
 
@@ -75,5 +74,5 @@ if [ -n "$newroot" ]; then
 fi
 
 # call real chroot
-env -u FAKECHROOT_BASE_ORIG LD_LIBRARY_PATH="$paths" FAKECHROOT_BASE="$base" "$chroot" "$@"
+env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$paths" FAKECHROOT_BASE="$base" "$chroot" "$@"
 exit $?
