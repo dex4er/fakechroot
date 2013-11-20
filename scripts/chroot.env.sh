@@ -5,29 +5,20 @@ if ! command -v chroot >/dev/null; then
     export PATH
 fi
 
-chroot=`command -v chroot 2>/dev/null`
-chroot="${chroot:-@CHROOT@}"
+cmd_subst=""
 
-env=`command -v env 2>/dev/null`
-env="${env:-@ENV@}"
+for d in `echo $PATH | tr ':' ' '`; do
 
-ischroot=`command -v ischroot 2>/dev/null`
-ischroot="${ischroot:-@ISCHROOT@}"
+    cmd_subst="
+        $d/chroot=@sbindir@/chroot.fakechroot
+        $d/env=@bindir@/env.fakechroot
+        $d/ischroot=/bin/true
+        $d/ldconfig=/bin/true
+        $d/ldd=@bindir@/ldd.fakechroot
+    "
 
-ldconfig=`command -v ldconfig 2>/dev/null`
-ldconfig="${ldconfig:-@LDCONFIG@}"
-
-ldd=`command -v ldd 2>/dev/null`
-ldd="${ldd:-@LDD@}"
-
-cmd_subst="
-    $chroot=@sbindir@/chroot.fakechroot
-    $env=@bindir@/env.fakechroot
-    $ischroot=/bin/true
-    $ldconfig=/bin/true
-    $ldd=@bindir@/ldd.fakechroot
-"
+done
 
 FAKECHROOT_EXCLUDE_PATH="${FAKECHROOT_EXCLUDE_PATH:-/dev:/proc:/sys}"
-FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$(echo $cmd_subst | tr ' ' ':')"
+FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}`echo $cmd_subst | tr ' ' ':'`"
 export FAKECHROOT_EXCLUDE_PATH FAKECHROOT_CMD_SUBST

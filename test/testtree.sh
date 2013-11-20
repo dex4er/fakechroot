@@ -57,6 +57,7 @@ for p in \
     '/bin/pwd' \
     '/bin/readlink' \
     '/bin/rm' \
+    '/bin/sed' \
     '/bin/sh' \
     '/bin/sleep' \
     '/bin/touch' \
@@ -76,6 +77,7 @@ for p in \
     '/usr/bin/strace' \
     '/usr/bin/test' \
     '/usr/bin/touch' \
+    '/usr/bin/tr' \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \
     '/usr/local/bin/gseq' \

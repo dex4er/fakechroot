@@ -6,10 +6,21 @@ abs_top_srcdir=${abs_top_srcdir:-`cd "$pwd/../.." 2>/dev/null && pwd -P`}
 PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 export PATH
 
-FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}\
-`command -v chroot`=$abs_top_srcdir/scripts/chroot.fakechroot:\
-`command -v env`=$abs_top_srcdir/scripts/env.fakechroot:\
-`command -v ldd`=$abs_top_srcdir/scripts/ldd.fakechroot"
+cmd_subst=""
+
+for d in `echo $PATH | tr ':' ' '`; do
+
+    cmd_subst="$cmd_subst
+        $d/chroot=$abs_top_srcdir/scripts/chroot.fakechroot
+        $d/env=$abs_top_srcdir/scripts/env.fakechroot
+        $d/ischroot=/bin/true
+        $d/ldconfig=/bin/true
+        $d/ldd=$abs_top_srcdir/scripts/ldd.fakechroot
+    "
+
+done
+
+FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}`echo $cmd_subst | tr ' ' ':'`"
 
 "$abs_top_srcdir/scripts/env.fakechroot" - FAKECHROOT_CMD_SUBST="$FAKECHROOT_CMD_SUBST" HOME="$HOME" PATH="$PATH" SHELL="$SHELL" "$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
 exit $?
