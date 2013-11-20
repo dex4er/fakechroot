@@ -51,7 +51,7 @@ while [ $# -gt 0 ]; do
         --unset=*)
             __env_key=${1#--unset=}
             case "$__env_key" in
-                FAKEROOTKEY|FAKED_MODE|FAKECHROOT|FAKECHROOT_*|LD_LIBRARY_PATH|LD_PRELOAD) ;;
+                LD_LIBRARY_PATH|LD_PRELOAD) ;;
                 *) unset $__env_key
             esac
             shift
@@ -59,7 +59,7 @@ while [ $# -gt 0 ]; do
         -u|--unset)
             __env_key=$2
             case "$__env_key" in
-                FAKEROOTKEY|FAKED_MODE|FAKECHROOT|FAKECHROOT_*|LD_LIBRARY_PATH|LD_PRELOAD) ;;
+                LD_LIBRARY_PATH|LD_PRELOAD) ;;
                 *) unset $__env_key
             esac
             shift 2
