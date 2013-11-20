@@ -8,14 +8,14 @@
 # (c) 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 
-__env_args=
-__env_extra_args=
-__env_fakechroot_base=${FAKECHROOT_BASE_ORIG:-$FAKECHROOT_BASE}
-__env_fakechroot_env=
-__env_ignore_env=no
-__env_unset_path=no
-__env_null=no
-__env_path=$PATH
+fakechroot_env_args=
+fakechroot_env_extra_args=
+fakechroot_env_fakechroot_base=${FAKECHROOT_BASE_ORIG:-$FAKECHROOT_BASE}
+fakechroot_env_fakechroot_env=
+fakechroot_env_ignore_env=no
+fakechroot_env_unset_path=no
+fakechroot_env_null=no
+fakechroot_env_path=$PATH
 
 
 help () {
@@ -41,31 +41,31 @@ while [ $# -gt 0 ]; do
             help
             ;;
         -i|--ignore-environment)
-            __env_ignore_env=yes
+            fakechroot_env_ignore_env=yes
             shift
             ;;
         -0|--null)
-            __env_null=yes
+            fakechroot_env_null=yes
             shift
             ;;
         --unset=*)
-            __env_key=${1#--unset=}
-            case "$__env_key" in
+            fakechroot_env_key=${1#--unset=}
+            case "$fakechroot_env_key" in
                 LD_LIBRARY_PATH|LD_PRELOAD) ;;
-                *) unset $__env_key
+                *) unset $fakechroot_env_key
             esac
             shift
             ;;
         -u|--unset)
-            __env_key=$2
-            case "$__env_key" in
+            fakechroot_env_key=$2
+            case "$fakechroot_env_key" in
                 LD_LIBRARY_PATH|LD_PRELOAD) ;;
-                *) unset $__env_key
+                *) unset $fakechroot_env_key
             esac
             shift 2
             ;;
         -)
-            __env_ignore_env=yes
+            fakechroot_env_ignore_env=yes
             shift
             break
             ;;
@@ -77,44 +77,44 @@ done
 
 if [ $# -eq 0 ]; then
     export | while read line; do
-        __env_key="${line#declare -x }"
-        __env_key="${__env_key#export }"
-        __env_key="${__env_key%%=*}"
-        printf "%s=" "$__env_key"
-        eval printf "%s" '$'$__env_key
-        if [ $__env_null = yes ]; then
+        fakechroot_env_key="${line#declare -x }"
+        fakechroot_env_key="${fakechroot_env_key#export }"
+        fakechroot_env_key="${fakechroot_env_key%%=*}"
+        printf "%s=" "$fakechroot_env_key"
+        eval printf "%s" '$'$fakechroot_env_key
+        if [ $fakechroot_env_null = yes ]; then
             printf "\0"
         else
             printf "\n"
         fi
     done
 else
-    if [ $__env_null = yes ]; then
+    if [ $fakechroot_env_null = yes ]; then
         echo 'env: cannot specify --null (-0) with command' 1>&2
         exit 125
     fi
 
-    if [ $__env_ignore_env = yes ]; then
-        __env_keys=`export | while read line; do
-            __env_key="${line#declare -x }"
-            __env_key="${__env_key#export }"
-            __env_key="${__env_key%%=*}"
-            case "$__env_key" in
+    if [ $fakechroot_env_ignore_env = yes ]; then
+        fakechroot_env_keys=`export | while read line; do
+            fakechroot_env_key="${line#declare -x }"
+            fakechroot_env_key="${fakechroot_env_key#export }"
+            fakechroot_env_key="${fakechroot_env_key%%=*}"
+            case "$fakechroot_env_key" in
                 FAKEROOTKEY|FAKED_MODE|FAKECHROOT|FAKECHROOT_*|LD_LIBRARY_PATH|LD_PRELOAD) ;;
-                *) echo $__env_key
+                *) echo $fakechroot_env_key
             esac
         done`
-        for __env_key in $__env_keys; do
-            unset $__env_key
+        for fakechroot_env_key in $fakechroot_env_keys; do
+            unset $fakechroot_env_key
         done
     fi
 
     while [ $# -gt 1 ]; do
         case "$1" in
             *=*)
-                __env_key=${1%%=*}
+                fakechroot_env_key=${1%%=*}
                 eval $1
-                eval export $__env_key
+                eval export $fakechroot_env_key
                 shift
                 ;;
             *)
@@ -122,11 +122,11 @@ else
         esac
     done
 
-    __env_cmd=`PATH=$__env_path command -v $1 2>/dev/null`
-    __env_cmd=${__env_cmd:-$1}
+    fakechroot_env_cmd=`PATH=$fakechroot_env_path command -v $1 2>/dev/null`
+    fakechroot_env_cmd=${fakechroot_env_cmd:-$1}
     shift
 
-    $__env_cmd "$@"
+    $fakechroot_env_cmd "$@"
     exit $?
 fi
 
