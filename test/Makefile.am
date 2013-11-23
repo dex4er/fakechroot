@@ -39,7 +39,7 @@ CLEANFILES = .proverc
 
 EXTRA_DIST = $(TESTS) \
     proverc \
-    arch.sh \
+    archlinux.sh \
     chroot.sh \
     common.inc.sh \
     debootstrap.sh \
