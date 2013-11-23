@@ -39,11 +39,15 @@ else
     destdir="$abs_srcdir/testtree"
 fi
 
+if [ -n "$ARCHLINUX_CACHE" ]; then
+    mkdir -p "$ARCHLINUX_CACHE"
+fi
+
 url=$mirror/iso/$release/archlinux-bootstrap-$release-$arch.tar.gz
-tarball=`basename $url`
+tarball=`test -d "$ARCHLINUX_CACHE" && cd "$ARCHLINUX_CACHE"; pwd`/`basename $url`
 
 if ! [ -f $tarball ]; then
-    wget $url
+    wget -O "$tarball" $url
 fi
 
 export FAKECHROOT_AF_UNIX_PATH=/tmp
@@ -55,7 +59,7 @@ fi
 
 rm -rf "$destdir"
 
-ls -l $tarball
+ls -l "$tarball"
 
 mkdir -p "$destdir"
 tar zx --strip-components=1 --directory="$destdir" -f $tarball
