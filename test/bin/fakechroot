@@ -16,6 +16,8 @@ for d in `echo $PATH | tr ':' ' '`; do
         $d/ischroot=/bin/true
         $d/ldconfig=/bin/true
         $d/ldd=$abs_top_srcdir/scripts/ldd.fakechroot
+        $d/mount=/bin/true
+        $d/nscd=/bin/true
     "
 
 done
