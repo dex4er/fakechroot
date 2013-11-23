@@ -63,7 +63,7 @@ tar zx --strip-components=1 --directory="$destdir" -f $tarball
 rm -f "$destdir/etc/mtab"
 echo "rootfs / rootfs rw 0 0" > "$destdir/etc/mtab"
 cp "/etc/resolv.conf" "$destdir/etc/"
-sed -ni '/^[ \t]*CheckSpace/ !p' "$CHROOT_DIR/etc/pacman.conf"
+sed -ni '/^[ \t]*CheckSpace/ !p' "$destdir/etc/pacman.conf"
 sed -i "s/^[ \t]*SigLevel[ \t].*/SigLevel = Never/" "$destdir/etc/pacman.conf"
 echo "Server = $mirror/\$repo/os/$arch" >> "$destdir/etc/pacman.d/mirrorlist"
 
