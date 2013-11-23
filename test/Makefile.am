@@ -39,11 +39,11 @@ CLEANFILES = .proverc
 
 EXTRA_DIST = $(TESTS) \
     proverc \
+    arch.sh \
     chroot.sh \
     common.inc.sh \
     debootstrap.sh \
     fakechroot.sh \
-    rinse.sh \
     seq.inc.sh \
     tap.inc.sh \
     testtree.sh \
