@@ -67,7 +67,7 @@ if [ -n "$fakechroot_chroot_newroot" ]; then
     elif [ -d "$fakechroot_chroot_newroot/etc/ld.so.conf.d" ]; then
         fakechroot_chroot_paths_ldsoconf=`fakechroot_chroot_load_ldsoconf "/etc/ld.so.conf.d/*" "$fakechroot_chroot_newroot" | while read fakechroot_chroot_line; do printf ":%s%s" "$fakechroot_chroot_base" "$fakechroot_chroot_line"; done`
     fi
-    fakechroot_chroot_paths_ldsoconf="${paths_ldsoconf#:}"
+    fakechroot_chroot_paths_ldsoconf="${fakechroot_chroot_paths_ldsoconf#:}"
 
     fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
     fakechroot_chroot_paths="${fakechroot_chroot_paths#:}"
