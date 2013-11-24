@@ -17,4 +17,5 @@ cache:
 branches:
   except:
     - /^archive\//
+    - release
     - /^stash\//
