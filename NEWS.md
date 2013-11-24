@@ -1,6 +1,6 @@
-## Version ?.??
+## Version 2.17
 
-?? ??? ????
+24 Nov 2013
 
 * The `FAKECHROOT_ELFLOADER` environment variable changes the default dynamic
   linker.  The `fakechroot` script provides `--elfloader` option.
