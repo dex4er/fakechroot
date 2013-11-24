@@ -9,7 +9,7 @@ fakechroot_chroot_env_cmd_subst=""
 
 for fakechroot_chroot_env_d in `echo $PATH | tr ':' ' '`; do
 
-    fakechroot_chroot_env_cmd_subst="
+    fakechroot_chroot_env_cmd_subst="$fakechroot_chroot_env_cmd_subst
         $fakechroot_chroot_env_d/chroot=@sbindir@/chroot.fakechroot
         $fakechroot_chroot_env_d/env=@bindir@/env.fakechroot
         $fakechroot_chroot_env_d/ischroot=/bin/true
