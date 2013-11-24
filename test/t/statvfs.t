@@ -1,11 +1,9 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
+. $srcdir/common.inc.sh
 
 prepare 2
-
-fakedir=`cd testtree; pwd -P`
 
 for chroot in chroot fakechroot; do
 

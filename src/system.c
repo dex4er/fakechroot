@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -22,10 +22,12 @@
 
 #ifdef __GNUC__
 
+#define _POSIX_SOURCE
+#define _BSD_SOURCE
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <unistd.h>
+#include <signal.h>
 #include "libfakechroot.h"
 
 
@@ -76,4 +78,6 @@ wrapper(system, int, (const char * command))
     return (pid == -1 ? -1 : pstat);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

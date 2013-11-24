@@ -44,7 +44,6 @@ wrapper(getsockname, int, (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t * addrl
     int status;
     socklen_t newaddrlen;
     struct sockaddr_un newaddr;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("getsockname(%d, &addr, &addrlen)", s);
 
@@ -59,9 +58,10 @@ wrapper(getsockname, int, (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t * addrl
         return status;
     }
     if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
-        strncpy(fakechroot_buf, newaddr.sun_path, FAKECHROOT_PATH_MAX);
-        narrow_chroot_path(fakechroot_buf, fakechroot_path, fakechroot_ptr);
-        strncpy(newaddr.sun_path, fakechroot_buf, UNIX_PATH_MAX);
+        char tmp[FAKECHROOT_PATH_MAX];
+        strncpy(tmp, newaddr.sun_path, FAKECHROOT_PATH_MAX);
+        narrow_chroot_path(tmp);
+        strncpy(newaddr.sun_path, tmp, UNIX_PATH_MAX);
     }
 
     memcpy((struct sockaddr_un *)SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
@@ -69,6 +69,10 @@ wrapper(getsockname, int, (int s, GETSOCKNAME_TYPE_ARG2(addr), socklen_t * addrl
     return status;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif
 
+#else
+typedef int empty_translation_unit;
 #endif

@@ -18,4 +18,9 @@
 */
 
 
+#ifndef __STRCHRNUL_H
+#define __STRCHRNUL_H
+
 char * strchrnul (const char *, int);
+
+#endif

@@ -42,4 +42,6 @@ stpcpy (char *dest, const char *src)
   return d - 1;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

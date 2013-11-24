@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 #ifdef HAVE_OPENAT64
 
 #define _LARGEFILE64_SOURCE
+#define _ATFILE_SOURCE
 #include <stdarg.h>
 #include <stddef.h>
 #include <fcntl.h>
@@ -32,13 +33,14 @@
 wrapper_alias(openat64, int, (int dirfd, const char * pathname, int flags, ...))
 {
     int mode = 0;
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
+
+    va_list arg;
+    va_start(arg, flags);
+
     debug("openat64(%d, \"%s\", %d, ...)", dirfd, pathname, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    expand_chroot_path_at(dirfd, pathname);
 
     if (flags & O_CREAT) {
-        va_list arg;
-        va_start(arg, flags);
         mode = va_arg(arg, int);
         va_end(arg);
     }
@@ -46,4 +48,6 @@ wrapper_alias(openat64, int, (int dirfd, const char * pathname, int flags, ...))
     return nextcall(openat64)(dirfd, pathname, flags, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

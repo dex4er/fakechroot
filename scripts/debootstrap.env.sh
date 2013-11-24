@@ -1,6 +1,6 @@
 # Additional environment setting for debootstrap
 
-cmd_subst="
+fakechroot_debootstrap_env_cmd_subst="
     /bin/mount=/bin/true
     /sbin/devfs=/bin/true
     /sbin/insserv=/bin/true
@@ -12,9 +12,9 @@ cmd_subst="
     /var/lib/dpkg/info/kbdcontrol.postinst=/bin/true
 "
 
-FAKECHROOT_EXCLUDE_PATH="${FAKECHROOT_EXCLUDE_PATH:+$FAKECHROOT_EXCLUDE_PATH:}/dev:/proc:/sys"
+FAKECHROOT_EXCLUDE_PATH="${FAKECHROOT_EXCLUDE_PATH:-/dev:/proc:/sys}"
 FAKECHROOT_AF_UNIX_PATH=/tmp
-FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$(echo $cmd_subst | tr ' ' ':')"
+FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}$(echo $fakechroot_debootstrap_env_cmd_subst | tr ' ' ':')"
 export FAKECHROOT_EXCLUDE_PATH FAKECHROOT_AF_UNIX_PATH FAKECHROOT_CMD_SUBST
 
 if ! command -v chroot >/dev/null; then

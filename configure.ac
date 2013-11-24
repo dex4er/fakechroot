@@ -1,15 +1,19 @@
 AC_PREREQ(2.64)
-AC_INIT([fakechroot], [2.16], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
-AC_CANONICAL_HOST
-AC_CANONICAL_BUILD
+AC_INIT([fakechroot], [2.17], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+
+AC_CONFIG_SRCDIR([src/libfakechroot.c])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_HEADER([config.h])
 
 AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
 
-AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([src/libfakechroot.c])
-AC_CONFIG_HEADER([config.h])
+LT_INIT
+
+AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
 AC_LANG([C])
 
 # --disable-static by default
@@ -35,7 +39,12 @@ AC_PROG_CC
 AC_PROG_LN_S
 AC_CHECK_PROGS([PROVE], [prove])
 AC_CHECK_PROGS([SEQ], [seq gseq])
-AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:$PATH])
+AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([ECHO], [echo], [/bin/echo], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([ENV], [env], [/usr/bin/env], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([ISCHROOT], [ischroot], [/usr/bin/ischroot], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([LDCONFIG], [ldconfig], [/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 
 # Checks for compilator features
 ACX_CHECK_C_ALIGNOF
@@ -55,7 +64,6 @@ AC_CHECK_HEADERS(m4_normalize([
     dlfcn.h
     errno.h
     fcntl.h
-    fts.h
     ftw.h
     glob.h
     libintl.h
@@ -63,6 +71,7 @@ AC_CHECK_HEADERS(m4_normalize([
     shadow.h
     signal.h
     stdarg.h
+    stdint.h
     stdio.h
     stdlib.h
     string.h
@@ -73,6 +82,7 @@ AC_CHECK_HEADERS(m4_normalize([
     sys/stat.h
     sys/statfs.h
     sys/statvfs.h
+    sys/syscall.h
     sys/times.h
     sys/types.h
     sys/un.h
@@ -82,6 +92,10 @@ AC_CHECK_HEADERS(m4_normalize([
     unistd.h
     utime.h
 ]))
+
+AC_CHECK_HEADERS([fts.h], [], [], [
+#define _BSD_SOURCE
+])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
@@ -101,6 +115,7 @@ ACX_CHECK_FTS_NAME_TYPE
 # Checks for library functions.
 AC_CHECK_FUNCS(m4_normalize([
     __chk_fail
+    __fxstat64
     __fxstatat
     __fxstatat64
     __getcwd_chk
@@ -133,6 +148,7 @@ AC_CHECK_FUNCS(m4_normalize([
     chmod
     chown
     chroot
+    clearenv
     connect
     creat
     creat64
@@ -147,6 +163,7 @@ AC_CHECK_FUNCS(m4_normalize([
     execve
     execvp
     faccessat
+    fchdir
     fchmodat
     fchownat
     fopen
@@ -186,12 +203,18 @@ AC_CHECK_FUNCS(m4_normalize([
     mkdir
     mkdirat
     mkdtemp
-    mknod
-    mknodat
     mkfifo
     mkfifoat
+    mknod
+    mknodat
+    mkostemp
+    mkostemp64
+    mkostemps
+    mkostemps64
     mkstemp
     mkstemp64
+    mkstemps
+    mkstemps64
     mktemp
     nftw
     nftw64
@@ -224,6 +247,7 @@ AC_CHECK_FUNCS(m4_normalize([
     statvfs64
     stpcpy
     strchrnul
+    strlcpy
     symlink
     symlinkat
     system

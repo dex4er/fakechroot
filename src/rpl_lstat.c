@@ -86,4 +86,6 @@ rpl_lstat (const char *file, struct stat *sbuf)
   return stat (file, sbuf);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif /* HAVE_LSTAT */

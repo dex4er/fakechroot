@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -23,16 +23,18 @@
 #ifdef HAVE_MKDIRAT
 
 #define _ATFILE_SOURCE
+#include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
 
 
 wrapper(mkdirat, int, (int dirfd, const char * pathname, mode_t mode))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("mkdirat(%d, \"%s\", 0%od)", dirfd, pathname, mode);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    debug("mkdirat(%d, \"%s\", 0%o)", dirfd, pathname, mode);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(mkdirat)(dirfd, pathname, mode);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

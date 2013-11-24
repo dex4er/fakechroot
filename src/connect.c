@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -41,25 +41,27 @@
 
 wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    char *path;
-    socklen_t newaddrlen;
-    struct sockaddr_un newaddr_un;
     struct sockaddr_un *addr_un = (struct sockaddr_un *)SOCKADDR_UN(addr);
-    char *af_unix_path;
-    const int af_unix_path_max = sizeof(addr_un->sun_path);
 
     debug("connect(%d, &addr, %d)", sockfd, addrlen);
+
     if (addr_un->sun_family == AF_UNIX && addr_un->sun_path && *(addr_un->sun_path)) {
-        path = addr_un->sun_path;
-        if ((af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH")) != NULL) {
-            fakechroot_buf[af_unix_path_max] = 0;
-            strncpy(fakechroot_buf, af_unix_path, af_unix_path_max - 1);
-            strcat(fakechroot_buf, path);
-            path = fakechroot_buf;
+        socklen_t newaddrlen;
+        struct sockaddr_un newaddr_un;
+
+        const char *af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH");
+        const int af_unix_path_max = sizeof(addr_un->sun_path);
+        char *path = addr_un->sun_path;
+
+        if (af_unix_path != NULL) {
+            char tmp[FAKECHROOT_PATH_MAX];
+            tmp[af_unix_path_max] = 0;
+            strncpy(tmp, af_unix_path, af_unix_path_max - 1);
+            strcat(tmp, path);
+            path = tmp;
         }
         else {
-            expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+            expand_chroot_path(path);
         }
 
         if (strlen(path) >= sizeof(addr_un->sun_path)) {
@@ -75,6 +77,10 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
     return nextcall(connect)(sockfd, addr, addrlen);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif
 
+#else
+typedef int empty_translation_unit;
 #endif

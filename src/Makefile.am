@@ -6,6 +6,7 @@ libfakechroot_la_SOURCES = \
     __getwd_chk.c \
     __lxstat.c \
     __lxstat64.c \
+    __lxstat64.h \
     __open.c \
     __open64.c \
     __open64_2.c \
@@ -34,9 +35,12 @@ libfakechroot_la_SOURCES = \
     chmod.c \
     chown.c \
     chroot.c \
+    clearenv.c \
     connect.c \
     creat.c \
     creat64.c \
+    dedotdot.c \
+    dedotdot.h \
     dlmopen.c \
     dlopen.c \
     eaccess.c \
@@ -61,6 +65,8 @@ libfakechroot_la_SOURCES = \
     get_current_dir_name.c \
     getcwd.c \
     getcwd.h \
+    getcwd_real.c \
+    getcwd_real.h \
     getpeername.c \
     getsockname.c \
     getwd.c \
@@ -82,6 +88,7 @@ libfakechroot_la_SOURCES = \
     lremovexattr.c \
     lsetxattr.c \
     lstat.c \
+    lstat.h \
     lstat64.c \
     lutimes.c \
     mkdir.c \
@@ -91,8 +98,14 @@ libfakechroot_la_SOURCES = \
     mkfifoat.c \
     mknod.c \
     mknodat.c \
+    mkostemp.c \
+    mkostemp64.c \
+    mkostemps.c \
+    mkostemps64.c \
     mkstemp.c \
     mkstemp64.c \
+    mkstemps.c \
+    mkstemps64.c \
     mktemp.c \
     open.c \
     open.h \
@@ -100,13 +113,19 @@ libfakechroot_la_SOURCES = \
     openat.c \
     openat64.c \
     opendir.c \
+    opendir.h \
     pathconf.c \
     popen.c \
     rawmemchr.c \
     rawmemchr.h \
     readlink.c \
+    readlink.h \
     readlinkat.c \
     realpath.c \
+    rel2abs.c \
+    rel2abs.h \
+    rel2absat.c \
+    rel2absat.h \
     remove.c \
     removexattr.c \
     rename.c \
@@ -129,6 +148,8 @@ libfakechroot_la_SOURCES = \
     stpcpy.c \
     strchrnul.c \
     strchrnul.h \
+    strlcpy.c \
+    strlcpy.h \
     symlink.c \
     symlinkat.c \
     system.c \
@@ -139,11 +160,9 @@ libfakechroot_la_SOURCES = \
     ulckpwdf.c \
     unlink.c \
     unlinkat.c \
-    unsetenv.c \
-    unsetenv.h \
     utime.c \
     utimensat.c \
     utimes.c
 libfakechroot_la_LDFLAGS = -avoid-version
 
-AM_CFLAGS = -g -Wall -Wno-deprecated-declarations
+AM_CFLAGS = -Wall -Wno-deprecated-declarations

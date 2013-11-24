@@ -18,4 +18,9 @@
 */
 
 
+#ifndef __RAWMEMCHR_H
+#define __RAWMEMCHR_H
+
 void * rawmemchr (const void *, int);
+
+#endif

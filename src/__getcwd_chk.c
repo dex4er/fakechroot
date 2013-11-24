@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,14 +30,15 @@
 wrapper(__getcwd_chk, char *, (char * buf, size_t size, size_t buflen))
 {
     char *cwd;
-    char *fakechroot_path, *fakechroot_ptr;
 
     debug("__getcwd_chk(&buf, %zd, %zd)", size, buflen);
     if ((cwd = nextcall(__getcwd_chk)(buf, size, buflen)) == NULL) {
         return NULL;
     }
-    narrow_chroot_path(cwd, fakechroot_path, fakechroot_ptr);
+    narrow_chroot_path(cwd);
     return cwd;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

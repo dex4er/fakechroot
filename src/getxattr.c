@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -22,16 +22,18 @@
 
 #ifdef HAVE_GETXATTR
 
+#include <sys/types.h>
 #include <stddef.h>
 #include "libfakechroot.h"
 
 
 wrapper(getxattr, ssize_t, (const char * path, const char * name, void * value, size_t size))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("getxattr(\"%s\", \"%s\", &value, %zd)", path, name, size);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(path);
     return nextcall(getxattr)(path, name, value, size);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

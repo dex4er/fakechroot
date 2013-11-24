@@ -5,13 +5,19 @@ TESTS = \
     t/canonicalize_file_name.t \
     t/chdir.t \
     t/chroot.t \
+    t/clearenv.t \
     t/cmd-subst.t \
     t/cp.t \
+    t/dedotdot.t \
     t/execlp.t \
+    t/execve-elfloader.t \
+    t/execve-null-envp.t \
     t/escape-nested-chroot.t \
     t/fts.t \
     t/ftw.t \
     t/host.t \
+    t/mkstemps.t \
+    t/mktemp.t \
     t/opendir.t \
     t/popen.t \
     t/pwd.t \
@@ -24,6 +30,8 @@ TESTS = \
     t/system.t \
     t/test-r.t \
     t/touch.t \
+    t/zzarchlinux.t \
+    t/zzdebootstrap.t \
     #
 
 suffix =
@@ -32,16 +40,15 @@ CLEANFILES = .proverc
 
 EXTRA_DIST = $(TESTS) \
     proverc \
+    archlinux.sh \
     chroot.sh \
-    common.inc \
+    common.inc.sh \
     debootstrap.sh \
     fakechroot.sh \
-    readlink.inc \
-    rinse.sh \
-    seq.inc \
-    tap.inc \
+    seq.inc.sh \
+    tap.inc.sh \
     testtree.sh \
-    touch.inc \
+    touch.inc.sh \
     bin/fakechroot \
     t/cmd-subst-pwd.sh \
     #

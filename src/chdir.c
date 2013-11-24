@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -20,13 +20,29 @@
 
 #include <config.h>
 
+#include <string.h>
 #include "libfakechroot.h"
+#include "getcwd_real.h"
 
 
 wrapper(chdir, int, (const char * path))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
+    char cwd[FAKECHROOT_PATH_MAX];
+    const char *fakechroot_base = getenv("FAKECHROOT_BASE");
+
     debug("chdir(\"%s\")", path);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+
+    if (getcwd_real(cwd, FAKECHROOT_PATH_MAX) == NULL) {
+        return -1;
+    }
+    if (fakechroot_base != NULL) {
+        if (strstr(cwd, fakechroot_base) == path) {
+            expand_chroot_path(path);
+        }
+        else {
+            expand_chroot_rel_path(path);
+        }
+    }
+
     return nextcall(chdir)(path);
 }

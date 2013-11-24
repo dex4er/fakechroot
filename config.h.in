@@ -121,6 +121,9 @@
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
+/* Define to 1 if you have the `clearenv' function. */
+#undef HAVE_CLEARENV
+
 /* Define to 1 if you have the `connect' function. */
 #undef HAVE_CONNECT
 
@@ -188,6 +191,9 @@
 
 /* Define to 1 if you have the `faccessat' function. */
 #undef HAVE_FACCESSAT
+
+/* Define to 1 if you have the `fchdir' function. */
+#undef HAVE_FCHDIR
 
 /* Define to 1 if you have the `fchmodat' function. */
 #undef HAVE_FCHMODAT
@@ -391,11 +397,29 @@
 /* Define to 1 if you have the `mknodat' function. */
 #undef HAVE_MKNODAT
 
+/* Define to 1 if you have the `mkostemp' function. */
+#undef HAVE_MKOSTEMP
+
+/* Define to 1 if you have the `mkostemp64' function. */
+#undef HAVE_MKOSTEMP64
+
+/* Define to 1 if you have the `mkostemps' function. */
+#undef HAVE_MKOSTEMPS
+
+/* Define to 1 if you have the `mkostemps64' function. */
+#undef HAVE_MKOSTEMPS64
+
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
 /* Define to 1 if you have the `mkstemp64' function. */
 #undef HAVE_MKSTEMP64
+
+/* Define to 1 if you have the `mkstemps' function. */
+#undef HAVE_MKSTEMPS
+
+/* Define to 1 if you have the `mkstemps64' function. */
+#undef HAVE_MKSTEMPS64
 
 /* Define to 1 if you have the `mktemp' function. */
 #undef HAVE_MKTEMP
@@ -563,6 +587,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* Define to 1 if you have the `strlcpy' function. */
+#undef HAVE_STRLCPY
+
 /* Define to 1 if `sun_len' is a member of `struct sockaddr_un'. */
 #undef HAVE_STRUCT_SOCKADDR_UN_SUN_LEN
 
@@ -612,6 +639,9 @@
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/syscall.h> header file. */
+#undef HAVE_SYS_SYSCALL_H
 
 /* Define to 1 if you have the <sys/times.h> header file. */
 #undef HAVE_SYS_TIMES_H
@@ -703,6 +733,9 @@
 
 /* Define to 1 if you have the `__chk_fail' function. */
 #undef HAVE___CHK_FAIL
+
+/* Define to 1 if you have the `__fxstat64' function. */
+#undef HAVE___FXSTAT64
 
 /* Define to 1 if you have the `__fxstatat' function. */
 #undef HAVE___FXSTATAT

@@ -29,10 +29,11 @@
 
 wrapper(faccessat, int, (int dirfd, const char * pathname, int mode, int flags))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("faccessat(%d, \"%s\", %d, %d)", dirfd, pathname, mode, flags);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(faccessat)(dirfd, pathname, mode, flags);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

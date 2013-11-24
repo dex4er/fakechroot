@@ -1,11 +1,9 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
+. $srcdir/common.inc.sh
 
 prepare 4
-
-fakedir=`cd testtree; pwd -P`
 
 for chroot in chroot fakechroot; do
 
@@ -13,14 +11,14 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        t=`$srcdir/$chroot.sh testtree test-execlp echo something 2>&1`
+        t=`$srcdir/$chroot.sh testtree /bin/test-execlp echo something 2>&1`
         test "$t" = "something" || not
         ok "$chroot execlp with echo returns" $t
 
         printf "#!/bin/sh\necho \$@\n" > testtree/bin/test-echo
         chmod a+x testtree/bin/test-echo
 
-        t=`$srcdir/$chroot.sh testtree test-execlp test-echo something 2>&1`
+        t=`$srcdir/$chroot.sh testtree /bin/test-execlp test-echo something 2>&1`
         test "$t" = "something" || not
         ok "$chroot execlp with test-echo returns" $t
 

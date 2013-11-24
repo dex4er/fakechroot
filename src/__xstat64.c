@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -23,16 +23,21 @@
 #ifdef HAVE___XSTAT64
 
 #define _LARGEFILE64_SOURCE
+#define _BSD_SOURCE
 #include <sys/stat.h>
+#include <limits.h>
+#include <stdlib.h>
+
 #include "libfakechroot.h"
 
 
 wrapper(__xstat64, int, (int ver, const char * filename, struct stat64 * buf))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("__xstat64(%d, \"%s\", %d, &buf)", ver, filename);
-    expand_chroot_path(filename, fakechroot_path, fakechroot_buf);
+    debug("__xstat64(%d, \"%s\", &buf)", ver, filename);
+    expand_chroot_path(filename);
     return nextcall(__xstat64)(ver, filename, buf);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

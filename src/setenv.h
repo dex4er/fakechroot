@@ -18,4 +18,17 @@
 */
 
 
-int setenv (const char *, const char *, int);
+#ifndef __SETENV_H
+#define __SETENV_H
+
+int __setenv (const char *, const char *, int);
+int __unsetenv(const char *);
+int __clearenv(void);
+int __putenv(char *);
+
+#define setenv   __setenv
+#define unsetenv __unsetenv
+#define clearenv __clearenv
+#define putenv   __putenv
+
+#endif

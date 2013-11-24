@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="Debian" --center=" " --date="27 Nov 2011"
+# pod2man --section=1 --release="Debian" --center=" " --date="5 Nov 2013"
 #
 
 =head1 NAME
@@ -10,6 +10,7 @@ fakechroot - gives a fake chroot environment
 B<fakechroot>
 S<[B<-s>|B<--use-system-libs>]>
 S<[B<-l>|B<--lib> I<library>]>
+S<[B<-d>|B<--elfloader> I<ldso>]>
 S<[B<-e>|B<--environment> I<type>]>
 S<[B<-c>|B<--config-dir> I<directory>]>
 S<[B<-->]>
@@ -56,6 +57,10 @@ want to emulate root environment, i.e.:
 
 Specify an alternative wrapper library.
 
+=item B<-d> I<ldso>|B<--elfloader> I<ldso>
+
+Specify an alternative dynamic loader.
+
 =item B<-s>|B<--use-system-libs>
 
 Use system libraries before chroot's libraries.  This might be a workaround
@@ -90,6 +95,9 @@ F<$HOME/.fakechroot> and F</etc/fakechroot> directories.
 
 The default environment type is B<default> and its configuration file name is
 C<default.env>.
+
+The special environment B<none> means that no environment settings are loaded
+at all.
 
 =item B<-c>|B<--config-dir> I<directory>
 
@@ -195,7 +203,7 @@ correctly.
 
 =item B<FAKECHROOT_DEBUG>
 
-The fakechroot library will dump some debugging info is this variable is set.
+The fakechroot library will dump some debugging info if this variable is set.
 
 =item B<FAKECHROOT_AF_UNIX_PATH>
 
@@ -207,6 +215,12 @@ is too long and the unix socket path can exceed the limit of B<108> chars.
 
 The list of directories which are excluded from being chrooted.  The elements
 of list are separated with colon.
+
+=item B<FAKECHROOT_ELFLOADER>
+
+A path to another dynamic linker (ie. C</lib/ld-linux.so.2> for i386
+architecture, C</lib64/ld-linux-x86-64.so.2> for x86_64 architecture) if
+the default doesn't work in chrooted environment.
 
 =item B<FAKECHROOT_CMD_SUBST>
 
@@ -248,6 +262,10 @@ C</sbin/ldconfig=/bin/ldconfig>
 
 =item *
 
+C</usr/bin/env=/usr/bin/env.fakechroot>
+
+=item *
+
 C</usr/bin/ischroot=/bin/true>
 
 =item *
@@ -269,10 +287,10 @@ C<FAKECHROOT_CMD_ORIG> variable is not set currently.
 
 Fakechroot is implemented by wrapping system calls.  This is accomplished by
 setting C<LD_LIBRARY_PATH=/usr/lib/fakechroot> and
-LD_PRELOAD=libfakechroot.so.  That library is loaded before the
+C<LD_PRELOAD=libfakechroot.so>.  This library is loaded before the
 system's C library, and so most of the library functions are intercepted by
 it.  If you need to set either B<LD_LIBRARY_PATH> or B<LD_PRELOAD> from within
-a fakechroot environment, it should be set relative to the given paths, as in
+a fakechroot environment, you need to preserve original values, eg.
 C<LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/>
 
 =back
@@ -283,20 +301,22 @@ C<LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/>
 
 =item o
 
-F</lib/ld-linux.so.2> is always loaded from real environment.  This path is
-hardcoded by linker for all binaries.
+F</lib/ld-linux.so.2> and F</lib64/ld-linux-x86-64.so.2> are always loaded
+from real environment.  This path is hardcoded by linker for all binaries.
+You can set the C<FAKECHROOT_ELFLOADER> environment variable or use
+C<--elfloader> option.
 
 =item o
 
 Every command executed within fakechroot needs to be linked to the same
 version of the C library as fakechroot itself.  If the libraries in chroot
-are not compatible, try to use B<--use-system-libs> option.
+are not compatible, try to use C<--use-system-libs> option.
 
 =item o
 
 You can provide symlinks to the outside.  The symlink have to be created
 before chroot is called.  It can be useful for accessing the real F</proc>
-and F</dev> directory.  You can also set the B<FAKECHROOT_EXCLUDE_PATH>
+and F</dev> directory.  You can also set the C<FAKECHROOT_EXCLUDE_PATH>
 environment variable:
 
  $ export FAKECHROOT_EXCLUDE_PATH=/tmp:/proc:/dev:/var/run
@@ -345,7 +365,7 @@ buildroot directory have to be the same inside and outside fakechroot.
 
 =head1 SEE ALSO
 
-fakeroot(1), debuild(1), debootstrap(8), febootstrap(8),
+fakeroot(1), debuild(1), debootstrap(8), rinse(8),
 http://fakechroot.alioth.debian.org/
 
 =head1 BUGS
@@ -355,7 +375,7 @@ L<https://github.com/fakechroot/fakechroot/issues>
 
 =head1 AUTHORS
 
-Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
+Copyright (c) 2003, 2005, 2007-2011, 2013 Piotr Roszatycki <dexter@debian.org>
 
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 
@@ -373,6 +393,11 @@ fakechroot is distributed under the GNU Lesser General Public License (LGPL
 Additional copyrights:
 
 =over 2
+
+=item *
+
+dedotdot function taken from mini_httpd - small HTTP server
+Copyright (C) 1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
 
 =item *
 
@@ -411,6 +436,18 @@ Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
 =item *
 
+getcwd_real function taken from OpenBSD.
+Copyright (c) 1989, 1991, 1993 The Regents of the University of California.
+All rights reserved.
+
+=item *
+
+getcwd_real function taken from uClibc.
+Copyright (C) 2000-2006 Erik Andersen <andersen@uclibc.org>
+Licensed under the LGPL v2.1.
+
+=item *
+
 __opendir2 function taken from FreeBSD.
 Copyright (c) 1983, 1993 The Regents of the University of California.
 Copyright (c) 2000 Daniel Eischen.
@@ -439,6 +476,13 @@ Copyright (C) 1997-2006, 2008-2010 Free Software Foundation, Inc.
 
 =item *
 
+setenv, clearenv, unsetenv functions taken from uClibc.
+Copyright (C) 1992,95,96,97,98,99,2000,2001 Free Software Foundation, Inc.
+This file is part of the GNU C Library.
+modified for uClibc by Erik Andersen <andersen@codepoet.org>
+
+=item *
+
 stpcpy function taken from Gnulib.
 Copyright (C) 1992, 1995, 1997-1998, 2006, 2009-2010 Free Software
 Foundation, Inc.
@@ -447,5 +491,10 @@ Foundation, Inc.
 
 strchrnul function taken from Gnulib.
 Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+=item *
+
+strlcpy function taken from OpenBSD.
+Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
 
 =back

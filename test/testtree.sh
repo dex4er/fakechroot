@@ -57,6 +57,7 @@ for p in \
     '/bin/pwd' \
     '/bin/readlink' \
     '/bin/rm' \
+    '/bin/sed' \
     '/bin/sh' \
     '/bin/sleep' \
     '/bin/touch' \
@@ -74,7 +75,9 @@ for p in \
     '/usr/bin/seq' \
     '/usr/bin/sort' \
     '/usr/bin/strace' \
+    '/usr/bin/test' \
     '/usr/bin/touch' \
+    '/usr/bin/tr' \
     '/usr/sbin/chroot' \
     '/usr/local/bin/bash' \
     '/usr/local/bin/gseq' \
@@ -82,7 +85,14 @@ for p in \
     '/usr/local/bin/strace'
 do
     for f in $p; do
-        cp -pf $PREFIX$f $destdir/$(dirname $f) 2>/dev/null
+        d=$(dirname $f)
+        if [ ! -e $f ]; then
+                f=$(command -v $(basename $f) 2> /dev/null )
+                if [ $? -ne 0 ]; then
+                        continue
+                fi
+        fi
+        cp -pf $PREFIX$f $destdir/$d 2>/dev/null
     done
 done
 
@@ -99,9 +109,11 @@ for p in \
     'libcrypt.so.*' \
     'libdl.so.*' \
     'libedit.so.*' \
+    'libelf.so.*' \
     'libgcc_s.so.*' \
     'libm.so.*' \
     'libncurses.so.*' \
+    'libpcre.so.*' \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \

@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2011 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,4 +18,14 @@
 */
 
 
-int unsetenv (const char *);
+#ifndef STRLCPY_H
+#define STRLCPY_H
+
+#define strlcpy __strlcpy
+
+#include <sys/cdefs.h>
+#include <sys/types.h>
+
+size_t strlcpy(char *, const char *, size_t);
+
+#endif

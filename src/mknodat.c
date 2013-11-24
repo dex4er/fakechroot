@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,10 +29,11 @@
 
 wrapper(mknodat, int, (int dirfd, const char * pathname, mode_t mode, dev_t dev))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("mknodat(%d, \"%s\", 0%od, %ld)", dirfd, pathname, mode, dev);
-    expand_chroot_path(pathname, fakechroot_path, fakechroot_buf);
+    debug("mknodat(%d, \"%s\", 0%o, %ld)", dirfd, pathname, mode, dev);
+    expand_chroot_path_at(dirfd, pathname);
     return nextcall(mknodat)(dirfd, pathname, mode, dev);
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

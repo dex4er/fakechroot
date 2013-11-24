@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,40 +24,51 @@
 
 #define _FORTIFY_SOURCE 2
 #include <stddef.h>
+#include <unistd.h>
 #include "libfakechroot.h"
 
 
 wrapper(__readlink_chk, ssize_t, (const char * path, char * buf, size_t bufsiz, size_t buflen))
 {
-    int status;
+    int linksize;
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
-    char *fakechroot_path, *fakechroot_ptr, fakechroot_buf[FAKECHROOT_PATH_MAX];
+    const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("__readlink_chk(\"%s\", &buf, %zd, %zd)", path, bufsiz, buflen);
-    expand_chroot_path(path, fakechroot_path, fakechroot_buf);
+    expand_chroot_path(path);
 
-    if ((status = nextcall(__readlink_chk)(path, tmp, FAKECHROOT_PATH_MAX-1, buflen)) == -1) {
+    if ((linksize = nextcall(__readlink_chk)(path, tmp, FAKECHROOT_PATH_MAX-1, buflen)) == -1) {
         return -1;
     }
-    tmp[status] = '\0';
+    tmp[linksize] = '\0';
 
-    fakechroot_path = getenv("FAKECHROOT_BASE");
-    if (fakechroot_path != NULL) {
-        fakechroot_ptr = strstr(tmp, fakechroot_path);
-        if (fakechroot_ptr != tmp) {
+    if (fakechroot_base != NULL) {
+        tmpptr = strstr(tmp, fakechroot_base);
+        if (tmpptr != tmp) {
             tmpptr = tmp;
-        } else {
-            tmpptr = tmp + strlen(fakechroot_path);
-            status -= strlen(fakechroot_path);
+        }
+        else if (tmp[strlen(fakechroot_base)] == '\0') {
+            tmpptr = "/";
+            linksize = strlen(tmpptr);
+        }
+        else if (tmp[strlen(fakechroot_base)] == '/') {
+            tmpptr = tmp + strlen(fakechroot_base);
+            linksize -= strlen(fakechroot_base);
+        }
+        else {
+            tmpptr = tmp;
         }
         if (strlen(tmpptr) > bufsiz) {
-            status = bufsiz;
+            linksize = bufsiz;
         }
-        strncpy(buf, tmpptr, status);
-    } else {
-        strncpy(buf, tmp, status);
+        strncpy(buf, tmpptr, linksize);
     }
-    return status;
+    else {
+        strncpy(buf, tmp, linksize);
+    }
+    return linksize;
 }
 
+#else
+typedef int empty_translation_unit;
 #endif

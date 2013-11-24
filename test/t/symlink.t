@@ -1,8 +1,10 @@
 #!/bin/sh
 
 srcdir=${srcdir:-.}
-. $srcdir/common.inc
-. $srcdir/readlink.inc
+. $srcdir/common.inc.sh
+
+readlink=`command -v readlink 2>/dev/null`
+readlink=${readlink:-/bin/readlink}
 
 prepare 18
 

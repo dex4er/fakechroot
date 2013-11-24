@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -20,34 +20,43 @@
 
 #include <config.h>
 
+#define _BSD_SOURCE
+#include <stdlib.h>
+
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 
 wrapper(mktemp, char *, (char * template))
 {
-    char tmp[FAKECHROOT_PATH_MAX], *ptr, *ptr2;
-    char *fakechroot_path, *fakechroot_ptr, *fakechroot_buf;
-    int localdir = 0;
+    char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
+    char *xxxsrc, *xxxdst;
+    int xxxlen = 0;
 
     debug("mktemp(\"%s\")", template);
-    tmp[FAKECHROOT_PATH_MAX-1] = '\0';
-    strncpy(tmp, template, FAKECHROOT_PATH_MAX-2);
-    ptr = tmp;
 
-    if (!fakechroot_localdir(ptr)) {
-        localdir = 1;
-        expand_chroot_path_malloc(ptr, fakechroot_path, fakechroot_buf);
+    strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
+
+    if (!fakechroot_localdir(tmp)) {
+        expand_chroot_path(tmpptr);
     }
 
-    if (nextcall(mktemp)(ptr) == NULL) {
-        if (!localdir) free(ptr);
-        return NULL;
+    for (xxxdst = template; *xxxdst; xxxdst++);
+    for (xxxdst--; *xxxdst == 'X'; xxxdst--, xxxlen++);
+    xxxdst++;
+
+    for (xxxsrc = tmpptr; *xxxsrc; xxxsrc++);
+    for (xxxsrc--; *xxxsrc == 'X'; xxxsrc--);
+    xxxsrc++;
+
+    if (nextcall(mktemp)(tmpptr) == NULL || !*tmpptr) {
+        goto error;
     }
 
-    ptr2 = ptr;
-    narrow_chroot_path(ptr2, fakechroot_path, fakechroot_ptr);
+    memmove(xxxdst, xxxsrc, xxxlen);
+    return template;
 
-    strncpy(template, ptr2, strlen(template));
-    if (!localdir) free(ptr);
+error:
+    *template = '\0';
     return template;
 }

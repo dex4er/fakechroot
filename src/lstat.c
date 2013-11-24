@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -25,18 +25,36 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "libfakechroot.h"
+#include "lstat.h"
 
 
-wrapper(lstat, int, (const char * file_name, struct stat * buf))
+wrapper(lstat, int, (int ver, const char * filename, struct stat * buf))
+{
+    debug("lstat(%d, \"%s\", &buf)", ver, filename);
+
+    if (!fakechroot_localdir(filename)) {
+        if (filename != NULL) {
+            char abs_filename[FAKECHROOT_PATH_MAX];
+            rel2abs(filename, abs_filename);
+            filename = abs_filename;
+        }
+    }
+
+    return lstat_rel(ver, filename, buf);
+}
+
+
+/* Prevent looping with realpath() */
+LOCAL int lstat_rel(const char * file_name, struct stat * buf)
 {
     char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX], tmp[FAKECHROOT_PATH_MAX];
     int retval;
     READLINK_TYPE_RETURN status;
     const char *orig;
 
-    debug("lstat(\"%s\", &buf)", file_name);
+    debug("lstat_rel(\"%s\", &buf)", file_name);
     orig = file_name;
-    expand_chroot_path(file_name, fakechroot_path, fakechroot_buf);
+    expand_chroot_rel_path(file_name);
     retval = nextcall(lstat)(file_name, buf);
     /* deal with http://bugs.debian.org/561991 */
     if ((buf->st_mode & S_IFMT) == S_IFLNK)
@@ -45,4 +63,7 @@ wrapper(lstat, int, (const char * file_name, struct stat * buf))
     return retval;
 }
 
+
+#else
+typedef int empty_translation_unit;
 #endif
