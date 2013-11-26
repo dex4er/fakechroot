@@ -1,4 +1,4 @@
-#!/bin/sh
+#!@SHELL@
 
 # fakechroot
 #
@@ -180,13 +180,33 @@ if [ "$fakechroot_environment" != "none" ]; then
 fi
 
 
+# Check if substituted command is called
+fakechroot_cmd=`command -v "$1"`
+fakechroot_cmd_wrapper=`
+    IFS=:
+    for fakechroot_cmd_subst in $FAKECHROOT_CMD_SUBST; do
+        case "$fakechroot_cmd_subst" in
+            "$fakechroot_cmd="*)
+                echo "${fakechroot_cmd_subst#*=}"
+                ;;
+        esac
+    done
+`
+fakechroot_cmd=${fakechroot_cmd_wrapper:-$1}
+
+
 # Execute command
 if [ -z "$*" ]; then
     LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" ${SHELL:-/bin/sh}
-    fakechroot_result=$?
+    exit $?
 else
-    LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$@"
-    fakechroot_result=$?
+    if [ -n "$fakechroot_cmd" ] && ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null && [ $# -gt 0 ]; then
+        # shell with arrays and built-in expr
+        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "${@:2}"
+        exit $?
+    else
+        # POSIX shell
+        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$@"
+        exit $?
+    fi
 fi
-
-exit $fakechroot_result

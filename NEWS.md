@@ -2,6 +2,8 @@
 
 ?? ??? ????
 
+* The `fakechroot`(1) command runs proper wrapper rather than original
+  command, if it is listed on `FAKECHROOT_CMD_SUBST` variable.
 * Fixes were made for `chroot`(8) wrapper. It scanned /etc/ld.so.conf
   incorrectly.
 
