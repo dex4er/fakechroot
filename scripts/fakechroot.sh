@@ -188,6 +188,7 @@ fakechroot_cmd_wrapper=`
         case "$fakechroot_cmd_subst" in
             "$fakechroot_cmd="*)
                 echo "${fakechroot_cmd_subst#*=}"
+                break 2
                 ;;
         esac
     done
