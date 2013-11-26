@@ -1,3 +1,10 @@
+## Version 2.17.1
+
+?? ??? ????
+
+* Fixes were made for `chroot`(8) wrapper. It scanned /etc/ld.so.conf
+  incorrectly.
+
 ## Version 2.17
 
 24 Nov 2013

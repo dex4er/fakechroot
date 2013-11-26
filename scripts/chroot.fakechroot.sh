@@ -19,7 +19,7 @@ fakechroot_chroot_load_ldsoconf () {
         sed -e 's/#.*//' -e '/^ *$/d' "$fakechroot_chroot_newroot$fakechroot_chroot_file" 2>/dev/null | while read fakechroot_chroot_line; do
             case "$fakechroot_chroot_line" in
                 include*)
-                    include=`echo "$fakechroot_chroot_line" | sed -e 's/^include  *//' -e 's/ *$//'`
+                    fakechroot_chroot_include=`echo "$fakechroot_chroot_line" | sed -e 's/^include  *//' -e 's/ *$//'`
                     for fakechroot_chroot_incfile in `eval echo $fakechroot_chroot_newroot$fakechroot_chroot_include`; do
                         fakechroot_chroot_incfile="${fakechroot_chroot_incfile#$fakechroot_chroot_newroot}"
                         fakechroot_chroot_load_ldsoconf "$fakechroot_chroot_incfile" "$fakechroot_chroot_newroot"
