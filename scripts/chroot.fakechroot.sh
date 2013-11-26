@@ -83,7 +83,7 @@ fi
 if [ -n "$fakechroot_chroot_newroot" ] && ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null && [ $fakechroot_chroot_n -le $# ]; then
     # shell with arrays and built-in expr
     env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
-        "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "$fakechroot_chroot_newroot" "${@:$(($fakechroot_chroot_n + 1))}"
+        "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "${fakechroot_chroot_newroot#$FAKECHROOT_BASE_ORIG}" "${@:$(($fakechroot_chroot_n + 1))}"
     exit $?
 else
     # POSIX shell
