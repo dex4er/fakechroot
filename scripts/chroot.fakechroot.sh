@@ -1,4 +1,4 @@
-#!/bin/sh
+#!@SHELL@
 
 # chroot
 #
@@ -34,23 +34,29 @@ fakechroot_chroot_load_ldsoconf () {
     done
 }
 
+
 fakechroot_chroot_chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
 
 fakechroot_chroot_base="$FAKECHROOT_BASE_ORIG"
 
+fakechroot_chroot_n=1
 for fakechroot_chroot_opt in "$@"; do
     case "$fakechroot_chroot_opt" in
         -*)
             continue
             ;;
         *)
-            fakechroot_chroot_newroot="$1"
+            fakechroot_chroot_newroot="$fakechroot_chroot_opt"
             break
             ;;
     esac
+    fakechroot_chroot_n=$(($fakechroot_chroot_n + 1))
 done
 
-if [ -n "$fakechroot_chroot_newroot" ]; then
+
+if [ -d "$fakechroot_chroot_newroot" ]; then
+    fakechroot_chroot_newroot=`cd "$fakechroot_chroot_opt"; pwd -P`
+
     fakechroot_chroot_paths=
 
     # append newroot to each directory from original LD_LIBRARY_PATH
@@ -74,5 +80,14 @@ if [ -n "$fakechroot_chroot_newroot" ]; then
 fi
 
 # call real chroot
-env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" "$fakechroot_chroot_chroot" "$@"
-exit $?
+if [ -n "$fakechroot_chroot_newroot" ] && ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null && [ $fakechroot_chroot_n -le $# ]; then
+    # shell with arrays and built-in expr
+    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+        "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "$fakechroot_chroot_newroot" "${@:$(($fakechroot_chroot_n + 1))}"
+    exit $?
+else
+    # POSIX shell
+    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+        "$fakechroot_chroot_chroot" "$@"
+    exit $?
+fi
