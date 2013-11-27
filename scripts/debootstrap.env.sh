@@ -28,3 +28,14 @@ export FAKECHROOT_EXCLUDE_PATH
 # Change path for unix sockets because we don't want to exceed 108 bytes
 FAKECHROOT_AF_UNIX_PATH=/tmp
 export FAKECHROOT_AF_UNIX_PATH
+
+# Set the LD_LIBRARY_PATH based on host's /etc/ld.so.conf.d/*
+fakechroot_debootstrap_env_paths=`
+    cat /etc/ld.so.conf /etc/ld.so.conf.d/* 2>/dev/null | grep ^/ | while read fakechroot_debootstrap_env_d; do
+        printf '%s:' "$fakechroot_debootstrap_env_d"
+    done
+`
+if [ -n "$fakechroot_debootstrap_env_paths" ]; then
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${fakechroot_debootstrap_env_paths%:}"
+    export LD_LIBRARY_PATH
+fi
