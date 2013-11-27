@@ -8,8 +8,10 @@
 
 srcdir=${srcdir:-.}
 abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
+abs_top_srcdir=${abs_top_srcdir:-`cd "$srcdir/.." 2>/dev/null && pwd -P`}
 
 test -d "$abs_srcdir/bin" && export PATH="$abs_srcdir/bin:$PATH"
+test -f "$abs_top_srcdir/scripts/debootstrap.env" && . "$abs_top_srcdir/scripts/debootstrap.env"
 
 run () {
     HOME=/root fakechroot chroot $destdir "$@"
@@ -44,13 +46,6 @@ if [ -n "$DEBOOTSTRAP_CACHE" ]; then
 fi
 
 tarball=`test -d "$DEBOOTSTRAP_CACHE" && cd "$DEBOOTSTRAP_CACHE"; pwd`/$vendor-$release${variant:+-$variant}-$arch.debs.tgz
-
-export FAKECHROOT_AF_UNIX_PATH=/tmp
-
-if ! command -v chroot >/dev/null 2>&1; then
-    PATH=$PATH:/usr/sbin:/sbin
-    export PATH
-fi
 
 debootstrap_opts="--arch=$arch ${variant:+--variant=$variant}"
 if [ ! -f $tarball ]; then
