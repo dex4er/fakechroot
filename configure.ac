@@ -37,6 +37,7 @@ AC_PROG_MAKE_SET
 AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_LN_S
+AC_CHECK_PROGS([POD2MAN], [pod2man])
 AC_CHECK_PROGS([PROVE], [prove])
 AC_CHECK_PROGS([SEQ], [seq gseq])
 AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
