@@ -5,6 +5,7 @@
 
 [![Build Status](https://travis-ci.org/dex4er/fakechroot.png?branch=master)](https://travis-ci.org/dex4er/fakechroot)
 
+
 What is it?
 ===========
 
@@ -14,46 +15,57 @@ users to create own chrooted environment with possibility to install another
 packages without need for root privileges.
 
 
-News
-====
-
-### 24 Nov 2013
-
-Version 2.17 is released. The `FAKECHROOT_ELFLOADER` environment variable
-changes the default dynamic linker. New `env`(1) wrapper was added. It is safe
-to use relative paths which won't escape from fake chroot. Fixes were make for
-`readline`(2), `mktemp`(3), `_xftw64`(glibc), `__realpath_chk`(glibc)
-functions. New functions `mkostemp`(3), `mkostemp64`(3), `mkostemps`(3),
-`mkostemps64`(3), `mkstemps`(3) and `mkstemps64`(3) were implemented.
-
-### 11 Dec 2011
-
-Version 2.16 is released. The fakechroot script loads additional environment
-settings from configuration directory (`--config-dir` option). By default
-additional settings are provided for `chroot`(8) and `debootstrap`(8)
-commands. Wrapped `chroot`(8) command loads `ld.so.conf` paths to
-`LD_LIBRARY_PATH` environment variable. Fixes were made for `getpeeraddr`(3)
-and `getsockaddr`(3) functions.
-
-### 29 Sep 2011
-
-Version 2.15 is released. New function `faccessat`(2) was added: it fixes
-`test -r` command. The `popen`(3) function were reimplemented based on OpenBSD
-source to prevent some coredumps with newer GNU C Library.
-
-
 How does it work?
 =================
 
-fakechroot replaces more library functions (`chroot`(2), `open`(2), etc.) by
-ones that simulate the effect the real library functions would have had, had
-the user really been in chroot.  These wrapper functions are in a shared
-library `/usr/lib/fakechroot/libfakechroot.so` which is loaded through the
+fakechroot replaces some libc library functions (`chroot`(2), `open`(2), etc.)
+by ones that simulate the effect of being called with root privileges.
+
+These wrapper functions are in a shared library
+`/usr/lib/fakechroot/libfakechroot.so` which is loaded through the
 `LD_PRELOAD` mechanism of the dynamic loader.  (See `ld.so`(8))
 
-In fake chroot you can install Debian bootstrap with `debootstrap` command.
-In this environment you can use i.e. `apt-get`(8) command to install another
-packages from common user's account.
+In fake chroot you can install Debian bootstrap with `debootstrap` command. In
+this environment you can use i.e. `apt-get`(8) command to install another
+packages. You don't need a special privileges and you can run it from common
+user's account.
+
+
+An example session
+==================
+
+```sh
+$ id
+uid=1000(dexter) gid=1000(dexter) groups=1000(dexter)
+
+$ fakechroot fakeroot debootstrap sid /tmp/sid
+I: Retrieving Release 
+I: Retrieving Release.gpg 
+I: Checking Release signature
+...
+I: Base system installed successfully.
+
+$ fakechroot fakeroot chroot /tmp/sid apt-get install -q hello
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following NEW packages will be installed:
+  hello
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 57.4 kB of archives.
+After this operation, 558 kB of additional disk space will be used.
+Get:1 http://ftp.us.debian.org/debian/ sid/main hello amd64 2.8-4 [57.4 kB]
+Fetched 57.4 kB in 0s (127 kB/s)
+Selecting previously unselected package hello.
+(Reading database ... 24594 files and directories currently installed.)
+Unpacking hello (from .../archives/hello_2.8-4_amd64.deb) ...
+Processing triggers for man-db ...
+Processing triggers for install-info ...
+Setting up hello (2.8-4) ...
+
+$ fakechroot chroot /tmp/sid hello
+Hello, world!
+```
 
 
 Where is it used?
@@ -69,6 +81,5 @@ fakechroot had found another purposes:
 * to be a supporter for [pbuilder](http://pbuilder.alioth.debian.org/) building system
 * to be a supporter for [Apport](https://wiki.ubuntu.com/Apport) retracer
 * to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images
-* to be a part of [Slind](https://www.slind.org/Main_Page) - a minimal Debian-based distro for embedded devices as libfakechroot-cross project
 * to be a supporter for [febootstrap](http://et.redhat.com/~rjones/febootstrap/), the tool which can set up new Fedora system.
 * to be a part of [cuntubuntu](https://play.google.com/store/apps/details?id=com.cuntubuntu) - Ubuntu for Android without root
