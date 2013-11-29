@@ -17,10 +17,10 @@ S<[B<-->]>
 S<[I<command>]>
 
 B<fakechroot>
-S<[B<-h>|B<--help>]>
+S<B<-h>|B<--help>>
 
 B<fakechroot>
-S<[B<-v>|B<--version>]>
+S<B<-v>|B<--version>>
 
 =head1 DESCRIPTION
 
@@ -29,17 +29,17 @@ use chroot(8) command without root privileges. This is useful for allowing
 users to create own chrooted environment with possibility to install another
 packages without need for root privileges.
 
-fakechroot replaces some libc library functions (chroot(2), open(2), etc.)
+fakechroot replaces some C library functions (chroot(2), open(2), etc.)
 by ones that simulate the effect of being called with root privileges.
 
-These wrapper functions are in a shared library F<libfakechroot.so> which is
-loaded through the C<LD_PRELOAD> mechanism of the dynamic loader. (See
-ld.so(8))
+These wrapper functions are provided as a shared library F<libfakechroot.so>
+which is loaded through the C<LD_PRELOAD> mechanism of the dynamic loader.
+(See ld.so(8))
 
-In fake chroot you can install Debian bootstrap with debootstrap(8) command.
-In this environment you can use i.e. apt-get(8) command to install another
-packages. You don't need a special privileges and you can run it from common
-user's account.
+In fake chroot you can install i.e. Debian bootstrap with debootstrap(8)
+command. In such environment you can run i.e. apt-get(8) command to install
+another packages. You don't need a special privileges and you can run it on
+common user's account.
 
 =head1 OPTIONS
 
@@ -71,14 +71,14 @@ Try this setting if you noticed following errors:
 
 =item B<-e>|B<--environment> I<type>
 
-Load additional confguration with environment. This configuration file
+Load additional configuration with environment. This configuration file
 is a shell script which is executed before calling I<command>. The
 script can set additional environment variables, like i.e.:
 C<FAKECHROOT_EXCLUDE_PATH>, C<FAKECHROOT_CMD_SUBST> or C<LD_LIBRARY_PATH>.
 
 The environment type is guessed based on command name with optional extension
-removed (eg. running F<gettext.sh> loads C<gettext> environment file). If
-I<command> argument is fakeroot(1) this argument is ommited and next argument
+removed (e.g. running F<gettext.sh> loads C<gettext> environment file). If
+I<command> argument is fakeroot(1) this argument is omitted and next argument
 is taken as environment type.
 
 The configuration file name is F<I<type>.env> and is searched at
@@ -92,7 +92,7 @@ at all.
 
 =item B<-c>|B<--config-dir> I<directory>
 
-Specify a directory which contains additional configuraton for fakechroot. The
+Specify a directory which contains additional configuration for fakechroot. The
 default directory are C<$HOME/.fakechroot> and C</etc/fakechroot>.
 
 =item [B<-->] I<command>
@@ -163,7 +163,7 @@ fakechroot should not be used as a tool for enhancing system security i.e. by
 separating (sandboxing) applications. It is very easy to escape from a fake
 chroot environment.
 
-fakechroot should not be run with real root priviliges. It might decrease the
+fakechroot should not be run with real root privileges. It might decrease the
 security of the system because the fakechroot provides own version of core
 functions with behavior depended on some environment variables.
 
@@ -187,16 +187,16 @@ The value is true for fake chroot environment.
 
 =item B<FAKECHROOT_VERSION>
 
-The version of current fakechroot library.
+The version number of the current fakechroot library.
 
 =item B<FAKECHROOT_BASE>
 
-The root directory for fake chroot environment.
+The root directory of fake chroot environment.
 
 =item B<FAKECHROOT_DETECT>
 
-If this variable is set then C<fakechroot I<version>> string is printed
-to standard output and current process is terminated with status from
+If this variable is set then C<fakechroot I<version>> string is printed to
+standard output and the current process is terminated with status taken from
 this variable. It can be a method to check if fakechroot is preloaded
 correctly.
 
@@ -222,12 +222,12 @@ environment variable is not set.
 
 =item B<FAKECHROOT_ELFLOADER>
 
-A path to another dynamic linker (ie. F</lib/ld-linux.so.2> for i386
+A path to another dynamic linker (i.e. F</lib/ld-linux.so.2> for i386
 architecture, F</lib64/ld-linux-x86-64.so.2> for x86_64 architecture).
 
 This dynamic linker will be invoked directly. The dynamic linker don't allow
 to change C<argv[0]> besides the file name of the executable file, so some
-application won't work correctly, ie. busybox(1).
+application won't work correctly, i.e. busybox(1).
 
 =item B<FAKECHROOT_CMD_SUBST>
 
@@ -365,8 +365,6 @@ rpmbuild(8) uses own glob(3) implementation which breaks fakechroot so
 buildroot directory have to be the same inside and outside fakechroot.
 
 =back
-
-=for readme continue
 
 =head1 SEE ALSO
 
