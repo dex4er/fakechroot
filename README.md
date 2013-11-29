@@ -21,9 +21,9 @@ How does it work?
 fakechroot replaces some libc library functions (`chroot`(2), `open`(2), etc.)
 by ones that simulate the effect of being called with root privileges.
 
-These wrapper functions are in a shared library
-`/usr/lib/fakechroot/libfakechroot.so` which is loaded through the
-`LD_PRELOAD` mechanism of the dynamic loader.  (See `ld.so`(8))
+These wrapper functions are in a shared library `libfakechroot.so` which is
+loaded through the `LD_PRELOAD` mechanism of the dynamic loader.  (See
+`ld.so`(8))
 
 In fake chroot you can install Debian bootstrap with `debootstrap` command. In
 this environment you can use i.e. `apt-get`(8) command to install another
