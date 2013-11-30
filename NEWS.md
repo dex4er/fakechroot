@@ -1,6 +1,6 @@
 ## Version 2.17.1
 
-?? ??? ????
+30 Nov 2013
 
 * The `fakechroot`(1) command runs proper wrapper rather than original
   command, if it is listed on `FAKECHROOT_CMD_SUBST` variable.
