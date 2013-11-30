@@ -120,8 +120,7 @@ wrapper(chroot, int, (const char * path))
         return -1;
     }
 
-    *(new_ld_library_path+len) = '\0';
-    snprintf(new_ld_library_path, len-1, "%s%s%s/usr/lib:%s/lib", ld_library_path, separator, path, path);
+    snprintf(new_ld_library_path, len, "%s%s%s/usr/lib:%s/lib", ld_library_path, separator, path, path);
     setenv("LD_LIBRARY_PATH", new_ld_library_path, 1);
     free(new_ld_library_path);
 
