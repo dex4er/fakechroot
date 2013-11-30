@@ -6,6 +6,8 @@
   command, if it is listed on `FAKECHROOT_CMD_SUBST` variable.
 * Fixes were made for `chroot`(8) wrapper. It scanned /etc/ld.so.conf
   incorrectly and enters to physical path, avoiding symlinks.
+* The `chroot`(2) function allows to use more than 2048 bytes for
+  `LD_LIBRARY_PATH` environment variable.
 
 ## Version 2.17
 
