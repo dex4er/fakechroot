@@ -1,11 +1,11 @@
 ## Version 2.17.1
 
-30 Nov 2013
+5 Dec 2013
 
 * The `fakechroot`(1) command runs proper wrapper rather than original
   command, if it is listed on `FAKECHROOT_CMD_SUBST` variable.
 * Fixes were made for `chroot`(8) wrapper. It scanned /etc/ld.so.conf
-  incorrectly and enters to physical path, avoiding symlinks.
+  incorrectly and now enters to physical path, avoiding symlinks.
 * The `chroot`(2) function allows to use more than 2048 bytes for
   `LD_LIBRARY_PATH` environment variable.
 
