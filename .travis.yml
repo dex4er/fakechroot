@@ -15,7 +15,5 @@ cache:
   directories:
     - test/cache
 branches:
-  except:
-    - /^archive\//
-    - release
-    - /^stash\//
+  only:
+    - master
