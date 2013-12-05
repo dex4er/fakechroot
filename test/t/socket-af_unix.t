@@ -35,15 +35,21 @@ for chroot in chroot fakechroot; do
         unset FAKECHROOT_AF_UNIX_PATH
         test_af_unix 1
 
-        tmpdir=`src/test-mkdtemp /tmp/$chroot-socketXXXXXX 2>&1`
-        test -d "$tmpdir" || not
-        ok "mkdtemp /tmp/$chroot-socketXXXXXX returns $tmpdir"
+        if [ $chroot = "chroot" ]; then
+            skip 3 "test only for fakechroot"
+        else
 
-        export FAKECHROOT_AF_UNIX_PATH="$tmpdir"
-        test_af_unix 2
+            tmpdir=`src/test-mkdtemp /tmp/$chroot-socketXXXXXX 2>&1`
+            test -d "$tmpdir" || not
+            ok "mkdtemp /tmp/$chroot-socketXXXXXX returns $tmpdir"
 
-        test -e "$tmpdir/$chroot-socket$n" && rm -rf "$tmpdir/$chroot-socket$n"
-        test -d "$tmpdir" && rmdir "$tmpdir"
+            export FAKECHROOT_AF_UNIX_PATH="$tmpdir"
+            test_af_unix 2
+
+            test -e "$tmpdir/$chroot-socket$n" && rm -rf "$tmpdir/$chroot-socket$n"
+            test -d "$tmpdir" && rmdir "$tmpdir"
+
+        fi
 
     fi
 

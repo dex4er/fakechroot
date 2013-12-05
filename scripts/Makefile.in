@@ -219,6 +219,8 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PERL = @PERL@
+POD2MAN = @POD2MAN@
 PROVE = @PROVE@
 RANLIB = @RANLIB@
 SED = @SED@
@@ -299,6 +301,8 @@ do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]ISCHROOT[@],$(ISCHROOT),g' \
                -e 's,[@]LDCONFIG[@],$(LDCONFIG),g' \
                -e 's,[@]LDD[@],$(LDD),g' \
+               -e 's,[@]PERL[@],$(PERL),g' \
+               -e 's,[@]SHELL[@],$(SHELL),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 
 all: all-am

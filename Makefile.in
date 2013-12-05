@@ -80,7 +80,7 @@ host_triplet = @host@
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in THANKS build-aux/compile \
+	$(srcdir)/config.h.in COPYING THANKS build-aux/compile \
 	build-aux/config.guess build-aux/config.sub \
 	build-aux/install-sh build-aux/missing build-aux/ltmain.sh \
 	$(top_srcdir)/build-aux/compile \
@@ -276,6 +276,8 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PERL = @PERL@
+POD2MAN = @POD2MAN@
 PROVE = @PROVE@
 RANLIB = @RANLIB@
 SED = @SED@
@@ -340,7 +342,7 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = man src scripts test
-EXTRA_DIST = LICENSE NEWS.md README.md THANKS autogen.sh makedist.sh
+EXTRA_DIST = COPYING LICENSE NEWS.md README.md THANKS autogen.sh makedist.sh
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

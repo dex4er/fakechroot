@@ -217,6 +217,8 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PERL = @PERL@
+POD2MAN = @POD2MAN@
 PROVE = @PROVE@
 RANLIB = @RANLIB@
 SED = @SED@
@@ -521,7 +523,7 @@ uninstall-man: uninstall-man1
 
 
 fakechroot.1: fakechroot.pod
-	eval pod2man `head -n1 $(srcdir)/fakechroot.pod | sed 's/^# pod2man //'` $(srcdir)/fakechroot.pod > $@
+	eval $(POD2MAN) `head -n1 $(srcdir)/fakechroot.pod | sed 's/^# pod2man //'` $(srcdir)/fakechroot.pod $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

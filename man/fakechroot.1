@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "FAKECHROOT 1"
-.TH FAKECHROOT 1 "5 Nov 2013" "Debian" " "
+.TH FAKECHROOT 1 "29 Nov 2013" "fakechroot" " "
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -152,49 +152,41 @@ fakechroot \- gives a fake chroot environment
 [\fIcommand\fR]
 .PP
 \&\fBfakechroot\fR
-[\fB\-h\fR|\fB\-\-help\fR]
+\&\fB\-h\fR|\fB\-\-help\fR
 .PP
 \&\fBfakechroot\fR
-[\fB\-v\fR|\fB\-\-version\fR]
+\&\fB\-v\fR|\fB\-\-version\fR
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-fakechroot runs a command in an environment were is additional possibility to
-use \fIchroot\fR\|(8) command without root privileges.  This is useful for allowing
+fakechroot runs a command in an environment where is additional possibility to
+use \fIchroot\fR\|(8) command without root privileges. This is useful for allowing
 users to create own chrooted environment with possibility to install another
 packages without need for root privileges.
 .PP
-fakechroot replaces more library functions (\fIchroot\fR\|(2), \fIopen\fR\|(2), etc.) by ones
-that simulate the effect the real library functions would have had, had the
-user really been in chroot.  These wrapper functions are in a shared library
-\&\fI/usr/lib/fakechroot/libfakechroot.so\fR which is loaded through the
-\&\f(CW\*(C`LD_PRELOAD\*(C'\fR mechanism of the dynamic loader.  (See \fIld.so\fR\|(8))
+fakechroot replaces some C library functions (\fIchroot\fR\|(2), \fIopen\fR\|(2), etc.)
+by ones that simulate the effect of being called with root privileges.
 .PP
-In fake chroot you can install Debian bootstrap with \fIdebootstrap\fR\|(8)
-command.  In this environment you can use i.e. \fIapt\-get\fR\|(8) command to install
-another packages from common user's account.
+These wrapper functions are provided as a shared library \fIlibfakechroot.so\fR
+which is loaded through the \f(CW\*(C`LD_PRELOAD\*(C'\fR mechanism of the dynamic loader.
+(See \fIld.so\fR\|(8))
 .PP
-In the current version, the fakechroot does not provide the \fIfakeroot\fR\|(1)
-functionality! You might to call fakechroot with fakeroot command, if you
-want to emulate root environment, i.e.:
-.PP
-.Vb 3
-\& $ fakechroot fakeroot /usr/sbin/chroot /tmp/debian /bin/sh
-\& # id
-\& uid=0(root) gid=0(root) groups=0(root)
-.Ve
+In fake chroot you can install i.e. Debian bootstrap with \fIdebootstrap\fR\|(8)
+command. In such environment you can run i.e. \fIapt\-get\fR\|(8) command to install
+another packages. You don't need a special privileges and you can run it on
+common user's account.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
 .IP "\fB\-l\fR \fIlibrary\fR|\fB\-\-lib\fR \fIlibrary\fR" 4
 .IX Item "-l library|--lib library"
-Specify an alternative wrapper library.
+Specify an alternative wrapper library. The default is \fIlibfakechroot.so\fR
 .IP "\fB\-d\fR \fIldso\fR|\fB\-\-elfloader\fR \fIldso\fR" 4
 .IX Item "-d ldso|--elfloader ldso"
-Specify an alternative dynamic loader.
+Specify an alternative dynamic linker. This dynamic linker will be invoked
+directly.
 .IP "\fB\-s\fR|\fB\-\-use\-system\-libs\fR" 4
 .IX Item "-s|--use-system-libs"
-Use system libraries before chroot's libraries.  This might be a workaround
-if system dynamic linker (\fI/lib/ld\-linux.so.2\fR for Linux) can not load
-\&\fIlibc.so\fR from fake chroot.
+Use system libraries before chroot's libraries. This might be a workaround if
+system dynamic linker can not load \fIlibc.so\fR from fake chroot.
 .Sp
 Try this setting if you noticed following errors:
 .Sp
@@ -209,18 +201,17 @@ Try this setting if you noticed following errors:
 .Ve
 .IP "\fB\-e\fR|\fB\-\-environment\fR \fItype\fR" 4
 .IX Item "-e|--environment type"
-Load additional confguration with environment.  This configuration file
-is a shell script which is executed before calling \fIcommand\fR.  The
+Load additional configuration with environment. This configuration file
+is a shell script which is executed before calling \fIcommand\fR. The
 script can set additional environment variables, like i.e.:
-\&\f(CW\*(C`FAKECHROOT_EXCLUDE_PATH\*(C'\fR or \f(CW\*(C`FAKECHROOT_CMD_SUBST\*(C'\fR.  The variable
-\&\f(CW\*(C`paths\*(C'\fR should be used instead \f(CW\*(C`LD_LIBRARY_PATH\*(C'\fR and variable \f(CW\*(C`lib\*(C'\fR
-should be used instead \f(CW\*(C`LD_PRELOAD\*(C'\fR.
+\&\f(CW\*(C`FAKECHROOT_EXCLUDE_PATH\*(C'\fR, \f(CW\*(C`FAKECHROOT_CMD_SUBST\*(C'\fR or \f(CW\*(C`LD_LIBRARY_PATH\*(C'\fR.
 .Sp
 The environment type is guessed based on command name with optional extension
-removed (i.e.: \fI.sh\fR).  If \fIcommand\fR argument is \fIfakeroot\fR\|(1) this argument
-is ommited and next argument is taken as environment type.
+removed (e.g. running \fIgettext.sh\fR loads \f(CW\*(C`gettext\*(C'\fR environment file). If
+\&\fIcommand\fR argument is \fIfakeroot\fR\|(1) this argument is omitted and next argument
+is taken as environment type.
 .Sp
-The configuration file name is \fI\fItype\fI.env\fR and can be located at
+The configuration file name is \fI\fItype\fI.env\fR and is searched at
 \&\fI\f(CI$HOME\fI/.fakechroot\fR and \fI/etc/fakechroot\fR directories.
 .Sp
 The default environment type is \fBdefault\fR and its configuration file name is
@@ -230,11 +221,11 @@ The special environment \fBnone\fR means that no environment settings are loaded
 at all.
 .IP "\fB\-c\fR|\fB\-\-config\-dir\fR \fIdirectory\fR" 4
 .IX Item "-c|--config-dir directory"
-Specify a directory which contains additional configuraton for fakechroot. The
+Specify a directory which contains additional configuration for fakechroot. The
 default directory are \f(CW\*(C`$HOME/.fakechroot\*(C'\fR and \f(CW\*(C`/etc/fakechroot\*(C'\fR.
 .IP "[\fB\-\-\fR] \fIcommand\fR" 4
 .IX Item "[--] command"
-Any command you want to be ran as fakechroot.  Use '\fB\-\-\fR' if in the command
+Any command you want to be ran as fakechroot. Use '\fB\-\-\fR' if in the command
 you have other options that may confuse fakechroot's option parsing.
 .IP "\fB\-h\fR" 4
 .IX Item "-h"
@@ -247,49 +238,63 @@ Display version.
 An example session with fakechroot:
 .PP
 .Vb 2
-\& $ export PATH=/usr/sbin:/sbin:$PATH
-\& $ fakechroot fakeroot debootstrap sid /tmp/sid
+\&  $ id
+\&  uid=1000(dexter) gid=1000(dexter) groups=1000(dexter)
 \&
-\& $ fakechroot fakeroot chroot /tmp/sid
-\& # cd /
-\& # echo deb http://ftp.debian.org/debian sid main contrib non\-free >
-\& /etc/apt/sources.list
-\& # echo deb\-src http://ftp.debian.org/debian sid main contrib non\-free
-\&  >> /etc/apt/sources.list
-\& # apt\-get update
-\& # apt\-get install adduser whiptail build\-essential devscripts
-\& # adduser \-\-uid 1001 user
-\& # exit
+\&  $ fakechroot fakeroot debootstrap sid /tmp/sid
+\&  I: Retrieving Release 
+\&  I: Retrieving Release.gpg 
+\&  I: Checking Release signature
+\&  ...
+\&  I: Base system installed successfully.
 \&
-\& $ fakechroot chroot /tmp/sid
-\& $ cd /tmp
-\& $ apt\-get source hello
-\& $ cd hello\-*
-\& $ debuild \-\-preserve\-env \-b
-\& $ exit
+\&  $ fakechroot fakeroot chroot /tmp/sid apt\-get install \-q hello
+\&  Reading package lists...
+\&  Building dependency tree...
+\&  Reading state information...
+\&  The following NEW packages will be installed:
+\&    hello
+\&  0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+\&  Need to get 57.4 kB of archives.
+\&  After this operation, 558 kB of additional disk space will be used.
+\&  Get:1 http://ftp.us.debian.org/debian/ sid/main hello amd64 2.8\-4 [57.4 kB]
+\&  Fetched 57.4 kB in 0s (127 kB/s)
+\&  Selecting previously unselected package hello.
+\&  (Reading database ... 24594 files and directories currently installed.)
+\&  Unpacking hello (from .../archives/hello_2.8\-4_amd64.deb) ...
+\&  Processing triggers for man\-db ...
+\&  Processing triggers for install\-info ...
+\&  Setting up hello (2.8\-4) ...
+\&
+\&  $ fakechroot chroot /tmp/sid hello
+\&  Hello, world!
 .Ve
 .SH "FAKEROOT"
 .IX Header "FAKEROOT"
-\&\fIfakeroot\fR\|(1) is a complementary tool which emulates root environment.
-fakeroot and fakechroot might wrap the same C library functions, i.e.
-\&\fImknod\fR\|(2) function.  It is important to start fake environment in proper
-order. fakeroot should be started inside fakechroot:
+\&\fIfakeroot\fR\|(1) is a complementary tool which emulates root environment. fakeroot
+and fakechroot might wrap the same C library functions, i.e. \fImknod\fR\|(2)
+function. It is important to start fake environment in proper order. fakeroot
+should be started inside fakechroot:
 .PP
 .Vb 1
-\& $ fakechroot fakeroot chroot /tmp/sid /bin/mknod /tmp/device c 1 2
+\&  $ fakechroot fakeroot chroot /tmp/sid /bin/mknod /tmp/device c 1 2
 .Ve
 .SH "SECURITY ASPECTS"
 .IX Header "SECURITY ASPECTS"
-fakechroot is a regular, non-setuid program.  It does not enhance a user's
-privileges, or decrease the host's system security.
+fakechroot is a regular, non-setuid program. It does not enhance a user's
+privileges.
 .PP
 fakechroot should not be used as a tool for enhancing system security i.e. by
-separating (sandboxing) applications.  It is very easy to escape from a fake
+separating (sandboxing) applications. It is very easy to escape from a fake
 chroot environment.
+.PP
+fakechroot should not be run with real root privileges. It might decrease the
+security of the system because the fakechroot provides own version of core
+functions with behavior depended on some environment variables.
 .SH "FILES"
 .IX Header "FILES"
-.IP "\fI/usr/lib/fakechroot/libfakechroot.so\fR" 4
-.IX Item "/usr/lib/fakechroot/libfakechroot.so"
+.IP "\fIlibfakechroot.so\fR" 4
+.IX Item "libfakechroot.so"
 The shared library containing the wrapper functions.
 .SH "ENVIRONMENT"
 .IX Header "ENVIRONMENT"
@@ -298,53 +303,59 @@ The shared library containing the wrapper functions.
 The value is true for fake chroot environment.
 .IP "\fB\s-1FAKECHROOT_VERSION\s0\fR" 4
 .IX Item "FAKECHROOT_VERSION"
-The version of current fakechroot library.
+The version number of the current fakechroot library.
 .IP "\fB\s-1FAKECHROOT_BASE\s0\fR" 4
 .IX Item "FAKECHROOT_BASE"
-The root directory for fake chroot environment.
+The root directory of fake chroot environment.
 .IP "\fB\s-1FAKECHROOT_DETECT\s0\fR" 4
 .IX Item "FAKECHROOT_DETECT"
-If this variable is set then \f(CW\*(C`fakechroot \f(CIversion\f(CW\*(C'\fR string is printed
-to standard output and current process is terminated with status from
-this variable.  It can be a method to check if fakechroot is preloaded
+If this variable is set then \f(CW\*(C`fakechroot \f(CIversion\f(CW\*(C'\fR string is printed to
+standard output and the current process is terminated with status taken from
+this variable. It can be a method to check if fakechroot is preloaded
 correctly.
 .Sp
 .Vb 1
-\& $ case "\`FAKECHROOT_DETECT=1 /bin/echo\`" in fakechroot*) echo LOADED;; esac
+\&  $ case "\`FAKECHROOT_DETECT=1 /bin/echo\`" in fakechroot*) echo LOADED;; esac
 .Ve
 .IP "\fB\s-1FAKECHROOT_DEBUG\s0\fR" 4
 .IX Item "FAKECHROOT_DEBUG"
 The fakechroot library will dump some debugging info if this variable is set.
 .IP "\fB\s-1FAKECHROOT_AF_UNIX_PATH\s0\fR" 4
 .IX Item "FAKECHROOT_AF_UNIX_PATH"
-The root directory for unix sockets.  The default value is the same as
-\&\f(CW\*(C`FAKECHROOT_BASE\*(C'\fR and it can be set separately if the \f(CW\*(C`FAKECHROOT_BASE\*(C'\fR
-is too long and the unix socket path can exceed the limit of \fB108\fR chars.
+The root directory for unix sockets. The default value is the same as
+\&\f(CW\*(C`FAKECHROOT_BASE\*(C'\fR and it can be set separately if the \f(CW\*(C`FAKECHROOT_BASE\*(C'\fR is
+too long and the unix socket path could exceed the limit of \fB108\fR bytes.
 .IP "\fB\s-1FAKECHROOT_EXCLUDE_PATH\s0\fR" 4
 .IX Item "FAKECHROOT_EXCLUDE_PATH"
-The list of directories which are excluded from being chrooted.  The elements
+The list of directories which are excluded from being chrooted. The elements
 of list are separated with colon.
+.Sp
+The \fI/dev\fR, \fI/proc\fR and \fI/sys\fR directories are excluded by default if this
+environment variable is not set.
 .IP "\fB\s-1FAKECHROOT_ELFLOADER\s0\fR" 4
 .IX Item "FAKECHROOT_ELFLOADER"
-A path to another dynamic linker (ie. \f(CW\*(C`/lib/ld\-linux.so.2\*(C'\fR for i386
-architecture, \f(CW\*(C`/lib64/ld\-linux\-x86\-64.so.2\*(C'\fR for x86_64 architecture) if
-the default doesn't work in chrooted environment.
+A path to another dynamic linker (i.e. \fI/lib/ld\-linux.so.2\fR for i386
+architecture, \fI/lib64/ld\-linux\-x86\-64.so.2\fR for x86_64 architecture).
+.Sp
+This dynamic linker will be invoked directly. The dynamic linker don't allow
+to change \f(CW\*(C`argv[0]\*(C'\fR besides the file name of the executable file, so some
+application won't work correctly, i.e. \fIbusybox\fR\|(1).
 .IP "\fB\s-1FAKECHROOT_CMD_SUBST\s0\fR" 4
 .IX Item "FAKECHROOT_CMD_SUBST"
-A list of command substitutions.  If a program tries to execute one of
+A list of command substitutions. If a program tries to execute one of
 the commands given (path relative to the chroot, trailing dot is removed) then
 the substitute command runs instead (path to substitute command is not
 chrooted).
 .Sp
 The substituted command inherits \f(CW\*(C`FAKECHROOT_*\*(C'\fR variables but the original
-\&\f(CW\*(C`FAKECHROOT_BASE\*(C'\fR variable which is saved as \f(CW\*(C`FAKECHROOT_BASE_ORIG\*(C'\fR.  It
-means that substituted command runs outside fakechroot environment.  Also
+\&\f(CW\*(C`FAKECHROOT_BASE\*(C'\fR variable which is saved as \f(CW\*(C`FAKECHROOT_BASE_ORIG\*(C'\fR. It
+means that substituted command runs outside fakechroot environment. Also
 original command name is saved as \f(CW\*(C`FAKECHROOT_CMD_ORIG\*(C'\fR.
 .Sp
 For example:
 .Sp
 .Vb 1
-\& export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
+\&  export FAKECHROOT_CMD_SUBST=/usr/bin/mkfifo=/bin/true
 .Ve
 .Sp
 will substitute \f(CW\*(C`/bin/true\*(C'\fR for \f(CW\*(C`/usr/bin/mkfifo\*(C'\fR and will make possible to
@@ -379,65 +390,53 @@ To prevent some looping, the command substitution is done only if
 .RE
 .IP "\fB\s-1LD_LIBRARY_PATH\s0\fR, \fB\s-1LD_PRELOAD\s0\fR" 4
 .IX Item "LD_LIBRARY_PATH, LD_PRELOAD"
-Fakechroot is implemented by wrapping system calls.  This is accomplished by
-setting \f(CW\*(C`LD_LIBRARY_PATH=/usr/lib/fakechroot\*(C'\fR and
-\&\f(CW\*(C`LD_PRELOAD=libfakechroot.so\*(C'\fR.  This library is loaded before the
-system's C library, and so most of the library functions are intercepted by
-it.  If you need to set either \fB\s-1LD_LIBRARY_PATH\s0\fR or \fB\s-1LD_PRELOAD\s0\fR from within
-a fakechroot environment, you need to preserve original values, eg.
-\&\f(CW\*(C`LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/foo/bar/\*(C'\fR
+Fakechroot is implemented by wrapping system calls. This is accomplished by
+setting \f(CW\*(C`LD_PRELOAD=libfakechroot.so\*(C'\fR. If this library can't be found by
+dynamic linker, the \fI/etc/ld.so.conf\fR file or \f(CW\*(C`LD_LIBRARY_PATH\*(C'\fR variable
+have to be modified.
 .SH "LIMITATIONS"
 .IX Header "LIMITATIONS"
-.IP "o" 4
-.IX Item "o"
+.IP "\(bu" 4
 \&\fI/lib/ld\-linux.so.2\fR and \fI/lib64/ld\-linux\-x86\-64.so.2\fR are always loaded
-from real environment.  This path is hardcoded by linker for all binaries.
+from real environment. This path is hardcoded by linker for all binaries.
 You can set the \f(CW\*(C`FAKECHROOT_ELFLOADER\*(C'\fR environment variable or use
 \&\f(CW\*(C`\-\-elfloader\*(C'\fR option.
-.IP "o" 4
-.IX Item "o"
+.IP "\(bu" 4
 Every command executed within fakechroot needs to be linked to the same
-version of the C library as fakechroot itself.  If the libraries in chroot
-are not compatible, try to use \f(CW\*(C`\-\-use\-system\-libs\*(C'\fR option.
-.IP "o" 4
-.IX Item "o"
-You can provide symlinks to the outside.  The symlink have to be created
-before chroot is called.  It can be useful for accessing the real \fI/proc\fR
-and \fI/dev\fR directory.  You can also set the \f(CW\*(C`FAKECHROOT_EXCLUDE_PATH\*(C'\fR
+version of the dynamic linker from real environment. If the libraries in
+chroot are not compatible, try to use \f(CW\*(C`\-\-use\-system\-libs\*(C'\fR option.
+.IP "\(bu" 4
+You can provide symlinks to the outside. The symlink have to be created
+before chroot is called. It can be useful for accessing the real \fI/proc\fR
+and \fI/dev\fR directory. You can also set the \f(CW\*(C`FAKECHROOT_EXCLUDE_PATH\*(C'\fR
 environment variable:
 .Sp
 .Vb 1
-\& $ export FAKECHROOT_EXCLUDE_PATH=/tmp:/proc:/dev:/var/run
+\&  $ export FAKECHROOT_EXCLUDE_PATH=/tmp:/proc:/dev:/sys:/var/run:/home
 .Ve
-.IP "o" 4
-.IX Item "o"
+.IP "\(bu" 4
 Statically linked binaries doesn't work, especially \fIldconfig\fR\|(8), so you have
-to wrap this command with dummy version and i.e. set the dpkg diversion (see:
-\&\fIdpkg\-divert\fR\|(8)) or use \fB\s-1FAKECHROOT_CMD_SUBST\s0\fR environment variable.
-.IP "o" 4
-.IX Item "o"
-\&\fIldd\fR\|(1) also doesn't work.  You have to use \f(CW\*(C`alias
-ldd=\*(AqLD_TRACE_LOADED_OBJECTS=1\*(Aq\*(C'\fR or to use a wrapper instead.  The wrapper is
+to wrap this command with dummy version and set the proper
+\&\f(CW\*(C`FAKECHROOT_CMD_SUBST\*(C'\fR environment variable.
+.IP "\(bu" 4
+\&\fIldd\fR\|(1) also doesn't work. You have to use \f(CW\*(C`alias
+ldd=\*(AqLD_TRACE_LOADED_OBJECTS=1\*(Aq\*(C'\fR or to use a wrapper instead. The wrapper is
 installed as \fIldd.fakechroot\fR and can be used with \f(CW\*(C`FAKECHROOT_CMD_SUBST\*(C'\fR
 environment variable.
-.IP "o" 4
-.IX Item "o"
+.IP "\(bu" 4
 The full screen applications hangs up if \fI/dev/tty\fR file is not a real
-device.  Link \fI/dev/tty\fR file or whole \fI/dev\fR directory to the real one or
-remove it from fake chroot environment.
-.IP "o" 4
-.IX Item "o"
+device. Link \fI/dev/tty\fR file or whole \fI/dev\fR directory to the real one or
+remove it from fake chroot environment with \f(CW\*(C`FAKECHROOT_EXCLUDE_PATH\*(C'\fR
+variable.
+.IP "\(bu" 4
 \&\fIlckpwdf\fR\|(3) and \fIulckpwdf\fR\|(3) are ignored so \fIpasswd\fR\|(1) command should work
-.IP "o" 4
-.IX Item "o"
-Your real uid should exist in \fI/etc/passwd\fR.  Create it with adduser \-\-uid
-\&\fIrealuid\fR \fIrealuser\fR.
-.IP "o" 4
-.IX Item "o"
-\&\fIdebuild\fR\|(1) cleans environment.  Use \-\-preserve\-env option to prevent this
-behaviour.
-.IP "o" 4
-.IX Item "o"
+.IP "\(bu" 4
+Your real uid should exist in \fI/etc/passwd\fR. Create it with adduser \-\-uid
+\&\fIrealuid\fR \fIrealuser\fR inside fake chroot environment.
+.IP "\(bu" 4
+\&\fIdebuild\fR\|(1) cleans environment. Use \-\-preserve\-env option to prevent this
+behavior.
+.IP "\(bu" 4
 \&\fIrpmbuild\fR\|(8) uses own \fIglob\fR\|(3) implementation which breaks fakechroot so
 buildroot directory have to be the same inside and outside fakechroot.
 .SH "SEE ALSO"
@@ -461,72 +460,3 @@ Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
 .IX Header "COPYING"
 fakechroot is distributed under the \s-1GNU\s0 Lesser General Public License (\s-1LGPL
 2.1\s0 or greater).
-.PP
-Additional copyrights:
-.IP "\(bu" 2
-dedotdot function taken from mini_httpd \- small \s-1HTTP\s0 server
-Copyright (C) 1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
-.IP "\(bu" 2
-execl function taken from \s-1GNU C\s0 Library.
-Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
-.IP "\(bu" 2
-execle function taken from \s-1GNU C\s0 Library.
-Copyright (C) 1991,97,98,99,2002,2005 Free Software Foundation, Inc.
-.IP "\(bu" 2
-execlp function taken from \s-1GNU C\s0 Library.
-Copyright (C) 1991,93,96,97,98,99,2002,2005 Free Software Foundation, Inc.
-.IP "\(bu" 2
-execvp function taken from \s-1GNU C\s0 Library.
-Copyright (C) 1991,92, 1995\-99, 2002, 2004, 2005, 2007, 2009
-Free Software Foundation, Inc.
-.IP "\(bu" 2
-fts_* functions taken from OpenBSD.
-Copyright (c) 1990, 1993, 1994
-The Regents of the University of California.
-This software is distributed under the BSD-style license.
-.IP "\(bu" 2
-ftw function taken from \s-1GNU C\s0 Library.
-Copyright (C) 1996\-2004, 2006\-2008, 2010 Free Software Foundation, Inc.
-This file is part of the \s-1GNU C\s0 Library.
-Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
-.IP "\(bu" 2
-getcwd_real function taken from OpenBSD.
-Copyright (c) 1989, 1991, 1993 The Regents of the University of California.
-All rights reserved.
-.IP "\(bu" 2
-getcwd_real function taken from uClibc.
-Copyright (C) 2000\-2006 Erik Andersen <andersen@uclibc.org>
-Licensed under the \s-1LGPL\s0 v2.1.
-.IP "\(bu" 2
-_\|_opendir2 function taken from FreeBSD.
-Copyright (c) 1983, 1993 The Regents of the University of California.
-Copyright (c) 2000 Daniel Eischen.
-This software is distributed under the BSD-style license.
-.IP "\(bu" 2
-popen function taken from OpenBSD.
-Copyright (c) 1988, 1993 The Regents of the University of California.
-.IP "\(bu" 2
-rawmemchr function taken from uClibc
-Copyright (C) 2002 Manuel Novoa \s-1III\s0
-Copyright (C) 2000\-2005 Erik Andersen <andersen@uclibc.org>
-.IP "\(bu" 2
-realpath function taken from Gnulib.
-Copyright (c) 1996\-2010 Free Software Foundation, Inc.
-.IP "\(bu" 2
-rpl_lstat function taken from Gnulib.
-Copyright (C) 1997\-2006, 2008\-2010 Free Software Foundation, Inc.
-.IP "\(bu" 2
-setenv, clearenv, unsetenv functions taken from uClibc.
-Copyright (C) 1992,95,96,97,98,99,2000,2001 Free Software Foundation, Inc.
-This file is part of the \s-1GNU C\s0 Library.
-modified for uClibc by Erik Andersen <andersen@codepoet.org>
-.IP "\(bu" 2
-stpcpy function taken from Gnulib.
-Copyright (C) 1992, 1995, 1997\-1998, 2006, 2009\-2010 Free Software
-Foundation, Inc.
-.IP "\(bu" 2
-strchrnul function taken from Gnulib.
-Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-.IP "\(bu" 2
-strlcpy function taken from OpenBSD.
-Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
