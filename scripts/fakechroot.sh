@@ -17,7 +17,7 @@ fakechroot_die () {
 
 
 fakechroot_usage () {
-    die "Usage:
+    fakechroot_die "Usage:
     fakechroot [-l|--lib fakechrootlib] [-d|--elfloader ldso]
                [-s|--use-system-libs]
                [-e|--environment type] [-c|--config-dir directory]
@@ -60,7 +60,7 @@ fakechroot_next_cmd () {
 
 
 if [ "$FAKECHROOT" = "true" ]; then
-    die "fakechroot: nested operation is not supported"
+    fakechroot_die "fakechroot: nested operation is not supported"
 fi
 
 
