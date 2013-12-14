@@ -1,3 +1,9 @@
+## Version 2.17.2
+
+UNRELEASED
+
+* Fixes were made for `fakechroot`(1) command with `-h` option.
+
 ## Version 2.17.1
 
 5 Dec 2013
