@@ -30,7 +30,10 @@
 
 #include <sys/un.h>
 #include <errno.h>
+#include <stdio.h>
+
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 #ifdef HAVE_CONNECT_TYPE_ARG2___CONST_SOCKADDR_ARG__
 # define SOCKADDR_UN(addr) ((addr).__sockaddr_un__)
@@ -56,8 +59,7 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
         if (af_unix_path != NULL) {
             char tmp[FAKECHROOT_PATH_MAX];
             tmp[af_unix_path_max] = 0;
-            strncpy(tmp, af_unix_path, af_unix_path_max - 1);
-            strcat(tmp, path);
+            snprintf(tmp, af_unix_path_max, "%s/%s", af_unix_path, path);
             path = tmp;
         }
         else {
@@ -70,7 +72,7 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
         }
         memset(&newaddr_un, 0, sizeof(struct sockaddr_un));
         newaddr_un.sun_family = addr_un->sun_family;
-        strncpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path) - 1);
+        strlcpy(newaddr_un.sun_path, path, sizeof(newaddr_un.sun_path));
         newaddrlen = SUN_LEN(&newaddr_un);
         return nextcall(connect)(sockfd, (struct sockaddr *)&newaddr_un, newaddrlen);
     }
