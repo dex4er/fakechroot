@@ -76,6 +76,9 @@ wrapper(chroot, int, (const char * path))
     else {
         if (*path == '/') {
             expand_chroot_rel_path(path);
+            strlcpy(tmp, path, FAKECHROOT_PATH_MAX);
+            dedotdot(tmpptr);
+            path = tmpptr;
         }
         else {
             snprintf(tmp, FAKECHROOT_PATH_MAX, "%s/%s", cwd, path);
