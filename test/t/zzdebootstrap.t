@@ -18,13 +18,13 @@ plan 1
 
 unset FAKECHROOT_CMD_SUBST FAKECHROOT_DEBUG FAKECHROOT_EXCLUDE_PATH
 
-rm -rf testtree
+rm -rf $testtree
 
 chroot=fakechroot
 
-./debootstrap.sh 2>&1 | diag
+./debootstrap.sh $testtree 2>&1 | diag
 
-t=`LC_ALL=C $srcdir/$chroot.sh testtree hello 2>&1`
+t=`LC_ALL=C $srcdir/$chroot.sh $testtree hello 2>&1`
 test "$t" = "Hello, world!" || not
 ok "$chroot hello returns" $t
 

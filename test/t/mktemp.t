@@ -15,7 +15,7 @@ for chroot in chroot fakechroot; do
 
             for template in /tmp/${chroot}${mktemp}XXXXXX tmp/${chroot}${mktemp}XXXXXX; do
                 match=`echo "$template" | tr 'X' '?'`
-                t=`$srcdir/$chroot.sh testtree /bin/test-$mktemp $template 2>&1`
+                t=`$srcdir/$chroot.sh $testtree /bin/test-$mktemp $template 2>&1`
                 case "$t" in
                     $match) ;;
                     *) not
@@ -23,7 +23,7 @@ for chroot in chroot fakechroot; do
                 ok "$chroot test-$mktemp $template returns" $t
             done
 
-            t=`$srcdir/$chroot.sh testtree /bin/test-$mktemp wrong-template 2>/dev/null`
+            t=`$srcdir/$chroot.sh $testtree /bin/test-$mktemp wrong-template 2>/dev/null`
             test -z "$t" || not
             ok "$chroot test-$mktemp wrong-template returns" $t
 
