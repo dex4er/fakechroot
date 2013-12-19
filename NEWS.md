@@ -5,6 +5,7 @@ UNRELEASED
 * Fixes were made for `fakechroot`(1) command with `-h` option.
 * The path for function `chroot`(2) is sanitized so it works correctly when
   path is ended with `/`.
+* The `make -n test` was fixed and doesn't call any command.
 
 ## Version 2.17.1
 

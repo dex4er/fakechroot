@@ -53,11 +53,18 @@ EXTRA_DIST = $(TESTS) \
     t/cmd-subst-pwd.sh \
     #
 
-test:
-	( cd src && $(MAKE) $(AM_MAKEFLAGS) check )
+check-src:
+	cd src && $(MAKE) $(AM_MAKEFLAGS) check
+
+prove: check-src
+	cp -f $(srcdir)/proverc .proverc
+	srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t
+
+test: check-src
 	if [ -n "$(PROVE)" ]; then \
-	    cp -f $(srcdir)/proverc .proverc; \
-	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
+	    $(MAKE) $(AM_MAKEFLAGS) prove; \
 	else \
 	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
 	fi
+
+.PHONY: check-src prove test
