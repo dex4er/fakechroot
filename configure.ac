@@ -355,5 +355,12 @@ AC_CONFIG_FILES(m4_normalize([
     test/src/Makefile
 ]))
 
+# prove --failures --exec /bin/sh
+ACX_PROG_PROVE_OPT([--failures])
+ACX_PROG_PROVE_OPT([--exec /bin/sh], [
+    echo 1..1
+    echo ok 1
+])
+
 # Generate output
 AC_OUTPUT
