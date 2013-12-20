@@ -12,7 +12,6 @@
 AC_DEFUN([ACX_PROG_PROVE_OPT],
     [m4_define([myname], [PROVE_HAVE_OPT_$1])
         AC_CHECK_PROGS([PROVE], [prove])
-        AC_MSG_CHECKING([if $PROVE accepts $1])
         AS_VAR_PUSHDEF([acx_var], [acx_cv_prog_prove_opt_$1])
         AC_CACHE_CHECK([whether $PROVE accepts $1],
             acx_var,
