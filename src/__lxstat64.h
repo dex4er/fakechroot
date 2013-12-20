@@ -25,8 +25,12 @@
 
 #ifdef HAVE___LXSTAT64
 
-#define _LARGEFILE64_SOURCE
-#define _XOPEN_SOURCE
+#ifndef _LARGEFILE64_SOURCE
+# define _LARGEFILE64_SOURCE
+#endif
+#ifndef _XOPEN_SOURCE
+# define _XOPEN_SOURCE
+#endif
 #include <sys/stat.h>
 
 #include "libfakechroot.h"

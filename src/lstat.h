@@ -18,6 +18,9 @@
 */
 
 
+#ifndef __LSTAT_H
+#define __LSTAT_H
+
 #include <config.h>
 #include "libfakechroot.h"
 
@@ -26,5 +29,7 @@
 wrapper_proto(lstat, int, (int, const char *, struct stat *));
 
 int lstat_rel(const char *, struct stat *);
+
+#endif
 
 #endif

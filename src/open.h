@@ -18,10 +18,10 @@
 */
 
 
-#include "libfakechroot.h"
-
 #ifndef __OPEN_H
 #define __OPEN_H
+
+#include "libfakechroot.h"
 
 wrapper_proto(open, int, (const char *, int, ...));
 
