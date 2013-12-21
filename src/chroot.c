@@ -34,8 +34,12 @@
 
 #ifdef HAVE___XSTAT64
 # include "__xstat64.h"
+# define STAT_T stat64
+# define STAT(path, sb) nextcall(__xstat64)(_STAT_VER, path, sb)
 #else
 # include "stat.h"
+# define STAT_T stat
+# define STAT(path, sb) nextcall(stat)(path, sb)
 #endif
 
 #include "getcwd_real.h"
@@ -48,11 +52,7 @@ wrapper(chroot, int, (const char * path))
     size_t len;
     char cwd[FAKECHROOT_PATH_MAX];
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
-#ifdef HAVE___XSTAT64
-    struct stat64 sb;
-#else
-    struct stat sb;
-#endif
+    struct STAT_T sb;
 
     debug("chroot(\"%s\")", path);
 
@@ -87,15 +87,9 @@ wrapper(chroot, int, (const char * path))
         }
     }
 
-#ifdef HAVE___XSTAT64
-    if ((status = nextcall(__xstat64)(_STAT_VER, path, &sb)) != 0) {
+    if ((status = STAT(path, &sb)) != 0) {
         return status;
     }
-#else
-    if ((status = nextcall(stat)(path, &sb)) != 0) {
-        return status;
-    }
-#endif
 
     if ((sb.st_mode & S_IFMT) != S_IFDIR) {
         __set_errno(ENOTDIR);
