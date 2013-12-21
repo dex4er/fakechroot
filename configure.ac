@@ -357,10 +357,7 @@ AC_CONFIG_FILES(m4_normalize([
 
 # prove --failures --exec /bin/sh
 ACX_PROG_PROVE_OPT([--failures])
-ACX_PROG_PROVE_OPT([--exec /bin/sh], [
-    echo 1..1
-    echo ok 1
-])
+ACX_PROG_PROVE_OPT([--exec /bin/sh])
 
 # Generate output
 AC_OUTPUT

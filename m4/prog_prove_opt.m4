@@ -39,8 +39,8 @@ _ACEOF])
 # ---------------------------------------------------------
 m4_define([_ACX_PROG_PROVE_TRY],
     [_ACX_LANG_CONFTEST_PL(m4_default([$2], [
-use Test::More tests=>1;
-ok 1;
+printf "1..1\n";
+printf "ok 1\n";
 ]))
         ac_try='$PROVE $1 conftest.pl >&AS_MESSAGE_LOG_FD'
         AS_IF([_AC_DO_VAR(ac_try)], [$3], [$4])])
