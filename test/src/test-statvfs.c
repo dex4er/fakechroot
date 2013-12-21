@@ -3,7 +3,9 @@
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#include <sys/statvfs.h>
+#ifdef HAVE_SYS_STATVFS_H
+# include <sys/statvfs.h>
+#endif
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -22,7 +24,7 @@ int main (int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("%ld\n", statvfsb.f_bsize);
+    printf((sizeof(statvfsb.f_bsize) == 8 ? "%ld\n" : "%d\n"), statvfsb.f_bsize);
 
     return 0;
 }
