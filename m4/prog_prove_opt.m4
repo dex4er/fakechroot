@@ -30,9 +30,7 @@ AC_DEFUN([ACX_PROG_PROVE_OPT],
 # -----------------------------
 m4_define([_ACX_LANG_CONFTEST_PL],
 [cat <<_ACEOF >conftest.pl
-@%:@!/usr/bin/perl
 $1
-exit 0;
 _ACEOF])
 
 # _ACX_PROG_PROVE_TRY([OPTS], [BODY], [IF-WORKS], [IF-NOT])
@@ -41,6 +39,7 @@ m4_define([_ACX_PROG_PROVE_TRY],
     [_ACX_LANG_CONFTEST_PL(m4_default([$2], [
 printf "1..1\n";
 printf "ok 1\n";
+exit 0;
 ]))
         ac_try='$PROVE $1 conftest.pl >&AS_MESSAGE_LOG_FD'
         AS_IF([_AC_DO_VAR(ac_try)], [$3], [$4])])
