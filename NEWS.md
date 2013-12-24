@@ -1,6 +1,6 @@
 ## Version 2.17.2
 
-UNRELEASED
+24 Dec 2013
 
 * Fixes were made for `fakechroot`(1) command with `-h` option.
 * The path for function `chroot`(2) is sanitized so it works correctly when
