@@ -2,6 +2,7 @@ language: c
 before_install:
   - sudo apt-get update -qq
 install:
+  - sudo apt-get install -qq colorgcc
   - sudo apt-get install -qq automake debootstrap libtool lsb-release
 script: ./autogen.sh && ./configure CC=$TRAVIS_CC && make && make test
 env:
@@ -9,7 +10,7 @@ env:
     - TEST_DEBOOTSTRAP=1
     - TEST_DEBOOTSTRAP_CACHE=cache
   matrix:
-    - TRAVIS_CC=gcc
+    - TRAVIS_CC=colorgcc
     - TRAVIS_CC=clang CFLAGS='-std=c11 -g -O2 -Wall -Wno-deprecated-declarations'
 cache:
   directories:
