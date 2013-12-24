@@ -27,7 +27,7 @@ for chroot in chroot fakechroot; do
     else
 
         # echo something
-        t=`$srcdir/$chroot.sh testtree $echo something 2>&1`
+        t=`$srcdir/$chroot.sh $testtree $echo something 2>&1`
         # check if it is ok or print "not"
         test "$t" = "something" || not
         # print "ok" message with unquoted test output

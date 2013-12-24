@@ -117,6 +117,12 @@ LOCAL char * getcwd_real(char *buf, size_t size)
 
 #include <errno.h>
 
+#ifdef HAVE___LXSTAT64
+# ifndef _LARGEFILE64_SOURCE
+#  define _LARGEFILE64_SOURCE
+# endif
+#endif
+
 #include <sys/param.h>
 #include <sys/stat.h>
 
@@ -126,14 +132,29 @@ LOCAL char * getcwd_real(char *buf, size_t size)
 #include <string.h>
 #include <unistd.h>
 
+#include "libfakechroot.h"
+
 #ifdef HAVE___LXSTAT64
 # include "__lxstat64.h"
+# define STAT_T stat64
+# define FSTAT fstat64
 # define LSTAT(path, buf) nextcall(__lxstat64)(_STAT_VER, path, buf)
 #else
 # include "lstat.h"
+# define STAT_T stat
+# define FSTAT fstat
 # define LSTAT(path, buf) nextcall(lstat)(path, buf)
 #endif
-#include "opendir.h"
+
+#if !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2)
+# include "opendir.h"
+# define OPENDIR(path) nextcall(opendir)(path)
+#else
+# define OPENDIR(path) opendir(path)
+#endif
+
+#undef MAXPATHLEN
+#define MAXPATHLEN FAKECHROOT_PATH_MAX
 
 #ifdef HAVE_STRUCT_DIRENT_D_NAMLEN
 # define NAMLEN(d) ((d)->d_namlen)
@@ -153,20 +174,16 @@ LOCAL char * getcwd_real(char *pt, size_t size)
         ino_t ino;
         int first;
         char *bpt, *bup;
-#ifdef HAVE___LXSTAT64
-    struct stat64 s;
-#else
-    struct stat s;
-#endif
+        struct STAT_T s;
         dev_t root_dev;
         ino_t root_ino;
         size_t ptsize, upsize;
         int save_errno;
         char *ept, *eup, *up;
 
-    debug("getcwd_real(&pt, %d)", size);
+        debug("getcwd_real(&pt, %d)", size);
 
-    /*
+        /*
          * If no buffer specified by the user, allocate one as necessary.
          * If a buffer is specified, the size has to be non-zero.  The path
          * is built from the end of the buffer backwards.
@@ -248,13 +265,8 @@ LOCAL char * getcwd_real(char *pt, size_t size)
                 *bup = '\0';
 
                 /* Open and stat parent directory. */
-#ifdef HAVE___FXSTAT64
-                if (!(dir = nextcall(opendir)(up)) || __fxstat64(_STAT_VER, dirfd(dir), &s))
+                if (!(dir = OPENDIR(up)) || FSTAT(dirfd(dir), &s))
                         goto err;
-#else
-        if (!(dir = opendir(up)) || fstat(dirfd(dir), &s))
-            goto err;
-#endif
 
                 /* Add trailing slash for next directory. */
                 *bup++ = '/';

@@ -39,8 +39,12 @@
 #ifdef HAVE___LXSTAT64
 # define _LARGEFILE64_SOURCE
 # include "__lxstat64.h"
+# define STAT_T stat64
+# define LSTAT_REL(rpath, st) __lxstat64_rel(_STAT_VER, rpath, st)
 #else
 # include "lstat.h"
+# define STAT_T stat
+# define LSTAT_REL(rpath, st) lstat_rel(rpath, st)
 #endif
 
 
@@ -113,11 +117,7 @@ wrapper(realpath, char *, (const char * name, char * resolved))
     }
 
     for (start = end = name; *start; start = end) {
-#ifdef HAVE___LXSTAT64
-        struct stat64 st;
-#else
-        struct stat st;
-#endif
+        struct STAT_T st;
         int n;
 
         /* Skip sequence of multiple path-separators.  */
@@ -178,13 +178,8 @@ wrapper(realpath, char *, (const char * name, char * resolved))
             dest += end - start;
             *dest = '\0';
 
-#ifdef HAVE___LXSTAT64
-            if (__lxstat64_rel (_STAT_VER, rpath, &st) < 0)
+            if (LSTAT_REL (rpath, &st) < 0)
                 goto error;
-#else
-            if (lstat_rel (rpath, &st) < 0)
-                goto error;
-#endif
 
             if (S_ISLNK (st.st_mode)) {
                 char *buf;

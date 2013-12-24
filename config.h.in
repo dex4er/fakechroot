@@ -216,6 +216,12 @@
 /* Define to 1 if you have the `freopen64' function. */
 #undef HAVE_FREOPEN64
 
+/* Define to 1 if you have the `fstat' function. */
+#undef HAVE_FSTAT
+
+/* Define to 1 if you have the `fstat64' function. */
+#undef HAVE_FSTAT64
+
 /* Define to 1 if you have the `fts_children' function. */
 #undef HAVE_FTS_CHILDREN
 

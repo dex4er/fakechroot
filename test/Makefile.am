@@ -39,7 +39,6 @@ suffix =
 CLEANFILES = .proverc
 
 EXTRA_DIST = $(TESTS) \
-    proverc \
     archlinux.sh \
     chroot.sh \
     common.inc.sh \
@@ -53,11 +52,17 @@ EXTRA_DIST = $(TESTS) \
     t/cmd-subst-pwd.sh \
     #
 
-test:
-	( cd src && $(MAKE) $(AM_MAKEFLAGS) check )
-	if [ -n "$(PROVE)" ]; then \
-	    cp -f $(srcdir)/proverc .proverc; \
-	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
+check-src:
+	cd src && $(MAKE) $(AM_MAKEFLAGS) check
+
+prove: check-src
+	srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(PROVEFLAGS) $(srcdir)/t
+
+test: check-src
+	if [ -n "$(PROVE)" ] && [ "$(PROVE_HAVE_OPT___EXEC__BIN_SH)" = true ]; then \
+	    $(MAKE) $(AM_MAKEFLAGS) prove; \
 	else \
 	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
 	fi
+
+.PHONY: check-src prove test

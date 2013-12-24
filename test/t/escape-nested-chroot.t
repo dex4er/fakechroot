@@ -5,8 +5,8 @@ srcdir=${srcdir:-.}
 
 prepare 8
 
-$srcdir/testtree.sh testtree/testtree
-test "`cat testtree/testtree/CHROOT`" = "testtree/testtree" || bail_out "testtree/testtree"
+$srcdir/testtree.sh $testtree/$testtree
+test "`cat $testtree/$testtree/CHROOT`" = "$testtree/$testtree" || bail_out "$testtree/$testtree"
 
 for chroot in chroot fakechroot; do
 
@@ -15,7 +15,7 @@ for chroot in chroot fakechroot; do
     else
 
         for paths in '/ /' '/ .' '. /'; do
-            t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' $paths 'ls -id /' 2>&1`
+            t=`$srcdir/$chroot.sh $testtree /bin/test-chroot / /$testtree 'ls -id /' $paths 'ls -id /' 2>&1`
             f1=`echo $t | awk '{print $1}'`
             f2=`echo $t | awk '{print $2}'`
             f3=`echo $t | awk '{print $3}'`
@@ -25,7 +25,7 @@ for chroot in chroot fakechroot; do
         done
 
         for paths in '. .'; do
-            t=`$srcdir/$chroot.sh testtree /bin/test-chroot / /testtree 'ls -id /' $paths 'ls -id /' 2>&1`
+            t=`$srcdir/$chroot.sh $testtree /bin/test-chroot / /$testtree 'ls -id /' $paths 'ls -id /' 2>&1`
             f1=`echo $t | awk '{print $1}'`
             f2=`echo $t | awk '{print $2}'`
             f3=`echo $t | awk '{print $3}'`

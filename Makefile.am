@@ -5,7 +5,10 @@ SUBDIRS = man src scripts test
 
 EXTRA_DIST = COPYING LICENSE NEWS.md README.md THANKS autogen.sh makedist.sh
 
-test: all
-	( cd test && $(MAKE) $(AM_MAKEFLAGS) test )
+prove: all
+	cd test && $(MAKE) $(AM_MAKEFLAGS) prove
 
-.PHONY: test
+test: all
+	cd test && $(MAKE) $(AM_MAKEFLAGS) test
+
+.PHONY: prove test

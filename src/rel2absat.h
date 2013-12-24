@@ -18,8 +18,8 @@
 */
 
 
-#ifndef __FREL2ABS_H
-#define __FREL2ABS_H
+#ifndef __FREL2ABSAT_H
+#define __FREL2ABSAT_H
 
 char * rel2absat(int, const char *, char *);
 

@@ -1,5 +1,5 @@
 AC_PREREQ(2.64)
-AC_INIT([fakechroot], [2.17.1], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
+AC_INIT([fakechroot], [2.17.2], [dexter@debian.org], [fakechroot], [http://fakechroot.alioth.debian.org/])
 
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -173,6 +173,8 @@ AC_CHECK_FUNCS(m4_normalize([
     fopen64
     freopen
     freopen64
+    fstat
+    fstat64
     fts_children
     fts_open
     fts_read
@@ -354,6 +356,10 @@ AC_CONFIG_FILES(m4_normalize([
     test/Makefile
     test/src/Makefile
 ]))
+
+# prove --failures --exec /bin/sh
+ACX_PROG_PROVE_OPT([--failures])
+ACX_PROG_PROVE_OPT([--exec /bin/sh])
 
 # Generate output
 AC_OUTPUT

@@ -102,7 +102,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/check_c_alignof.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
 	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/no_cross_compiling.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/prog_prove_opt.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -279,6 +279,9 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
 POD2MAN = @POD2MAN@
 PROVE = @PROVE@
+PROVEFLAGS = @PROVEFLAGS@
+PROVE_HAVE_OPT___EXEC__BIN_SH = @PROVE_HAVE_OPT___EXEC__BIN_SH@
+PROVE_HAVE_OPT___FAILURES = @PROVE_HAVE_OPT___FAILURES@
 RANLIB = @RANLIB@
 SED = @SED@
 SEQ = @SEQ@
@@ -824,10 +827,13 @@ uninstall-am:
 	uninstall-am
 
 
-test: all
-	( cd test && $(MAKE) $(AM_MAKEFLAGS) test )
+prove: all
+	cd test && $(MAKE) $(AM_MAKEFLAGS) prove
 
-.PHONY: test
+test: all
+	cd test && $(MAKE) $(AM_MAKEFLAGS) test
+
+.PHONY: prove test
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

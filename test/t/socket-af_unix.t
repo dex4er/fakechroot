@@ -10,14 +10,14 @@ prepare 10
 test_af_unix () {
     n=$1
 
-    $srcdir/$chroot.sh testtree /bin/test-socket-af_unix-server /$chroot-socket$n >testtree/$chroot-socket$n.log 2>&1 &
+    $srcdir/$chroot.sh $testtree /bin/test-socket-af_unix-server /$chroot-socket$n >$testtree/$chroot-socket$n.log 2>&1 &
     server_pid=$!
 
     sleep 3
-    test -S "${FAKECHROOT_AF_UNIX_PATH:-testtree}/$chroot-socket$n" || not
-    ok "$chroot af_unix server socket created" `cat testtree/$chroot-socket$n.log; ls "${FAKECHROOT_AF_UNIX_PATH:-testtree}/$chroot-socket$n" 2>&1`
+    test -S "${FAKECHROOT_AF_UNIX_PATH:-$testtree}/$chroot-socket$n" || not
+    ok "$chroot af_unix server socket created" `cat $testtree/$chroot-socket$n.log; ls "${FAKECHROOT_AF_UNIX_PATH:-$testtree}/$chroot-socket$n" 2>&1`
 
-    t=`$srcdir/$chroot.sh testtree /bin/test-socket-af_unix-client /$chroot-socket$n something 2>&1`
+    t=`$srcdir/$chroot.sh $testtree /bin/test-socket-af_unix-client /$chroot-socket$n something 2>&1`
     test "$t" = "something" || not
     ok "$chroot af_unix client/server returns" $t
 

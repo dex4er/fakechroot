@@ -93,7 +93,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/check_c_alignof.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
 	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/no_cross_compiling.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/prog_prove_opt.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -453,6 +453,9 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
 POD2MAN = @POD2MAN@
 PROVE = @PROVE@
+PROVEFLAGS = @PROVEFLAGS@
+PROVE_HAVE_OPT___EXEC__BIN_SH = @PROVE_HAVE_OPT___EXEC__BIN_SH@
+PROVE_HAVE_OPT___FAILURES = @PROVE_HAVE_OPT___FAILURES@
 RANLIB = @RANLIB@
 SED = @SED@
 SEQ = @SEQ@
@@ -551,7 +554,6 @@ TESTS = \
 suffix = 
 CLEANFILES = .proverc
 EXTRA_DIST = $(TESTS) \
-    proverc \
     archlinux.sh \
     chroot.sh \
     common.inc.sh \
@@ -1256,14 +1258,20 @@ uninstall-am:
 	uninstall uninstall-am
 
 
-test:
-	( cd src && $(MAKE) $(AM_MAKEFLAGS) check )
-	if [ -n "$(PROVE)" ]; then \
-	    cp -f $(srcdir)/proverc .proverc; \
-	    srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(srcdir)/t; \
+check-src:
+	cd src && $(MAKE) $(AM_MAKEFLAGS) check
+
+prove: check-src
+	srcdir=$(srcdir) SEQ=$(seq) $(PROVE) $(PROVEFLAGS) $(srcdir)/t
+
+test: check-src
+	if [ -n "$(PROVE)" ] && [ "$(PROVE_HAVE_OPT___EXEC__BIN_SH)" = true ]; then \
+	    $(MAKE) $(AM_MAKEFLAGS) prove; \
 	else \
 	    $(MAKE) $(AM_MAKEFLAGS) check-TESTS; \
 	fi
+
+.PHONY: check-src prove test
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

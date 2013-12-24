@@ -11,8 +11,8 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        mkdir testtree/testdir-$chroot
-        t=`$srcdir/$chroot.sh testtree test-statfs /testdir-$chroot 2>&1`
+        mkdir $testtree/testdir-$chroot
+        t=`$srcdir/$chroot.sh $testtree test-statfs /testdir-$chroot 2>&1`
         if echo "$t" | grep "[^0-9]" >/dev/null; then not; fi
         ok "$chroot statfs returns" $t
 

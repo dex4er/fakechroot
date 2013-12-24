@@ -18,6 +18,9 @@
 */
 
 
+#ifndef __OPENDIR_H
+#define __OPENDIR_H
+
 #include <config.h>
 
 #if !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2)
@@ -26,5 +29,7 @@
 #include "libfakechroot.h"
 
 wrapper_proto(opendir, DIR *, (const char *));
+
+#endif
 
 #endif

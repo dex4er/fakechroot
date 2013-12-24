@@ -11,14 +11,14 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        for testtree in testtree ./testtree testtree/. testtree/./.; do
-            t=`$srcdir/$chroot.sh $testtree /bin/pwd`
+        for d in $testtree ./$testtree $testtree/. $testtree/./.; do
+            t=`$srcdir/$chroot.sh $d /bin/pwd`
             test "$t" = "/" || not
-            ok "$chroot $testtree pwd is" $t
+            ok "$chroot $d pwd is" $t
 
-            t=`$srcdir/$chroot.sh $testtree /bin/cat CHROOT`
-            test "$t" = "testtree" || not
-            ok "$chroot $testtree CHROOT is" $t
+            t=`$srcdir/$chroot.sh $d /bin/cat CHROOT`
+            test "$t" = "$testtree" || not
+            ok "$chroot $d CHROOT is" $t
         done
 
     fi

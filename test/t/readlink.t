@@ -16,13 +16,13 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        destfile="$(pwd)/testtreex"
-        rm -f testtree/x
-        ln -s "$destfile" testtree/x
+        destfile="$(pwd)/$testtreex"
+        rm -f $testtree/x
+        ln -s "$destfile" $testtree/x
 
-        t=`$srcdir/$chroot.sh testtree $readlink x 2>&1`
+        t=`$srcdir/$chroot.sh $testtree $readlink x 2>&1`
         test "$t" = "$destfile" || not
-        ok "$chroot readlink [\$PWD/testtreex]" $t
+        ok "$chroot readlink [\$PWD/$testtreex]" $t
 
         symlink=$chroot-
         destfile=$chroot-
@@ -32,17 +32,17 @@ for chroot in chroot fakechroot; do
             symlink="${symlink}a"
             destfile="${destfile}b"
 
-            if ! touch "testtree/$destfile" 2>/dev/null; then
+            if ! touch "$testtree/$destfile" 2>/dev/null; then
                 skip 2 "File name too long"
             else
 
-                rm -f "testtree/$symlink"
+                rm -f "$testtree/$symlink"
 
-                t=`$srcdir/$chroot.sh testtree /bin/ln -s $destfile $symlink 2>&1`
+                t=`$srcdir/$chroot.sh $testtree /bin/ln -s $destfile $symlink 2>&1`
                 test "$t" = "" || not
                 ok "$chroot ln -s [$i]" $t
 
-                t=`$srcdir/$chroot.sh testtree $readlink $symlink 2>&1`
+                t=`$srcdir/$chroot.sh $testtree $readlink $symlink 2>&1`
                 test "$t" = "$destfile" || not
                 ok "$chroot readlink [$i]" $t
 

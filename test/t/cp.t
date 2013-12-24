@@ -18,14 +18,14 @@ for chroot in chroot fakechroot; do
         skip $(( $tap_plan / 2 )) "not root"
     else
 
-        echo 'something' > testtree/file-$chroot
-        ln -s /file-$chroot testtree/symlink-$chroot
+        echo 'something' > $testtree/file-$chroot
+        ln -s /file-$chroot $testtree/symlink-$chroot
 
-        t=`$srcdir/$chroot.sh testtree /bin/sh -c "cp $CP_ARGS /file-$chroot /file2-$chroot; cat /file2-$chroot" 2>&1`
+        t=`$srcdir/$chroot.sh $testtree /bin/sh -c "cp $CP_ARGS /file-$chroot /file2-$chroot; cat /file2-$chroot" 2>&1`
         test "$t" = "something" || not
         ok "$chroot cp $CP_ARGS /file-$chroot /file2-$chroot:" $t
 
-        t=`$srcdir/$chroot.sh testtree /bin/sh -c "cp $CP_ARGS /symlink-$chroot /symlink2-$chroot; cat /symlink2-$chroot" 2>&1`
+        t=`$srcdir/$chroot.sh $testtree /bin/sh -c "cp $CP_ARGS /symlink-$chroot /symlink2-$chroot; cat /symlink2-$chroot" 2>&1`
         test "$t" = "something" || not
         ok "$chroot cp $CP_ARGS /symlink-$chroot /symlink2-$chroot:" $t
 

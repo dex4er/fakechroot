@@ -28,7 +28,9 @@
 #ifdef AF_UNIX
 
 #include <sys/un.h>
+
 #include "libfakechroot.h"
+#include "strlcpy.h"
 
 #ifdef HAVE_GETPEERNAME_TYPE_ARG2___SOCKADDR_ARG__
 # define SOCKADDR(addr) ((addr).__sockaddr__)
@@ -59,9 +61,9 @@ wrapper(getpeername, int, (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t * addrl
     }
     if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
         char tmp[FAKECHROOT_PATH_MAX];
-        strncpy(tmp, newaddr.sun_path, FAKECHROOT_PATH_MAX);
+        strlcpy(tmp, newaddr.sun_path, FAKECHROOT_PATH_MAX);
         narrow_chroot_path(tmp);
-        strncpy(newaddr.sun_path, tmp, UNIX_PATH_MAX);
+        strlcpy(newaddr.sun_path, tmp, UNIX_PATH_MAX);
     }
 
     memcpy((struct sockaddr_un *)SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
