@@ -64,7 +64,7 @@ LOCAL int __lxstat64_rel(int ver, const char * filename, struct stat64 * buf)
     expand_chroot_rel_path(filename);
     retval = nextcall(__lxstat64)(ver, filename, buf);
     /* deal with http://bugs.debian.org/561991 */
-    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+    if ((retval == 0) && (buf->st_mode & S_IFMT) == S_IFLNK)
         if ((linksize = readlink(orig_filename, tmp, sizeof(tmp)-1)) != -1)
             buf->st_size = linksize;
 

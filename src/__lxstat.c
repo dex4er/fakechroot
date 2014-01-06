@@ -44,7 +44,7 @@ wrapper(__lxstat, int, (int ver, const char * filename, struct stat * buf))
     expand_chroot_path(filename);
     retval = nextcall(__lxstat)(ver, filename, buf);
     /* deal with http://bugs.debian.org/561991 */
-    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+    if ((retval == 0) && (buf->st_mode & S_IFMT) == S_IFLNK)
         if ((linksize = readlink(orig_filename, tmp, sizeof(tmp)-1)) != -1)
             buf->st_size = linksize;
 
