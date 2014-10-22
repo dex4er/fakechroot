@@ -1,6 +1,7 @@
 /*
     libfakechroot -- fake chroot environment
     Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2014 Robin McCorkell <rmccorkell@karoshi.org.uk>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -20,12 +21,16 @@
 
 #include <config.h>
 
+#include <string.h>
 #include "libfakechroot.h"
 
 
 wrapper(dlopen, void *, (const char * filename, int flag))
 {
     debug("dlopen(\"%s\", %d)", filename, flag);
-    expand_chroot_path(filename);
+    if (strchr(filename, '/') != NULL) {
+        expand_chroot_path(filename);
+        debug("dlopen(\"%s\", %d)", filename, flag);
+    }
     return nextcall(dlopen)(filename, flag);
 }
