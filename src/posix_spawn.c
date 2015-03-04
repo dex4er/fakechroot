@@ -24,9 +24,11 @@
 #include <errno.h>
 #include <stddef.h>
 #include <unistd.h>
+#include <signal.h>
 #include <spawn.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <alloca.h>
 #include "strchrnul.h"
 #include "libfakechroot.h"
 #include "open.h"
