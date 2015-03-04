@@ -21,10 +21,10 @@
 #include <config.h>
 
 #ifdef HAVE_POSIX_SPAWN
+#define _GNU_SOURCE
 #include <errno.h>
 #include <stddef.h>
 #include <unistd.h>
-#include <signal.h>
 #include <spawn.h>
 #include <stdlib.h>
 #include <fcntl.h>
