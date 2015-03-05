@@ -23,7 +23,7 @@
 #ifdef HAVE_MKSTEMPS
 
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <errno.h>
 #include <stdlib.h>
 

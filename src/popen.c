@@ -36,7 +36,7 @@
 #ifdef __GNUC__
 
 #define _POSIX_SOURCE
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <sys/param.h>
 #include <sys/wait.h>
 

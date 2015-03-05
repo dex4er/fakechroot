@@ -22,7 +22,7 @@
 
 #ifndef HAVE___XSTAT
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <sys/stat.h>
 #include <limits.h>
 #include <stdlib.h>

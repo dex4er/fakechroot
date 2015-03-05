@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
 #ifdef HAVE___LXSTAT64

@@ -99,7 +99,7 @@ AC_CHECK_HEADERS(m4_normalize([
 ]))
 
 AC_CHECK_HEADERS([fts.h], [], [], [
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -311,7 +311,7 @@ ACX_CHECK_FUNC_ARGTYPES([fts_open],
 
 ACX_CHECK_FUNC_ARGTYPES([readlink],
     [
-#define _BSD_SOURCE 1
+#define _DEFAULT_SOURCE 1
     ], [unistd.h],
     [[ssize_t], [const char *_], [char *_], [size_t _]],
     [[ssize_t], [int]],
@@ -321,7 +321,7 @@ ACX_CHECK_FUNC_ARGTYPES([readlink],
 
 ACX_CHECK_FUNC_ARGTYPES([scandir],
     [
-#define _BSD_SOURCE 1
+#define _DEFAULT_SOURCE 1
     ], [dirent.h],
     [[int], [const char *_], [struct dirent ***_], [int(*_)(const struct dirent *)], [int(*_)(const void *,const void *)]],
     [[int]],
@@ -332,7 +332,7 @@ ACX_CHECK_FUNC_ARGTYPES([scandir],
 
 ACX_CHECK_FUNC_ARGTYPES([scandir64],
     [
-#define _BSD_SOURCE 1
+#define _DEFAULT_SOURCE 1
 #define _GNU_SOURCE 1
     ], [dirent.h],
     [[int], [const char *_], [struct dirent64 ***_], [int(*_)(const struct dirent64 *)], [int(*_)(const void *,const void *)]],

@@ -22,7 +22,7 @@
 
 #ifdef HAVE_MKSTEMPS64
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _LARGEFILE64_SOURCE
 #include <errno.h>
 #include <stdlib.h>
