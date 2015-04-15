@@ -24,6 +24,7 @@
 
 #define _GNU_SOURCE
 #include <sys/socket.h>
+#include <stddef.h>
 
 #ifdef AF_UNIX
 
@@ -44,30 +45,29 @@
 wrapper(getpeername, int, (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t * addrlen))
 {
     int status;
-    socklen_t newaddrlen;
-    struct sockaddr_un newaddr;
+    socklen_t origlen = *addrlen;
 
     debug("getpeername(%d, &addr, &addrlen)", s);
 
-    if (SOCKADDR(addr)->sa_family != AF_UNIX) {
-        return nextcall(getpeername)(s, addr, addrlen);
+    status = nextcall(getpeername)(s, addr, addrlen);
+    if (status == 0 && SOCKADDR(addr)->sa_family == AF_UNIX) {
+        struct sockaddr_un *addr_un = SOCKADDR_UN(addr);
+        size_t path_max = origlen - offsetof(struct sockaddr_un, sun_path);
+        if(path_max > origlen) {
+            /* underflow, addr does not have space for the path */
+            return status;
+        } else if(path_max > sizeof(addr_un->sun_path)) {
+            path_max = sizeof(addr_un->sun_path);
+        }
+        if (addr_un->sun_path && *(addr_un->sun_path)) {
+            char tmp[FAKECHROOT_PATH_MAX];
+            strlcpy(tmp, addr_un->sun_path, FAKECHROOT_PATH_MAX);
+            narrow_chroot_path(tmp);
+            strlcpy(addr_un->sun_path, tmp, path_max);
+            *addrlen = SUN_LEN(addr_un);
+        }
     }
 
-    newaddrlen = sizeof(struct sockaddr_un);
-    memset(&newaddr, 0, newaddrlen);
-    status = nextcall(getpeername)(s, (struct sockaddr *)&newaddr, &newaddrlen);
-    if (status != 0) {
-        return status;
-    }
-    if (newaddr.sun_family == AF_UNIX && newaddr.sun_path && *(newaddr.sun_path)) {
-        char tmp[FAKECHROOT_PATH_MAX];
-        strlcpy(tmp, newaddr.sun_path, FAKECHROOT_PATH_MAX);
-        narrow_chroot_path(tmp);
-        strlcpy(newaddr.sun_path, tmp, UNIX_PATH_MAX);
-    }
-
-    memcpy((struct sockaddr_un *)SOCKADDR_UN(addr), &newaddr, *addrlen < sizeof(struct sockaddr_un) ? *addrlen : sizeof(struct sockaddr_un));
-    *addrlen = SUN_LEN(&newaddr);
     return status;
 }
 
