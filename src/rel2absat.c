@@ -54,6 +54,11 @@ LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
 
     if (*name == '/') {
         strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+    } else if(dirfd == AT_FDCWD) {
+        if (getcwd(cwd, FAKECHROOT_PATH_MAX) == NULL) {
+            goto error;
+        }
+        snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
     } else {
         if ((cwdfd = nextcall(open)(".", O_RDONLY|O_DIRECTORY)) == -1) {
             goto error;
