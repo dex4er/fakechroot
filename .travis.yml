@@ -1,10 +1,18 @@
+sudo: false
+addons:
+  apt:
+    packages:
+    - automake
+    - colorgcc
+    - debootstrap
+    - libtool
+    - lsb-release
 language: c
-before_install:
-  - sudo apt-get update -qq
-install:
-  - sudo apt-get install -qq colorgcc
-  - sudo apt-get install -qq automake debootstrap libtool lsb-release
-script: ./autogen.sh && ./configure CC=$TRAVIS_CC && make && make test
+script:
+  - ./autogen.sh
+  - ./configure CC=$TRAVIS_CC
+  - make
+  - make test
 env:
   global:
     - TEST_DEBOOTSTRAP=1
@@ -15,6 +23,3 @@ env:
 cache:
   directories:
     - test/cache
-branches:
-  only:
-    - master
