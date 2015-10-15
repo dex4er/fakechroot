@@ -1,6 +1,7 @@
 /* Work around a bug of lstat on some systems
 
    Copyright (C) 1997-2006, 2008-2010 Free Software Foundation, Inc.
+   Copyright (c) 2013, 2015 Piotr Roszatycki <dexter@debian.org>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

@@ -5,7 +5,7 @@
 # Replacement for env command which preserves fakechroot enviroment even with
 # --ignore-environment option.
 #
-# (c) 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2013, 2015 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 
 fakechroot_env_args=
