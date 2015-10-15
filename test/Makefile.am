@@ -52,6 +52,9 @@ EXTRA_DIST = $(TESTS) \
     t/cmd-subst-pwd.sh \
     #
 
+clean-local:
+	-rm -rf testtree-*
+
 check-src:
 	cd src && $(MAKE) $(AM_MAKEFLAGS) check
 
