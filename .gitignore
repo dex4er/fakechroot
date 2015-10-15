@@ -39,6 +39,7 @@ Makefile.in
 /scripts/fakechroot
 
 # Tests
+*.trs
 .proverc
 /test/*.debs.tgz
 /test/*.rpms.tgz
