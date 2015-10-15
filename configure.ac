@@ -10,7 +10,9 @@ AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
 
-AC_SUBST([V])
+AC_ARG_VAR([V], [Verbose output])
+AC_ARG_VAR([EXTRA_CFLAGS], [Extra C compiler flags])
+AC_ARG_VAR([EXTRA_LDLAGS], [Extra linker flags])
 
 LT_INIT
 
