@@ -148,6 +148,7 @@ AC_CHECK_FUNCS(m4_normalize([
     _xftw64
     access
     acct
+    audit
     bind
     bindtextdomain
     canonicalize_file_name

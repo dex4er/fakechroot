@@ -28,6 +28,7 @@ libfakechroot_la_SOURCES = \
     _xftw64.c \
     access.c \
     acct.c \
+    audit.c \
     bind.c \
     bindtextdomain.c \
     canonicalize_file_name.c \
