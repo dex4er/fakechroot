@@ -56,10 +56,11 @@ wrapper(chroot, int, (const char * path))
 
     debug("chroot(\"%s\")", path);
 
-    if (path == NULL) {
+    if (!path) {
         __set_errno(EFAULT);
         return -1;
     }
+
     if (!*path) {
         __set_errno(ENOENT);
         return -1;

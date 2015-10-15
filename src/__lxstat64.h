@@ -29,7 +29,7 @@
 # define _LARGEFILE64_SOURCE
 #endif
 #ifndef _XOPEN_SOURCE
-# define _XOPEN_SOURCE
+# define _XOPEN_SOURCE 500
 #endif
 #include <sys/stat.h>
 

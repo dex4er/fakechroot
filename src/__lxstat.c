@@ -23,7 +23,7 @@
 #ifdef HAVE___LXSTAT
 
 #define _ATFILE_SOURCE
-#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE 500
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>

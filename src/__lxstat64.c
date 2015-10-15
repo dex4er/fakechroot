@@ -23,7 +23,7 @@
 #ifdef HAVE___LXSTAT64
 
 #define _LARGEFILE64_SOURCE
-#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE 500
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -39,12 +39,10 @@ wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))
 {
     debug("__lxstat64(%d, \"%s\", &buf)", ver, filename);
 
-    if (!fakechroot_localdir(filename)) {
-        if (filename != NULL) {
-            char abs_filename[FAKECHROOT_PATH_MAX];
-            rel2abs(filename, abs_filename);
-            filename = abs_filename;
-        }
+    if (filename && !fakechroot_localdir(filename)) {
+        char abs_filename[FAKECHROOT_PATH_MAX];
+        rel2abs(filename, abs_filename);
+        filename = abs_filename;
     }
 
     return __lxstat64_rel(ver, filename, buf);
