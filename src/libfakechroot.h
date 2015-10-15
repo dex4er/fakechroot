@@ -190,6 +190,12 @@
       ) \
     )
 
+#ifdef __clang__
+# if __clang_major > 4 || __clang_major__ == 3 && __clang_minor__ >= 6
+#  pragma clang diagnostic ignored "-Wpointer-bool-conversion"
+# endif
+#endif
+
 typedef void (*fakechroot_wrapperfn_t)(void);
 
 struct fakechroot_wrapper {
