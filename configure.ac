@@ -12,7 +12,7 @@ AM_MAINTAINER_MODE
 
 AC_ARG_VAR([V], [Verbose output])
 AC_ARG_VAR([EXTRA_CFLAGS], [Extra C compiler flags])
-AC_ARG_VAR([EXTRA_LDLAGS], [Extra linker flags])
+AC_ARG_VAR([EXTRA_LDFLAGS], [Extra linker flags])
 
 LT_INIT
 
