@@ -3,6 +3,9 @@ fakechroot is distributed under the GNU Lesser General Public License (LGPL
 
 Additional copyrights:
 
+audit_log_acct_message function taken from Debian bug #745082.
+Copyright (c) 2015 JH Chatenet <jhcha54008@free.fr>
+
 dedotdot function taken from mini_httpd - small HTTP server
 Copyright (C) 1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
 
@@ -69,6 +72,3 @@ Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 strlcpy function taken from OpenBSD.
 Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
-
-audit_log_acct_message function taken from Debian bug #745082.
-Copyright (c) 2015 JH Chatenet <jhcha54008@free.fr>
