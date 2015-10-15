@@ -58,6 +58,8 @@ ls -l $tarball
 
 fakechroot fakeroot debootstrap --unpack-tarball="$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
 
+unset CC CFLAGS LDFLAGS EXTRA_CFLAGS EXTRA_LDFLAGS V
+
 HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
 run sh -c 'cat /etc/apt/sources.list | sed "s/^deb/deb-src/" >> /etc/apt/sources.list'
