@@ -19,7 +19,6 @@ env:
     - TEST_DEBOOTSTRAP_CACHE=cache
   matrix:
     - TRAVIS_CC=colorgcc EXTRA_CFLAGS='-Werror'
-    - TRAVIS_CC=colorgcc EXTRA_CFLAGS='-std=c11 -Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-std=c11 -Werror'
 cache:

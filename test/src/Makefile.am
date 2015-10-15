@@ -23,5 +23,5 @@ check_PROGRAMS = \
     test-system \
     #
 
-AM_CFLAGS = -Wall -Wno-deprecated-declarations -Wno-pointer-bool-conversion $(EXTRA_CFLAGS)
+AM_CFLAGS = -Wall -Wno-deprecated-declarations $(EXTRA_CFLAGS)
 AM_LDFLAGS = $(EXTRA_LDFLAGS)

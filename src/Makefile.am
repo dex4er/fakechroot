@@ -165,5 +165,5 @@ libfakechroot_la_SOURCES = \
     utimes.c
 libfakechroot_la_LDFLAGS = -avoid-version
 
-AM_CFLAGS = -Wall -Wno-deprecated-declarations -Wno-pointer-bool-conversion $(EXTRA_CFLAGS)
+AM_CFLAGS = -Wall -Wno-deprecated-declarations $(EXTRA_CFLAGS)
 AM_LDFLAGS = $(EXTRA_LDFLAGS)
