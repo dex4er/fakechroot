@@ -23,6 +23,7 @@
 
 /* Get the original definition of lstat.  It might be defined as a macro.  */
 # define __need_system_sys_stat_h
+# define _BSD_SOURCE 1
 # include <sys/types.h>
 # include <sys/stat.h>
 # undef __need_system_sys_stat_h
