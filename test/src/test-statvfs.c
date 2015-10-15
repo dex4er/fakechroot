@@ -24,6 +24,8 @@ int main (int argc, char *argv[]) {
         exit(1);
     }
 
+#pragma clang diagnostic ignored "-Wformat"
+
     printf((sizeof(statvfsb.f_bsize) == 8 ? "%ld\n" : "%d\n"), statvfsb.f_bsize);
 
     return 0;
