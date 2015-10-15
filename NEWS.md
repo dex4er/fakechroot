@@ -2,6 +2,9 @@
 
 UNRELEASED
 
+* The `env`(1) wrapper works correctly if there is variable with multilined
+  content.
+
 ## Version 2.17.2
 
 24 Dec 2013
