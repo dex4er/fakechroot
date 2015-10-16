@@ -2,9 +2,11 @@
 
 UNRELEASED
 
+* The `fakechroot`(1) command accepts new option `--bindir`.
 * The `chfn`(1) command runs correctly on Ubuntu vidid and Debian stretch.
 * The `env`(1) wrapper works correctly if there is variable with multilined
   content.
+* The tilde `~` character in `FAKECHROOT_*` variables is not expanded anymore.
 
 ## Version 2.17.2
 

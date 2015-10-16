@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2003-2015 Piotr Roszatycki <dexter@debian.org>
     Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
     Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
 
@@ -43,7 +43,6 @@ static char *exclude_list[32];
 static int exclude_length[32];
 static int list_max = 0;
 static int first = 0;
-static char *home_path = NULL;
 
 
 /* List of environment variables to preserve on clearenv() */
@@ -109,7 +108,6 @@ void fakechroot_init (void)
     debug("FAKECHROOT_CMD_ORIG=\"%s\"", getenv("FAKECHROOT_CMD_ORIG"));
 
     if (!first) {
-        struct passwd *passwd = NULL;
         char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
 
         first = 1;
@@ -129,16 +127,6 @@ void fakechroot_init (void)
                 i = j + 1;
             }
         }
-
-#ifdef TILDE_EXPAND
-        /* We get the home of the user */
-        passwd = getpwuid(getuid());
-        if (passwd && passwd->pw_dir) {
-            home_path = malloc(strlen(passwd->pw_dir) + 2);
-            strcpy(home_path, passwd->pw_dir);
-            strcat(home_path, "/");
-        }
-#endif
 
         __setenv("FAKECHROOT", "true", 1);
         __setenv("FAKECHROOT_VERSION", FAKECHROOT, 1);
@@ -170,15 +158,6 @@ LOCAL int fakechroot_localdir (const char * p_path)
 
     if (!first)
         fakechroot_init();
-
-#ifdef TILDE_EXPAND
-    /* We need to expand ~ paths */
-    if (home_path != NULL && p_path[0] == '~' && (p_path[1] == '\0' || p_path[1] == '/')) {
-        strcpy(cwd_path, home_path);
-        strcat(cwd_path, &(p_path[1]));
-        v_path = cwd_path;
-    }
-#endif
 
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
