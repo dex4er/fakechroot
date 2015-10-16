@@ -130,6 +130,7 @@ void fakechroot_init (void)
             }
         }
 
+#ifdef TILDE_EXPAND
         /* We get the home of the user */
         passwd = getpwuid(getuid());
         if (passwd && passwd->pw_dir) {
@@ -137,6 +138,7 @@ void fakechroot_init (void)
             strcpy(home_path, passwd->pw_dir);
             strcat(home_path, "/");
         }
+#endif
 
         __setenv("FAKECHROOT", "true", 1);
         __setenv("FAKECHROOT_VERSION", FAKECHROOT, 1);
@@ -169,12 +171,14 @@ LOCAL int fakechroot_localdir (const char * p_path)
     if (!first)
         fakechroot_init();
 
+#ifdef TILDE_EXPAND
     /* We need to expand ~ paths */
     if (home_path != NULL && p_path[0] == '~' && (p_path[1] == '\0' || p_path[1] == '/')) {
         strcpy(cwd_path, home_path);
         strcat(cwd_path, &(p_path[1]));
         v_path = cwd_path;
     }
+#endif
 
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
