@@ -23,8 +23,8 @@
 #ifdef HAVE_GETPEERNAME
 
 #define _GNU_SOURCE
-#include <sys/socket.h>
 #include <stddef.h>
+#include <sys/socket.h>
 
 #ifdef AF_UNIX
 
@@ -53,10 +53,10 @@ wrapper(getpeername, int, (int s, GETPEERNAME_TYPE_ARG2(addr), socklen_t * addrl
     if (status == 0 && SOCKADDR(addr)->sa_family == AF_UNIX) {
         struct sockaddr_un *addr_un = SOCKADDR_UN(addr);
         size_t path_max = origlen - offsetof(struct sockaddr_un, sun_path);
-        if(path_max > origlen) {
+        if (path_max > origlen) {
             /* underflow, addr does not have space for the path */
             return status;
-        } else if(path_max > sizeof(addr_un->sun_path)) {
+        } else if (path_max > sizeof(addr_un->sun_path)) {
             path_max = sizeof(addr_un->sun_path);
         }
         if (addr_un->sun_path && *(addr_un->sun_path)) {

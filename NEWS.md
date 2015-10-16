@@ -7,6 +7,7 @@ UNRELEASED
 * The `env`(1) wrapper works correctly if there is variable with multilined
   content.
 * The tilde `~` character in `FAKECHROOT_*` variables is not expanded anymore.
+* Fixes were made for `getpeeraddr`(3) and `getsockaddr`(3) functions.
 
 ## Version 2.17.2
 
