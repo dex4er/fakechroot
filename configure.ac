@@ -74,6 +74,7 @@ AC_CHECK_HEADERS(m4_normalize([
     ftw.h
     glob.h
     libintl.h
+    link.h
     pwd.h
     shadow.h
     signal.h
@@ -160,6 +161,8 @@ AC_CHECK_FUNCS(m4_normalize([
     connect
     creat
     creat64
+    dl_iterate_phdr
+    dladdr
     dlmopen
     dlopen
     eaccess

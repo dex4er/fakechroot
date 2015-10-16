@@ -1,6 +1,5 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
     Copyright (c) 2014 Robin McCorkell <rmccorkell@karoshi.org.uk>
 
     This library is free software; you can redistribute it and/or
@@ -21,16 +20,33 @@
 
 #include <config.h>
 
-#include <string.h>
+#ifdef HAVE_DL_ITERATE_PHDR
+
+#define _GNU_SOURCE
+#include <link.h>
+
 #include "libfakechroot.h"
 
 
-wrapper(dlopen, void *, (const char * filename, int flag))
+#define DL_ITERATE_PHDR_CALLBACK_ARGS struct dl_phdr_info * info, size_t size, void * data
+
+static int (* dl_iterate_phdr_callback_saved)(DL_ITERATE_PHDR_CALLBACK_ARGS);
+
+static int dl_iterate_phdr_callback(DL_ITERATE_PHDR_CALLBACK_ARGS)
 {
-    debug("dlopen(\"%s\", %d)", filename, flag);
-    if (strchr(filename, '/') != NULL) {
-        expand_chroot_path(filename);
-        debug("dlopen(\"%s\", %d)", filename, flag);
+    if (info->dlpi_name) {
+        narrow_chroot_path(info->dlpi_name);
     }
-    return nextcall(dlopen)(filename, flag);
+    return dl_iterate_phdr_callback_saved(info, size, data);
 }
+
+wrapper(dl_iterate_phdr, int, (int (* callback)(DL_ITERATE_PHDR_CALLBACK_ARGS), void * data))
+{
+    debug("dl_iterate_phdr(&callback, 0x%x)", data);
+    dl_iterate_phdr_callback_saved = callback;
+    return nextcall(dl_iterate_phdr)(dl_iterate_phdr_callback, data);
+}
+
+#else
+typedef int empty_translation_unit;
+#endif
