@@ -19,7 +19,7 @@
 # Example:
 #
 #   ACX_CHECK_FUNC_ARGTYPES([readlink],
-#       [#define _BSD_SOURCE 1
+#       [#define _DEFAULT_SOURCE 1
 #       ], [unistd.h],
 #       [[ssize_t], [const char *_], [char *_], [size_t _]],
 #       [[ssize_t], [int]],

@@ -23,7 +23,7 @@
 #if defined(HAVE_STAT64) && !defined(HAVE___XSTAT64)
 
 #define _LARGEFILE64_SOURCE
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <sys/stat.h>
 #include <limits.h>
 #include <stdlib.h>

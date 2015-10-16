@@ -24,7 +24,7 @@
 
 #define _ATFILE_SOURCE
 #define _LARGEFILE64_SOURCE
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #include <sys/stat.h>
 #include <limits.h>
 #include <stdlib.h>

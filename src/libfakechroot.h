@@ -213,7 +213,7 @@ fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
 
 
-/* We don't want to define _BSD_SOURCE and include stdio.h */
+/* We don't want to define _DEFAULT_SOURCE and include stdio.h */
 int snprintf(char *, size_t, const char *, ...);
 
 #endif
