@@ -6,6 +6,8 @@ UNRELEASED
 * The `chfn`(1) command runs correctly on Ubuntu vidid and Debian stretch.
 * The `env`(1) wrapper works correctly if there is variable with multilined
   content.
+* New functions `ldaddr`(3) and `dl_iterate_phdr`(3) were added. The
+  `dlopen`(3) function was fixed. The `java`(1) command should work correctly.
 * The tilde `~` character in `FAKECHROOT_*` variables is not expanded anymore.
 * Fixes were made for `getpeeraddr`(3) and `getsockaddr`(3) functions.
 
