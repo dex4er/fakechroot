@@ -1,3 +1,4 @@
+#define _BSD_SOURCE
 #define _DEFAULT_SOURCE
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013, 2015 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -213,7 +213,7 @@ fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
 
 
-/* We don't want to define _DEFAULT_SOURCE and include stdio.h */
+/* We don't want to define _BSD_SOURCE and _DEFAULT_SOURCE and include stdio.h */
 int snprintf(char *, size_t, const char *, ...);
 
 #endif
