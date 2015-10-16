@@ -18,9 +18,12 @@ fakechroot_die () {
 
 fakechroot_usage () {
     fakechroot_die "Usage:
-    fakechroot [-l|--lib fakechrootlib] [-d|--elfloader ldso]
+    fakechroot [-l|--lib fakechrootlib]
+               [-d|--elfloader ldso]
                [-s|--use-system-libs]
-               [-e|--environment type] [-c|--config-dir directory]
+               [-e|--environment type]
+               [-c|--config-dir directory]
+               [-b|--bindir directory]
                [--] [command]
     fakechroot -v|--version
     fakechroot -h|--help"
@@ -70,6 +73,7 @@ fakechroot_paths=@libpath@
 fakechroot_sysconfdir=@sysconfdir@
 fakechroot_confdir=
 fakechroot_environment=
+fakechroot_bindir=
 
 if [ "$fakechroot_paths" = "no" ]; then
     fakechroot_paths=
@@ -81,11 +85,11 @@ fakechroot_getopttest=`getopt --version`
 case $fakechroot_getopttest in
     getopt*)
         # GNU getopt
-        fakechroot_opts=`getopt -q -l lib: -l elfloader: -l use-system-libs -l config-dir: -l environment: -l version -l help -- +l:d:sc:e:vh "$@"`
+        fakechroot_opts=`getopt -q -l lib: -l elfloader: -l use-system-libs -l config-dir: -l environment: -l bindir: -l version -l help -- +l:d:sc:e:b:vh "$@"`
         ;;
     *)
         # POSIX getopt ?
-        fakechroot_opts=`getopt l:d:sc:e:vh "$@"`
+        fakechroot_opts=`getopt l:d:sc:e:b:vh "$@"`
         ;;
 esac
 
@@ -125,6 +129,10 @@ while [ $# -gt 0 ]; do
             ;;
         -e|--environment)
             fakechroot_environment=$1
+            shift
+            ;;
+        -b|--bindir)
+            fakechroot_bindir=$1
             shift
             ;;
         --)

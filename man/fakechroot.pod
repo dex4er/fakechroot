@@ -13,6 +13,7 @@ S<[B<-l>|B<--lib> I<library>]>
 S<[B<-d>|B<--elfloader> I<ldso>]>
 S<[B<-e>|B<--environment> I<type>]>
 S<[B<-c>|B<--config-dir> I<directory>]>
+S<[B<-b>|B<--bindir> I<directory>]>
 S<[B<-->]>
 S<[I<command>]>
 
@@ -94,6 +95,15 @@ at all.
 
 Specify a directory which contains additional configuration for fakechroot. The
 default directory are C<$HOME/.fakechroot> and C</etc/fakechroot>.
+
+=item B<-b>|B<--bindir> I<directory>
+
+Specify a directory which contains the replacement executables
+shipped with fakechroot.
+Those are script files with the extension C<.fakechroot>.
+By default they are distributed over the
+C<bin> and C<sbin> directories in fakechroot's install prefix,
+but sometimes a fixed location at build time is not feasible.
 
 =item [B<-->] I<command>
 

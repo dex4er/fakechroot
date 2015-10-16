@@ -10,11 +10,11 @@ fi
 fakechroot_chroot_env_cmd_subst=""
 for fakechroot_chroot_env_d in `echo $PATH | tr ':' ' '`; do
     fakechroot_chroot_env_cmd_subst="$fakechroot_chroot_env_cmd_subst
-        $fakechroot_chroot_env_d/chroot=@sbindir@/chroot.fakechroot
-        $fakechroot_chroot_env_d/env=@bindir@/env.fakechroot
+        $fakechroot_chroot_env_d/chroot=${fakechroot_bindir:-@sbindir@}/chroot.fakechroot
+        $fakechroot_chroot_env_d/env=${fakechroot_bindir:-@bindir@}/env.fakechroot
         $fakechroot_chroot_env_d/ischroot=/bin/true
         $fakechroot_chroot_env_d/ldconfig=/bin/true
-        $fakechroot_chroot_env_d/ldd=@bindir@/ldd.fakechroot
+        $fakechroot_chroot_env_d/ldd=${fakechroot_bindir:-@bindir@}/ldd.fakechroot
     "
 done
 FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}`echo $fakechroot_chroot_env_cmd_subst | tr ' ' ':'`"
