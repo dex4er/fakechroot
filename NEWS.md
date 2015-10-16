@@ -2,6 +2,7 @@
 
 UNRELEASED
 
+* The `chfn`(1) command runs correctly on Ubuntu vidid and Debian stretch.
 * The `env`(1) wrapper works correctly if there is variable with multilined
   content.
 
