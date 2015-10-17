@@ -16,6 +16,7 @@ TESTS = \
     t/fts.t \
     t/ftw.t \
     t/host.t \
+    t/java.t \
     t/mkstemps.t \
     t/mktemp.t \
     t/opendir.t \
@@ -49,11 +50,14 @@ EXTRA_DIST = $(TESTS) \
     testtree.sh \
     touch.inc.sh \
     bin/fakechroot \
+    java/Hello.java \
+    java/manifest.txt \
     t/cmd-subst-pwd.sh \
     #
 
 clean-local:
 	-rm -rf testtree-*
+	-rm -f java/*.class java/*.jar
 
 check-src:
 	cd src && $(MAKE) $(AM_MAKEFLAGS) check

@@ -117,8 +117,10 @@ for p in \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
+    'libstdc++.so.*' \
     'libtinfo.so.*' \
     'libutil.so.*' \
+    'libz.so.*' \
     'linux-vdso.so.*'
 do
     for d in \

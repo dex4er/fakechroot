@@ -31,9 +31,11 @@ Makefile.in
 /libtool
 /ltmain.sh
 
-# Artefacts
+# pod2man
 *.1
 *.8
+
+# scripts
 /scripts/*.env
 /scripts/*.fakechroot
 /scripts/fakechroot
@@ -48,6 +50,10 @@ Makefile.in
 !/test/src/test-*.c
 /test/testtree/
 /test/testtree-*/
+
+# Java
+*.class
+*.jar
 
 # Dist
 *.gz

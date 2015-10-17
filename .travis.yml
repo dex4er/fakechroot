@@ -7,6 +7,7 @@ addons:
     - debootstrap
     - libtool
     - lsb-release
+    - openjdk-7-jdk
 language: c
 script:
   - ./autogen.sh
