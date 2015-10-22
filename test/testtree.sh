@@ -110,6 +110,7 @@ for p in \
     'libdl.so.*' \
     'libedit.so.*' \
     'libelf.so.*' \
+    'libjemalloc.so.*' \
     'libgcc_s.so.*' \
     'libm.so.*' \
     'libncurses.so.*' \

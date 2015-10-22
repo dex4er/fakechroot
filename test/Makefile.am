@@ -17,6 +17,7 @@ TESTS = \
     t/ftw.t \
     t/host.t \
     t/java.t \
+    t/jemalloc.t \
     t/mkstemps.t \
     t/mktemp.t \
     t/opendir.t \
