@@ -77,6 +77,7 @@ AC_CHECK_HEADERS(m4_normalize([
     link.h
     pwd.h
     shadow.h
+    spawn.h
     signal.h
     stdarg.h
     stdint.h
@@ -238,6 +239,8 @@ AC_CHECK_FUNCS(m4_normalize([
     opendir
     pathconf
     popen
+    posix_spawn
+    posix_spawnp
     rawmemchr
     readlink
     readlinkat
