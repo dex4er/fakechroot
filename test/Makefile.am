@@ -22,6 +22,8 @@ TESTS = \
     t/mktemp.t \
     t/opendir.t \
     t/popen.t \
+    t/posix_spawn.t \
+    t/posix_spawnp.t \
     t/pwd.t \
     t/readlink.t \
     t/realpath.t \
