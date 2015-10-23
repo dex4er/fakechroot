@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
 
 #ifdef HAVE_POSIX_SPAWNP
 #define _GNU_SOURCE
+#define _DEFAULT_SOURCE
 #include <errno.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -40,10 +41,10 @@
    Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
    Free Software Foundation, Inc.
  */
-wrapper(posix_spawnp, int, (pid_t* pid, const char* file, 
-		const posix_spawn_file_actions_t* file_actions,
-		const posix_spawnattr_t* attrp, char *const argv[],
-		char *const envp[]))
+wrapper(posix_spawnp, int, (pid_t* pid, const char* file,
+        const posix_spawn_file_actions_t* file_actions,
+        const posix_spawnattr_t* attrp, char *const argv[],
+        char *const envp[]))
 {
     debug("posix_spawnp(\"%s\", {\"%s\", ...})", file, argv[0]);
     if (*file == '\0') {

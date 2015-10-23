@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -33,44 +33,6 @@
 #include "open.h"
 #include "setenv.h"
 #include "readlink.h"
-
-
-/* Parse the FAKECHROOT_CMD_SUBST environment variable (the first
- * parameter) and if there is a match with filename, return the
- * substitution in cmd_subst.  Returns non-zero if there was a match.
- *
- * FAKECHROOT_CMD_SUBST=cmd=subst:cmd=subst:...
- */
-static int try_cmd_subst (char * env, const char * filename, char * cmd_subst)
-{
-    int len, len2;
-    char *p;
-
-    if (env == NULL || filename == NULL)
-        return 0;
-
-    /* Remove trailing dot from filename */
-    if (filename[0] == '.' && filename[1] == '/')
-        filename++;
-    len = strlen(filename);
-
-    do {
-        p = strchrnul(env, ':');
-
-        if (strncmp(env, filename, len) == 0 && env[len] == '=') {
-            len2 = p - &env[len+1];
-            if (len2 >= FAKECHROOT_PATH_MAX)
-                len2 = FAKECHROOT_PATH_MAX - 1;
-            strncpy(cmd_subst, &env[len+1], len2);
-            cmd_subst[len2] = '\0';
-            return 1;
-        }
-
-        env = p;
-    } while (*env++ != '\0');
-
-    return 0;
-}
 
 
 wrapper(execve, int, (const char * filename, char * const argv [], char * const envp []))
@@ -108,7 +70,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     /* Substitute command only if FAKECHROOT_CMD_ORIG is not set. Unset variable if it is empty. */
     cmdorig = getenv("FAKECHROOT_CMD_ORIG");
     if (cmdorig == NULL)
-        do_cmd_subst = try_cmd_subst(getenv("FAKECHROOT_CMD_SUBST"), argv0, substfilename);
+        do_cmd_subst = fakechroot_try_cmd_subst(getenv("FAKECHROOT_CMD_SUBST"), argv0, substfilename);
     else if (!*cmdorig)
         unsetenv("FAKECHROOT_CMD_ORIG");
 
