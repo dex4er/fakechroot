@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <signal.h>
 #include <spawn.h>
 #include <string.h>
 #include <stdlib.h>
