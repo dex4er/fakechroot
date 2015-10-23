@@ -5,6 +5,7 @@ addons:
     - automake
     - colorgcc
     - debootstrap
+    - libjemalloc1
     - libtool
     - lsb-release
     - openjdk-7-jdk
