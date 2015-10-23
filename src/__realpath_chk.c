@@ -22,6 +22,8 @@
 
 #ifdef HAVE___REALPATH_CHK
 
+#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _FORTIFY_SOURCE 2
 #include <stddef.h>
 #include <stdlib.h>
