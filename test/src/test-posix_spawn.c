@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 500
+#define _DEFAULT_SOURCE
 #include <sys/types.h>
 #include <signal.h>
 #include <spawn.h>

@@ -9,6 +9,9 @@ addons:
     - lsb-release
     - openjdk-7-jdk
 language: c
+before_script:
+  - lsb_release -a
+  - $TRAVIS_CC --version
 script:
   - ./autogen.sh
   - ./configure CC=$TRAVIS_CC
