@@ -10,7 +10,7 @@ UNRELEASED
   `dlopen`(3) function was fixed. The `java`(1) command should work correctly.
 * New functions `posix_spawn`(3) and `posix_spawnp`(3) were added. Some new
   applications like `clang`(1) should run properly.
-* Fixes were made for `rel2abs`(3) and `rel2absat`(3) functions. The ending
+* Fixes were made for `lstat`(2) and `lstat64`(2) functions. The ending
   slash is not removed by normalization of a path name.
 * Fixes were made for `readlink`(2) function. The `fakechroot`(1) command runs
   properly with `libjemalloc` library.
