@@ -10,6 +10,8 @@ UNRELEASED
   properly with `libjemalloc` library.
 * New functions `ldaddr`(3) and `dl_iterate_phdr`(3) were added. The
   `dlopen`(3) function was fixed. The `java`(1) command should work correctly.
+* New functions `posix_spawn`(3) and `posix_spawnp`(3) were added. Some new
+  applications like `clang`(1) should run properly.
 * The tilde `~` character in `FAKECHROOT_*` variables is not expanded anymore.
 * Fixes were made for `getpeeraddr`(3) and `getsockaddr`(3) functions.
 
