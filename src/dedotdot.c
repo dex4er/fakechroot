@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2013-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -54,15 +54,11 @@
 
 LOCAL void dedotdot(char * file)
 {
-    char *cp, *cp2;
+    char c, *cp, *cp2;
     int l;
 
     if (!file || !*file)
         return;
-
-    if ((l = strlen(file)) > 0)
-        for (cp = file + l - 1; cp > file && *cp == '/'; cp--)
-            *cp = '\0';
 
     /* Collapse any multiple / sequences. */
     while ((cp = strstr(file, "//")) != (char*) 0) {
@@ -77,7 +73,7 @@ LOCAL void dedotdot(char * file)
     while ((cp = strstr(file, "/./")) != (char*) 0)
         (void) strlcpy(cp, cp + 2, strlen(cp) - 1);
 
-    /* Alternate between removing leading ../ and removing xxx/../ */
+    /* Alternate between removing leading ../ and removing foo/../ */
     for (;;) {
         while (strncmp(file, "/../", 4) == 0)
             (void) strlcpy(file, file + 3, strlen(file) - 2);
@@ -89,7 +85,7 @@ LOCAL void dedotdot(char * file)
         (void) strlcpy(cp2 + 1, cp + 4, strlen(cp) - 3);
     }
 
-    /* Also elide any xxx/.. at the end. */
+    /* Also elide any foo/.. at the end. */
     while (strncmp(file, "../", 3) != 0 && (l = strlen(file)) > 3
             && strcmp((cp = file + l - 3), "/..") == 0) {
 
@@ -101,9 +97,12 @@ LOCAL void dedotdot(char * file)
         if (strncmp(cp2, "../", 3) == 0)
             break;
 
-        if (*cp2 == '/')
-            cp2++;
+        c = *cp2;
         *cp2 = '\0';
+
+        if (file == cp2 && c == '/') {
+            strcpy(file, "/");
+        }
     }
 
     /* Correct some paths */
@@ -116,11 +115,6 @@ LOCAL void dedotdot(char * file)
 
     /* Any /. and the end */
     for (l = strlen(file); l > 3 && strcmp((cp = file + l - 2), "/.") == 0; l -= 2) {
-        *cp = '\0';
-    }
-
-    /* Any / and the end */
-    for (l = strlen(file); l > 2 && *(cp = file + l - 1) == '/'; l--) {
         *cp = '\0';
     }
 }
