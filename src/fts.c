@@ -32,7 +32,8 @@
 
 #include <config.h>
 
-#define _BSD_SOURCE
+#define _ATFILE_SOURCE
+#define _XOPEN_SOURCE 500
 #define _DEFAULT_SOURCE
 #include <sys/param.h>
 #include <sys/stat.h>

@@ -24,6 +24,7 @@
 
 #define _ATFILE_SOURCE
 #define _XOPEN_SOURCE 500
+#define _DEFAULT_SOURCE
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
