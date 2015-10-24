@@ -38,7 +38,7 @@
 
 LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
 {
-    int cwdfd;
+    int cwdfd = 0;
     char cwd[FAKECHROOT_PATH_MAX];
 
     debug("rel2absat(%d, \"%s\", &resolved)", dirfd, name);
