@@ -83,3 +83,4 @@ fakechroot had found another purposes:
 * to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images
 * to be a supporter for [febootstrap](http://et.redhat.com/~rjones/febootstrap/), the tool which can set up new Fedora system.
 * to be a part of [cuntubuntu](https://play.google.com/store/apps/details?id=com.cuntubuntu) - Ubuntu for Android without root
+* to be a supporter for [selenium-chroot](https://github.com/gagern/selenium-chroot) setup
