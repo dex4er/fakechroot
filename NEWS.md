@@ -1,3 +1,22 @@
+## Version 2.18
+
+26 Oct 2015
+
+* The `fakechroot`(1) command accepts new option `--bindir`.
+* The `chfn`(1) command runs correctly on Ubuntu vidid and Debian stretch.
+* The `env`(1) wrapper works correctly if there is variable with multilined
+  content.
+* New functions `ldaddr`(3) and `dl_iterate_phdr`(3) were added. The
+  `dlopen`(3) function was fixed. The `java`(1) command should work correctly.
+* New functions `posix_spawn`(3) and `posix_spawnp`(3) were added. Some new
+  applications like `clang`(1) should run properly.
+* Fixes were made for `lstat`(2) and `lstat64`(2) functions. The ending
+  slash is not removed by normalization of a path name.
+* Fixes were made for `readlink`(2) function. The `fakechroot`(1) command runs
+  properly with `libjemalloc` library.
+* The tilde `~` character in `FAKECHROOT_*` variables is not expanded anymore.
+* Fixes were made for `getpeeraddr`(3) and `getsockaddr`(3) functions.
+
 ## Version 2.17.2
 
 24 Dec 2013

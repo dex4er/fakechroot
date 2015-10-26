@@ -25,7 +25,7 @@ die () {
 command -v fakeroot >/dev/null 2>&1 || die 'fakeroot command is missing (sudo apt-get install fakeroot)'
 
 mirror=${MIRROR:-http://mirrors.kernel.org/archlinux}
-release=${RELEASE:-2013.11.01}
+release=${RELEASE:-2015.10.01}
 arch=${ARCH:-`uname -m`}
 
 case $arch in

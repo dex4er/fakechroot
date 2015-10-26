@@ -7,6 +7,7 @@ check_PROGRAMS = \
     test-execve-null-envp \
     test-fts \
     test-ftw \
+    test-hello \
     test-lstat \
     test-mkdtemp \
     test-mkstemp \
@@ -14,6 +15,8 @@ check_PROGRAMS = \
     test-mktemp \
     test-opendir \
     test-popen \
+    test-posix_spawn \
+    test-posix_spawnp \
     test-realpath \
     test-scandir \
     test-socket-af_unix-client \
@@ -23,4 +26,5 @@ check_PROGRAMS = \
     test-system \
     #
 
-AM_CFLAGS = -Wall -Wno-deprecated-declarations
+AM_CFLAGS = $(EXTRA_CFLAGS)
+AM_LDFLAGS = $(EXTRA_LDFLAGS)

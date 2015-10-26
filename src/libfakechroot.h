@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -190,6 +190,12 @@
       ) \
     )
 
+#ifdef __clang__
+# if __clang_major > 4 || __clang_major__ == 3 && __clang_minor__ >= 6
+#  pragma clang diagnostic ignored "-Wpointer-bool-conversion"
+# endif
+#endif
+
 typedef void (*fakechroot_wrapperfn_t)(void);
 
 struct fakechroot_wrapper {
@@ -205,9 +211,10 @@ extern const int preserve_env_list_count;
 int fakechroot_debug (const char *, ...);
 fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
+int fakechroot_try_cmd_subst (char *, const char *, char *);
 
 
-/* We don't want to define _BSD_SOURCE and include stdio.h */
+/* We don't want to define _BSD_SOURCE and _DEFAULT_SOURCE and include stdio.h */
 int snprintf(char *, size_t, const char *, ...);
 
 #endif

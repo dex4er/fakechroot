@@ -1,6 +1,7 @@
 /* Work around a bug of lstat on some systems
 
    Copyright (C) 1997-2006, 2008-2010 Free Software Foundation, Inc.
+   Copyright (c) 2013, 2015 Piotr Roszatycki <dexter@debian.org>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@
 
 /* Get the original definition of lstat.  It might be defined as a macro.  */
 # define __need_system_sys_stat_h
+# define _BSD_SOURCE 1
 # include <sys/types.h>
 # include <sys/stat.h>
 # undef __need_system_sys_stat_h

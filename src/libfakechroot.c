@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2003, 2005, 2007-2011 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2003-2015 Piotr Roszatycki <dexter@debian.org>
     Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
     Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
 
@@ -28,6 +28,7 @@
 
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pwd.h>
@@ -36,6 +37,7 @@
 #include "setenv.h"
 #include "libfakechroot.h"
 #include "getcwd_real.h"
+#include "strchrnul.h"
 
 
 /* Useful to exclude a list of directories or files */
@@ -43,7 +45,6 @@ static char *exclude_list[32];
 static int exclude_length[32];
 static int list_max = 0;
 static int first = 0;
-static char *home_path = NULL;
 
 
 /* List of environment variables to preserve on clearenv() */
@@ -109,7 +110,6 @@ void fakechroot_init (void)
     debug("FAKECHROOT_CMD_ORIG=\"%s\"", getenv("FAKECHROOT_CMD_ORIG"));
 
     if (!first) {
-        struct passwd *passwd = NULL;
         char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
 
         first = 1;
@@ -128,14 +128,6 @@ void fakechroot_init (void)
                 if (exclude_path[j] != ':') break;
                 i = j + 1;
             }
-        }
-
-        /* We get the home of the user */
-        passwd = getpwuid(getuid());
-        if (passwd && passwd->pw_dir) {
-            home_path = malloc(strlen(passwd->pw_dir) + 2);
-            strcpy(home_path, passwd->pw_dir);
-            strcat(home_path, "/");
         }
 
         __setenv("FAKECHROOT", "true", 1);
@@ -169,13 +161,6 @@ LOCAL int fakechroot_localdir (const char * p_path)
     if (!first)
         fakechroot_init();
 
-    /* We need to expand ~ paths */
-    if (home_path != NULL && p_path[0] == '~' && (p_path[1] == '\0' || p_path[1] == '/')) {
-        strcpy(cwd_path, home_path);
-        strcat(cwd_path, &(p_path[1]));
-        v_path = cwd_path;
-    }
-
     /* We need to expand relative paths */
     if (p_path[0] != '/') {
         getcwd_real(cwd_path, FAKECHROOT_PATH_MAX);
@@ -195,6 +180,45 @@ LOCAL int fakechroot_localdir (const char * p_path)
             if (exclude_length[i] == len || v_path[exclude_length[i]] == '/') return 1;
         }
     }
+
+    return 0;
+}
+
+
+/*
+ * Parse the FAKECHROOT_CMD_SUBST environment variable (the first
+ * parameter) and if there is a match with filename, return the
+ * substitution in cmd_subst.  Returns non-zero if there was a match.
+ *
+ * FAKECHROOT_CMD_SUBST=cmd=subst:cmd=subst:...
+ */
+LOCAL int fakechroot_try_cmd_subst (char * env, const char * filename, char * cmd_subst)
+{
+    int len, len2;
+    char *p;
+
+    if (env == NULL || filename == NULL)
+        return 0;
+
+    /* Remove trailing dot from filename */
+    if (filename[0] == '.' && filename[1] == '/')
+        filename++;
+    len = strlen(filename);
+
+    do {
+        p = strchrnul(env, ':');
+
+        if (strncmp(env, filename, len) == 0 && env[len] == '=') {
+            len2 = p - &env[len+1];
+            if (len2 >= FAKECHROOT_PATH_MAX)
+                len2 = FAKECHROOT_PATH_MAX - 1;
+            strncpy(cmd_subst, &env[len+1], len2);
+            cmd_subst[len2] = '\0';
+            return 1;
+        }
+
+        env = p;
+    } while (*env++ != '\0');
 
     return 0;
 }

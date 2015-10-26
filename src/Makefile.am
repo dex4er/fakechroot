@@ -28,6 +28,7 @@ libfakechroot_la_SOURCES = \
     _xftw64.c \
     access.c \
     acct.c \
+    audit_log_acct_message.c \
     bind.c \
     bindtextdomain.c \
     canonicalize_file_name.c \
@@ -41,6 +42,8 @@ libfakechroot_la_SOURCES = \
     creat64.c \
     dedotdot.c \
     dedotdot.h \
+    dl_iterate_phdr.c \
+    dladdr.c \
     dlmopen.c \
     dlopen.c \
     eaccess.c \
@@ -116,6 +119,8 @@ libfakechroot_la_SOURCES = \
     opendir.h \
     pathconf.c \
     popen.c \
+    posix_spawn.c \
+    posix_spawnp.c \
     rawmemchr.c \
     rawmemchr.h \
     readlink.c \
@@ -165,4 +170,5 @@ libfakechroot_la_SOURCES = \
     utimes.c
 libfakechroot_la_LDFLAGS = -avoid-version
 
-AM_CFLAGS = -Wall -Wno-deprecated-declarations
+AM_CFLAGS = $(EXTRA_CFLAGS)
+AM_LDFLAGS = $(EXTRA_LDFLAGS)

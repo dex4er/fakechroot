@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2013-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 
 #define _BSD_SOURCE
 #define _GNU_SOURCE
+#define _DEFAULT_SOURCE
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -37,7 +38,7 @@
 
 LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
 {
-    int cwdfd;
+    int cwdfd = 0;
     char cwd[FAKECHROOT_PATH_MAX];
 
     debug("rel2absat(%d, \"%s\", &resolved)", dirfd, name);
@@ -52,24 +53,32 @@ LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
         goto end;
     }
 
-    strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+    if (*name == '/') {
+        strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+    } else if(dirfd == AT_FDCWD) {
+        if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
+            goto error;
+        }
+        snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
+    } else {
+        if ((cwdfd = nextcall(open)(".", O_RDONLY|O_DIRECTORY)) == -1) {
+            goto error;
+        }
 
-    if ((cwdfd = nextcall(open)(".", O_RDONLY|O_DIRECTORY)) == -1) {
-        goto error;
+        if (fchdir(dirfd) == -1) {
+            goto error;
+        }
+        if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
+            goto error;
+        }
+        if (fchdir(cwdfd) == -1) {
+            goto error;
+        }
+        (void)close(cwdfd);
+
+        snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
     }
 
-    if (fchdir(dirfd) == -1) {
-        goto error;
-    }
-    if (getcwd(cwd, FAKECHROOT_PATH_MAX) == NULL) {
-        goto error;
-    }
-    if (fchdir(cwdfd) == -1) {
-        goto error;
-    }
-    (void)close(cwdfd);
-
-    snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
     dedotdot(resolved);
 
 end:

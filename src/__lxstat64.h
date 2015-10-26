@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2013, 2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 # define _LARGEFILE64_SOURCE
 #endif
 #ifndef _XOPEN_SOURCE
-# define _XOPEN_SOURCE
+# define _XOPEN_SOURCE 500
 #endif
 #include <sys/stat.h>
 

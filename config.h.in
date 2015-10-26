@@ -153,6 +153,9 @@
 /* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
 
+/* Define to 1 if you have the `dladdr' function. */
+#undef HAVE_DLADDR
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
@@ -161,6 +164,9 @@
 
 /* Define to 1 if you have the `dlopen' function. */
 #undef HAVE_DLOPEN
+
+/* Define to 1 if you have the `dl_iterate_phdr' function. */
+#undef HAVE_DL_ITERATE_PHDR
 
 /* Define to 1 if you have the `eaccess' function. */
 #undef HAVE_EACCESS
@@ -355,6 +361,9 @@
 /* Define to 1 if you have the `linkat' function. */
 #undef HAVE_LINKAT
 
+/* Define to 1 if you have the <link.h> header file. */
+#undef HAVE_LINK_H
+
 /* Define to 1 if you have the `listxattr' function. */
 #undef HAVE_LISTXATTR
 
@@ -460,6 +469,12 @@
 /* Define to 1 if you have the `popen' function. */
 #undef HAVE_POPEN
 
+/* Define to 1 if you have the `posix_spawn' function. */
+#undef HAVE_POSIX_SPAWN
+
+/* Define to 1 if you have the `posix_spawnp' function. */
+#undef HAVE_POSIX_SPAWNP
+
 /* Define to 1 if the system has the type `ptrdiff_t'. */
 #undef HAVE_PTRDIFF_T
 
@@ -550,6 +565,9 @@
 
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the <spawn.h> header file. */
+#undef HAVE_SPAWN_H
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT

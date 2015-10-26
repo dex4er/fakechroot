@@ -32,6 +32,10 @@ wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("readlink(\"%s\", &buf, %zd)", path, bufsiz);
+    if (!strcmp(path, "/etc/malloc.conf")) {
+        errno = ENOENT;
+        return -1;
+    }
     expand_chroot_path(path);
 
     if ((linksize = nextcall(readlink)(path, tmp, FAKECHROOT_PATH_MAX-1)) == -1) {

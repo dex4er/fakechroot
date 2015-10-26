@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010, 2013, 2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,9 @@
 #ifdef HAVE___LXSTAT
 
 #define _ATFILE_SOURCE
-#define _XOPEN_SOURCE
+#define _BSD_SOURCE
+#define _XOPEN_SOURCE 500
+#define _DEFAULT_SOURCE
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -44,7 +46,7 @@ wrapper(__lxstat, int, (int ver, const char * filename, struct stat * buf))
     expand_chroot_path(filename);
     retval = nextcall(__lxstat)(ver, filename, buf);
     /* deal with http://bugs.debian.org/561991 */
-    if ((buf->st_mode & S_IFMT) == S_IFLNK)
+    if ((retval == 0) && (buf->st_mode & S_IFMT) == S_IFLNK)
         if ((linksize = readlink(orig_filename, tmp, sizeof(tmp)-1)) != -1)
             buf->st_size = linksize;
 

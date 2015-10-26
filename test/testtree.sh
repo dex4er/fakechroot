@@ -110,6 +110,7 @@ for p in \
     'libdl.so.*' \
     'libedit.so.*' \
     'libelf.so.*' \
+    'libjemalloc.so.*' \
     'libgcc_s.so.*' \
     'libm.so.*' \
     'libncurses.so.*' \
@@ -117,8 +118,10 @@ for p in \
     'libpthread.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
+    'libstdc++.so.*' \
     'libtinfo.so.*' \
     'libutil.so.*' \
+    'libz.so.*' \
     'linux-vdso.so.*'
 do
     for d in \

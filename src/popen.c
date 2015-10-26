@@ -2,6 +2,7 @@
 /*
  * Copyright (c) 1988, 1993
  *      The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
  *
  * This code is derived from software written by Ken Arnold and
  * published in UNIX Review, Vol. 6, No. 8.
@@ -35,8 +36,9 @@
 
 #ifdef __GNUC__
 
-#define _POSIX_SOURCE
 #define _BSD_SOURCE
+#define _POSIX_SOURCE
+#define _DEFAULT_SOURCE
 #include <sys/param.h>
 #include <sys/wait.h>
 

@@ -3,6 +3,7 @@
 /*-
  * Copyright (c) 1990, 1993, 1994
  *      The Regents of the University of California.  All rights reserved.
+ * Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +32,10 @@
 
 #include <config.h>
 
+#define _ATFILE_SOURCE
 #define _BSD_SOURCE
+#define _XOPEN_SOURCE 500
+#define _DEFAULT_SOURCE
 #include <sys/param.h>
 #include <sys/stat.h>
 

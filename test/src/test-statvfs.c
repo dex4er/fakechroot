@@ -24,6 +24,10 @@ int main (int argc, char *argv[]) {
         exit(1);
     }
 
+#ifdef __clang__
+# pragma clang diagnostic ignored "-Wformat"
+#endif
+
     printf((sizeof(statvfsb.f_bsize) == 8 ? "%ld\n" : "%d\n"), statvfsb.f_bsize);
 
     return 0;
