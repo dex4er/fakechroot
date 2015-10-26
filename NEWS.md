@@ -1,6 +1,6 @@
 ## Version 2.18
 
-UNRELEASED
+26 Oct 2015
 
 * The `fakechroot`(1) command accepts new option `--bindir`.
 * The `chfn`(1) command runs correctly on Ubuntu vidid and Debian stretch.
