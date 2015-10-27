@@ -6,20 +6,21 @@ srcdir=${srcdir:-.}
 command -v dpkg >/dev/null 2>&1 || skip_all 'dpkg command is missing'
 arch=`dpkg --print-architecture`
 
+JAVA_HOME=/usr/lib/jvm/java-7-openjdk-$arch
+
 command -v javac >/dev/null 2>&1 || skip_all 'javac command is missing (sudo apt-get install openjdk-7-jdk)'
-test -d /usr/lib/jvm/java-7-openjdk-$arch >/dev/null 2>&1 || skip_all "/usr/lib/jvm/java-7-openjdk-$arch directory is missing (sudo apt-get install openjdk-7-jdk)"
+test -d $JAVA_HOME >/dev/null 2>&1 || skip_all "$JAVA_HOME directory is missing (sudo apt-get install openjdk-7-jdk)"
 
 unset JAVA_TOOL_OPTIONS
 
 (
-    set -x
-    java -version
-    javac -version
-    javac java/Hello.java
-    ( cd java && jar cvfm hello.jar manifest.txt Hello.class )
-) 2>&1 | while read line; do
-    echo "# $line"
-done
+    $JAVA_HOME/bin/java -version
+    $JAVA_HOME/bin/javac -version
+) 2>&1 | diag
+(
+    $JAVA_HOME/bin/javac java/Hello.java >/dev/null
+    ( cd java && $JAVA_HOME/bin/jar cvfm hello.jar manifest.txt Hello.class )
+) >/dev/null 2>&1
 
 test -f java/hello.jar >/dev/null 2>&1 || skip_all "java/hello.jar is missing: some problem with java compiler"
 
