@@ -1,13 +1,24 @@
+Copyright (c) 2003-2015 Piotr Roszatycki <dexter@debian.org>
+
 fakechroot is distributed under the GNU Lesser General Public License (LGPL
 2.1 or greater).
 
 Additional copyrights:
+
+src/libfakechroot.c file
+Copyright (c) 2003-2015 Piotr Roszatycki <dexter@debian.org>
+Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
+Copyright (c) 2006, 2007 Alexander Shishkin <virtuoso@slind.org>
+Copyright (c) 2006, 2007 Lionel Tricon <lionel.tricon@free.fr>
 
 audit_log_acct_message function taken from Debian bug #745082.
 Copyright (c) 2015 JH Chatenet <jhcha54008@free.fr>
 
 dedotdot function taken from mini_httpd - small HTTP server
 Copyright (C) 1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
+
+dl_iterate_phdr, dladdr and dlopen functions
+Copyright (c) 2014 Robin McCorkell <rmccorkell@karoshi.org.uk>
 
 execl function taken from GNU C Library.
 Copyright (C) 1991,92,94,97,98,99,2002,2005 Free Software Foundation, Inc.
@@ -47,6 +58,10 @@ This software is distributed under the BSD-style license.
 
 popen function taken from OpenBSD.
 Copyright (c) 1988, 1993 The Regents of the University of California.
+
+posix_spawnp function taken from the execvp function in the GNU C Library.
+Copyright (C) 1991,92, 1995-99, 2002, 2004, 2005, 2007, 2009
+Free Software Foundation, Inc.
 
 rawmemchr function taken from uClibc
 Copyright (C) 2002 Manuel Novoa III
