@@ -110,9 +110,19 @@ else
                 *) echo $fakechroot_env_key
             esac
         done`
+        # It's possible for some environments to contain variables which
+        # are not valid shell variable identifiers. Some shells, such as
+        # bash and dash (at least) will refuse to unset them.
+        #   We don't wish for shell complaints to taint shell results,
+        # so we'll redirect away stderr and stdout during the unsets.
+        #   (Doing it as separate exec statements, because I'm not certain
+        # whether some shells might use a subshell for an inline
+        # redirect.)
+        exec 101>&1 102>&2 1>/dev/null 2>/dev/null
         for fakechroot_env_key in $fakechroot_env_keys; do
-            unset $fakechroot_env_key
+            unset $fakechroot_env_key || true
         done
+        exec 1>&101 2>&102 101>&- 102>&-
     fi
 
     while [ $# -gt 1 ]; do
