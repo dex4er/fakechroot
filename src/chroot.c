@@ -75,6 +75,7 @@ wrapper(chroot, int, (const char * path))
         expand_chroot_path(path);
     }
     else {
+        size_t tmplen;
         if (*path == '/') {
             expand_chroot_rel_path(path);
             strlcpy(tmp, path, FAKECHROOT_PATH_MAX);
@@ -85,6 +86,10 @@ wrapper(chroot, int, (const char * path))
             snprintf(tmp, FAKECHROOT_PATH_MAX, "%s/%s", cwd, path);
             dedotdot(tmpptr);
             path = tmpptr;
+        }
+        tmplen = strlen(tmpptr);
+        while(tmplen > 1 && tmpptr[tmplen - 1] == '/') {
+            tmpptr[--tmplen] = '\0';
         }
     }
 
