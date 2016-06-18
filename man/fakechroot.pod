@@ -58,7 +58,7 @@ directly.
 =item B<-s>|B<--use-system-libs>
 
 Use system libraries before chroot's libraries. This might be a workaround if
-system dynamic linker can not load F<libc.so> from fake chroot.
+system dynamic linker cannot load F<libc.so> from fake chroot.
 
 Try this setting if you noticed following errors:
 
@@ -107,7 +107,7 @@ but sometimes a fixed location at build time is not feasible.
 
 =item [B<-->] I<command>
 
-Any command you want to be ran as fakechroot. Use 'B<-->' if in the command
+Any command you want to be run as fakechroot. Use 'B<-->' if in the command
 you have other options that may confuse fakechroot's option parsing.
 
 =item B<-h>

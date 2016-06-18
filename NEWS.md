@@ -45,7 +45,7 @@
   linker.  The `fakechroot` script provides `--elfloader` option.
 * The `FAKECHROOT_EXCLUDE_PATH` environment variable overrides the default
   settings.
-* The `ldd`(1) wrapper can work if overriden with `FAKECHROOT_CMD_SUBST`
+* The `ldd`(1) wrapper can work if overridden with `FAKECHROOT_CMD_SUBST`
   environment variable.
 * New `env`(1) wrapper was added.  It preserves fakechroot environment even
   for `--ignore-environment` option.

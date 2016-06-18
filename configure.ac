@@ -53,7 +53,7 @@ AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/l
 AC_PATH_PROG([PERL], [perl], [/usr/bin/perl], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([SHELL], [bash ksh sh], [/bin/sh], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
 
-# Checks for compilator features
+# Checks for compiler features
 ACX_CHECK_C_ALIGNOF
 ACX_CHECK_C_ATTRIBUTE([constructor])
 ACX_CHECK_C_ATTRIBUTE_SECTION([data.fakechroot])
