@@ -1,33 +1,44 @@
 sudo: false
+
+language: c
+
+os:
+  - linux
+
 addons:
   apt:
     packages:
-    - automake
-    - colorgcc
-    - debootstrap
-    - libjemalloc1
-    - libtool
-    - lsb-release
-    - openjdk-6-jdk
-    - openjdk-7-jdk
-    - openjdk-8-jdk
-language: c
+      - automake
+      - colorgcc
+      - debootstrap
+      - libjemalloc1
+      - libtool
+      - lsb-release
+      - openjdk-6-jdk
+      - openjdk-7-jdk
+      - openjdk-8-jdk
+
 before_script:
   - lsb_release -a
   - $TRAVIS_CC --version
+
 script:
   - ./autogen.sh
   - ./configure CC=$TRAVIS_CC
   - make
   - make test
+
 env:
+
   global:
     - TEST_DEBOOTSTRAP=1
     - TEST_DEBOOTSTRAP_CACHE=cache
+
   matrix:
     - TRAVIS_CC=colorgcc EXTRA_CFLAGS='-Wall -Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-Wall -Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-std=c11 -Wall -Werror'
+
 cache:
   directories:
     - test/cache
