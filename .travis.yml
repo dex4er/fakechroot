@@ -8,7 +8,9 @@ addons:
     - libjemalloc1
     - libtool
     - lsb-release
+    - openjdk-6-jdk
     - openjdk-7-jdk
+    - openjdk-8-jdk
 language: c
 before_script:
   - lsb_release -a

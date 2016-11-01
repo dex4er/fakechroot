@@ -6,37 +6,42 @@ srcdir=${srcdir:-.}
 command -v dpkg >/dev/null 2>&1 || skip_all 'dpkg command is missing'
 arch=`dpkg --print-architecture`
 
-JAVA_HOME=/usr/lib/jvm/java-7-openjdk-$arch
+prepare 5
 
-command -v javac >/dev/null 2>&1 || skip_all 'javac command is missing (sudo apt-get install openjdk-7-jdk)'
-test -d $JAVA_HOME >/dev/null 2>&1 || skip_all "$JAVA_HOME directory is missing (sudo apt-get install openjdk-7-jdk)"
+for v in `seq 5 9`; do
 
-unset JAVA_TOOL_OPTIONS
+    JAVA_HOME=/usr/lib/jvm/java-$v-openjdk-$arch
 
-(
-    $JAVA_HOME/bin/java -version
-    $JAVA_HOME/bin/javac -version
-) 2>&1 | diag
-(
-    $JAVA_HOME/bin/javac java/Hello.java >/dev/null
-    ( cd java && $JAVA_HOME/bin/jar cvfm hello.jar manifest.txt Hello.class )
-) >/dev/null 2>&1
+    test -d $JAVA_HOME >/dev/null 2>&1 || { skip 1 "$JAVA_HOME directory is missing (sudo apt-get install openjdk-$v-jdk)"; continue; }
+    test -x $JAVA_HOME/bin/javac >/dev/null 2>&1 || { skip 1 'javac command is missing (sudo apt-get install openjdk-$v-jdk)'; continue; }
 
-test -f java/hello.jar >/dev/null 2>&1 || skip_all "java/hello.jar is missing: some problem with java compiler"
+    unset JAVA_TOOL_OPTIONS
 
-prepare 1
+    (
+        $JAVA_HOME/bin/java -version
+        $JAVA_HOME/bin/javac -version
+    ) 2>&1 | diag
+    (
+        $JAVA_HOME/bin/javac java/Hello.java >/dev/null
+        ( cd java && $JAVA_HOME/bin/jar cvfm hello.jar manifest.txt Hello.class )
+    ) >/dev/null 2>&1
 
-mkdir -p $testtree/usr/lib/jvm
-cp -pfR /usr/lib/jvm/java-7-openjdk-$arch $testtree/usr/lib/jvm
-ln -sf /usr/lib/jvm/java-7-openjdk-$arch/bin/java $testtree/usr/bin/java
-cp -pf java/hello.jar $testtree/tmp
+    test -f java/hello.jar >/dev/null 2>&1 || { skip 1 "java/hello.jar is missing: some problem with java compiler"; continue; }
 
-# java doesn't like non-available /proc file system so we don't try to run as root
+    rm -rf $testtree/usr/lib/jvm
+    mkdir -p $testtree/usr/lib/jvm
+    cp -pfR $JAVA_HOME $testtree/usr/lib/jvm
+    ln -sf $JAVA_HOME/bin/java $testtree/usr/bin/java
+    cp -pf java/hello.jar $testtree/tmp
 
-t=`$srcdir/fakechroot.sh $testtree java -jar /tmp/hello.jar 2>&1`
-test "$t" = "Hello world!" || not
-ok "fakechroot java -jar hello.jar:" $t
+    # java doesn't like non-available /proc file system so we don't try to run as root
 
-rm -f java/*.class java/*.jar
+    t=`$srcdir/fakechroot.sh $testtree java -jar /tmp/hello.jar 2>&1`
+    test "$t" = "Hello world!" || not
+    ok "fakechroot java -jar hello.jar:" $t
+
+    rm -f java/*.class java/*.jar
+
+done
 
 cleanup
