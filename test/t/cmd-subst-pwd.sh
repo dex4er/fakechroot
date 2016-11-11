@@ -1,3 +1,3 @@
 #!/bin/sh
 
-echo substituted
+echo ${FAKECHROOT_CMD_ORIG:-(null)}
