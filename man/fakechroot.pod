@@ -230,6 +230,8 @@ of list are separated with colon.
 The F</dev>, F</proc> and F</sys> directories are excluded by default if this
 environment variable is not set.
 
+This list has to contain at most 100 elements.
+
 =item B<FAKECHROOT_ELFLOADER>
 
 A path to another dynamic linker (i.e. F</lib/ld-linux.so.2> for i386

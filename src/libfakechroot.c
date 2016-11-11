@@ -39,10 +39,12 @@
 #include "getcwd_real.h"
 #include "strchrnul.h"
 
+#define EXCLUDE_LIST_SIZE 100
+
 
 /* Useful to exclude a list of directories or files */
-static char *exclude_list[32];
-static int exclude_length[32];
+static char *exclude_list[EXCLUDE_LIST_SIZE];
+static int exclude_length[EXCLUDE_LIST_SIZE];
 static int list_max = 0;
 static int first = 0;
 
@@ -117,7 +119,7 @@ void fakechroot_init (void)
         /* We get a list of directories or files */
         if (exclude_path) {
             int i;
-            for (i = 0; list_max < 32; ) {
+            for (i = 0; list_max < EXCLUDE_LIST_SIZE; ) {
                 int j;
                 for (j = i; exclude_path[j] != ':' && exclude_path[j] != '\0'; j++);
                 exclude_list[list_max] = malloc(j - i + 2);

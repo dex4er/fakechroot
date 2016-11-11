@@ -2,6 +2,7 @@
 
 UNRELEASED
 
+* The `FAKECHROOT_EXCLUDE_PATH` list has to contain at most 100 elements.
 * The `env`(1) wrapper works with dash.
 * Fixes were made for `chdir`(2). It was possible to change to a directory
   outside of fakechroot.
