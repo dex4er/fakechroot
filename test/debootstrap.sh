@@ -8,7 +8,11 @@
 
 srcdir=${srcdir:-.}
 abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
-abs_top_srcdir=${abs_top_srcdir:-`cd "$srcdir/.." 2>/dev/null && pwd -P`}
+
+top_srcdir=${top_srcdir:-..}
+abs_top_srcdir=${abs_top_srcdir:-`cd "$top_srcdir" 2>/dev/null && pwd -P`}
+
+. $top_srcdir/config.sh
 
 test -d "$abs_srcdir/bin" && export PATH="$abs_srcdir/bin:$PATH"
 test -f "$abs_top_srcdir/scripts/debootstrap.env" && . "$abs_top_srcdir/scripts/debootstrap.env"
@@ -22,10 +26,10 @@ die () {
     exit 1
 }
 
-command -v debootstrap >/dev/null 2>&1 || die 'debootstrap command is missing (sudo apt-get install debootstrap)'
-command -v fakeroot    >/dev/null 2>&1 || die 'fakeroot command is missing (sudo apt-get install fakeroot)'
-command -v lsb_release >/dev/null 2>&1 || die 'lsb_release command is missing (sudo apt-get install lsb-release)'
-command -v xzcat       >/dev/null 2>&1 || die 'xzcat command is missing (sudo apt-get install xz-utils)'
+command -v $DEBOOTSTRAP >/dev/null 2>&1 || die 'debootstrap command is missing (sudo apt-get install debootstrap)'
+command -v fakeroot     >/dev/null 2>&1 || die 'fakeroot command is missing (sudo apt-get install fakeroot)'
+command -v lsb_release  >/dev/null 2>&1 || die 'lsb_release command is missing (sudo apt-get install lsb-release)'
+command -v xzcat        >/dev/null 2>&1 || die 'xzcat command is missing (sudo apt-get install xz-utils)'
 
 vendor=${VENDOR:-`lsb_release -s -i`}
 release=${RELEASE:-`lsb_release -s -c`}
@@ -49,18 +53,18 @@ tarball=`test -d "$DEBOOTSTRAP_CACHE" && cd "$DEBOOTSTRAP_CACHE"; pwd`/$vendor-$
 
 debootstrap_opts="--arch=$arch ${variant:+--variant=$variant}"
 if [ ! -f $tarball ]; then
-    FAKECHROOT=true fakeroot debootstrap --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
+    FAKECHROOT=true fakeroot $DEBOOTSTRAP --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
 fi
 
 rm -rf $destdir
 
 ls -l $tarball
 
-fakechroot fakeroot debootstrap --unpack-tarball="$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
+fakechroot fakeroot $DEBOOTSTRAP --unpack-tarball="$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
 
 unset CC CFLAGS LDFLAGS EXTRA_CFLAGS EXTRA_LDFLAGS V
 
-HOME=/root fakechroot fakeroot /usr/sbin/chroot $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
+HOME=/root fakechroot fakeroot $CHROOT $destdir apt-get --force-yes -y --no-install-recommends install build-essential devscripts fakeroot gnupg
 
 run sh -c 'cat /etc/apt/sources.list | sed "s/^deb/deb-src/" >> /etc/apt/sources.list'
 run fakeroot apt-get --force-yes -y update
