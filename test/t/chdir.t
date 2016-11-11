@@ -3,7 +3,7 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
-prepare 8
+prepare 10
 
 for chroot in chroot fakechroot; do
 
@@ -14,6 +14,12 @@ for chroot in chroot fakechroot; do
         for d in / .. /tmp/..; do
             t=`$srcdir/$chroot.sh $testtree /bin/sh -c "cd $d && ls CHROOT"  2>&1`
             test "$t" = "CHROOT" || not
+            ok "$chroot cd $d:" $t
+        done
+
+        for d in ../t; do
+            t=`$srcdir/$chroot.sh $testtree /bin/bash -c "cd $d 2>/dev/null; pwd"  2>&1`
+            test "$t" = "/" || not
             ok "$chroot cd $d:" $t
         done
 

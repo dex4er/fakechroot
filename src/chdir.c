@@ -36,7 +36,7 @@ wrapper(chdir, int, (const char * path))
         return -1;
     }
     if (fakechroot_base != NULL) {
-        if (strstr(cwd, fakechroot_base) == path) {
+        if (strstr(cwd, fakechroot_base) == cwd) {
             expand_chroot_path(path);
         }
         else {

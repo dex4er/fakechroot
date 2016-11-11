@@ -3,6 +3,8 @@
 UNRELEASED
 
 * The `env`(1) wrapper works with dash.
+* Fixes were made for `chdir`(2). It was possible to change to a directory
+  outside of fakechroot.
 
 ## Version 2.18
 
