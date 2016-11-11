@@ -164,7 +164,7 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
 
     newenvp[newenvppos] = NULL;
 
-    /* Exec substituded command */
+    /* Exec substituted command */
     if (do_cmd_subst) {
         debug("nextcall(posix_spawn)(\"%s\", {\"%s\", ...}, {\"%s\", ...})", substfilename, argv[0], newenvp[0]);
         status = nextcall(posix_spawn)(pid, substfilename, file_actions, attrp, (char * const *)argv, newenvp);
