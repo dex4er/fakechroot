@@ -36,8 +36,7 @@ for d in \
     /dev \
     /proc
 do
-    rm -f $destdir/$d
-    ln -sf $d $destdir/$d
+    mkdir -p $destdir/$d
 done
 
 for p in \
