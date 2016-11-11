@@ -5,6 +5,9 @@ UNRELEASED
 * The `env`(1) wrapper works with dash.
 * Fixes were made for `chdir`(2). It was possible to change to a directory
   outside of fakechroot.
+* The `fakechroot`(1) command sets `FAKECHROOT_CMD_ORIG` environment variable
+  for wrapped command.
+* The `ldd`(1) wrapper distinguishes different paths with the same beginning.
 
 ## Version 2.18
 

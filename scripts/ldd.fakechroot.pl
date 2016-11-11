@@ -21,7 +21,7 @@ my @Ld_Library_Path = qw(/usr/lib /lib /usr/lib32 /lib32 /usr/lib64 /lib64);
 my $Cwd = `pwd`;
 chomp $Cwd;
 
-my $Base = $ENV{FAKECHROOT_BASE_ORIG};
+my $Base = defined $ENV{FAKECHROOT_BASE_ORIG} ? $ENV{FAKECHROOT_BASE_ORIG} : '';
 
 sub ldso {
     my ($lib) = @_;
@@ -57,7 +57,7 @@ sub ldso {
 
     push @Libs, $lib;
     if (-f $path) {
-        $path =~ s/^\Q$Base\E// if $Base;
+        $path =~ s/^\Q$Base\/\E// if $Base;
         $Libs{$lib} = $path;
         objdump($path);
     }
