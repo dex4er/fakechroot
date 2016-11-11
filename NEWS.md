@@ -1,3 +1,9 @@
+## Version 2.18.1
+
+UNRELEASED
+
+* The `env`(1) wrapper works with dash.
+
 ## Version 2.18
 
 26 Oct 2015

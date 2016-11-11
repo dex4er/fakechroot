@@ -77,7 +77,7 @@ done
 
 if [ $# -eq 0 ]; then
     export | while read line; do
-        if [ "$line" = "${line#declare -x }" ]; then
+        if [ "$line" = "${line#declare -x }" ] && [ "$line" = "${line#export }" ]; then
             continue
         fi
         fakechroot_env_key="${line#declare -x }"
@@ -99,7 +99,7 @@ else
 
     if [ $fakechroot_env_ignore_env = yes ]; then
         fakechroot_env_keys=`export | while read line; do
-            if [ "$line" = "${line#declare -x }" ]; then
+            if [ "$line" = "${line#declare -x }" ] && [ "$line" = "${line#export }" ]; then
                 continue
             fi
             fakechroot_env_key="${line#declare -x }"
@@ -111,7 +111,7 @@ else
             esac
         done`
         for fakechroot_env_key in $fakechroot_env_keys; do
-            unset $fakechroot_env_key
+            unset $fakechroot_env_key 2>/dev/null || true
         done
     fi
 
