@@ -81,10 +81,16 @@ sub objdump {
                     $Format = $1;
 
                     if ($^O eq 'linux') {
+                        if ($Format =~ /^elf64-(x86-64|sparc)$/) {
+                            $Ldsodir = "/lib64";
+                        }
+                        elsif ($Format =~ /^elf32-x86-64$/) {
+                            $Ldsodir = "/libx32";
+                        }
+
                         if ($Format =~ /^elf64-/) {
                             push @Libs, 'linux-vdso.so.1';
                             $Libs{'linux-vdso.so.1'} = '';
-                            $Ldsodir = "/lib64";
                         }
                         else {
                             push @Libs, 'linux-gate.so.1';
