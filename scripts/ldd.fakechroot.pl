@@ -182,8 +182,10 @@ MAIN: {
             print "$file:\n";
         }
 
-        if (not -f $file) {
-            print STDERR "ldd: $file: No such file or directory\n";
+        my $file_in_chroot = $file =~ m{^/} ? "$Base$file" : "$file";
+
+        if (not -f $file_in_chroot) {
+            print STDERR "fakeldd: $file: No such file or directory\n";
             $Status = 1;
             next;
         }

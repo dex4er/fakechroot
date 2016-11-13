@@ -9,6 +9,8 @@ UNRELEASED
 * The `fakechroot`(1) command sets `FAKECHROOT_CMD_ORIG` environment variable
   for wrapped command.
 * The `ldd`(1) wrapper distinguishes different paths with the same beginning.
+* The `ldd`(1) wrapped doesn not fail if the path is not existing outside
+  fakechroot.
 
 ## Version 2.18
 
