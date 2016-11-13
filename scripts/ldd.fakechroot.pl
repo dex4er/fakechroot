@@ -125,6 +125,7 @@ sub objdump {
 
 sub load_ldsoconf {
     my ($file) = @_;
+    my @paths;
 
     local *FH;
     open FH, $file;
@@ -141,9 +142,11 @@ sub load_ldsoconf {
             next;
         }
 
-        unshift @Ld_Library_Path, $line;
+        push @paths, $line;
     }
     close FH;
+
+    unshift @Ld_Library_Path, @paths;
 }
 
 
