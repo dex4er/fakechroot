@@ -8,6 +8,8 @@
 
 use strict;
 
+$ENV{LANG} = $ENV{LC_ALL} = 'C';
+
 my @Libs = ();
 my %Libs = ();
 
