@@ -6,7 +6,7 @@
 # chroot environment.  It copies original LD_LIBRARY_PATH and adds prefix to
 # each directory for this variable.
 #
-# (c) 2011, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2011, 2013, 2016 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 
 fakechroot_chroot_load_ldsoconf () {
@@ -39,8 +39,9 @@ fakechroot_chroot_chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
 
 fakechroot_chroot_base="$FAKECHROOT_BASE_ORIG"
 
-fakechroot_chroot_n=1
+fakechroot_chroot_n=0
 for fakechroot_chroot_opt in "$@"; do
+    fakechroot_chroot_n=$(($fakechroot_chroot_n + 1))
     case "$fakechroot_chroot_opt" in
         -*)
             continue
@@ -50,7 +51,6 @@ for fakechroot_chroot_opt in "$@"; do
             break
             ;;
     esac
-    fakechroot_chroot_n=$(($fakechroot_chroot_n + 1))
 done
 
 
