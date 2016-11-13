@@ -199,11 +199,11 @@ MAIN: {
 
         foreach my $lib (@Libs) {
             next if $seen{$lib}++;
-            if (defined $Libs{$lib}) {
-                printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
-            }
-            elsif ($lib =~ /^\//) {
+            if ($lib =~ /^\// or $lib =~ /^linux-/) {
                 printf "\t%s (%s)\n", $lib, $address;
+            }
+            elsif ($Libs{$lib}) {
+                printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
             }
             else {
                 printf "\t%s => not found\n", $lib;
