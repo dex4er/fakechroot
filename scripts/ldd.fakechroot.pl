@@ -32,7 +32,7 @@ sub ldso {
 
     my $path;
 
-    if ($lib =~ /^\//) {
+    if ($lib =~ m{^/}) {
         $path = $lib;
     }
     else {
@@ -59,7 +59,7 @@ sub ldso {
 
     push @Libs, $lib;
     if (-f $path) {
-        $path =~ s/^\Q$Base\/\E// if $Base;
+        $path =~ s{^\Q$Base/\E}{} if $Base;
         $Libs{$lib} = $path;
         objdump($path);
     }
@@ -206,7 +206,7 @@ MAIN: {
 
         foreach my $lib (@Libs) {
             next if $seen{$lib}++;
-            if ($lib =~ /^\// or $lib =~ /^linux-/) {
+            if ($lib =~ m{^/} or $lib =~ /^linux-/) {
                 printf "\t%s (%s)\n", $lib, $address;
             }
             elsif ($Libs{$lib}) {
