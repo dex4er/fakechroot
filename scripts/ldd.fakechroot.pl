@@ -4,7 +4,7 @@
 #
 # Replacement for ldd with usage of objdump
 #
-# (c) 2003-2010, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2003-2010, 2013, 2016 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 use strict;
 
