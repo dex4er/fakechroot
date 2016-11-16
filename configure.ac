@@ -48,6 +48,7 @@ AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/
 AC_PATH_PROG([DEBOOTSTRAP], [debootstrap], [/usr/sbin/debootstrap], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([ECHO], [echo], [/bin/echo], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([ENV], [env], [/usr/bin/env], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([FAKEROOT], [fakeroot], [/usr/bin/fakeroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([ISCHROOT], [ischroot], [/usr/bin/ischroot], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([LDCONFIG], [ldconfig], [/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
