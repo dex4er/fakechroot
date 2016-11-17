@@ -73,7 +73,8 @@ Where is it used?
 
 fakechroot is mainly used as:
 
-* a variant of [debootstrap](http://code.erisian.com.au/Wiki/debootstrap), the tool which can set up new Debian or Ubuntu system.
+* a supporter for [debirf](http://cmrg.fifthhorseman.net/wiki/debirf), DEBian on Initial Ram Filesystem
+* a variant of [debootstrap](http://code.erisian.com.au/Wiki/debootstrap), the tool which can set up new Debian or Ubuntu system
 
 fakechroot had found another purposes:
 
@@ -81,6 +82,6 @@ fakechroot had found another purposes:
 * to be a supporter for [pbuilder](http://pbuilder.alioth.debian.org/) building system
 * to be a supporter for [Apport](https://wiki.ubuntu.com/Apport) retracer
 * to be a supporter for [libguestfs tools](http://libguestfs.org/) for accessing and modifying virtual machine disk images
-* to be a supporter for [febootstrap](http://et.redhat.com/~rjones/febootstrap/), the tool which can set up new Fedora system.
+* to be a supporter for [febootstrap](http://et.redhat.com/~rjones/febootstrap/), the tool which can set up new Fedora system
 * to be a part of [cuntubuntu](https://play.google.com/store/apps/details?id=com.cuntubuntu) - Ubuntu for Android without root
 * to be a supporter for [selenium-chroot](https://github.com/gagern/selenium-chroot) setup
