@@ -4,12 +4,13 @@ UNRELEASED
 
 * The `FAKECHROOT_EXCLUDE_PATH` list has to contain at most 100 elements.
 * The `env`(1) wrapper works with dash.
+* The `fakeroot`(1) works if `chroot`(8) is invoked twice.
 * Fixes were made for `chdir`(2). It was possible to change to a directory
   outside of fakechroot.
 * The `fakechroot`(1) command sets `FAKECHROOT_CMD_ORIG` environment variable
   for wrapped command.
 * The `ldd`(1) wrapper distinguishes different paths with the same beginning.
-* The `ldd`(1) wrapped doesn not fail if the path is not existing outside
+* The `ldd`(1) wrapper does not fail if the path is not existing outside
   fakechroot.
 * Can be compiled with clang 4.0.
 

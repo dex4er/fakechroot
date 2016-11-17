@@ -71,8 +71,11 @@ wrapper(chroot, int, (const char * path))
         return -1;
     }
 
-    if (fakechroot_base != NULL && strstr(cwd, fakechroot_base) == fakechroot_base) {
+    if (fakechroot_base != NULL && strstr(cwd, fakechroot_base) == cwd) {
         expand_chroot_path(path);
+        strlcpy(tmp, path, FAKECHROOT_PATH_MAX);
+        dedotdot(tmpptr);
+        path = tmpptr;
     }
     else {
         size_t tmplen;
@@ -91,6 +94,11 @@ wrapper(chroot, int, (const char * path))
         while(tmplen > 1 && tmpptr[tmplen - 1] == '/') {
             tmpptr[--tmplen] = '\0';
         }
+    }
+
+    /* Suppress a trailing slash */
+    if ((strlen(tmpptr) > 1) && path[strlen(tmpptr) - 1] == '/') {
+        tmpptr[strlen(tmpptr) - 1] = '\0';
     }
 
     if ((status = STAT(path, &sb)) != 0) {
