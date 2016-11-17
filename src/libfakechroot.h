@@ -198,7 +198,7 @@
 #endif
 
 #ifdef __clang__
-# if __clang_major > 4 || __clang_major__ == 3 && __clang_minor__ >= 6
+# if __clang_major__ >= 4 || __clang_major__ == 3 && __clang_minor__ >= 6
 #  pragma clang diagnostic ignored "-Wpointer-bool-conversion"
 # endif
 #endif
@@ -223,6 +223,8 @@ int fakechroot_try_cmd_subst (char *, const char *, char *);
 
 
 /* We don't want to define _BSD_SOURCE and _DEFAULT_SOURCE and include stdio.h */
+#ifndef snprintf
 int snprintf(char *, size_t, const char *, ...);
+#endif
 
 #endif

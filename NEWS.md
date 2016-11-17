@@ -11,6 +11,7 @@ UNRELEASED
 * The `ldd`(1) wrapper distinguishes different paths with the same beginning.
 * The `ldd`(1) wrapped doesn not fail if the path is not existing outside
   fakechroot.
+* Can be compiled with clang 4.0.
 
 ## Version 2.18
 
