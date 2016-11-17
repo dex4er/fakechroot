@@ -1,3 +1,5 @@
+# config.sh  Generated from config.sh.in by configure.
+
 POD2MAN=@POD2MAN@
 PROVE=@PROVE@
 SEQ=@SEQ@
