@@ -9,6 +9,8 @@ abs_top_srcdir=${abs_top_srcdir:-`cd "$top_srcdir" 2>/dev/null && pwd -P`}
 . $top_srcdir/config.sh
 
 command -v fakeroot >/dev/null 2>&1 || skip_all 'fakeroot command is missing (sudo apt-get install fakeroot)'
+t=`fakeroot $ECHO ok 2>&1`
+test "$t" = "ok" || skip_all "fakeroot command failed:" $t
 
 prepare 8
 
