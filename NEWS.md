@@ -1,6 +1,6 @@
 ## Version 2.19
 
-UNRELEASED
+20 Nov 2016
 
 * The `FAKECHROOT_EXCLUDE_PATH` list has to contain at most 100 elements.
 * The `env`(1) wrapper works with dash.
