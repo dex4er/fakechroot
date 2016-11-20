@@ -1,6 +1,9 @@
 TRUE=0
 FALSE=1
 
+LANG=C
+LC_ALL=C
+
 testtree=testtree-`basename $0 .t`
 
 is_root () {

@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="fakechroot" --center=" " --date="29 Nov 2013"
+# pod2man --section=1 --release="fakechroot" --center=" " --date="17 Nov 2016"
 #
 
 =head1 NAME
@@ -58,7 +58,7 @@ directly.
 =item B<-s>|B<--use-system-libs>
 
 Use system libraries before chroot's libraries. This might be a workaround if
-system dynamic linker can not load F<libc.so> from fake chroot.
+system dynamic linker cannot load F<libc.so> from fake chroot.
 
 Try this setting if you noticed following errors:
 
@@ -107,7 +107,7 @@ but sometimes a fixed location at build time is not feasible.
 
 =item [B<-->] I<command>
 
-Any command you want to be ran as fakechroot. Use 'B<-->' if in the command
+Any command you want to be run as fakechroot. Use 'B<-->' if in the command
 you have other options that may confuse fakechroot's option parsing.
 
 =item B<-h>
@@ -229,6 +229,8 @@ of list are separated with colon.
 
 The F</dev>, F</proc> and F</sys> directories are excluded by default if this
 environment variable is not set.
+
+This list has to contain at most 100 elements.
 
 =item B<FAKECHROOT_ELFLOADER>
 
@@ -388,7 +390,7 @@ L<https://github.com/fakechroot/fakechroot/issues>
 
 =head1 AUTHORS
 
-Copyright (c) 2003, 2005, 2007-2011, 2013 Piotr Roszatycki <dexter@debian.org>
+Copyright (c) 2003-2016 Piotr Roszatycki <dexter@debian.org>
 
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 

@@ -6,7 +6,7 @@
 # chroot environment.  It copies original LD_LIBRARY_PATH and adds prefix to
 # each directory for this variable.
 #
-# (c) 2011, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2011, 2013, 2016 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 
 fakechroot_chroot_load_ldsoconf () {
@@ -39,43 +39,55 @@ fakechroot_chroot_chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
 
 fakechroot_chroot_base="$FAKECHROOT_BASE_ORIG"
 
-fakechroot_chroot_n=1
+# records the content of LD_LIBRARY_PATH at first chroot invocation
+if [ -z "$fakechroot_chroot_base" -a -n "$LD_LIBRARY_PATH" ]; then
+    FAKECHROOT_LDLIBPATH="$LD_LIBRARY_PATH"
+    export FAKECHROOT_LDLIBPATH
+fi
+
+fakechroot_chroot_n=0
 for fakechroot_chroot_opt in "$@"; do
+    fakechroot_chroot_n=$(($fakechroot_chroot_n + 1))
     case "$fakechroot_chroot_opt" in
         -*)
             continue
             ;;
         *)
-            fakechroot_chroot_newroot="$fakechroot_chroot_opt"
+            fakechroot_chroot_requested_newroot="$fakechroot_chroot_opt"
             break
             ;;
     esac
-    fakechroot_chroot_n=$(($fakechroot_chroot_n + 1))
 done
 
+# absolute paths in fakechroot_chroot_opt are relative to FAKECHROOT_BASE_ORIG
+if [ "${fakechroot_chroot_requested_newroot#/}" != "$fakechroot_chroot_requested_newroot" ]; then
+    fakechroot_chroot_newroot="${fakechroot_chroot_base}${fakechroot_chroot_requested_newroot}"
+else
+    fakechroot_chroot_newroot="$fakechroot_chroot_requested_newroot"
+fi
 
 if [ -d "$fakechroot_chroot_newroot" ]; then
-    fakechroot_chroot_newroot=`cd "$fakechroot_chroot_opt"; pwd -P`
+    fakechroot_chroot_newroot=`cd "$fakechroot_chroot_newroot"; pwd -P`
 
     fakechroot_chroot_paths=
 
     # append newroot to each directory from original LD_LIBRARY_PATH
     fakechroot_chroot_IFS_bak="$IFS" IFS=:
-    for fakechroot_chroot_d in $LD_LIBRARY_PATH; do
-        fakechroot_chroot_paths="${fakechroot_chroot_paths:+$fakechroot_chroot_paths:}$fakechroot_chroot_base$fakechroot_chroot_newroot/${fakechroot_chroot_d#/}"
+    for fakechroot_chroot_d in $FAKECHROOT_LDLIBPATH; do
+        fakechroot_chroot_paths="${fakechroot_chroot_paths:+$fakechroot_chroot_paths:}$fakechroot_chroot_newroot/${fakechroot_chroot_d#/}"
     done
     IFS="$fakechroot_chroot_IFS_bak"
 
     # append newroot to each directory from new /etc/ld.so.conf
     fakechroot_chroot_paths_ldsoconf=""
     if [ -f "$fakechroot_chroot_newroot/etc/ld.so.conf" ]; then
-        fakechroot_chroot_paths_ldsoconf=`fakechroot_chroot_load_ldsoconf "/etc/ld.so.conf" "$fakechroot_chroot_newroot" | while read fakechroot_chroot_line; do printf ":%s%s" "$fakechroot_chroot_base" "$fakechroot_chroot_line"; done`
+        fakechroot_chroot_paths_ldsoconf=`fakechroot_chroot_load_ldsoconf "/etc/ld.so.conf" "$fakechroot_chroot_newroot" | while read fakechroot_chroot_line; do printf ":%s" "$fakechroot_chroot_line"; done`
     elif [ -d "$fakechroot_chroot_newroot/etc/ld.so.conf.d" ]; then
-        fakechroot_chroot_paths_ldsoconf=`fakechroot_chroot_load_ldsoconf "/etc/ld.so.conf.d/*" "$fakechroot_chroot_newroot" | while read fakechroot_chroot_line; do printf ":%s%s" "$fakechroot_chroot_base" "$fakechroot_chroot_line"; done`
+        fakechroot_chroot_paths_ldsoconf=`fakechroot_chroot_load_ldsoconf "/etc/ld.so.conf.d/*" "$fakechroot_chroot_newroot" | while read fakechroot_chroot_line; do printf ":%s" "$fakechroot_chroot_line"; done`
     fi
     fakechroot_chroot_paths_ldsoconf="${fakechroot_chroot_paths_ldsoconf#:}"
 
-    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
     fakechroot_chroot_paths="${fakechroot_chroot_paths#:}"
 fi
 

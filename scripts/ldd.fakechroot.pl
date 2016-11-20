@@ -4,9 +4,11 @@
 #
 # Replacement for ldd with usage of objdump
 #
-# (c) 2003-2010, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
+# (c) 2003-2010, 2013, 2016 Piotr Roszatycki <dexter@debian.org>, LGPL
 
 use strict;
+
+$ENV{LANG} = $ENV{LC_ALL} = 'C';
 
 my @Libs = ();
 my %Libs = ();
@@ -21,7 +23,7 @@ my @Ld_Library_Path = qw(/usr/lib /lib /usr/lib32 /lib32 /usr/lib64 /lib64);
 my $Cwd = `pwd`;
 chomp $Cwd;
 
-my $Base = $ENV{FAKECHROOT_BASE_ORIG};
+my $Base = defined $ENV{FAKECHROOT_BASE_ORIG} ? $ENV{FAKECHROOT_BASE_ORIG} : '';
 
 sub ldso {
     my ($lib) = @_;
@@ -30,7 +32,7 @@ sub ldso {
 
     my $path;
 
-    if ($lib =~ /^\//) {
+    if ($lib =~ m{^/}) {
         $path = $lib;
     }
     else {
@@ -57,7 +59,7 @@ sub ldso {
 
     push @Libs, $lib;
     if (-f $path) {
-        $path =~ s/^\Q$Base\E// if $Base;
+        $path =~ s{^\Q$Base/\E}{} if $Base;
         $Libs{$lib} = $path;
         objdump($path);
     }
@@ -81,10 +83,16 @@ sub objdump {
                     $Format = $1;
 
                     if ($^O eq 'linux') {
+                        if ($Format =~ /^elf64-(x86-64|sparc)$/) {
+                            $Ldsodir = "/lib64";
+                        }
+                        elsif ($Format =~ /^elf32-x86-64$/) {
+                            $Ldsodir = "/libx32";
+                        }
+
                         if ($Format =~ /^elf64-/) {
                             push @Libs, 'linux-vdso.so.1';
                             $Libs{'linux-vdso.so.1'} = '';
-                            $Ldsodir = "/lib64";
                         }
                         else {
                             push @Libs, 'linux-gate.so.1';
@@ -119,6 +127,7 @@ sub objdump {
 
 sub load_ldsoconf {
     my ($file) = @_;
+    my @paths;
 
     local *FH;
     open FH, $file;
@@ -135,9 +144,11 @@ sub load_ldsoconf {
             next;
         }
 
-        unshift @Ld_Library_Path, $line;
+        push @paths, $line;
     }
     close FH;
+
+    unshift @Ld_Library_Path, @paths;
 }
 
 
@@ -171,8 +182,10 @@ MAIN: {
             print "$file:\n";
         }
 
-        if (not -f $file) {
-            print STDERR "ldd: $file: No such file or directory\n";
+        my $file_in_chroot = $file =~ m{^/} ? "$Base$file" : "$file";
+
+        if (not -f $file_in_chroot) {
+            print STDERR "fakeldd: $file: No such file or directory\n";
             $Status = 1;
             next;
         }
@@ -193,11 +206,11 @@ MAIN: {
 
         foreach my $lib (@Libs) {
             next if $seen{$lib}++;
-            if (defined $Libs{$lib}) {
-                printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
-            }
-            elsif ($lib =~ /^\//) {
+            if ($lib =~ m{^/} or $lib =~ /^linux-/) {
                 printf "\t%s (%s)\n", $lib, $address;
+            }
+            elsif ($Libs{$lib}) {
+                printf "\t%s => %s (%s)\n", $lib, $Libs{$lib}, $address;
             }
             else {
                 printf "\t%s => not found\n", $lib;

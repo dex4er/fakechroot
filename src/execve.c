@@ -160,7 +160,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     newenvp[newenvppos] = NULL;
 
-    /* Exec substituded command */
+    /* Exec substituted command */
     if (do_cmd_subst) {
         debug("nextcall(execve)(\"%s\", {\"%s\", ...}, {\"%s\", ...})", substfilename, argv[0], newenvp[0]);
         status = nextcall(execve)(substfilename, (char * const *)argv, newenvp);

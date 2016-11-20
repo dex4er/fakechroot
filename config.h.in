@@ -84,6 +84,9 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* Define to 1 if you have the `audit_log_acct_message' function. */
+#undef HAVE_AUDIT_LOG_ACCT_MESSAGE
+
 /* Define to 1 if you have the `bind' function. */
 #undef HAVE_BIND
 
@@ -828,8 +831,7 @@
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Define to 1 if opendir function calls __open function internally. */

@@ -190,6 +190,7 @@ fi
 
 # Check if substituted command is called
 fakechroot_cmd=`command -v "$1"`
+
 fakechroot_cmd_wrapper=`
     IFS=:
     for fakechroot_cmd_subst in $FAKECHROOT_CMD_SUBST; do
@@ -201,6 +202,13 @@ fakechroot_cmd_wrapper=`
         esac
     done
 `
+
+# Set FAKECHROOT_CMD_ORIG if wrapped
+if [ -n "$fakechroot_cmd_wrapper" ]; then
+    FAKECHROOT_CMD_ORIG="$fakechroot_cmd"
+    export FAKECHROOT_CMD_ORIG
+fi
+
 fakechroot_cmd=${fakechroot_cmd_wrapper:-$1}
 
 
