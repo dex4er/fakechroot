@@ -25,6 +25,7 @@ And to contributors (alphabetically):
 * Daniel Tschan
 * Geert Stappers
 * Guido Günther
+* Jakub Wilk
 * JH Chatenet
 * Johannes Schauer
 * Juan Romero Pardines
