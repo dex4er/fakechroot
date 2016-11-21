@@ -1,3 +1,10 @@
+## Version 2.20
+
+UNRELEASED
+
+* The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
+  shell.
+
 ## Version 2.19
 
 20 Nov 2016

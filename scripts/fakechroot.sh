@@ -217,12 +217,13 @@ if [ -z "$*" ]; then
     LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" ${SHELL:-/bin/sh}
     exit $?
 else
-    if [ -n "$fakechroot_cmd" ] && ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null && [ $# -gt 0 ]; then
-        # shell with arrays and built-in expr
-        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "${@:2}"
+    if [ -n "$fakechroot_cmd" ]; then
+        # Call substituted command
+        shift
+        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "$@"
         exit $?
     else
-        # POSIX shell
+        # Call original command
         LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$@"
         exit $?
     fi
