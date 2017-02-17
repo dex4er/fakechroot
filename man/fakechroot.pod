@@ -302,6 +302,16 @@ to make debootstrap(8) working correctly.
 To prevent some looping, the command substitution is done only if
 C<FAKECHROOT_CMD_ORIG> variable is not set currently.
 
+=item B<FAKECHROOT_NOEXPAND_SYMLINK_TARGET>
+
+Fakechroot defaults to expanding the target of a symlink so that any absolute
+symlinks created inside a fakechroot session will continue to work outside of
+it. If that behavior is undesirable, setting this environment variable will
+cause the symlink and symlinkat syscalls to create symlinks with the raw target
+paths requested by the invoker. Note that this does not affect the path of the
+symlink being created in any way, which still gets expanded according to the
+usual chroot rules.
+
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
 Fakechroot is implemented by wrapping system calls. This is accomplished by
