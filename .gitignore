@@ -62,11 +62,15 @@ Makefile.in
 # quilt
 /.pc
 
+# gtags
+GPATH
+GRTAGS
+GTAGS
+
 # Editors
 *~
-
-# Eclipse
 /.autotools
 /.cproject
 /.project
 /.settings/
+/.vscode/
