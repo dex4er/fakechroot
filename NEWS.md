@@ -2,6 +2,7 @@
 
 UNRELEASED
 
+* The `fts64_*` functions were added: glibc supports them since 2.23.
 * The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
   shell.
 
