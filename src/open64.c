@@ -44,6 +44,7 @@ wrapper_alias(open64, int, (const char * pathname, int flags, ...))
         va_end(arg);
     }
 
+    priv_check(1, pathname);
     return nextcall(open64)(pathname, flags, mode);
 }
 

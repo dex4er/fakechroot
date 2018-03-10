@@ -34,6 +34,7 @@ wrapper(linkat, int, (int olddirfd, const char * oldpath, int newdirfd, const ch
     strcpy(tmp, oldpath);
     oldpath = tmp;
     expand_chroot_path_at(newdirfd, newpath);
+    priv_check(2, oldpath, newpath);
     return nextcall(linkat)(olddirfd, oldpath, newdirfd, newpath, flags);
 }
 

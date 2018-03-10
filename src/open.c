@@ -41,5 +41,7 @@ wrapper_alias(open, int, (const char * pathname, int flags, ...))
         va_end(arg);
     }
 
+    priv_check(1, pathname);
+
     return nextcall(open)(pathname, flags, mode);
 }

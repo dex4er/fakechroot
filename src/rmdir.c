@@ -27,5 +27,6 @@ wrapper(rmdir, int, (const char * pathname))
 {
     debug("rmdir(\"%s\")", pathname);
     expand_chroot_path(pathname);
+    priv_check(1, pathname);
     return nextcall(rmdir)(pathname);
 }

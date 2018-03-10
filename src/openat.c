@@ -44,6 +44,8 @@ wrapper_alias(openat, int, (int dirfd, const char * pathname, int flags, ...))
         va_end(arg);
     }
 
+
+    priv_check(1, pathname);
     return nextcall(openat)(dirfd, pathname, flags, mode);
 }
 

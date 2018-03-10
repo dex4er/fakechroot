@@ -30,6 +30,7 @@ wrapper(unlinkat, int, (int dirfd, const char * pathname, int flags))
 {
     debug("unlinkat(%d, \"%s\", %d)", dirfd, pathname, flags);
     expand_chroot_path_at(dirfd, pathname);
+    priv_check(1, pathname);
     return nextcall(unlinkat)(dirfd, pathname, flags);
 }
 

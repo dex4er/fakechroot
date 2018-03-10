@@ -21,6 +21,7 @@
 #include <config.h>
 
 #include "libfakechroot.h"
+#include "log.h"
 
 
 wrapper(link, int, (const char *oldpath, const char *newpath))
@@ -31,5 +32,6 @@ wrapper(link, int, (const char *oldpath, const char *newpath))
     strcpy(tmp, oldpath);
     oldpath = tmp;
     expand_chroot_path(newpath);
+    priv_check(2, oldpath, newpath);
     return nextcall(link)(oldpath, newpath);
 }

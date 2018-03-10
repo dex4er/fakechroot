@@ -6,6 +6,8 @@
 #include "hashmap.h"
 #include "memcached_client.h"
 
+const int PATH_DATA_SIZE = 1024;
+
 bool hmap_check(hmap_t* pmap, const char* container,const char* pname,const char* abs_path){
    char key[KEY_SIZE];
    sprintf(key,"%s:%s:ALLOW_LIST", container, pname);
@@ -109,8 +111,9 @@ bool mem_priv_check(const char* abs_path){
     return mem_check("container",pinfo.pname,abs_path);
 }
 
-bool mem_priv_check_v(int n, ...){
+void mem_priv_check_v(int n, ...){
   struct ProcessInfo pinfo;
+  char buff[PATH_DATA_SIZE];
   get_process_info(&pinfo);
   va_list args;
   va_start(args,n);
@@ -119,5 +122,12 @@ bool mem_priv_check_v(int n, ...){
     paths[i] = va_arg(args,char*);
   }
   va_end(args);
-  return mem_check_v("constainer", pinfo.pname, n, paths);
+  if(!mem_check_v("container", pinfo.pname, n, paths)){
+    for(int i=0;i<n;i++){
+      sprintf(buff,paths[i]);
+      sprintf(buff+strlen(buff),";");
+    }
+    log_fatal("[Program: %s] in [Container: %s] on [Paths: %s] is not allowed!", pinfo.pname,"container", buff);
+    exit(EXIT_FAILURE);
+  }
 }

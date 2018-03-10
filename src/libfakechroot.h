@@ -28,10 +28,10 @@
 
 #include "rel2abs.h"
 #include "rel2absat.h"
+#include "hmappriv.h"
 
 
 #define debug fakechroot_debug
-
 
 #ifdef HAVE___ATTRIBUTE__VISIBILITY
 # define LOCAL __attribute__((visibility("hidden")))
@@ -226,5 +226,10 @@ int fakechroot_try_cmd_subst (char *, const char *, char *);
 #ifndef snprintf
 int snprintf(char *, size_t, const char *, ...);
 #endif
+
+#define priv_check(n,...) \
+  { \
+  mem_priv_check_v(n,__VA_ARGS__); \
+  } \
 
 #endif

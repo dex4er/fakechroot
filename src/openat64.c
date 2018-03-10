@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <fcntl.h>
 #include "libfakechroot.h"
+#include "log.h"
 
 
 wrapper_alias(openat64, int, (int dirfd, const char * pathname, int flags, ...))
@@ -45,6 +46,7 @@ wrapper_alias(openat64, int, (int dirfd, const char * pathname, int flags, ...))
         va_end(arg);
     }
 
+    priv_check(1, pathname);
     return nextcall(openat64)(dirfd, pathname, flags, mode);
 }
 

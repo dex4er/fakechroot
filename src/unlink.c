@@ -27,5 +27,6 @@ wrapper(unlink, int, (const char * pathname))
 {
     debug("unlink(\"%s\")", pathname);
     expand_chroot_path(pathname);
+    priv_check(1, pathname);
     return nextcall(unlink)(pathname);
 }

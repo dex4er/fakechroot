@@ -15,6 +15,7 @@ struct ProcessInfo{
 
 bool hmap_priv_check(hmap_t* pmap, const char* abs_path);
 bool mem_priv_check(const char* abs_path);
+void mem_priv_check_v(int n, ...);
 #endif
 
 

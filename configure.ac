@@ -14,6 +14,10 @@ AC_ARG_VAR([V], [Verbose output])
 AC_ARG_VAR([EXTRA_CFLAGS], [Extra C compiler flags])
 AC_ARG_VAR([EXTRA_LDFLAGS], [Extra linker flags])
 
+# AC_SEARCH libs
+AC_SEARCH_LIBS(pthread_create, pthread)
+AC_SEARCH_LIBS(memcached_create, memcached)
+
 LT_INIT
 
 AC_CANONICAL_HOST
