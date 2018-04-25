@@ -122,12 +122,35 @@ void mem_priv_check_v(int n, ...){
     paths[i] = va_arg(args,char*);
   }
   va_end(args);
-  if(!mem_check_v("container", pinfo.pname, n, paths)){
+
+  //get container info from envs
+  char * containerid = getenv("ContainerId"); 
+  char * containerroot = getenv("ContainerRoot");
+
+  if(containerid && containerroot){
+    bool t_result = true;
+    char *valret = NULL;
     for(int i=0;i<n;i++){
-      sprintf(buff,paths[i]);
-      sprintf(buff+strlen(buff),";");
+      if((valret = strstr(paths[i], containerroot))==NULL){
+        t_result = false;
+        break;
+      }
     }
-    log_fatal("[Program: %s] in [Container: %s] on [Paths: %s] is not allowed!", pinfo.pname,"container", buff);
+    if(t_result){
+      return;
+    }
+    //get container info ends
+
+    if(!mem_check_v(containerid, pinfo.pname, n, paths)){
+      for(int i=0;i<n;i++){
+        sprintf(buff,paths[i]);
+        sprintf(buff+strlen(buff),";");
+      }
+      log_fatal("[Program: %s] in [Container: %s] on [Paths: %s] is not allowed!", pinfo.pname,containerid, buff);
+      exit(EXIT_FAILURE);
+    }
+  }else{
+    log_fatal("fatal error, can't get containerid and container root");
     exit(EXIT_FAILURE);
   }
-}
+  }
