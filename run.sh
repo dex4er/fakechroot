@@ -1,10 +1,8 @@
 #!/bin/bash
 
-./autogen.sh
-./configure
+#./autogen.sh
+#./configure
 make clean
 make
-LD_PRELOAD=src/.libs/libfakechroot.so touch file
-LD_PRELOAD=src/.libs/libfakechroot.so ln -s file file.bak
-LD_PRELOAD=src/.libs/libfakechroot.so rm -rf file
-LD_PRELOAD=src/.libs/libfakechroot.so rm -rf file.bak
+cp src/.libs/libfakechroot.so ~/go/src/github.com/jasonyangshadow/lpmx/build/
+cp src/.libs/libfakechroot.so /tmp/lpmx_test/.lpmx/fakechroot/

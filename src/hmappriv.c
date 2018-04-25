@@ -80,6 +80,9 @@ bool mem_check_v(const char* container, const char* pname, int n, char** paths){
   char* value = getValue(allow_key);
   bool result = false;
   if(value){
+    if(strcmp(value,"all")==0){
+      return true;
+    }
     for(int i=0;i<n;i++){
       char* valret = NULL;
       char* rest = value;
@@ -146,11 +149,11 @@ void mem_priv_check_v(int n, ...){
         sprintf(buff,paths[i]);
         sprintf(buff+strlen(buff),";");
       }
-      log_fatal("[Program: %s] in [Container: %s] on [Paths: %s] is not allowed!", pinfo.pname,containerid, buff);
+      log_fatal("[Program: %s] in [Container: %s] with [RootDir: %s] on [Paths: %s] is not allowed!", pinfo.pname,containerid,containerroot, buff);
       exit(EXIT_FAILURE);
     }
   }else{
-    log_fatal("fatal error, can't get containerid and container root");
+    log_fatal("fatal error, can't get container id and container root path");
     exit(EXIT_FAILURE);
   }
   }
