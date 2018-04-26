@@ -54,29 +54,9 @@ bool hmap_priv_check(hmap_t* pmap, const char* abs_path){
     return hmap_check(pmap,"container",pinfo.pname,abs_path);
 }
 
-bool mem_check(const char* container, const char* pname, const char* abs_path){
-   char allow_key[MEMCACHED_MAX_KEY];
-   sprintf(allow_key,"%s:%s:allow",container,pname);
-   char* value = getValue(allow_key);
-   bool result = false;
-   if(value){
-       char* valret = NULL;
-       char* rest = value;
-       char* token = NULL;
-
-       while((token = strtok_r(rest,";",&rest))){
-           if((valret = strstr(abs_path, token))){
-             result = true;
-             break;
-           }
-       }
-   }
-   return result;
-}
-
 bool mem_check_v(const char* container, const char* pname, int n, char** paths){
   char allow_key[MEMCACHED_MAX_KEY];
-  sprintf(allow_key,"%s:%s:allow",container,pname);
+  sprintf(allow_key,"%s:%s",container,pname);
   char* value = getValue(allow_key);
   bool result = false;
   if(value){
@@ -106,12 +86,6 @@ bool mem_check_v(const char* container, const char* pname, int n, char** paths){
     }
   }
   return result;
-}
-
-bool mem_priv_check(const char* abs_path){
-    struct ProcessInfo pinfo;
-    get_process_info(&pinfo);
-    return mem_check("container",pinfo.pname,abs_path);
 }
 
 void mem_priv_check_v(int n, ...){
