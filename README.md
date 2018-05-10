@@ -11,4 +11,40 @@ packages without need for root privileges.
 
 # This is a customized fakechroot
 
-As we require some new features such as transprant access between host os and container. So we add some code in src folder and enhancing other functions. 
+We add some features to the original fakechroot and allow the library to check incoming syscalls based on predefined privileges. 
+
+Therefor, to compile the source code you need at least the following dependencies:
+
+1. git
+2. autoconf
+3. automake
+4. make
+5. gcc
+6. g++
+7. libmemcached-dev 
+8. cmake
+9. libtool
+
+If you could directly install msgpack-c via your package manager, it will be good and you don't need cmake. For example, for arch linux, one could directly install msgpack-c package from AUR by executing 'yaourt -S msgpack-c'. For other distros, such as ubuntu, you may need to compile msgpack-c from source by following the steps:
+
+```
+git clone https://github.com/msgpack/msgpack-c.git
+cd msgpack-c
+cmake .
+make
+sudo make install
+```
+
+After these steps, you could start compiling fakechroot.
+
+```
+git clone https://github.com/JasonYangShadow/fakechroot
+cd fakechroot
+./autogen.sh
+./configure
+make
+```
+
+Done! Congratulations!
+
+**After executing make commands, you could find compiled library under fakechroot/src/.libs/libfakechroot.so. You then copy it to the folder including lpmx program. lpmx will automatically copy libfakechroot.so to target container while starting container.**
