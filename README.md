@@ -13,7 +13,7 @@ packages without need for root privileges.
 
 We add some features to the original fakechroot and allow the library to check incoming syscalls based on predefined privileges. 
 
-Therefor, to compile the source code you need at least the following dependencies:
+Therefore, to compile the source code you might need at least the following dependencies:
 
 1. git
 2. autoconf
