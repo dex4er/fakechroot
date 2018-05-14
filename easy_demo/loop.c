@@ -3,7 +3,7 @@
 
 int main(){
   while(1){
-    printf("I am running\n");
+    printf("running 2\n");
     sleep(2);
   }
 }
