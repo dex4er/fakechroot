@@ -89,6 +89,10 @@ bool mem_check_v(const char* container, const char* pname, int n, char** paths){
 }
 
 void mem_priv_check_v(int n, ...){
+  char * containermode = getenv("ContainerMode");
+  if (containermode && strcmp(containermode,"chroot")==0){
+    return;
+  }
   struct ProcessInfo pinfo;
   char buff[PATH_DATA_SIZE];
   get_process_info(&pinfo);
