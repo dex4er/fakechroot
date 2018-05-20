@@ -41,7 +41,13 @@ wrapper_alias(open, int, (const char * pathname, int flags, ...))
         va_end(arg);
     }
 
-    priv_check(1, pathname);
-
-    return nextcall(open)(pathname, flags, mode);
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(1, rt_paths, pathname);
+    if (r && rt_paths){
+      return nextcall(open)(rt_paths[0], flags, mode);
+    }else if(r && !rt_paths){
+      return nextcall(open)(pathname, flags, mode);
+    }else {
+      exit(EXIT_FAILURE);
+    }
 }

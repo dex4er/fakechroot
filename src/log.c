@@ -9,19 +9,33 @@ static const char *levels[] = {"DEBUG","INFO","WARN","ERROR","FATAL"};
 const int BUFF_TIME_SIZE = 32;
 const int BUFF_DATA_SIZE = 4096; 
 
-pthread_mutex_t LOG_MUTEX = PTHREAD_MUTEX_INITIALIZER;
-
 void set_log_fp(FILE *fp){
     slog.fp = fp;
-} void loginfo(enum LOG_LEVEL level, const char * file, int line, char *fmt, ...){
-    #ifdef __LOG_SWITCH
+}
+
+void loginfo(enum LOG_LEVEL level, const char * file, int line, char *fmt, ...){
+    char *log_level= getenv("__LOG_LEVEL");
+    char *log_switch = getenv("__LOG_SWITCH");
+
+    if(log_switch){
+      slog.l_switch = true;
+    }else{
+      slog.l_switch = false;
+    }
+
+    if(log_level && strlen(log_level) == 1){
+      int l = log_level[0]-'0';
+      slog.l_level = (enum LOG_LEVEL) l;
+    }else{
+      slog.l_level = INFO;
+    }
+
+    if(slog.l_switch){
     time_t t = time(NULL);
     struct tm *lt = localtime(&t);
     char buff_time[BUFF_TIME_SIZE];
     char buff_data[BUFF_DATA_SIZE];
     va_list args;
-
-    pthread_mutex_lock(&LOG_MUTEX);
 
     buff_time[strftime(buff_time,sizeof(buff_time),"%Y-%m-%d %H:%M:%S",lt)] = '\0';
     sprintf(buff_data,"{\"timestamp\":\"%s\",\"level\":\"%s\",\"file\":\"%s\",\"line\":%d,\"msg\":\"",buff_time,levels[level],file,line);
@@ -30,24 +44,17 @@ void set_log_fp(FILE *fp){
     va_end(args);
     sprintf(buff_data+strlen(buff_data),"\"%s\n","}");
 
-    #ifdef __LOG_TERMINAL
-    if(level >= __LOG_LEVEL){
+    if(level >= slog.l_level){
          fprintf(stdout,"%s",buff_data);
          fflush(stdout);
         
     }
-    #endif
 
-    #ifdef __LOG_FILE
     if(slog.fp){
         fprintf(slog.fp,"%s",buff_data);
         fflush(slog.fp);
     }
-    #endif
-
-    pthread_mutex_unlock(&LOG_MUTEX);
-
-    #endif
+    }
 }
 
 /*

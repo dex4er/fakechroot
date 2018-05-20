@@ -5,6 +5,7 @@
 #include <sys/types.h>
 
 #define PNAME_SIZE 48
+#define PATH_LENGTH 128 
 
 struct ProcessInfo{
     pid_t pid;
@@ -15,6 +16,7 @@ struct ProcessInfo{
 
 bool hmap_priv_check(hmap_t* pmap, const char* abs_path);
 void mem_priv_check_v(int n, ...);
+bool rt_mem_check(int n, char** rt_paths, ...);
 #endif
 
 

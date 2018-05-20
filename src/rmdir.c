@@ -27,6 +27,14 @@ wrapper(rmdir, int, (const char * pathname))
 {
     debug("rmdir(\"%s\")", pathname);
     expand_chroot_path(pathname);
-    priv_check(1, pathname);
-    return nextcall(rmdir)(pathname);
+    
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(2, rt_paths, pathname);
+    if (r && rt_paths){
+      return nextcall(rmdir)(rt_paths[0]);
+    }else if(r && !rt_paths){
+      return nextcall(rmdir)(pathname);
+    }else{
+      exit(EXIT_FAILURE);
+    }
 }

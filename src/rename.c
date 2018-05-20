@@ -31,6 +31,14 @@ wrapper(rename, int, (const char * oldpath, const char * newpath))
     strcpy(tmp, oldpath);
     oldpath = tmp;
     expand_chroot_path(newpath);
-    priv_check(2, oldpath, newpath);
-    return nextcall(rename)(oldpath, newpath);
+
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(2, rt_paths, oldpath, newpath);
+    if (r && rt_paths){
+      return nextcall(rename)(rt_paths[0], rt_paths[1]);
+    }else if(r && !rt_paths){
+      return nextcall(rename)(oldpath, newpath);
+    }else{
+      exit(EXIT_FAILURE);
+    }
 }

@@ -34,8 +34,16 @@ wrapper(renameat, int, (int olddirfd, const char * oldpath, int newdirfd, const 
     strcpy(tmp, oldpath);
     oldpath = tmp;
     expand_chroot_path_at(newdirfd, newpath);
-    priv_check(2, oldpath, newpath);
-    return nextcall(renameat)(olddirfd, oldpath, newdirfd, newpath);
+    
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(2, rt_paths, oldpath, newpath);
+    if (r && rt_paths){
+      return nextcall(renameat)(olddirfd, rt_paths[0], newdirfd, rt_paths[1]);
+    }else if(r && !rt_paths){
+      return nextcall(renameat)(olddirfd, oldpath, newdirfd, newpath);
+    }else{
+      exit(EXIT_FAILURE);
+    }
 }
 
 #else

@@ -27,6 +27,14 @@ wrapper(unlink, int, (const char * pathname))
 {
     debug("unlink(\"%s\")", pathname);
     expand_chroot_path(pathname);
-    priv_check(1, pathname);
-    return nextcall(unlink)(pathname);
+
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(1, rt_paths, pathname);
+    if (r && rt_paths){
+      return nextcall(unlink)(rt_paths[0]);
+    }else if(r && !rt_paths){
+      return nextcall(unlink)(pathname);
+    }else {
+      exit(EXIT_FAILURE);
+    }
 }

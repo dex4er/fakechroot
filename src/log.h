@@ -2,7 +2,6 @@
 #define __LOG_H
 
 #include <stdio.h>
-#include <pthread.h>
 #include <stdbool.h>
 #include <stdarg.h>
 
@@ -14,17 +13,14 @@ enum LOG_LEVEL{DEBUG, INFO, WARN, ERROR, FATAL};
 #define log_error(...) loginfo(ERROR,__FILE__, __LINE__, __VA_ARGS__) 
 #define log_fatal(...) loginfo(FATAL,__FILE__, __LINE__, __VA_ARGS__) 
 
-#define __LOG_SWITCH
-#define __LOG_TERMINAL
-#define __LOG_LEVEL DEBUG
-
 struct LOG{
     FILE *fp ;
+    enum LOG_LEVEL l_level;
+    bool l_switch;
+    bool l_file;
 };
 
 struct LOG slog;
-
-extern pthread_mutex_t LOG_MUTEX;
 
 void set_log_fp(FILE *fp);
 

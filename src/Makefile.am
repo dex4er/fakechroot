@@ -172,10 +172,7 @@ libfakechroot_la_SOURCES = \
 		hashmap.c \
 		memcached_client.c \
 		hmappriv.c \
-		ipc_rcv.c \
-		ipc_snd.c \
-		log.c \
-		msg.c
+		log.c
 libfakechroot_la_LDFLAGS = -avoid-version
 
 AM_CFLAGS = $(EXTRA_CFLAGS)

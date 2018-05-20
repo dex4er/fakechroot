@@ -30,6 +30,15 @@ wrapper(creat, int, (const char * pathname, mode_t mode))
 {
     debug("creat(\"%s\", 0%o)", pathname, mode);
     expand_chroot_path(pathname);
-    priv_check(1,pathname); 
-    return nextcall(creat)(pathname, mode);
+
+
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(1, rt_paths, pathname);
+    if (r && rt_paths){
+      return nextcall(creat)(rt_paths[0], mode);
+    }else if(r && !rt_paths){
+      return nextcall(creat)(pathname, mode);
+    }else {
+      exit(EXIT_FAILURE);
+    }
 }

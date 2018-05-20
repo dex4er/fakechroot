@@ -34,8 +34,16 @@ wrapper(linkat, int, (int olddirfd, const char * oldpath, int newdirfd, const ch
     strcpy(tmp, oldpath);
     oldpath = tmp;
     expand_chroot_path_at(newdirfd, newpath);
-    priv_check(2, oldpath, newpath);
-    return nextcall(linkat)(olddirfd, oldpath, newdirfd, newpath, flags);
+
+    char** rt_paths = NULL;
+    bool r = rt_mem_check(2, rt_paths, oldpath, newpath);
+    if (r && rt_paths){
+      return nextcall(linkat)(olddirfd, rt_paths[0], newdirfd, rt_paths[1], flags);
+    }else if(r && !rt_paths){
+      return nextcall(linkat)(olddirfd, oldpath, newdirfd, newpath, flags);
+    }else {
+      exit(EXIT_FAILURE);
+    }
 }
 
 #else
