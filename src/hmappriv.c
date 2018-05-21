@@ -224,6 +224,7 @@ if(map_value){
         strcat(path, paths[i]);
         rt_paths[i] = path;
       }
+      b_rt = true;
     }else{
       int *v_nix = (int *)calloc(n, sizeof(int));
       bool v_b_mt = existStr(map_value,";", n, paths, v_nix);
@@ -236,6 +237,7 @@ if(map_value){
           strcat(path, paths[i]);
           rt_paths[i] = path;
         }
+        b_rt = true;
       }else{
         for(int i=0;i<n;i++){
           char *path = (char*)malloc(sizeof(char)*PATH_LENGTH);
@@ -243,8 +245,10 @@ if(map_value){
             //which exists in list replace it
             strcpy(path, conRoot);
             strcat(path, paths[i]); 
+            b_rt |= true;
           }else{
             strcpy(path, paths[i]);
+            b_rt |= false;
           }
             rt_paths[i] = path;
         }
@@ -263,7 +267,7 @@ if(map_value){
       sprintf(buff+strlen(buff), rt_paths[i]);
       sprintf(buff+strlen(buff),";");
     }
-    log_debug("nix = NULL, %s", buff);
+    log_debug("nix = NULL, %s b_rt: %d b_mt: %d", buff,b_rt,b_mt);
     //test
     //
     //nix = NULL ends
@@ -277,8 +281,10 @@ if(map_value){
         if(nix[i]==0){
           strcpy(path,conRoot);
           strcat(path, paths[i]);
+          b_rt |= true;
         }else{
           strcpy(path, paths[i]);
+          b_rt |= false;
         }
         rt_paths[i] = path;
       }
@@ -290,13 +296,16 @@ if(map_value){
           if(v_b_r){
             strcpy(path,conRoot);
             strcat(path, paths[i]);
+            b_rt |= true;
           }else{
             strcpy(path,paths[i]);
+            b_rt |= false;
           }
           rt_paths[i] = path;
         }else{
           strcpy(path, paths[i]);
           rt_paths[i] = path;
+          b_rt |= false;
         }
       }
     }
@@ -312,12 +321,11 @@ if(map_value){
       sprintf(buff+strlen(buff), rt_paths[i]);
       sprintf(buff+strlen(buff),";");
     }
-    log_debug("nix != NULL, %s", buff);
+    log_debug("nix != NULL, %s b_rt: %d b_mt %d", buff,b_rt,b_mt);
     //test
 
   }
-  b_rt = true;
-} //map value ends
+ } //map value ends
 }
 
  if(nix){

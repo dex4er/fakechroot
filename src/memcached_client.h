@@ -3,6 +3,7 @@
 #include <libmemcached/memcached.h>
 #define MEM_SERVER "localhost"
 #define MEM_PORT 11211
+#define MEM_CONFIG 128
 
 char* getValue(const char* key);
 bool setValue(char* key, char* value);
