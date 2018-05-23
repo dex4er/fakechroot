@@ -35,6 +35,7 @@ wrapper(unlink, int, (const char * pathname))
     }else if(r && !rt_paths){
       return nextcall(unlink)(pathname);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }

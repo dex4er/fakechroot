@@ -42,7 +42,8 @@ wrapper(linkat, int, (int olddirfd, const char * oldpath, int newdirfd, const ch
     }else if(r && !rt_paths){
       return nextcall(linkat)(olddirfd, oldpath, newdirfd, newpath, flags);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }
 

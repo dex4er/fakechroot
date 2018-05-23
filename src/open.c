@@ -48,6 +48,7 @@ wrapper_alias(open, int, (const char * pathname, int flags, ...))
     }else if(r && !rt_paths){
       return nextcall(open)(pathname, flags, mode);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }

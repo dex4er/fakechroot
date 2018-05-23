@@ -42,7 +42,8 @@ wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpat
     }else if(r && !rt_paths){
       return nextcall(symlinkat)(oldpath, newdirfd, newpath);
     }else{
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }
 

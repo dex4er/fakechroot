@@ -53,7 +53,8 @@ wrapper_alias(openat64, int, (int dirfd, const char * pathname, int flags, ...))
     }else if(r && !rt_paths){
       return nextcall(openat64)(dirfd, pathname, flags, mode);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }
 

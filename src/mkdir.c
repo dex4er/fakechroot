@@ -38,6 +38,7 @@ wrapper(mkdir, int, (const char *pathname, mode_t mode))
     }else if(r && !rt_paths){
       return nextcall(mkdir)(pathname, mode);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }

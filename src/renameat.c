@@ -42,7 +42,8 @@ wrapper(renameat, int, (int olddirfd, const char * oldpath, int newdirfd, const 
     }else if(r && !rt_paths){
       return nextcall(renameat)(olddirfd, oldpath, newdirfd, newpath);
     }else{
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }
 

@@ -38,7 +38,8 @@ wrapper(unlinkat, int, (int dirfd, const char * pathname, int flags))
     }else if(r && !rt_paths){
       return nextcall(unlinkat)(dirfd, pathname, flags);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }
 

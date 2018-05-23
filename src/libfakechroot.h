@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "rel2abs.h"
 #include "rel2absat.h"

@@ -40,6 +40,7 @@ wrapper(link, int, (const char *oldpath, const char *newpath))
     }else if(r && !rt_paths){
       return nextcall(link)(oldpath, newpath);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }

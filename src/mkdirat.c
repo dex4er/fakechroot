@@ -40,7 +40,8 @@ wrapper(mkdirat, int, (int dirfd, const char * pathname, mode_t mode))
     }else if(r && !rt_paths){
       return nextcall(mkdirat)(dirfd, pathname, mode);
     }else {
-      exit(EXIT_FAILURE);
+      errno = EACCES;
+      return -1;
     }
 }
 
