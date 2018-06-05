@@ -65,6 +65,9 @@ wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK
         strncpy(buf, tmpptr, linksize);
     }
     else {
+        if (linksize > bufsiz) {
+            linksize = bufsiz;
+        }
         strncpy(buf, tmp, linksize);
     }
     return linksize;
