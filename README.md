@@ -34,13 +34,13 @@ user's account.
 An example session
 ==================
 
-```sh
+```
 $ id
 uid=1000(dexter) gid=1000(dexter) groups=1000(dexter)
 
 $ fakechroot fakeroot debootstrap sid /tmp/sid
-I: Retrieving Release 
-I: Retrieving Release.gpg 
+I: Retrieving Release
+I: Retrieving Release.gpg
 I: Checking Release signature
 ...
 I: Base system installed successfully.
@@ -85,3 +85,4 @@ fakechroot had found another purposes:
 * to be a supporter for [febootstrap](http://et.redhat.com/~rjones/febootstrap/), the tool which can set up new Fedora system
 * to be a part of [cuntubuntu](https://play.google.com/store/apps/details?id=com.cuntubuntu) - Ubuntu for Android without root
 * to be a supporter for [selenium-chroot](https://github.com/gagern/selenium-chroot) setup
+* to be a supporter for [rpm](https://github.com/rpm-software-management/rpm) test suite
