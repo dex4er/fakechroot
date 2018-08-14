@@ -144,12 +144,16 @@
 #define wrapper_decl_proto(function) \
     extern LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
 
-#define wrapper_decl(function) \
+#define wrapper_decl_versioned(function, version) \
     LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
         (fakechroot_wrapperfn_t) function, \
         NULL, \
-        #function \
+        #function, \
+        version \
     }
+
+#define wrapper_decl(function) \
+    wrapper_decl_versioned(function, NULL)
 
 #define wrapper_fn_t(function, return_type, arguments) \
     typedef return_type (*fakechroot_##function##_fn_t) arguments
@@ -171,15 +175,21 @@
     wrapper_proto(function, return_type, arguments)
 #endif
 
-#define wrapper(function, return_type, arguments) \
+#define wrapper_versioned(function, version, return_type, arguments) \
     wrapper_proto(function, return_type, arguments); \
-    wrapper_decl(function); \
+    wrapper_decl_versioned(function, version); \
     return_type function arguments
 
-#define wrapper_alias(function, return_type, arguments) \
+#define wrapper(function, return_type, arguments) \
+    wrapper_versioned(function, NULL, return_type, arguments)
+
+#define wrapper_alias_versioned(function, version, return_type, arguments) \
     wrapper_proto_alias(function, return_type, arguments); \
-    wrapper_decl(function); \
+    wrapper_decl_versioned(function, version); \
     return_type wrapper_fn_name(function) arguments
+
+#define wrapper_alias(function, return_type, arguments) \
+    wrapper_alias_versioned(function, NULL, return_type, arguments)
 
 #define nextcall(function) \
     ( \
@@ -210,6 +220,7 @@ struct fakechroot_wrapper {
     fakechroot_wrapperfn_t func;
     fakechroot_wrapperfn_t nextfunc;
     const char *name;
+    const char *version;
 };
 
 

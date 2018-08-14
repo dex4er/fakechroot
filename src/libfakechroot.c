@@ -143,7 +143,12 @@ void fakechroot_init (void)
 LOCAL fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper * w)
 {
     char *msg;
-    if (!(w->nextfunc = dlsym(RTLD_NEXT, w->name))) {;
+
+    if (w->version)
+        w->nextfunc = dlvsym(RTLD_NEXT, w->name, w->version);
+    else
+        w->nextfunc = dlsym(RTLD_NEXT, w->name);
+    if (!w->nextfunc) {
         msg = dlerror();
         fprintf(stderr, "%s: %s: %s\n", PACKAGE, w->name, msg != NULL ? msg : "unresolved symbol");
         exit(EXIT_FAILURE);
