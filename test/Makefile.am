@@ -34,6 +34,7 @@ TESTS = \
     t/system.t \
     t/test-r.t \
     t/touch.t \
+    t/xattr.t \
     t/zzarchlinux.t \
     t/zzdebootstrap.t \
     #

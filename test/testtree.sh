@@ -60,10 +60,12 @@ for p in \
     '/bin/sh' \
     '/bin/sleep' \
     '/bin/touch' \
+    '/usr/bin/attr' \
     '/usr/bin/basename' \
     '/usr/bin/dirname' \
     '/usr/bin/env' \
     '/usr/bin/find' \
+    '/usr/bin/getfattr' \
     '/usr/bin/id' \
     '/usr/bin/ischroot' \
     '/usr/bin/less' \
@@ -72,6 +74,7 @@ for p in \
     '/usr/bin/perl' \
     '/usr/bin/readlink' \
     '/usr/bin/seq' \
+    '/usr/bin/setfattr' \
     '/usr/bin/sort' \
     '/usr/bin/strace' \
     '/usr/bin/test' \
