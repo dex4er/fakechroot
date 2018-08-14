@@ -27,7 +27,7 @@
 #include "libfakechroot.h"
 
 
-wrapper(llistxattr, ssize_t, (const char *path, char *list, size_t size))
+wrapper_versioned(llistxattr, "GLIBC_2.3", ssize_t, (const char *path, char *list, size_t size))
 {
     debug("llistxattr(\"%s\", &list, %zd)", path, list);
     expand_chroot_path(path);

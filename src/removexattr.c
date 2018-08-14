@@ -25,7 +25,7 @@
 #include "libfakechroot.h"
 
 
-wrapper(removexattr, int, (const char * path, const char * name))
+wrapper_versioned(removexattr, "GLIBC_2.3", int, (const char * path, const char * name))
 {
     debug("removexattr(\"%s\", \"%s\")", path, name);
     expand_chroot_path(path);

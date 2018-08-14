@@ -27,7 +27,7 @@
 #include "libfakechroot.h"
 
 
-wrapper(getxattr, ssize_t, (const char * path, const char * name, void * value, size_t size))
+wrapper_versioned(getxattr, "GLIBC_2.3", ssize_t, (const char * path, const char * name, void * value, size_t size))
 {
     debug("getxattr(\"%s\", \"%s\", &value, %zd)", path, name, size);
     expand_chroot_path(path);
