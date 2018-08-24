@@ -155,11 +155,6 @@ sub load_ldsoconf {
 MAIN: {
     my @args = @ARGV;
 
-    if (not @args) {
-        print STDERR "fakeldd: missing file arguments\n";
-        exit 1;
-    }
-
     if (not `sh -c 'command -v objdump'`) {
         print STDERR "fakeldd: objdump: command not found: install binutils package\n";
         exit 1;
@@ -170,8 +165,13 @@ MAIN: {
 
     while ($args[0] =~ /^-/) {
         my $arg = $args[0];
-        shift @ARGV;
+        shift @args;
         last if $arg eq "--";
+    }
+
+    if (not @args) {
+        print STDERR "fakeldd: missing file arguments\n";
+        exit 1;
     }
 
     foreach my $file (@args) {
