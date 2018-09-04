@@ -28,6 +28,7 @@
 #include "rel2abs.h"
 #include "rel2absat.h"
 #include "hmappriv.h"
+#include "unionfs.h"
 
 
 #define debug fakechroot_debug
@@ -78,7 +79,6 @@
 #ifndef HAVE_VFORK
 # define vfork fork
 #endif
-
 
 #define narrow_chroot_path(path) \
     { \

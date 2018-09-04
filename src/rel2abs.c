@@ -34,8 +34,6 @@ LOCAL char * rel2abs(const char * name, char * resolved)
 {
     char cwd[FAKECHROOT_PATH_MAX];
 
-    debug("rel2abs(\"%s\", &resolved)", name);
-
     if (name == NULL) {
         resolved = NULL;
         goto end;

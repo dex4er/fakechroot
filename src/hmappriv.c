@@ -335,6 +335,10 @@ if(map_value){
 }
 
 bool rt_mem_check(int n, char** rt_paths, ...){
+  char * check_switch = getenv("LPMX_PRIV_SWITCH");
+  if(!check_switch){
+      return true;
+  }
   char * containermode = getenv("ContainerMode");
   if (containermode && strcmp(containermode,"chroot")==0){
     return true;

@@ -17,6 +17,10 @@ int main(int argc, char const* argv[])
         if(strcmp(argv[1],"get") == 0){
             log_debug("get: key=> container:touch:allow, result: %s",getValue(key));
         }
+    }else{
+        char *keys[] = {"fudge","son","food"};
+        size_t key_length[] = {5,3,4};
+        existKeys(keys, key_length, 3);
     }
     return 0;
 }

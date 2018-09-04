@@ -9,4 +9,5 @@ char* getValue(const char* key);
 bool setValue(char* key, char* value);
 bool existKey(const char* key);
 bool deleteByKey(const char* key);
+bool existKeys(const char **keys, const size_t *key_length, int n);
 #endif

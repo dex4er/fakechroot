@@ -70,3 +70,20 @@ bool deleteByKey(const char* key){
         return false;
     }
 }
+
+bool existKeys(const char **keys, const size_t *key_length, int n){
+   memcached_st *memc = init_mem_unix_server();
+   memcached_return_t rc;
+
+   char return_key[MEMCACHED_MAX_KEY];
+   size_t return_key_length;
+   char *return_value;
+   size_t return_value_length;
+   uint32_t flags;
+
+   rc = memcached_mget(memc,keys, key_length, n);
+   while((return_value = memcached_fetch(memc, return_key, &return_key_length, &return_value_length, &flags, &rc))){
+       log_debug("return value %s",return_value);
+       free(return_value);
+   }
+}
