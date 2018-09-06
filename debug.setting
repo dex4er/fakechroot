@@ -1,0 +1,9 @@
+set env LD_PRELOAD=/home/test/tmp/app/libfakechroot.so
+set env LD_LIBRARY_PATH=/home/test/tmp/app
+set env LPMX_PRIV_SWITCH=true
+set env __LOG_SWITCH=true
+set env __LOG_LEVEL=0
+set env CONTAINER_WORKSPACE=/tmp
+set env FAKECHROOT_DEBUG=true
+dir fakechroot/src
+

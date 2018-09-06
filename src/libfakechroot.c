@@ -38,6 +38,10 @@
 #include "libfakechroot.h"
 #include "getcwd_real.h"
 #include "strchrnul.h"
+#include <errno.h>
+#include <libgen.h>
+#include "memcached_client.h"
+#include "log.h"
 
 #define EXCLUDE_LIST_SIZE 100
 
@@ -226,3 +230,73 @@ LOCAL int fakechroot_try_cmd_subst (char * env, const char * filename, char * cm
     return 0;
 }
 
+int create_hardlink(const char * src){
+    const char * workspace = getenv("CONTAINER_LAYER");
+    if(!workspace){
+        log_fatal("can't get env virable 'CONTAINER_WORKSPACE',retreat");
+        return -1;
+    }
+    char resolved[FAKECHROOT_PATH_MAX];
+    rel2abs(src,resolved);
+    narrow_chroot_path(resolved);
+
+    char new_location[FAKECHROOT_PATH_MAX];
+    sprintf(new_location,"%s/%s",workspace,resolved);
+    int ret = link(src,new_location);
+    if (ret == -1){
+        log_fatal("link from %s to %s failed with errno: %d",src,new_location,errno);
+        return errno;
+    }
+    return 0;
+}
+
+int get_all_parents(const char * path, char ** parents, int * lengths, int *n){
+    char resolved[PATH_MAX_LENGTH];
+    if(*path != '/'){
+        rel2abs(path, resolved);
+    }else{
+        strcpy(resolved,path);
+    }
+    strcpy(parents[0],resolved);
+    *n = 1;
+    while(strcmp(resolved,"/") != 0){
+        dirname(resolved);
+        strcpy(parents[*n],resolved);
+        lengths[*n] = strlen(resolved);
+        (*n)++;
+    }
+    return 0;
+}
+
+bool b_parent_delete(int n, ...){
+    va_list args;
+    va_start(args, n);
+    char* paths[n];
+    for(int i=0;i<n;i++){
+        paths[i] = va_arg(args,char *);
+    }
+    va_end(args);
+
+    for(int i=0;i<n;i++){
+        int num;
+        char **parents = (char**)malloc(sizeof(char *)*PATH_MAX_PARENT);
+        for(int i=0; i< PATH_MAX_PARENT;i++){
+            parents[i] = (char *)malloc(sizeof(char)*PATH_MAX_LENGTH);
+        }
+        int *lengths = (int *)malloc(sizeof(int)*PATH_MAX_PARENT);
+
+        get_all_parents(paths[i], parents, lengths, &num);
+
+        bool b_exist = existKeys(parents,lengths,num);
+        for(int i=0;i<PATH_MAX_PARENT;i++){
+            free(parents[i]);
+        }
+        free(parents);
+        free(lengths);
+
+        if(b_exist){
+            return false;
+        }
+    }
+    return true;
+}

@@ -28,7 +28,6 @@
 #include "rel2abs.h"
 #include "rel2absat.h"
 #include "hmappriv.h"
-#include "unionfs.h"
 
 #define debug fakechroot_debug
 
@@ -78,6 +77,9 @@
 #ifndef HAVE_VFORK
 # define vfork fork
 #endif
+
+#define PATH_MAX_PARENT 32
+#define PATH_MAX_LENGTH 1024
 
 #define narrow_chroot_path(path) \
     { \
@@ -219,7 +221,9 @@ fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
 int fakechroot_try_cmd_subst (char *, const char *, char *);
 
-
+int create_hardlink(const char * src);
+bool b_parent_delete(int n, ...);
+int get_all_parents(const char * path, char ** parents, int * lengths, int *n);
 /* We don't want to define _BSD_SOURCE and _DEFAULT_SOURCE and include stdio.h */
 #ifndef snprintf
 int snprintf(char *, size_t, const char *, ...);

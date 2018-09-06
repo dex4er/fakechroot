@@ -219,7 +219,7 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
             if(nix == NULL){
                 if(v_all){
                     for(int i=0;i<n;i++){
-                        char *path = (char*)malloc(sizeof(char)*PATH_LENGTH);
+                        char *path = (char*)malloc(sizeof(char)*PATH_MAX_LENGTH);
                         strcpy(path, conRoot);
                         strcat(path, paths[i]);
                         rt_paths[i] = path;
@@ -232,7 +232,7 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
                     //path
                     if(v_b_mt){
                         for(int i=0;i<n;i++){
-                            char * path = (char*)malloc(sizeof(char)*PATH_LENGTH);
+                            char * path = (char*)malloc(sizeof(char)*PATH_MAX_LENGTH);
                             strcpy(path, conRoot);
                             strcat(path, paths[i]);
                             rt_paths[i] = path;
@@ -240,7 +240,7 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
                         b_rt = true;
                     }else{
                         for(int i=0;i<n;i++){
-                            char *path = (char*)malloc(sizeof(char)*PATH_LENGTH);
+                            char *path = (char*)malloc(sizeof(char)*PATH_MAX_LENGTH);
                             if(v_nix[i] == 1){
                                 //which exists in list replace it
                                 strcpy(path, conRoot);
@@ -277,7 +277,7 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
                         //the path which is not in nix will be replaced, if path in nix, which
                         //means program already has the access to that path, and it could
                         //directrly write and read to that path
-                        char *path = (char*)malloc(sizeof(char)*PATH_LENGTH);
+                        char *path = (char*)malloc(sizeof(char)*PATH_MAX_LENGTH);
                         if(nix[i]==0){
                             strcpy(path,conRoot);
                             strcat(path, paths[i]);
@@ -290,7 +290,7 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
                     }
                 } else{
                     for(int i=0;i<n;i++){
-                        char *path = (char*)malloc(sizeof(char)*PATH_LENGTH);
+                        char *path = (char*)malloc(sizeof(char)*PATH_MAX_LENGTH);
                         if(nix[i]==0){
                             bool v_b_r = existStrAlone(map_value, ";",paths[i]);
                             if(v_b_r){

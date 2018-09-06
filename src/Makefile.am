@@ -175,14 +175,8 @@ libfakechroot_la_SOURCES = \
 	memcached_client.h \
 	hmappriv.c \
 	hmappriv.h \
-	ipc_rcv.c \
-	ipc_rcv.h \
-	ipc_snd.c \
-	ipc_snd.h \
 	log.c \
 	log.h \
-	unionfs.c \
-	unionfs.h \
 	msg.h \
 	msg.c
 libfakechroot_la_LDFLAGS = -avoid-version

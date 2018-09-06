@@ -84,6 +84,11 @@ bool existKeys(const char **keys, const size_t *key_length, int n){
    rc = memcached_mget(memc,keys, key_length, n);
    while((return_value = memcached_fetch(memc, return_key, &return_key_length, &return_value_length, &flags, &rc))){
        log_debug("return value %s",return_value);
+       if((return_value != NULL) && (*return_value != '\0')){
+           free(return_value);
+           return true;
+       }
        free(return_value);
    }
+   return false;
 }
