@@ -30,7 +30,6 @@
 #include "hmappriv.h"
 #include "unionfs.h"
 
-
 #define debug fakechroot_debug
 
 #ifdef HAVE___ATTRIBUTE__VISIBILITY

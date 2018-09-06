@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 #define PNAME_SIZE 48
-#define PATH_LENGTH 128 
+#define PATH_LENGTH 1024 
 
 struct ProcessInfo{
     pid_t pid;

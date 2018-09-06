@@ -40,20 +40,20 @@ wrapper_alias(open, int, (const char * pathname, int flags, ...))
         mode = va_arg(arg, int);
         va_end(arg);
     }
+    
+    b_parent_delete(1,pathname);
 
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths){
-        if((flags & O_WRONLY) || (flags & O_RDWR)){
-            int ret = create_hardlink(rt_paths[0]);
-            if(ret != 0){
+        return nextcall(open)(rt_paths[0], flags, mode);
+    }else if(r && !rt_paths){
+        if((flags & O_CREAT) || (flags & O_APPEND) || (flags & O_TRUNC)){
+            bool b_delete = b_parent_delete(1,pathname);
+            if(b_delete){
                 errno = EACCES;
                 return -1;
             }
-        }
-        return nextcall(open)(rt_paths[0], flags, mode);
-    }else if(r && !rt_paths){
-        if((flags & O_WRONLY) || (flags & O_RDWR)){
             int ret = create_hardlink(pathname);
             if(ret != 0){
                 errno = EACCES;
