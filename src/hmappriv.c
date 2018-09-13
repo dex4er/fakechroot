@@ -5,6 +5,7 @@
 #include "log.h"
 #include "hashmap.h"
 #include "memcached_client.h"
+#include <openssl/sha.h>
 
 const int PATH_DATA_SIZE = 1024;
 

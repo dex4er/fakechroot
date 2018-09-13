@@ -17,16 +17,14 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
    */
 
-
 #include <config.h>
 
+#include "libfakechroot.h"
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <fcntl.h>
-#include "libfakechroot.h"
 
-
-wrapper_alias(open, int, (const char * pathname, int flags, ...))
+wrapper_alias(open, int, (const char* pathname, int flags, ...))
 {
     int mode = 0;
 
@@ -40,26 +38,18 @@ wrapper_alias(open, int, (const char * pathname, int flags, ...))
         mode = va_arg(arg, int);
         va_end(arg);
     }
-    
+
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
-    if (r && rt_paths){
+    if (r && rt_paths) {
         return nextcall(open)(rt_paths[0], flags, mode);
-    }else if(r && !rt_paths){
-        if((flags & O_CREAT) || (flags & O_APPEND) || (flags & O_TRUNC)){
-            bool b_delete = b_parent_delete(1,pathname);
-            if(b_delete){
-                errno = EACCES;
-                return -1;
-            }
-            int ret = create_hardlink(pathname);
-            if(ret != 0){
-                errno = EACCES;
-                return -1;
-            }
+    } else if (r && !rt_paths) {
+        if ((flags & O_CREAT) || (flags & O_APPEND) || (flags & O_TRUNC)) {
+           append_diff(pathname,"%s %d","open",flags);
         }
+        debug("open %s\n",pathname);
         return nextcall(open)(pathname, flags, mode);
-    }else {
+    } else {
         errno = EACCES;
         return -1;
     }

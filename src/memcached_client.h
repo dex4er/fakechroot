@@ -10,4 +10,5 @@ bool setValue(char* key, char* value);
 bool existKey(const char* key);
 bool deleteByKey(const char* key);
 bool existKeys(const char **keys, const size_t *key_length, int n);
+void getMultipleValues(const char** keys, const size_t* key_length, int n, char** values);
 #endif

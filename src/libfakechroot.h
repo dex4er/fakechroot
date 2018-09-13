@@ -80,6 +80,7 @@
 
 #define PATH_MAX_PARENT 32
 #define PATH_MAX_LENGTH 1024
+#define MAX_CONTENT 2048
 
 #define narrow_chroot_path(path) \
     { \
@@ -140,6 +141,17 @@
         } \
     }
 
+#define append_diff(path, format, ...)\
+    {\
+        char content[FAKECHROOT_PATH_MAX]; \
+        char relative_path[FAKECHROOT_PATH_MAX]; \
+        strcpy(relative_path,path); \
+        get_relative_path(relative_path); \
+        debug("xdfdfsdfd === %s",relative_path); \
+        sprintf(content, format, __VA_ARGS__); \
+        sprintf(content+strlen(content)," %s",relative_path); \
+        append_to_diff(content); \
+    }
 
 #define wrapper_decl_proto(function) \
     extern LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
@@ -212,7 +224,6 @@ struct fakechroot_wrapper {
     const char *name;
 };
 
-
 extern char *preserve_env_list[];
 extern const int preserve_env_list_count;
 
@@ -221,7 +232,9 @@ fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
 int fakechroot_try_cmd_subst (char *, const char *, char *);
 
-int create_hardlink(const char * src);
+int get_abs_path(const char * path, char * abs_path, bool force);
+int get_relative_path(char * path);
+int append_to_diff(const char* content);
 bool b_parent_delete(int n, ...);
 int get_all_parents(const char * path, char ** parents, int * lengths, int *n);
 /* We don't want to define _BSD_SOURCE and _DEFAULT_SOURCE and include stdio.h */
