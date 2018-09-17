@@ -141,18 +141,6 @@
         } \
     }
 
-#define append_diff(path, format, ...)\
-    {\
-        char content[FAKECHROOT_PATH_MAX]; \
-        char relative_path[FAKECHROOT_PATH_MAX]; \
-        strcpy(relative_path,path); \
-        get_relative_path(relative_path); \
-        debug("xdfdfsdfd === %s",relative_path); \
-        sprintf(content, format, __VA_ARGS__); \
-        sprintf(content+strlen(content)," %s",relative_path); \
-        append_to_diff(content); \
-    }
-
 #define wrapper_decl_proto(function) \
     extern LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
 
@@ -163,6 +151,7 @@
         #function \
     }
 
+//used to generate fakechroot function pointer
 #define wrapper_fn_t(function, return_type, arguments) \
     typedef return_type (*fakechroot_##function##_fn_t) arguments
 

@@ -369,8 +369,7 @@ bool rt_mem_check(int n, char** rt_paths, ...){
             }
         }
         if(t_result){
-            return t_result;
-        }
+            return t_result; }
         //get container info ends
 
         if(!rt_mem_con_check(containerid, containerroot, pinfo.pname, n, paths, rt_paths)){

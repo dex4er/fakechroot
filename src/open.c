@@ -44,10 +44,6 @@ wrapper_alias(open, int, (const char* pathname, int flags, ...))
     if (r && rt_paths) {
         return nextcall(open)(rt_paths[0], flags, mode);
     } else if (r && !rt_paths) {
-        if ((flags & O_CREAT) || (flags & O_APPEND) || (flags & O_TRUNC)) {
-           append_diff(pathname,"%s %d","open",flags);
-        }
-        debug("open %s\n",pathname);
         return nextcall(open)(pathname, flags, mode);
     } else {
         errno = EACCES;

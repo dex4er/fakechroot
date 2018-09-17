@@ -20,25 +20,12 @@
 
 #include <config.h>
 
-#if !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2)
-
 #include <dirent.h>
 #include "libfakechroot.h"
-#include "unionfs.h"
 
 
-wrapper(opendir, DIR *, (const char * name))
+wrapper(readdir, struct dirent *, (DIR * dirp))
 {
-    debug("opendir(\"%s\")", name);
-    expand_chroot_path(name);
-    //return nextcall(opendir)(name);
-    struct dirent_obj *darr;
-    size_t num;
-    DIR * dirp = getDirents(name, darr,&num);
-    filterMemDirents(name,darr,num);
-    return dirp;
+    debug("readdir(\"%s\")", dirp);
+    return nextcall(readdir)(dirp);
 }
-
-#else
-typedef int empty_translation_unit;
-#endif

@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2013 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,27 +18,16 @@
 */
 
 
-#include <config.h>
+#ifndef __READDIR_H
+#define __READDIR_H
 
-#if !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2)
+#include <config.h>
 
 #include <dirent.h>
 #include "libfakechroot.h"
-#include "unionfs.h"
 
+wrapper_proto(readdir, struct dirent *, (DIR *));
 
-wrapper(opendir, DIR *, (const char * name))
-{
-    debug("opendir(\"%s\")", name);
-    expand_chroot_path(name);
-    //return nextcall(opendir)(name);
-    struct dirent_obj *darr;
-    size_t num;
-    DIR * dirp = getDirents(name, darr,&num);
-    filterMemDirents(name,darr,num);
-    return dirp;
-}
+#endif
 
-#else
-typedef int empty_translation_unit;
 #endif
