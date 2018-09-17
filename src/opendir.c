@@ -34,7 +34,7 @@ wrapper(opendir, DIR *, (const char * name))
     //return nextcall(opendir)(name);
     struct dirent_obj *darr;
     size_t num;
-    DIR * dirp = getDirents(name, darr,&num);
+    DIR * dirp = getDirents(name, &darr,&num);
     filterMemDirents(name,darr,num);
     return dirp;
 }

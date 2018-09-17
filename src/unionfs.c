@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include "log.h"
 
-DIR * getDirents(const char* name, struct dirent_obj* darr,size_t *num)
+DIR * getDirents(const char* name, struct dirent_obj** darr,size_t *num)
 {
     if (!real_opendir) {
         real_opendir = (OPENDIR)dlsym(RTLD_NEXT, "opendir"); }
@@ -17,14 +17,14 @@ DIR * getDirents(const char* name, struct dirent_obj* darr,size_t *num)
     DIR* dirp = real_opendir(name);
     struct dirent* entry = NULL;
     struct dirent_obj* curr = NULL;
-    darr = NULL;
+    *darr = NULL;
     *num = 0;
     while (entry = real_readdir(dirp)) {
         struct dirent_obj* tmp = (struct dirent_obj*)malloc(sizeof(struct dirent_obj));
         tmp->dp = entry;
         tmp->next = NULL;
-        if (!darr) {
-            darr = curr = tmp;
+        if (*darr == NULL) {
+            *darr = curr = tmp;
         } else {
             curr->next = tmp;
             curr = tmp;
@@ -52,7 +52,8 @@ void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num)
     getMultipleValues(keys, key_lengths, num, values);
     //delete item in chains at specific pos
     for (int i = 0; i < num; i++) {
-        if (values[i] == NULL || *values[i] == '\0') {
+        if (values[i] != NULL &&  strlen(*(values[i])) != 0) {
+            log_debug("delete dirent according to query on memcached value: %s, name is: %s",*(values[i]),keys[i]);
             deleteItemInChain(darr, i);
         }
     }
