@@ -141,6 +141,7 @@
         } \
     }
 
+//declare the fakechroot_wrapper struct for the function
 #define wrapper_decl_proto(function) \
     extern LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT
 
@@ -182,6 +183,8 @@
     wrapper_decl(function); \
     return_type wrapper_fn_name(function) arguments
 
+//fakechroot_##function##_wrapper_decl is struct of fakechroot_wrapper
+//fakechroot_loadfunc will load func based on the inputed struct
 #define nextcall(function) \
     ( \
       (fakechroot_##function##_fn_t)( \

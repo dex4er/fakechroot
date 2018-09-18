@@ -26,19 +26,19 @@
 #include "libfakechroot.h"
 #include "unionfs.h"
 
-
+struct dirent_obj* darr = NULL;
 wrapper(opendir, DIR *, (const char * name))
 {
     debug("opendir(\"%s\")", name);
     expand_chroot_path(name);
     size_t num;
-    if(darr){
-        clearItems(darr);
-    }
     DIR * dirp = getDirents(name, &darr,&num);
-    filterMemDirents(name,darr,num);
-    //return nextcall(opendir)(name);
+    struct dirent * item = (struct dirent*)malloc(sizeof(struct dirent));
+    strcpy(item->d_name,"hello world");
+    addItemToHead(&darr,item);
+    //filterMemDirents(name,darr,num);
     return dirp;
+    //return nextcall(opendir)(name);
 }
 
 #else
