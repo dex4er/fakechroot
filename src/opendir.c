@@ -31,11 +31,13 @@ wrapper(opendir, DIR *, (const char * name))
 {
     debug("opendir(\"%s\")", name);
     expand_chroot_path(name);
-    //return nextcall(opendir)(name);
-    struct dirent_obj *darr;
     size_t num;
+    if(darr){
+        clearItems(darr);
+    }
     DIR * dirp = getDirents(name, &darr,&num);
     filterMemDirents(name,darr,num);
+    //return nextcall(opendir)(name);
     return dirp;
 }
 

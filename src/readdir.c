@@ -22,10 +22,14 @@
 
 #include <dirent.h>
 #include "libfakechroot.h"
+#include "unionfs.h"
 
 
 wrapper(readdir, struct dirent *, (DIR * dirp))
 {
-    debug("readdir(\"%s\")", dirp);
-    return nextcall(readdir)(dirp);
+    if(darr != NULL){
+        return popItemFromHead(darr);
+    }else{
+        return nextcall(readdir)(dirp);
+    }
 }

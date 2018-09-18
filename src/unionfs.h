@@ -14,6 +14,7 @@ struct dirent_obj {
 
 static OPENDIR real_opendir = NULL;
 static READDIR real_readdir = NULL;
+static struct dirent_obj * darr;
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num);
 void deleteItemInChain(struct dirent_obj* darr, size_t num);

@@ -52,8 +52,8 @@ void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num)
     getMultipleValues(keys, key_lengths, num, values);
     //delete item in chains at specific pos
     for (int i = 0; i < num; i++) {
-        if (values[i] != NULL &&  strlen(*(values[i])) != 0) {
-            log_debug("delete dirent according to query on memcached value: %s, name is: %s",*(values[i]),keys[i]);
+        if (values[i] != NULL && strlen(values[i]) != 0) {
+            log_debug("delete dirent according to query on memcached value: %s, name is: %s",values[i],keys[i]);
             deleteItemInChain(darr, i);
         }
     }
