@@ -7,8 +7,7 @@
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.  This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
@@ -224,9 +223,6 @@ fakechroot_wrapperfn_t fakechroot_loadfunc (struct fakechroot_wrapper *);
 int fakechroot_localdir (const char *);
 int fakechroot_try_cmd_subst (char *, const char *, char *);
 
-int get_abs_path(const char * path, char * abs_path, bool force);
-int get_relative_path(char * path);
-int append_to_diff(const char* content);
 bool b_parent_delete(int n, ...);
 int get_all_parents(const char * path, char ** parents, int * lengths, int *n);
 /* We don't want to define _BSD_SOURCE and _DEFAULT_SOURCE and include stdio.h */
