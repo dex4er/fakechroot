@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h> 
 
 DIR* getDirents(const char* name, struct dirent_obj** darr, size_t* num)
 {
@@ -70,6 +71,7 @@ DIR* getDirentsWithName(const char* name, struct dirent_obj** darr, size_t* num,
     return dirp;
 }
 
+//this function will not delete the whiteout target folders/files, only hide the .wh/.op files
 struct dirent_layers_entry* getDirContent(const char* abs_path)
 {
     if (!abs_path || *abs_path == '\0') {
@@ -92,13 +94,13 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
         if (transWh2path(curr->dp->d_name, FAKE_FOLDER, m_trans)) {
             p->folder_masked[folder_masked_num] = m_trans;
             p->folder_masked_num += 1;
-            deleteItemInChainByPointer(&darr,&curr);
+            deleteItemInChainByPointer(&darr, &curr);
             continue;
         }
         if (transWh2path(curr->dp->d_name, FAKE_FILE, m_trans)) {
             p->file_masked[file_masked_num] = m_trans;
             p->file_masked_num += 1;
-            deleteItemInChainByPointer(&darr,&curr);
+            deleteItemInChainByPointer(&darr, &curr);
             continue;
         }
         if (is_file_type(abs_item_path, TYPE_FILE)) {
@@ -109,33 +111,47 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
         }
         curr = curr->next;
     }
+    p->data = darr;
     return p;
 }
 
-hmap_t* getLayersContent(const char *rel_path)
+struct dirent_layers_entry* getDirContentFiltered(const char* abs_path){
+    struct dirent_layers_entry *ret = getDirContent(abs_path);
+    if(ret != NULL){
+        struct dirent_obj *curr = ret->data;
+        while(curr){
+            for(size_t i_folder=0; i_folder<ret->folder_masked_num;i_folder++){
+                
+            }
+        }
+    }
+    return ret;
+}
+
+hmap_t* getLayersContent(const char* rel_path)
 {
-    char * clayers = getenv("ContainerLayers");
-    char * croot = getenv("ContainerRoot");
-    if(!croot || !clayers){
+    char* clayers = getenv("ContainerLayers");
+    char* croot = getenv("ContainerRoot");
+    if (!croot || !clayers) {
         log_fatal("can't get container layers info and root info");
         return NULL;
     }
     size_t num = 0;
-    char ** layers =(char **)malloc(sizeof(char *)*MAX_LAYERS);
-    layers[num] = strtok(clayers,":");
-    while(layers[num]){
-        layers[++num] = strtok(NULL,":");
+    char** layers = (char**)malloc(sizeof(char*) * MAX_LAYERS);
+    layers[num] = strtok(clayers, ":");
+    while (layers[num]) {
+        layers[++num] = strtok(NULL, ":");
     }
-    hmap_t * layer_map = create_hmap(MAX_LAYERS);
-    for(int i = 0;i<num;i++){
+    hmap_t* layer_map = create_hmap(MAX_LAYERS);
+    for (int i = 0; i < num; i++) {
         char each_layer_path[MAX_PATH];
-        sprintf(each_layer_path,"%s/%s/%s",croot,layers[i],rel_path);
-        struct dirent_layers_entry * entry = getDirContent(each_layer_path);
-        if(entry){
-           add_item_hmap(layer_map,each_layer_path,(void *)entry);
+        sprintf(each_layer_path, "%s/%s/%s", croot, layers[i], rel_path);
+        struct dirent_layers_entry* entry = getDirContent(each_layer_path);
+        if (entry) {
+            add_item_hmap(layer_map, each_layer_path, (void*)entry);
         }
     }
-    add_item_hmap(layer_map, "layer_count",(void *)&num);
+    add_item_hmap(layer_map, "layer_count", (void*)&num);
     return layer_map;
 }
 
@@ -196,7 +212,7 @@ void deleteItemInChainByPointer(struct dirent_obj** darr, struct dirent_obj** cu
     if (*darr == NULL || *curr == NULL) {
         return;
     }
-    if(*darr == *curr){
+    if (*darr == *curr) {
         *curr = (*curr)->next;
         free(*darr);
         *darr = *curr;
@@ -204,8 +220,8 @@ void deleteItemInChainByPointer(struct dirent_obj** darr, struct dirent_obj** cu
     }
     struct dirent_obj *p1, *p2;
     p1 = p2 = *darr;
-    while(p2){
-        if( p2 == *curr){
+    while (p2) {
+        if (p2 == *curr) {
             p1->next = (*curr)->next;
             free(*curr);
             *curr = p1->next;
@@ -371,21 +387,26 @@ int append_to_diff(const char* content)
 bool is_file_type(const char* path, enum filetype t)
 {
     struct stat path_stat;
-    stat(path, &path_stat);
-    switch (path_stat.st_mode) {
-    case TYPE_FILE:
-        return S_ISREG(path_stat.st_mode);
-    case TYPE_DIR:
-        return S_ISDIR(path_stat.st_mode);
-    case TYPE_LINK:
-        return S_ISLNK(path_stat.st_mode);
-    case TYPE_SOCK:
-        return S_ISSOCK(path_stat.st_mode);
-    default:
-        log_fatal("filetype is not recognized");
-        break;
+    int ret = stat(path, &path_stat);
+    if (ret == 0) {
+        switch (t) {
+        case TYPE_FILE:
+            return S_ISREG(path_stat.st_mode);
+        case TYPE_DIR:
+            return S_ISDIR(path_stat.st_mode);
+        case TYPE_LINK:
+            return S_ISLNK(path_stat.st_mode);
+        case TYPE_SOCK:
+            return S_ISSOCK(path_stat.st_mode);
+        default:
+            log_fatal("filetype is not recognized");
+            break;
+        }
+        return false;
+    } else {
+        log_fatal(strerror(errno));
+        return false;
     }
-    return false;
 }
 
 bool transWh2path(const char* name, const char* pre, char* tname)
@@ -398,7 +419,7 @@ bool transWh2path(const char* name, const char* pre, char* tname)
         strcpy(tmp, name + lenpre);
         for (int i = 0; i < strlen(tmp); i++) {
             if (tmp[i] == '.') {
-                tmp[i] == '/';
+                tmp[i] = '/';
             }
         }
         strcpy(tname, tmp);
