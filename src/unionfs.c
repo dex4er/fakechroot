@@ -83,23 +83,16 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
     getDirents(abs_path, &darr, &num);
     strcpy(p->path, abs_path);
     struct dirent_obj* curr = darr;
-    size_t folder_masked_num, folder_num, file_masked_num, file_num;
-    folder_masked_num = folder_num = file_masked_num = file_num = 0;
-    p->folder_masked = (char**)malloc(sizeof(char*) * MAX_ITEMS);
-    p->file_masked = (char**)malloc(sizeof(char*) * MAX_ITEMS);
+    size_t folder_num, wh_masked_num, file_num;
+    folder_num = wh_masked_num = file_num = 0;
+    p->wh_masked = (char**)malloc(sizeof(char*) * MAX_ITEMS);
     while (curr) {
         char* m_trans = (char*)malloc(sizeof(char) * MAX_PATH);
         char abs_item_path[MAX_PATH];
         sprintf(abs_item_path, "%s/%s", abs_path, curr->dp->d_name);
-        if (transWh2path(curr->dp->d_name, FAKE_FOLDER, m_trans)) {
-            p->folder_masked[folder_masked_num] = m_trans;
-            p->folder_masked_num += 1;
-            deleteItemInChainByPointer(&darr, &curr);
-            continue;
-        }
-        if (transWh2path(curr->dp->d_name, FAKE_FILE, m_trans)) {
-            p->file_masked[file_masked_num] = m_trans;
-            p->file_masked_num += 1;
+        if (transWh2path(curr->dp->d_name, PREFIX_WH, m_trans)) {
+            p->wh_masked[wh_masked_num] = m_trans;
+            p->wh_masked_num += 1;
             deleteItemInChainByPointer(&darr, &curr);
             continue;
         }
@@ -115,21 +108,8 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
     return p;
 }
 
-struct dirent_layers_entry* getDirContentFiltered(const char* abs_path){
-    struct dirent_layers_entry *ret = getDirContent(abs_path);
-    if(ret != NULL){
-        struct dirent_obj *curr = ret->data;
-        while(curr){
-            for(size_t i_folder=0; i_folder<ret->folder_masked_num;i_folder++){
-                
-            }
-        }
-    }
-    return ret;
-}
-
-hmap_t* getLayersContent(const char* rel_path)
-{
+struct dirent_obj * getDirContentAllLayers(const char* rel_path){
+    //container layer from top to lower
     char* clayers = getenv("ContainerLayers");
     char* croot = getenv("ContainerRoot");
     if (!croot || !clayers) {
@@ -142,17 +122,44 @@ hmap_t* getLayersContent(const char* rel_path)
     while (layers[num]) {
         layers[++num] = strtok(NULL, ":");
     }
-    hmap_t* layer_map = create_hmap(MAX_LAYERS);
+    struct dirent_obj * head, *tail;
+    head = tail = NULL;
+
+    //map
+    hmap_t * dirent_map = create_hmap(MAX_ITEMS);
+    hmap_t * wh_map= create_hmap(MAX_ITEMS);
+    
     for (int i = 0; i < num; i++) {
         char each_layer_path[MAX_PATH];
         sprintf(each_layer_path, "%s/%s/%s", croot, layers[i], rel_path);
         struct dirent_layers_entry* entry = getDirContent(each_layer_path);
         if (entry) {
-            add_item_hmap(layer_map, each_layer_path, (void*)entry);
+            if(head == NULL && tail == NULL){
+                head = tail = entry->data;
+                while(tail->next != NULL){
+                    add_item_hmap(dirent_map, tail->dp->d_name,NULL);
+                    tail = tail->next; 
+                }
+                for(size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++){
+                    add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+                }
+            }else{
+                //need to merge folders files and hide wh 
+               tail->next = entry->data;
+               tail = tail->next;
+               while(tail->next != NULL){
+                    if(!contain_item_hmap(dirent_map,tail->dp->d_name) && !contain_item_hmap(wh_map,tail->dp->d_name)){
+                        add_item_hmap(dirent_map,tail->dp->d_name, NULL);
+                    }
+               }
+               for(size_t wh_i = 0; wh_i <entry->wh_masked_num; wh_i ++){
+                   add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+               }
+            }
         }
     }
-    add_item_hmap(layer_map, "layer_count", (void*)&num);
-    return layer_map;
+
+    return head;
 }
 
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num)

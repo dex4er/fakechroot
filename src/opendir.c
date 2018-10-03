@@ -17,39 +17,24 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
 */
 
-
 #include <config.h>
 
 #if !defined(OPENDIR_CALLS___OPEN) && !defined(OPENDIR_CALLS___OPENDIR2)
 
-#include <dirent.h>
 #include "libfakechroot.h"
 #include "unionfs.h"
+#include <dirent.h>
 
 struct dirent_obj* darr = NULL;
-wrapper(opendir, DIR *, (const char * name))
+wrapper(opendir, DIR*, (const char* name))
 {
     debug("opendir(\"%s\")", name);
     expand_chroot_path(name);
-    struct dirent_layers_entry * entry = getDirContent(name);
-    debug("file_masked_num: %d",entry->file_masked_num);
-    for(size_t i =0; i<entry->file_masked_num;i++){
-        debug("file marked: %s",entry->file_masked[i]);
-    }
-    struct dirent_obj * tmp = entry->data;
-    while(tmp){
-        debug(tmp->dp->d_name);
-        tmp = tmp->next;
-    }
     size_t num;
-    struct dirent_obj* useless= NULL;
-    DIR * dirp = getDirents(name, &useless,&num);
-    //struct dirent * item = (struct dirent*)malloc(sizeof(struct dirent));
-    //strcpy(item->d_name,"hello world");
-    //addItemToHead(&darr,item);
-    ////filterMemDirents(name,darr,num);
+    struct dirent_obj* tmp = NULL;
+    DIR* dirp = getDirents(name, &tmp, &num);
+    darr = getDirContentAllLayers(name);
     return dirp;
-    ////return nextcall(opendir)(name);
 }
 
 #else
