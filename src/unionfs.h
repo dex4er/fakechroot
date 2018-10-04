@@ -17,6 +17,7 @@ typedef DIR* (*OPENDIR)(const char* name);
 typedef struct dirent* (*READDIR)(DIR* dirp);
 struct dirent_obj {
     struct dirent* dp;
+    char abs_path[MAX_PATH];
     struct dirent_obj* next;
 };
 
@@ -36,7 +37,7 @@ extern struct dirent_obj * darr;
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 DIR * getDirentsWithName(const char* name, struct dirent_obj** darr, size_t *num, char **names);
 struct dirent_layers_entry* getDirContent(const char* abs_path);
-struct dirent_obj* getDirContentAllLayers(const char* rel_path);
+struct dirent_obj* getDirContentAllLayers(const char* abs_path);
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num);
 void deleteItemInChain(struct dirent_obj** darr, size_t num);
 void deleteItemInChainByPointer(struct dirent_obj** darr, struct dirent_obj** curr);
@@ -45,7 +46,7 @@ struct dirent * popItemFromHead(struct dirent_obj ** darr);
 void clearItems(struct dirent_obj** darr);
 char *struct2hash(void* pointer,enum hash_type type);
 int get_abs_path(const char * path, char * abs_path, bool force);
-int get_relative_path(char * path);
+int get_relative_path(const char * path, char * rel_path);
 int append_to_diff(const char* content);
 bool is_file_type(const char *path,enum filetype t);
 bool transWh2path(const char *name, const char *pre, char *tname);

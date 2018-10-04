@@ -34,6 +34,10 @@ wrapper(opendir, DIR*, (const char* name))
     struct dirent_obj* tmp = NULL;
     DIR* dirp = getDirents(name, &tmp, &num);
     darr = getDirContentAllLayers(name);
+    while(darr){
+        debug(darr->abs_path);
+        darr = darr->next;
+    }
     return dirp;
 }
 

@@ -10,8 +10,7 @@
 const int PATH_DATA_SIZE = 1024;
 
 bool hmap_check(hmap_t* pmap, const char* container,const char* pname,const char* abs_path){
-    char key[KEY_SIZE];
-    sprintf(key,"%s:%s:ALLOW_LIST", container, pname);
+    char key[KEY_SIZE]; sprintf(key,"%s:%s:ALLOW_LIST", container, pname);
     char* allow_data = (char*)get_item_hmap(pmap, key);
     log_debug("allow_data: %s",allow_data);
     if(allow_data){
@@ -336,7 +335,7 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
 }
 
 bool rt_mem_check(int n, char** rt_paths, ...){
-    char * check_switch = getenv("LPMX_PRIV_SWITCH");
+    char * check_switch = getenv("__priv_switch");
     if(!check_switch){
         return true;
     }
