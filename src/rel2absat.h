@@ -22,5 +22,6 @@
 #define __FREL2ABSAT_H
 
 char * rel2absat(int, const char *, char *);
+char * rel2absatLayer(int, const char *, char *);
 
 #endif

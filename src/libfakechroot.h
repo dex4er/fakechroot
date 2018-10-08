@@ -121,7 +121,7 @@
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL) { \
                 char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
-                rel2abs((path), fakechroot_abspath); \
+                rel2absLayer((path), fakechroot_abspath); \
                 (path) = fakechroot_abspath; \
                 expand_chroot_rel_path(path); \
             } \

@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "dedotdot.h"
 
 DIR* getDirents(const char* name, struct dirent_obj** darr, size_t* num)
 {
@@ -128,8 +129,8 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
 struct dirent_obj* getDirContentAllLayers(const char* abs_path)
 {
     //container layer from top to lower
-    char* clayers = getenv("ContainerLayers");
-    char* croot = getenv("ContainerRoot");
+    const char* clayers = getenv("ContainerLayers");
+    const char* croot = getenv("ContainerRoot");
     if (!croot || !clayers) {
         log_fatal("can't get container layers info and root info");
         return NULL;
@@ -138,7 +139,8 @@ struct dirent_obj* getDirContentAllLayers(const char* abs_path)
     ccroot = dirname(ccroot);
     size_t num = 0;
     char** layers = (char**)malloc(sizeof(char*) * MAX_LAYERS);
-    layers[num] = strtok(clayers, ":");
+    char *cclayers = strdup(clayers);
+    layers[num] = strtok(cclayers, ":");
     while (layers[num]) {
         layers[++num] = strtok(NULL, ":");
     }
@@ -150,7 +152,7 @@ struct dirent_obj* getDirContentAllLayers(const char* abs_path)
     hmap_t* wh_map = create_hmap(MAX_ITEMS);
 
     char rel_path[MAX_PATH];
-    int ret = get_relative_path(abs_path, rel_path);
+    int ret = get_relative_path_base(ccroot, abs_path, rel_path);
     if (ret == -1) {
         log_fatal("%s is not inside the container", rel_path);
         return NULL;
@@ -213,6 +215,38 @@ struct dirent_obj* getDirContentAllLayers(const char* abs_path)
     }
 
     return head;
+}
+
+char ** getLayerPaths(size_t *num){
+    const char * dockerbase = getenv("DockerBase");
+    const char* croot = getenv("ContainerRoot");
+    if(!croot){
+        log_fatal("can't get container root info");
+        return NULL;
+    }
+    if(dockerbase && strcmp(dockerbase,"TRUE") == 0){
+        const char * clayers = getenv("ContainerLayers");
+        if (!clayers) {
+            log_fatal("can't get container layers info");
+            return NULL;
+        }
+        char* ccroot = strdup(croot);
+        ccroot = dirname(ccroot);
+        *num = 0;
+        char *str_tmp;
+        char **paths = (char**)malloc(sizeof(char*) * MAX_LAYERS);
+        char *cclayers = strdup(clayers);
+        str_tmp = strtok(cclayers,":");
+        while (str_tmp != NULL){
+            paths[*num] = (char *)malloc(MAX_PATH);
+            sprintf(paths[*num], "%s/%s", ccroot, str_tmp);
+            str_tmp = strtok(NULL,":");
+            (*num) ++;
+        }
+        return paths;
+    }
+    *num = 0;
+    return NULL;
 }
 
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num)
@@ -425,6 +459,48 @@ int get_abs_path(const char* path, char* abs_path, bool force)
     }
 }
 
+int get_abs_path_base(const char *base, const char *path, char * abs_path, bool force){
+    if (base) {
+        if (force) {
+            if (*path == '/') {
+                sprintf(abs_path, "%s%s", base, path);
+            } else {
+                sprintf(abs_path, "%s/%s", base, path);
+            }
+        } else {
+            if (*path == '/') {
+                strcpy(abs_path, path);
+            } else {
+                sprintf(abs_path, "%s/%s", base, path);
+            }
+        }
+        return 0;
+    } else {
+        log_fatal("base should not be NULL");
+        return -1;
+    }
+}
+
+int get_relative_path_base(const char *base, const char *path, char * rel_path){
+    if (base) {
+        if (strncmp(base, path, strlen(base)) != 0) {
+            strcpy(rel_path, path);
+            return -1;
+        }
+        if (strlen(path) == strlen(base)) {
+            strcpy(rel_path, "");
+        } else {
+            strncpy(rel_path, path + strlen(base), strlen(path) - strlen(base));
+            if (rel_path[strlen(rel_path) - 1] == '/') {
+                rel_path[strlen(rel_path) - 1] = '\0';
+            }
+        }
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
 int append_to_diff(const char* content)
 {
     const char* docker = getenv("DockerBase");
@@ -455,17 +531,17 @@ bool is_file_type(const char* path, enum filetype t)
     int ret = stat(path, &path_stat);
     if (ret == 0) {
         switch (t) {
-        case TYPE_FILE:
-            return S_ISREG(path_stat.st_mode);
-        case TYPE_DIR:
-            return S_ISDIR(path_stat.st_mode);
-        case TYPE_LINK:
-            return S_ISLNK(path_stat.st_mode);
-        case TYPE_SOCK:
-            return S_ISSOCK(path_stat.st_mode);
-        default:
-            log_fatal("filetype is not recognized");
-            break;
+            case TYPE_FILE:
+                return S_ISREG(path_stat.st_mode);
+            case TYPE_DIR:
+                return S_ISDIR(path_stat.st_mode);
+            case TYPE_LINK:
+                return S_ISLNK(path_stat.st_mode);
+            case TYPE_SOCK:
+                return S_ISSOCK(path_stat.st_mode);
+            default:
+                log_fatal("filetype is not recognized");
+                break;
         }
         return false;
     } else {
