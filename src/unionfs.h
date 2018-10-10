@@ -40,7 +40,6 @@ extern struct dirent_obj * darr;
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 DIR * getDirentsWithName(const char* name, struct dirent_obj** darr, size_t *num, char **names);
 struct dirent_layers_entry* getDirContent(const char* abs_path);
-//struct dirent_obj* getDirContentAllLayers(const char* abs_path);
 struct dirent_obj* getDirContentLayers(const char* abs_path);
 char ** getLayerPaths(size_t *num);
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num);
