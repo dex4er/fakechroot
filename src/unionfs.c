@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "dedotdot.h"
+#include <fcntl.h>
 
 DIR* getDirents(const char* name, struct dirent_obj** darr, size_t* num)
 {
@@ -126,102 +127,6 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
     }
     p->data = darr;
     return p;
-}
-
-struct dirent_obj* getDirContentLayers(const char* abs_path){
-    //container layer from top to lower
-    size_t num;
-    char ** layers = getLayerPaths(&num);
-    if(num < 1){
-        log_fatal("can't find layer info");
-        return NULL;
-    }
-
-    struct dirent_obj *head, *tail;
-    head = tail = NULL;
-
-    //map
-    hmap_t* dirent_map = create_hmap(MAX_ITEMS);
-    hmap_t* wh_map = create_hmap(MAX_ITEMS);
-
-    char rel_path[MAX_PATH];
-    char layer_path[MAX_PATH];
-    int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
-    if (ret == -1) {
-        log_fatal("%s is not inside the container", rel_path);
-        return NULL;
-    }
-
-    for (int i = 0; i < num; i++) {
-        char each_layer_path[MAX_PATH];
-        sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
-        log_debug("target folder: %s", each_layer_path);
-        if(strcmp(each_layer_path, abs_path) != 0){
-            if(getParentWh(each_layer_path) == 1){
-                break;
-            }
-        }
-
-        if(xstat(each_layer_path)){
-            struct dirent_layers_entry* entry = getDirContent(each_layer_path);
-            if (entry->data) {
-                if (head == NULL && tail == NULL) {
-                    head = tail = entry->data;
-                    while (tail->next != NULL) {
-                        log_debug("item added to dirent_map %s", tail->dp->d_name);
-                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                        tail = tail->next;
-                    }
-                    add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
-                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
-                    }
-                } else {
-                    //need to merge folders files and hide wh
-                    struct dirent_obj* prew = tail;
-                    tail->next = entry->data;
-                    tail = tail->next;
-                    while (tail->next != NULL) {
-                        if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                            log_debug("item added to dirent_map %s", tail->dp->d_name);
-                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                        } else {
-                            log_debug("item deteled from dirent_map %s", tail->dp->d_name);
-                            deleteItemInChainByPointer(&head, &tail);
-                            if (!tail) {
-                                tail = prew;
-                            }
-                            continue;
-                        }
-                        prew = tail;
-                        tail = tail->next;
-                    }
-                    if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                        log_debug("item added to dirent_map %s", tail->dp->d_name);
-                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                    } else {
-                        log_debug("item deteled from dirent_map %s", tail->dp->d_name);
-                        deleteItemInChainByPointer(&head, &tail);
-                        if (!tail) {
-                            tail = prew;
-                        }
-                    }
-                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
-                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
-                    }
-                }
-            }
-        }
-
-        //find if any whiteout parent folders exists
-        if(getParentWh(each_layer_path) == 1){
-            break;
-        }
-    }
-
-    return head;
 }
 
 char ** getLayerPaths(size_t *num){
@@ -641,4 +546,140 @@ bool xstat(const char *abs_path){
         return true;
     }
     return false;
+}
+
+// fake union fs functions
+struct dirent_obj* fufs_opendir(const char* abs_path){
+    //container layer from top to lower
+    size_t num;
+    char ** layers = getLayerPaths(&num);
+    if(num < 1){
+        log_fatal("can't find layer info");
+        return NULL;
+    }
+
+    struct dirent_obj *head, *tail;
+    head = tail = NULL;
+
+    //map
+    hmap_t* dirent_map = create_hmap(MAX_ITEMS);
+    hmap_t* wh_map = create_hmap(MAX_ITEMS);
+
+    char rel_path[MAX_PATH];
+    char layer_path[MAX_PATH];
+    int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
+    if (ret == -1) {
+        log_fatal("%s is not inside the container", rel_path);
+        return NULL;
+    }
+
+    for (int i = 0; i < num; i++) {
+        char each_layer_path[MAX_PATH];
+        sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
+        log_debug("target folder: %s", each_layer_path);
+        if(strcmp(each_layer_path, abs_path) != 0){
+            if(getParentWh(each_layer_path) == 1){
+                break;
+            }
+        }
+
+        if(xstat(each_layer_path)){
+            struct dirent_layers_entry* entry = getDirContent(each_layer_path);
+            if (entry->data) {
+                if (head == NULL && tail == NULL) {
+                    head = tail = entry->data;
+                    while (tail->next != NULL) {
+                        log_debug("item added to dirent_map %s", tail->dp->d_name);
+                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                        tail = tail->next;
+                    }
+                    add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
+                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
+                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+                    }
+                } else {
+                    //need to merge folders files and hide wh
+                    struct dirent_obj* prew = tail;
+                    tail->next = entry->data;
+                    tail = tail->next;
+                    while (tail->next != NULL) {
+                        if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
+                            log_debug("item added to dirent_map %s", tail->dp->d_name);
+                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                        } else {
+                            log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+                            deleteItemInChainByPointer(&head, &tail);
+                            if (!tail) {
+                                tail = prew;
+                            }
+                            continue;
+                        }
+                        prew = tail;
+                        tail = tail->next;
+                    }
+                    if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
+                        log_debug("item added to dirent_map %s", tail->dp->d_name);
+                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                    } else {
+                        log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+                        deleteItemInChainByPointer(&head, &tail);
+                        if (!tail) {
+                            tail = prew;
+                        }
+                    }
+                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
+                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
+                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+                    }
+                }
+            }
+        }
+
+        //find if any whiteout parent folders exists
+        if(getParentWh(each_layer_path) == 1){
+            break;
+        }
+    }
+
+    return head;
+}
+
+int fufs_unlink(const char* abs_path){
+    if(!xstat(abs_path)){
+        return -1;
+    }else{
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        int ret = get_relative_path_layer(abs_path,rel_path, layer_path);
+        if(ret == -1){
+            log_fatal("request path is not in container, path: %s", abs_path);
+            return -1;
+        }
+        const char * root_path = getenv("ContainerRoot");
+        if(strcmp(root_path, layer_path)){
+            return 1;
+        }else{
+            //request path is in other layers rather than rw layer
+            char * bname = basename(rel_path);
+            char * dname = dirname(rel_path);
+            char whpath[MAX_PATH];
+            if(strcmp(dname, ".") == 0){
+                sprintf(whpath,"%s/.wh.%s",root_path,bname);
+            }else{
+                sprintf(whpath,"%s/%s",root_path,dname);
+                if(!xstat(whpath)){
+                    mkdir(whpath,0700);
+                }
+                sprintf(whpath,"%s/.wh.%s", whpath,bname);
+            }
+            int fp = open(whpath,O_CREAT|O_APPEND,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            if(fp == -1){
+                log_fatal("can't create file: %s", whpath);
+                return -1;
+            }
+            close(fp);
+            return 0;
+        }
+    }
 }

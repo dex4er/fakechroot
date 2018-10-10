@@ -40,7 +40,6 @@ extern struct dirent_obj * darr;
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 DIR * getDirentsWithName(const char* name, struct dirent_obj** darr, size_t *num, char **names);
 struct dirent_layers_entry* getDirContent(const char* abs_path);
-struct dirent_obj* getDirContentLayers(const char* abs_path);
 char ** getLayerPaths(size_t *num);
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num);
 void deleteItemInChain(struct dirent_obj** darr, size_t num);
@@ -59,4 +58,8 @@ bool is_file_type(const char *path,enum filetype t);
 bool transWh2path(const char *name, const char *pre, char *tname);
 int getParentWh(const char *abs_path);
 bool xstat(const char *abs_path);
+
+//fake union fs functions
+struct dirent_obj* fufs_opendir(const char* abs_path);
+int fufs_unlink(const char* abs_path);
 #endif
