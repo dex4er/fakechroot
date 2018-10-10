@@ -32,7 +32,6 @@
 #include "getcwd_real.h"
 #include "unionfs.h"
 
-
 LOCAL char * rel2abs(const char * name, char * resolved)
 {
     char cwd[FAKECHROOT_PATH_MAX];
@@ -57,6 +56,7 @@ LOCAL char * rel2abs(const char * name, char * resolved)
     }
 
     dedotdot(resolved);
+
 
 end:
     debug("rel2abs(\"%s\", \"%s\")", name, resolved);
@@ -112,5 +112,3 @@ end:
     debug("rel2absLayer(\"%s\", \"%s\")", name, resolved);
     return resolved;
 }
-
-

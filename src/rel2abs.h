@@ -22,6 +22,5 @@
 #define __REL2ABS_H
 
 char * rel2abs(const char *, char *);
-char * rel2absLayer(const char*, char *);
-
+char * rel2absLayer(const char *, char *);
 #endif

@@ -94,65 +94,6 @@ error:
     return resolved;
 }
 
-LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
-{
-    int cwdfd = 0;
-    char cwd[FAKECHROOT_PATH_MAX];
-
-    debug("rel2absat(%d, \"%s\", &resolved)", dirfd, name);
-
-    if (name == NULL) {
-        resolved = NULL;
-        goto end;
-    }
-
-    if (*name == '\0') {
-        *resolved = '\0';
-        goto end;
-    }
-
-    if (*name == '/') {
-        strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
-    } else if(dirfd == AT_FDCWD) {
-        if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
-            goto error;
-        }
-        snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
-    } else {
-        if ((cwdfd = nextcall(open)(".", O_RDONLY|O_DIRECTORY)) == -1) {
-            goto error;
-        }
-
-        if (fchdir(dirfd) == -1) {
-            goto error;
-        }
-        if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
-            goto error;
-        }
-        if (fchdir(cwdfd) == -1) {
-            goto error;
-        }
-        (void)close(cwdfd);
-
-        snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
-    }
-
-    dedotdot(resolved);
-
-end:
-    debug("rel2absat(%d, \"%s\", \"%s\")", dirfd, name, resolved);
-    return resolved;
-
-error:
-    if (cwdfd) {
-        (void)close(cwdfd);
-    }
-    resolved = NULL;
-    debug("rel2absat(%d, \"%s\", NULL)", dirfd, name);
-    return resolved;
-}
-
-
 #else
 typedef int empty_translation_unit;
 #endif
