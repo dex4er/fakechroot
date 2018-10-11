@@ -33,6 +33,10 @@ wrapper(opendir, DIR*, (const char* name))
     size_t num;
     struct dirent_obj* tmp = NULL;
     DIR* dirp = getDirents(name, &tmp, &num);
+    if(pathExcluded(name)){
+        darr = tmp;
+        return dirp;
+    }
     darr = fufs_opendir(name);
     while(darr){
         debug(darr->abs_path);

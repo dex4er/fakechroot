@@ -492,6 +492,9 @@ bool transWh2path(const char* name, const char* pre, char* tname)
         for (int i = 0; i < strlen(tmp); i++) {
             if (tmp[i] == '.') {
                 tmp[i] = '/';
+                if(tmp[i+1] == '.'){
+                    i++;
+                }
             }
         }
         if (tmp[0] == '/') {
@@ -548,6 +551,21 @@ bool xstat(const char *abs_path){
     return false;
 }
 
+bool pathExcluded(const char *abs_path){
+    const char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
+    if(exclude_path){
+        char *exclude_path_dup = strdup(exclude_path);
+        char *str_tmp = strtok(exclude_path_dup,":");
+        while (str_tmp){
+            if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
+                return true;
+            }
+            str_tmp = strtok(NULL,":");
+        }
+    }
+    return false;
+}
+/**----------------------------------------------------------------------------------**/
 // fake union fs functions
 struct dirent_obj* fufs_opendir(const char* abs_path){
     //container layer from top to lower
@@ -577,23 +595,20 @@ struct dirent_obj* fufs_opendir(const char* abs_path){
         char each_layer_path[MAX_PATH];
         sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
         log_debug("target folder: %s", each_layer_path);
-        if(strcmp(each_layer_path, abs_path) != 0){
-            if(getParentWh(each_layer_path) == 1){
-                break;
-            }
-        }
 
         if(xstat(each_layer_path)){
             struct dirent_layers_entry* entry = getDirContent(each_layer_path);
-            if (entry->data) {
+            if (entry->data || entry->wh_masked_num > 0) {
                 if (head == NULL && tail == NULL) {
                     head = tail = entry->data;
-                    while (tail->next != NULL) {
-                        log_debug("item added to dirent_map %s", tail->dp->d_name);
+                    if(head){
+                        while (tail->next != NULL) {
+                            log_debug("item added to dirent_map %s", tail->dp->d_name);
+                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                            tail = tail->next;
+                        }
                         add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                        tail = tail->next;
                     }
-                    add_item_hmap(dirent_map, tail->dp->d_name, NULL);
                     for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
                         log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
                         add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
@@ -692,7 +707,7 @@ int fufs_open(const char* abs_path, int oflag, ...){
     if(!real_open){
         real_open = (OPEN)dlsym(RTLD_NEXT,"open");
     }
-    if(!xstat){
+    if(!xstat(abs_path) || pathExcluded(abs_path)){
         return real_open(abs_path, oflag, args);
     }else{
         char rel_path[MAX_PATH];
@@ -711,9 +726,9 @@ int fufs_open(const char* abs_path, int oflag, ...){
                 char destpath[MAX_PATH];
                 sprintf(destpath,"%s/%s", container_root, rel_path);
                 src = fopen(abs_path, "r");
-                dest = fopen(destpath, "w");
+                dest = fopen(destpath, "w+");
                 if(src == NULL || dest == NULL){
-                    log_fatal("open file encounters error, src: %s, dest: %s", abs_path, destpath);
+                    log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", abs_path,src, destpath,dest);
                     return -1;
                 }
                 char ch = fgetc(src);
@@ -723,7 +738,7 @@ int fufs_open(const char* abs_path, int oflag, ...){
                 }
                 fclose(src);
                 fclose(dest);
-                return real_open(destpath,oflag, args);
+                return real_open(destpath, oflag, args);
             }
         }else{
             log_fatal("%s file doesn't exist in container", abs_path);
