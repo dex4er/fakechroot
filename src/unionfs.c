@@ -683,3 +683,48 @@ int fufs_unlink(const char* abs_path){
         }
     }
 }
+
+int fufs_open(const char* abs_path, int oflag, ...){
+    va_list args;
+    va_start(args,oflag);
+    va_end(args);
+
+    if(!real_open){
+        real_open = (OPEN)dlsym(RTLD_NEXT,"open");
+    }
+    if(!xstat){
+        return real_open(abs_path, oflag, args);
+    }else{
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
+        if(ret == 0){
+            const char * container_root = getenv("ContainerRoot");
+            if(strcmp(layer_path,container_root)){
+                return real_open(abs_path, oflag, args);
+            }else{
+                //copy and write
+                FILE *src, *dest;
+                char destpath[MAX_PATH];
+                sprintf(destpath,"%s/%s", container_root, rel_path);
+                src = fopen(abs_path, "r");
+                dest = fopen(destpath, "w");
+                if(src == NULL || dest == NULL){
+                    log_fatal("open file encounters error, src: %s, dest: %s", abs_path, destpath);
+                    return -1;
+                }
+                char ch = fgetc(src);
+                while(ch != EOF){
+                    fputc(ch,dest);
+                    ch = fgetc(src);
+                }
+                fclose(src);
+                fclose(dest);
+                return real_open(destpath,oflag, args);
+            }
+        }else{
+            log_fatal("%s file doesn't exist in container", abs_path);
+            return -1;
+        }
+    }
+}

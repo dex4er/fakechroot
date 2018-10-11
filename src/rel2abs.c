@@ -100,6 +100,10 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                     b_resolved = true;
                     break;
                 }
+
+                if(getParentWh(tmp)){
+                    break;
+                }
             }
         }
         if(!b_resolved){

@@ -14,9 +14,18 @@
 #define MAX_LAYERS 128
 
 enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
+// declare original syscalls
 typedef DIR* (*OPENDIR)(const char* name);
 typedef struct dirent* (*READDIR)(DIR* dirp);
 typedef int (*__XSTAT)(int ver, const char *path, struct stat *buf);
+typedef int (*OPEN)(const char *path, int oflag, ...);
+
+static OPENDIR real_opendir = NULL;
+static READDIR real_readdir = NULL;
+static __XSTAT real_xstat = NULL;
+static OPEN real_open = NULL;
+// declaration ends
+
 struct dirent_obj {
     struct dirent* dp;
     char abs_path[MAX_PATH];
@@ -33,9 +42,6 @@ struct dirent_layers_entry{
 };
 
 enum hash_type{md5,sha256};
-static OPENDIR real_opendir = NULL;
-static READDIR real_readdir = NULL;
-static __XSTAT real_xstat = NULL;
 extern struct dirent_obj * darr;
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 DIR * getDirentsWithName(const char* name, struct dirent_obj** darr, size_t *num, char **names);
@@ -62,4 +68,5 @@ bool xstat(const char *abs_path);
 //fake union fs functions
 struct dirent_obj* fufs_opendir(const char* abs_path);
 int fufs_unlink(const char* abs_path);
+int fufs_open(const char* abs_path, int oflag, ...);
 #endif
