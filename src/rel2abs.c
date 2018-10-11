@@ -93,6 +93,9 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                 struct stat st;
                 if(stat(tmp, &st) == -1){
                     debug("rel2absLayer failed resolved: %s",tmp);
+                    if(getParentWh(tmp)){
+                        break;
+                    }
                     continue;
                 }else{
                     debug("rel2absLayer successfully resolved: %s",tmp);
@@ -101,9 +104,6 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                     break;
                 }
 
-                if(getParentWh(tmp)){
-                    break;
-                }
             }
         }
         if(!b_resolved){

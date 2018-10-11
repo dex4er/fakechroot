@@ -657,7 +657,7 @@ int fufs_unlink(const char* abs_path){
             return -1;
         }
         const char * root_path = getenv("ContainerRoot");
-        if(strcmp(root_path, layer_path)){
+        if(strcmp(root_path, layer_path) == 0){
             return 1;
         }else{
             //request path is in other layers rather than rw layer
@@ -700,10 +700,13 @@ int fufs_open(const char* abs_path, int oflag, ...){
         int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
         if(ret == 0){
             const char * container_root = getenv("ContainerRoot");
-            if(strcmp(layer_path,container_root)){
+            if(strcmp(layer_path,container_root) == 0){
                 return real_open(abs_path, oflag, args);
             }else{
                 //copy and write
+                if(oflag == O_RDONLY){
+                    return real_open(abs_path, oflag, args);
+                }
                 FILE *src, *dest;
                 char destpath[MAX_PATH];
                 sprintf(destpath,"%s/%s", container_root, rel_path);
