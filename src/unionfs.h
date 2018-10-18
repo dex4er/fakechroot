@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "hashmap.h"
 #include <sys/stat.h>
+#include <dlfcn.h>
 
 #define MAX_PATH 1024
 #define MAX_ITEMS 1024
@@ -13,24 +14,56 @@
 #define PREFIX_WH ".wh"
 #define MAX_LAYERS 128
 
+//macros for system calls
+#define DECLARE_SYS(FUNCTION,RETURN_TYPE,ARGS) \
+    typedef RETURN_TYPE (*fufs_##FUNCTION) ARGS; \
+    static fufs_##FUNCTION real_##FUNCTION = NULL;
+
+#define INITIAL_SYS(FUNCTION) \
+{\
+    if(!real_##FUNCTION){ \
+        real_##FUNCTION = (fufs_##FUNCTION)dlsym(RTLD_NEXT, #FUNCTION); \
+    }\
+}
+
+#define RETURN_SYS(FUNCTION,ARGS) \
+    real_##FUNCTION ARGS;
+
+#define WRAPPER_FUFS(NAME,FUNCTION,ARGS) \
+    fufs_##NAME##_impl(#FUNCTION,ARGS);
+
+
 enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
 // declare original syscalls
-typedef DIR* (*OPENDIR)(const char* name);
-typedef struct dirent* (*READDIR)(DIR* dirp);
-typedef int (*__XSTAT)(int ver, const char *path, struct stat *buf);
-typedef int (*OPEN)(const char *path, int oflag, ...);
+/**
+  typedef DIR* (*OPENDIR)(const char* name);
+  typedef struct dirent* (*READDIR)(DIR* dirp);
+  typedef int (*__XSTAT)(int ver, const char *path, struct stat *buf);
+  typedef int (*OPEN)(const char *path, int oflag, ...);
+  typedef int (*OPENAT)(int dirfd, const char *path, int oflag, ...);
+  typedef int (*OPEN64)(const char *path, int oflag, ...);
 
-static OPENDIR real_opendir = NULL;
-static READDIR real_readdir = NULL;
-static __XSTAT real_xstat = NULL;
-static OPEN real_open = NULL;
+  static OPENDIR real_opendir = NULL;
+  static READDIR real_readdir = NULL;
+  static __XSTAT real_xstat = NULL;
+  static OPEN real_open = NULL;
+  static OPENAT real_openat = NULL;
+  static OPENAT real_open64= NULL;
+ **/
+
 // declaration ends
+    DECLARE_SYS(opendir,DIR*,(const char* name))
+    DECLARE_SYS(readdir,struct dirent*,(DIR* dirp))
+    DECLARE_SYS(__xstat,int,(int ver, const char *path, struct stat *buf))
+    DECLARE_SYS(open,int,(const char *path, int oflag, ...))
+    DECLARE_SYS(openat,int,(int dirfd, const char *path, int oflag, ...))
+DECLARE_SYS(open64,int,(const char *path, int oflag, ...))
 
-struct dirent_obj {
-    struct dirent* dp;
-    char abs_path[MAX_PATH];
-    struct dirent_obj* next;
-};
+    struct dirent_obj {
+        struct dirent* dp;
+        char abs_path[MAX_PATH];
+        struct dirent_obj* next;
+    };
 
 struct dirent_layers_entry{
     char path[MAX_PATH];
@@ -67,7 +100,5 @@ bool xstat(const char *abs_path);
 bool pathExcluded(const char *abs_path);
 
 //fake union fs functions
-struct dirent_obj* fufs_opendir(const char* abs_path);
-int fufs_unlink(const char* abs_path);
-int fufs_open(const char* abs_path, int oflag, ...);
+
 #endif

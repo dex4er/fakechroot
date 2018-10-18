@@ -2,7 +2,6 @@
 #include "crypt.h"
 #include "log.h"
 #include "memcached_client.h"
-#include <dlfcn.h>
 #include <errno.h>
 #include <libgen.h>
 #include <stdlib.h>
@@ -15,14 +14,10 @@
 
 DIR* getDirents(const char* name, struct dirent_obj** darr, size_t* num)
 {
-    if (!real_opendir) {
-        real_opendir = (OPENDIR)dlsym(RTLD_NEXT, "opendir");
-    }
-    if (!real_readdir) {
-        real_readdir = (READDIR)dlsym(RTLD_NEXT, "readdir");
-    }
+    INITIAL_SYS(opendir)
+        INITIAL_SYS(readdir)
 
-    DIR* dirp = real_opendir(name);
+        DIR* dirp = real_opendir(name);
     struct dirent* entry = NULL;
     struct dirent_obj* curr = NULL;
     *darr = NULL;
@@ -53,14 +48,11 @@ DIR* getDirents(const char* name, struct dirent_obj** darr, size_t* num)
 
 DIR* getDirentsWithName(const char* name, struct dirent_obj** darr, size_t* num, char** names)
 {
-    if (!real_opendir) {
-        real_opendir = (OPENDIR)dlsym(RTLD_NEXT, "opendir");
-    }
-    if (!real_readdir) {
-        real_readdir = (READDIR)dlsym(RTLD_NEXT, "readdir");
-    }
 
-    DIR* dirp = real_opendir(name);
+    INITIAL_SYS(opendir)
+        INITIAL_SYS(readdir)
+
+        DIR* dirp = real_opendir(name);
     struct dirent* entry = NULL;
     struct dirent_obj* curr = NULL;
     *names = (char*)malloc(MAX_VALUE_SIZE);
@@ -176,7 +168,7 @@ void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num)
     for (int i = 0; i < num; i++) {
         values[i] = (char*)malloc(sizeof(char) * MAX_PATH);
     }
-    getMultipleValues(keys, key_lengths, num, values);
+    getMultipleValues((const char **)keys, key_lengths, num, values);
     //delete item in chains at specific pos
     for (int i = 0; i < num; i++) {
         if (values[i] != NULL && strlen(values[i]) != 0) {
@@ -541,11 +533,9 @@ int getParentWh(const char *abs_path){
 }
 
 bool xstat(const char *abs_path){
-    if(!real_xstat){
-        real_xstat = (__XSTAT)dlsym(RTLD_NEXT, "__xstat");
-    }
-    struct stat st;
-    if(real_xstat(1,abs_path,&st) == 0){
+    INITIAL_SYS(__xstat)
+        struct stat st;
+    if(real___xstat(1,abs_path,&st) == 0){
         return true;
     }
     return false;
@@ -567,97 +557,98 @@ bool pathExcluded(const char *abs_path){
 }
 /**----------------------------------------------------------------------------------**/
 // fake union fs functions
-struct dirent_obj* fufs_opendir(const char* abs_path){
-    //container layer from top to lower
-    size_t num;
-    char ** layers = getLayerPaths(&num);
-    if(num < 1){
-        log_fatal("can't find layer info");
-        return NULL;
-    }
+/**
+  struct dirent_obj* fufs_opendir(const char* abs_path){
+//container layer from top to lower
+size_t num;
+char ** layers = getLayerPaths(&num);
+if(num < 1){
+log_fatal("can't find layer info");
+return NULL;
+}
 
-    struct dirent_obj *head, *tail;
-    head = tail = NULL;
+struct dirent_obj *head, *tail;
+head = tail = NULL;
 
-    //map
-    hmap_t* dirent_map = create_hmap(MAX_ITEMS);
-    hmap_t* wh_map = create_hmap(MAX_ITEMS);
+//map
+hmap_t* dirent_map = create_hmap(MAX_ITEMS);
+hmap_t* wh_map = create_hmap(MAX_ITEMS);
 
-    char rel_path[MAX_PATH];
-    char layer_path[MAX_PATH];
-    int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
-    if (ret == -1) {
-        log_fatal("%s is not inside the container", rel_path);
-        return NULL;
-    }
+char rel_path[MAX_PATH];
+char layer_path[MAX_PATH];
+int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
+if (ret == -1) {
+log_fatal("%s is not inside the container", rel_path);
+return NULL;
+}
 
-    for (int i = 0; i < num; i++) {
-        char each_layer_path[MAX_PATH];
-        sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
-        log_debug("target folder: %s", each_layer_path);
+for (int i = 0; i < num; i++) {
+char each_layer_path[MAX_PATH];
+sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
+log_debug("target folder: %s", each_layer_path);
 
-        if(xstat(each_layer_path)){
-            struct dirent_layers_entry* entry = getDirContent(each_layer_path);
-            if (entry->data || entry->wh_masked_num > 0) {
-                if (head == NULL && tail == NULL) {
-                    head = tail = entry->data;
-                    if(head){
-                        while (tail->next != NULL) {
-                            log_debug("item added to dirent_map %s", tail->dp->d_name);
-                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                            tail = tail->next;
-                        }
-                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                    }
-                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
-                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
-                    }
-                } else {
-                    //need to merge folders files and hide wh
-                    struct dirent_obj* prew = tail;
-                    tail->next = entry->data;
-                    tail = tail->next;
-                    while (tail->next != NULL) {
-                        if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                            log_debug("item added to dirent_map %s", tail->dp->d_name);
-                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                        } else {
-                            log_debug("item deteled from dirent_map %s", tail->dp->d_name);
-                            deleteItemInChainByPointer(&head, &tail);
-                            if (!tail) {
-                                tail = prew;
-                            }
-                            continue;
-                        }
-                        prew = tail;
-                        tail = tail->next;
-                    }
-                    if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                        log_debug("item added to dirent_map %s", tail->dp->d_name);
-                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-                    } else {
-                        log_debug("item deteled from dirent_map %s", tail->dp->d_name);
-                        deleteItemInChainByPointer(&head, &tail);
-                        if (!tail) {
-                            tail = prew;
-                        }
-                    }
-                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
-                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
-                    }
-                }
-            }
-        }
+if(xstat(each_layer_path)){
+struct dirent_layers_entry* entry = getDirContent(each_layer_path);
+if (entry->data || entry->wh_masked_num > 0) {
+if (head == NULL && tail == NULL) {
+head = tail = entry->data;
+if(head){
+while (tail->next != NULL) {
+log_debug("item added to dirent_map %s", tail->dp->d_name);
+add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+tail = tail->next;
+}
+add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+}
+for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
+log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
+add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+}
+} else {
+//need to merge folders files and hide wh
+struct dirent_obj* prew = tail;
+tail->next = entry->data;
+tail = tail->next;
+while (tail->next != NULL) {
+if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
+log_debug("item added to dirent_map %s", tail->dp->d_name);
+add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+} else {
+log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+deleteItemInChainByPointer(&head, &tail);
+if (!tail) {
+tail = prew;
+}
+continue;
+}
+prew = tail;
+tail = tail->next;
+}
+if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
+log_debug("item added to dirent_map %s", tail->dp->d_name);
+add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+} else {
+log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+deleteItemInChainByPointer(&head, &tail);
+if (!tail) {
+    tail = prew;
+}
+}
+for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
+    log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
+    add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+}
+}
+}
+}
 
-        //find if any whiteout parent folders exists
-        if(getParentWh(each_layer_path) == 1){
-            break;
-        }
-    }
+//find if any whiteout parent folders exists
+if(getParentWh(each_layer_path) == 1){
+    break;
+}
+}
 
-    return head;
+return head;
 }
 
 int fufs_unlink(const char* abs_path){
@@ -744,5 +735,75 @@ int fufs_open(const char* abs_path, int oflag, ...){
             log_fatal("%s file doesn't exist in container", abs_path);
             return -1;
         }
+    }
+}
+**/
+
+int fufs_open_impl(const char* function, ...){
+    va_list args;
+    va_start(args,function);
+
+    int dirfd = -1;
+    const char *path;
+    int oflag;
+    if(strcmp(function,"openat") == 0){
+        dirfd = va_arg(args,int);
+    }
+    path = va_arg(args, const char*);
+    oflag = va_arg(args, int);
+    va_end(args);
+
+    if(!xstat(path) || pathExcluded(path)){
+        goto end;
+    }else{
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        int ret = get_relative_path_layer(path, rel_path, layer_path);
+        if(ret == 0){
+            const char * container_root = getenv("ContainerRoot");
+            if(strcmp(layer_path,container_root) == 0){
+                goto end;
+            }else{
+                //copy and write
+                if(oflag == O_RDONLY){
+                    goto end;
+                }
+                FILE *src, *dest;
+                char destpath[MAX_PATH];
+                sprintf(destpath,"%s/%s", container_root, rel_path);
+                src = fopen(path, "r");
+                dest = fopen(destpath, "w+");
+                if(src == NULL || dest == NULL){
+                    log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", path,src, destpath,dest);
+                    return -1;
+                }
+                char ch = fgetc(src);
+                while(ch != EOF){
+                    fputc(ch,dest);
+                    ch = fgetc(src);
+                }
+                fclose(src);
+                fclose(dest);
+                if(strcmp(function,"openat") == 0){
+                    return RETURN_SYS(openat,(dirfd,destpath,oflag,args))
+                }else if(strcmp(function,"open") == 0){
+                    return RETURN_SYS(open,(destpath,oflag, args))
+                }else{
+                    return RETURN_SYS(open64,(destpath,oflag,args))
+                }
+            }
+        }else{
+            log_fatal("%s file doesn't exist in container", path);
+            return -1;
+        }
+    }
+
+end:
+    if(strcmp(function,"openat") == 0){
+        return RETURN_SYS(openat,(dirfd,path,oflag,args))
+    }else if(strcmp(function,"open") == 0){
+        return RETURN_SYS(open,(path,oflag, args))
+    }else{
+        return RETURN_SYS(open64,(path,oflag,args))
     }
 }

@@ -267,7 +267,7 @@ bool b_parent_delete(int n, ...)
             log_debug("parent list:%s", parents[i]);
         }
 
-        bool b_exist = existKeys(parents, lengths, num);
+        bool b_exist = existKeys((const char **)parents, (const size_t *)lengths, num);
         log_debug("check if any of parents are in memcached: %d", b_exist);
         for (int i = 0; i < PATH_MAX_PARENT; i++) {
             free(parents[i]);
