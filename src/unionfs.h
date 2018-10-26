@@ -20,11 +20,9 @@
     static fufs_##FUNCTION real_##FUNCTION = NULL;
 
 #define INITIAL_SYS(FUNCTION) \
-{\
     if(!real_##FUNCTION){ \
         real_##FUNCTION = (fufs_##FUNCTION)dlsym(RTLD_NEXT, #FUNCTION); \
-    }\
-}
+    }
 
 #define RETURN_SYS(FUNCTION,ARGS) \
     real_##FUNCTION ARGS;
@@ -57,7 +55,18 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(__xstat,int,(int ver, const char *path, struct stat *buf))
     DECLARE_SYS(open,int,(const char *path, int oflag, ...))
     DECLARE_SYS(openat,int,(int dirfd, const char *path, int oflag, ...))
-DECLARE_SYS(open64,int,(const char *path, int oflag, ...))
+    DECLARE_SYS(open64,int,(const char *path, int oflag, ...))
+    DECLARE_SYS(unlink,int,(const char *path))
+    DECLARE_SYS(unlinkat,int,(int dirfd, const char *path, int oflag))
+    DECLARE_SYS(mkdir,int,(const char *path))
+    DECLARE_SYS(mkdirat,int,(int dirfd, const char *path, mode_t mode))
+    DECLARE_SYS(chdir,int,(const char *path))
+    DECLARE_SYS(linkat,int,(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags))
+    DECLARE_SYS(link,int,(const char *oldpath, const char *newpath))
+    DECLARE_SYS(symlinkat,int,(const char *target, int newdirfd, const char *linkpath))
+    DECLARE_SYS(symlink,int,(const char *target, const char *linkpath))
+    DECLARE_SYS(creat64,int,(const char *path, mode_t mode))
+    DECLARE_SYS(creat,int,(const char *path, mode_t mode))
 
     struct dirent_obj {
         struct dirent* dp;

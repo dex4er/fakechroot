@@ -555,103 +555,97 @@ bool pathExcluded(const char *abs_path){
     }
     return false;
 }
+
 /**----------------------------------------------------------------------------------**/
-// fake union fs functions
-/**
-  struct dirent_obj* fufs_opendir(const char* abs_path){
-//container layer from top to lower
-size_t num;
-char ** layers = getLayerPaths(&num);
-if(num < 1){
-log_fatal("can't find layer info");
-return NULL;
+int fufs_open_impl(const char* function, ...){
+    va_list args;
+    va_start(args,function);
+
+    int dirfd = -1;
+    const char *path;
+    int oflag;
+    if(strcmp(function,"openat") == 0){
+        dirfd = va_arg(args,int);
+    }
+    path = va_arg(args, const char*);
+    oflag = va_arg(args, int);
+    va_end(args);
+
+    INITIAL_SYS(open)
+        INITIAL_SYS(openat)
+        INITIAL_SYS(open64)
+
+        if(!xstat(path) || pathExcluded(path)){
+            goto end;
+        }else{
+            char rel_path[MAX_PATH];
+            char layer_path[MAX_PATH];
+            int ret = get_relative_path_layer(path, rel_path, layer_path);
+            if(ret == 0){
+                const char * container_root = getenv("ContainerRoot");
+                if(strcmp(layer_path,container_root) == 0){
+                    goto end;
+                }else{
+                    //copy and write
+                    if(oflag == O_RDONLY){
+                        goto end;
+                    }
+                    FILE *src, *dest;
+                    char destpath[MAX_PATH];
+                    sprintf(destpath,"%s/%s", container_root, rel_path);
+                    src = fopen(path, "r");
+                    dest = fopen(destpath, "w+");
+                    if(src == NULL || dest == NULL){
+                        log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", path,src, destpath,dest);
+                        return -1;
+                    }
+                    char ch = fgetc(src);
+                    while(ch != EOF){
+                        fputc(ch,dest);
+                        ch = fgetc(src);
+                    }
+                    fclose(src);
+                    fclose(dest);
+                    if(strcmp(function,"openat") == 0){
+                        return RETURN_SYS(openat,(dirfd,destpath,oflag,args))
+                    }else if(strcmp(function,"open") == 0){
+                        return RETURN_SYS(open,(destpath,oflag, args))
+                    }else{
+                        return RETURN_SYS(open64,(destpath,oflag,args))
+                    }
+                }
+            }else{
+                log_fatal("%s file doesn't exist in container", path);
+                return -1;
+            }
+        }
+
+end:
+    if(strcmp(function,"openat") == 0){
+        return RETURN_SYS(openat,(dirfd,path,oflag,args))
+    }else if(strcmp(function,"open") == 0){
+        return RETURN_SYS(open,(path,oflag, args))
+    }else{
+        return RETURN_SYS(open64,(path,oflag,args))
+    }
 }
 
-struct dirent_obj *head, *tail;
-head = tail = NULL;
+int fufs_unlink_impl(const char* function,...){
+    va_list args;
+    va_start(args,function);
+    int dirfd = -1;
+    const char *abs_path;
+    int oflag;
 
-//map
-hmap_t* dirent_map = create_hmap(MAX_ITEMS);
-hmap_t* wh_map = create_hmap(MAX_ITEMS);
+    if(strcmp(function,"unlinkat") == 0){
+        dirfd = va_arg(args,int);
+        abs_path = va_arg(args, const char *);
+        oflag = va_arg(args, int);
+    }else{
+        abs_path = va_arg(args, const char *);
+    }
+    va_end(args);
 
-char rel_path[MAX_PATH];
-char layer_path[MAX_PATH];
-int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
-if (ret == -1) {
-log_fatal("%s is not inside the container", rel_path);
-return NULL;
-}
-
-for (int i = 0; i < num; i++) {
-char each_layer_path[MAX_PATH];
-sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
-log_debug("target folder: %s", each_layer_path);
-
-if(xstat(each_layer_path)){
-struct dirent_layers_entry* entry = getDirContent(each_layer_path);
-if (entry->data || entry->wh_masked_num > 0) {
-if (head == NULL && tail == NULL) {
-head = tail = entry->data;
-if(head){
-while (tail->next != NULL) {
-log_debug("item added to dirent_map %s", tail->dp->d_name);
-add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-tail = tail->next;
-}
-add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-}
-for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
-add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
-}
-} else {
-//need to merge folders files and hide wh
-struct dirent_obj* prew = tail;
-tail->next = entry->data;
-tail = tail->next;
-while (tail->next != NULL) {
-if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-log_debug("item added to dirent_map %s", tail->dp->d_name);
-add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-} else {
-log_debug("item deteled from dirent_map %s", tail->dp->d_name);
-deleteItemInChainByPointer(&head, &tail);
-if (!tail) {
-tail = prew;
-}
-continue;
-}
-prew = tail;
-tail = tail->next;
-}
-if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-log_debug("item added to dirent_map %s", tail->dp->d_name);
-add_item_hmap(dirent_map, tail->dp->d_name, NULL);
-} else {
-log_debug("item deteled from dirent_map %s", tail->dp->d_name);
-deleteItemInChainByPointer(&head, &tail);
-if (!tail) {
-    tail = prew;
-}
-}
-for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-    log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
-    add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
-}
-}
-}
-}
-
-//find if any whiteout parent folders exists
-if(getParentWh(each_layer_path) == 1){
-    break;
-}
-}
-
-return head;
-}
-
-int fufs_unlink(const char* abs_path){
     if(!xstat(abs_path)){
         return -1;
     }else{
@@ -664,7 +658,7 @@ int fufs_unlink(const char* abs_path){
         }
         const char * root_path = getenv("ContainerRoot");
         if(strcmp(root_path, layer_path) == 0){
-            return 1;
+            goto end;
         }else{
             //request path is in other layers rather than rw layer
             char * bname = basename(rel_path);
@@ -688,122 +682,279 @@ int fufs_unlink(const char* abs_path){
             return 0;
         }
     }
-}
-
-int fufs_open(const char* abs_path, int oflag, ...){
-    va_list args;
-    va_start(args,oflag);
-    va_end(args);
-
-    if(!real_open){
-        real_open = (OPEN)dlsym(RTLD_NEXT,"open");
-    }
-    if(!xstat(abs_path) || pathExcluded(abs_path)){
-        return real_open(abs_path, oflag, args);
-    }else{
-        char rel_path[MAX_PATH];
-        char layer_path[MAX_PATH];
-        int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
-        if(ret == 0){
-            const char * container_root = getenv("ContainerRoot");
-            if(strcmp(layer_path,container_root) == 0){
-                return real_open(abs_path, oflag, args);
-            }else{
-                //copy and write
-                if(oflag == O_RDONLY){
-                    return real_open(abs_path, oflag, args);
-                }
-                FILE *src, *dest;
-                char destpath[MAX_PATH];
-                sprintf(destpath,"%s/%s", container_root, rel_path);
-                src = fopen(abs_path, "r");
-                dest = fopen(destpath, "w+");
-                if(src == NULL || dest == NULL){
-                    log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", abs_path,src, destpath,dest);
-                    return -1;
-                }
-                char ch = fgetc(src);
-                while(ch != EOF){
-                    fputc(ch,dest);
-                    ch = fgetc(src);
-                }
-                fclose(src);
-                fclose(dest);
-                return real_open(destpath, oflag, args);
-            }
-        }else{
-            log_fatal("%s file doesn't exist in container", abs_path);
-            return -1;
-        }
-    }
-}
-**/
-
-int fufs_open_impl(const char* function, ...){
-    va_list args;
-    va_start(args,function);
-
-    int dirfd = -1;
-    const char *path;
-    int oflag;
-    if(strcmp(function,"openat") == 0){
-        dirfd = va_arg(args,int);
-    }
-    path = va_arg(args, const char*);
-    oflag = va_arg(args, int);
-    va_end(args);
-
-    if(!xstat(path) || pathExcluded(path)){
-        goto end;
-    }else{
-        char rel_path[MAX_PATH];
-        char layer_path[MAX_PATH];
-        int ret = get_relative_path_layer(path, rel_path, layer_path);
-        if(ret == 0){
-            const char * container_root = getenv("ContainerRoot");
-            if(strcmp(layer_path,container_root) == 0){
-                goto end;
-            }else{
-                //copy and write
-                if(oflag == O_RDONLY){
-                    goto end;
-                }
-                FILE *src, *dest;
-                char destpath[MAX_PATH];
-                sprintf(destpath,"%s/%s", container_root, rel_path);
-                src = fopen(path, "r");
-                dest = fopen(destpath, "w+");
-                if(src == NULL || dest == NULL){
-                    log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", path,src, destpath,dest);
-                    return -1;
-                }
-                char ch = fgetc(src);
-                while(ch != EOF){
-                    fputc(ch,dest);
-                    ch = fgetc(src);
-                }
-                fclose(src);
-                fclose(dest);
-                if(strcmp(function,"openat") == 0){
-                    return RETURN_SYS(openat,(dirfd,destpath,oflag,args))
-                }else if(strcmp(function,"open") == 0){
-                    return RETURN_SYS(open,(destpath,oflag, args))
-                }else{
-                    return RETURN_SYS(open64,(destpath,oflag,args))
-                }
-            }
-        }else{
-            log_fatal("%s file doesn't exist in container", path);
-            return -1;
-        }
-    }
 
 end:
-    if(strcmp(function,"openat") == 0){
-        return RETURN_SYS(openat,(dirfd,path,oflag,args))
-    }else if(strcmp(function,"open") == 0){
-        return RETURN_SYS(open,(path,oflag, args))
+    if(strcmp(function,"unlinkat") == 0){
+        return RETURN_SYS(unlinkat,(dirfd,abs_path,oflag))
     }else{
-        return RETURN_SYS(open64,(path,oflag,args))
+        return RETURN_SYS(unlink,(abs_path))
+    }
+}
+
+struct dirent_obj* fufs_opendir_impl(const char* abs_path){
+    //container layer from top to lower
+    size_t num;
+    char ** layers = getLayerPaths(&num);
+    if(num < 1){
+        log_fatal("can't find layer info");
+        return NULL;
+    }
+
+    struct dirent_obj *head, *tail;
+    head = tail = NULL;
+
+    //map
+    hmap_t* dirent_map = create_hmap(MAX_ITEMS);
+    hmap_t* wh_map = create_hmap(MAX_ITEMS);
+
+    char rel_path[MAX_PATH];
+    char layer_path[MAX_PATH];
+    int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
+    if (ret == -1) {
+        log_fatal("%s is not inside the container", rel_path);
+        return NULL;
+    }
+
+    for (int i = 0; i < num; i++) {
+        char each_layer_path[MAX_PATH];
+        sprintf(each_layer_path, "%s/%s", layers[i], rel_path);
+        log_debug("target folder: %s", each_layer_path);
+
+        if(xstat(each_layer_path)){
+            struct dirent_layers_entry* entry = getDirContent(each_layer_path);
+            if (entry->data || entry->wh_masked_num > 0) {
+                if (head == NULL && tail == NULL) {
+                    head = tail = entry->data;
+                    if(head){
+                        while (tail->next != NULL) {
+                            log_debug("item added to dirent_map %s", tail->dp->d_name);
+                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                            tail = tail->next;
+                        }
+                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                    }
+                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
+                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
+                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+                    }
+                } else {
+                    //need to merge folders files and hide wh
+                    struct dirent_obj* prew = tail;
+                    tail->next = entry->data;
+                    tail = tail->next;
+                    while (tail->next != NULL) {
+                        if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
+                            log_debug("item added to dirent_map %s", tail->dp->d_name);
+                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                        } else {
+                            log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+                            deleteItemInChainByPointer(&head, &tail);
+                            if (!tail) {
+                                tail = prew;
+                            }
+                            continue;
+                        }
+                        prew = tail;
+                        tail = tail->next;
+                    }
+                    if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
+                        log_debug("item added to dirent_map %s", tail->dp->d_name);
+                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                    } else {
+                        log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+                        deleteItemInChainByPointer(&head, &tail);
+                        if (!tail) {
+                            tail = prew;
+                        }
+                    }
+                    for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
+                        log_debug("item added to wh_map %d , %s", entry->wh_masked_num, entry->wh_masked[wh_i]);
+                        add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
+                    }
+                }
+            }
+        }
+
+        //find if any whiteout parent folders exists
+        if(getParentWh(each_layer_path) == 1){
+            break;
+        }
+    }
+
+    return head;
+}
+
+int fufs_mkdir_impl(const char* function,...){
+    va_list args;
+    va_start(args,function);
+    int dirfd = -1;
+    const char *abs_path;
+    mode_t mode;
+
+    if(strcmp(function,"mkdirat") == 0){
+        dirfd = va_arg(args,int);
+        abs_path = va_arg(args, const char *);
+        mode= va_arg(args, mode_t);
+    }else{
+        abs_path = va_arg(args, const char *);
+    }
+    va_end(args);
+
+    char rel_path[MAX_PATH];
+    char layer_path[MAX_PATH];
+    int ret = get_relative_path_layer(abs_path,rel_path,layer_path);
+    if (ret == -1){
+        log_fatal("%s is not inside the container", rel_path);
+        return -1;
+    }
+    const char * container_root = getenv("ContainerRoot");
+    char resolved[MAX_PATH];
+    if(strcmp(layer_path,container_root) != 0){
+        sprintf(resolved,"%s/%s",container_root,rel_path);
+    }else{
+        sprintf(resolved,"%s",abs_path);
+    }
+
+    if(strcmp(function,"mkdirat") == 0){
+        return RETURN_SYS(mkdirat,(dirfd,resolved,mode))
+    }else{
+        return RETURN_SYS(mkdir,(resolved))
+    }
+}
+
+int fufs_chdir_impl(const char * function, ...){
+    va_list args;
+    va_start(args, function);
+    const char *path = va_arg(args,const char *);
+    va_end(args);
+
+    if(path == NULL){
+        errno = EACCES;
+        return -1;
+    }
+    char resolved[MAX_PATH];
+    INITIAL_SYS(chdir)
+        if(*path != '/'){
+            int ret = get_abs_path(path,resolved,false);
+            if(ret == 0){
+                return RETURN_SYS(chdir,(resolved))
+            }else{
+                errno = EACCES;
+                return -1;
+            }
+        }
+    return RETURN_SYS(chdir,(resolved))
+}
+
+int fufs_link_impl(const char * function, ...){
+    va_list args;
+    va_start(args,function);
+    int olddirfd, newdirfd,flags;
+    const char *oldpath,*newpath;
+    if(strcmp(function,"linkat") == 0){
+        olddirfd = va_arg(args, int);
+        oldpath = va_arg(args,const char *);
+        newdirfd = va_arg(args, int);
+        newpath = va_arg(args, const char *);
+        flags = va_arg(args, int);
+    }else{
+        oldpath = va_arg(args, const char *);
+        newpath = va_arg(args, const char *);
+    }
+
+    //newpath should be changed to rw folder
+    char rel_path[MAX_PATH];
+    char layer_path[MAX_PATH];
+    int ret = get_relative_path_layer(newpath,rel_path,layer_path);
+    if (ret == -1){
+        log_fatal("%s is not inside the container", rel_path);
+        return -1;
+    }
+    const char * container_root = getenv("ContainerRoot");
+    char resolved[MAX_PATH];
+    if(strcmp(layer_path,container_root) != 0){
+        sprintf(resolved,"%s/%s",container_root,rel_path);
+    }else{
+        sprintf(resolved,"%s",newpath);
+    }
+
+    INITIAL_SYS(linkat)
+    INITIAL_SYS(link)
+
+    if(strcmp(function,"linkat") == 0){
+        return RETURN_SYS(linkat,(olddirfd,oldpath,newdirfd,resolved,flags))
+    }else{
+        return RETURN_SYS(link,(oldpath,resolved))
+    }
+
+}
+
+int fufs_symlink_impl(const char *function, ...){
+    va_list args;
+    va_start(args,function);
+    const char *target, *linkpath;
+    int newdirfd;
+    if(strcmp(function,"symlinkat") == 0){
+        target = va_arg(args, const char *);
+        newdirfd = va_arg(args, int);
+        linkpath = va_arg(args, const char *);
+    }else{
+        target = va_arg(args, const char *);
+        linkpath = va_arg(args, const char *);
+    }
+
+    char rel_path[MAX_PATH];
+    char layer_path[MAX_PATH];
+    int ret = get_relative_path_layer(linkpath,rel_path,layer_path);
+    if (ret == -1){
+        log_fatal("%s is not inside the container", rel_path);
+        return -1;
+    }
+    const char * container_root = getenv("ContainerRoot");
+    char resolved[MAX_PATH];
+    if(strcmp(layer_path,container_root) != 0){
+        sprintf(resolved,"%s/%s",container_root,rel_path);
+    }else{
+        sprintf(resolved,"%s",linkpath);
+    }
+
+    INITIAL_SYS(symlinkat)
+    INITIAL_SYS(symlink)
+
+    if(strcmp(function,"symlinkat") == 0){
+        return RETURN_SYS(symlinkat,(target,newdirfd,resolved))
+    }else{
+        return RETURN_SYS(symlink,(target,resolved))
+    }
+}
+
+int fufs_creat_impl(const char *function,...){
+    va_list args;
+    va_start(args,function);
+    const char *path = va_arg(args, const char *);
+    mode_t mode = va_arg(args, mode_t);
+
+    char rel_path[MAX_PATH];
+    char layer_path[MAX_PATH];
+    int ret = get_relative_path_layer(path, rel_path, layer_path);
+    if (ret == -1){
+        log_fatal("%s is not inside the container", rel_path);
+        return -1;
+    }
+    const char * container_root = getenv("ContainerRoot");
+    char resolved[MAX_PATH];
+    if(strcmp(layer_path,container_root) != 0){
+        sprintf(resolved,"%s/%s",container_root,rel_path);
+    }else{
+        sprintf(resolved,"%s",path);
+    }
+
+    INITIAL_SYS(creat64)
+    INITIAL_SYS(creat)
+
+    if(strcmp(function,"creat64") == 0){
+        return RETURN_SYS(creat64,(resolved,mode))
+    }else{
+        return RETURN_SYS(creat,(resolved,mode))
     }
 }
