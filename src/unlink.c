@@ -31,8 +31,7 @@ wrapper(unlink, int, (const char * pathname))
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths){
-        //int ret = fufs_unlink(rt_paths[0]);
-        int ret = 0;
+        int ret = WRAPPER_FUFS(unlink,unlink,(rt_paths[0]))
         switch(ret){
             case 1:
                 return nextcall(unlink)(rt_paths[0]);
@@ -43,8 +42,7 @@ wrapper(unlink, int, (const char * pathname))
                 return -1;
         }
     }else if(r && !rt_paths){
-        //int ret = fufs_unlink(pathname);
-        int ret = 0;
+        int ret = WRAPPER_FUFS(unlink,unlink,(pathname))
         switch(ret){
             case 1:
                 return nextcall(unlink)(pathname);

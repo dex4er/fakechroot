@@ -27,27 +27,13 @@
 #define RETURN_SYS(FUNCTION,ARGS) \
     real_##FUNCTION ARGS;
 
-#define WRAPPER_FUFS(NAME,FUNCTION,ARGS) \
-    fufs_##NAME##_impl(#FUNCTION,ARGS);
+#define WRAPPER_FUFS(NAME,FUNCTION,...) \
+    fufs_##NAME##_impl(#FUNCTION,__VA_ARGS__);
 
+//cross file vars declaration
+struct dirent_obj * darr;
 
 enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
-// declare original syscalls
-/**
-  typedef DIR* (*OPENDIR)(const char* name);
-  typedef struct dirent* (*READDIR)(DIR* dirp);
-  typedef int (*__XSTAT)(int ver, const char *path, struct stat *buf);
-  typedef int (*OPEN)(const char *path, int oflag, ...);
-  typedef int (*OPENAT)(int dirfd, const char *path, int oflag, ...);
-  typedef int (*OPEN64)(const char *path, int oflag, ...);
-
-  static OPENDIR real_opendir = NULL;
-  static READDIR real_readdir = NULL;
-  static __XSTAT real_xstat = NULL;
-  static OPEN real_open = NULL;
-  static OPENAT real_openat = NULL;
-  static OPENAT real_open64= NULL;
- **/
 
 // declaration ends
     DECLARE_SYS(opendir,DIR*,(const char* name))
@@ -84,7 +70,6 @@ struct dirent_layers_entry{
 };
 
 enum hash_type{md5,sha256};
-extern struct dirent_obj * darr;
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 DIR * getDirentsWithName(const char* name, struct dirent_obj** darr, size_t *num, char **names);
 struct dirent_layers_entry* getDirContent(const char* abs_path);
@@ -107,7 +92,15 @@ bool transWh2path(const char *name, const char *pre, char *tname);
 int getParentWh(const char *abs_path);
 bool xstat(const char *abs_path);
 bool pathExcluded(const char *abs_path);
+bool findFileInLayers(const char *file,char *resolved);
 
 //fake union fs functions
-
+int fufs_chdir_impl(const char * function, ...);
+int fufs_creat_impl(const char *function,...);
+int fufs_link_impl(const char * function, ...);
+int fufs_mkdir_impl(const char* function,...);
+int fufs_open_impl(const char* function, ...);
+struct dirent_obj* fufs_opendir_impl(const char* function,...);
+int fufs_symlink_impl(const char *function, ...);
+int fufs_unlink_impl(const char* function,...);
 #endif

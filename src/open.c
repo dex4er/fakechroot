@@ -43,11 +43,10 @@ wrapper_alias(open, int, (const char* pathname, int flags, ...))
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths) {
-       // return fufs_open(rt_paths[0], flags, mode);
-       return -1;
+        return WRAPPER_FUFS(open,open,rt_paths[0], flags, mode)
     } else if (r && !rt_paths) {
-        //return fufs_open(pathname, flags, mode);
-        return -1;
+        debug("-------- %s %d %d",pathname,flags,mode);
+        return WRAPPER_FUFS(open,open,pathname, flags, mode)
     } else {
         errno = EACCES;
         return -1;

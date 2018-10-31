@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "libfakechroot.h"
+#include "unionfs.h"
 
 #ifndef __GLIBC__
 extern char **environ;
@@ -41,6 +42,9 @@ extern char **environ;
  */
 wrapper(execl, int, (const char * path, const char * arg, ...))
 {
+    char resolved[MAX_PATH];
+    findFileInLayers(path,resolved);
+
     size_t argv_max = 1024;
     const char **argv = alloca(argv_max * sizeof(const char *));
     unsigned int i;
@@ -48,7 +52,7 @@ wrapper(execl, int, (const char * path, const char * arg, ...))
     va_list args;
     va_start(args, arg);
 
-    debug("execl(\"%s\", \"%s\", ...)", path, arg);
+    debug("execl(\"%s\", \"%s\", ...)", resolved, arg);
     argv[0] = arg;
 
     i = 0;
@@ -69,5 +73,5 @@ wrapper(execl, int, (const char * path, const char * arg, ...))
     }
     va_end(args);
 
-    return execve(path, (char * const *) argv, environ);
+    return execve(resolved, (char * const *) argv, environ);
 }

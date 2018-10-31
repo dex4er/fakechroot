@@ -24,10 +24,10 @@
 #include "libfakechroot.h"
 #include "unionfs.h"
 
-extern struct dirent_obj* darr;
+extern struct dirent_obj * darr;
 wrapper(readdir, struct dirent *, (DIR * dirp))
 {
-    debug("readdir darr %s",darr);
+    //debug("readdir darr %s",darr);
     if(darr != NULL){
         struct dirent * entry = popItemFromHead(&darr);
         return entry;

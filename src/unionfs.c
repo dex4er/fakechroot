@@ -498,6 +498,27 @@ bool transWh2path(const char* name, const char* pre, char* tname)
     return b_contain;
 }
 
+bool findFileInLayers(const char *file,char *resolved){
+    size_t num;
+    char ** layers = getLayerPaths(&num);
+    if(num > 0){
+        for(size_t i = 0; i<num;i++){
+            char tmp[MAX_PATH];
+            if(*file == '/'){
+                sprintf(tmp,"%s%s",layers[i],file);
+            }else{
+                sprintf(tmp,"%s/%s",layers[i],file);
+            }
+            if(xstat(tmp)){
+                strcpy(resolved,tmp);
+                return true;
+            }
+        }
+    }
+    strcpy(resolved,file);
+    return false;
+}
+
 /**
  * get any whiteout parent folders
  * if given path is as /f1/f2/f3
@@ -533,6 +554,9 @@ int getParentWh(const char *abs_path){
 }
 
 bool xstat(const char *abs_path){
+    if(abs_path == NULL || *abs_path == '\0'){
+        return false;
+    }
     INITIAL_SYS(__xstat)
         struct stat st;
     if(real___xstat(1,abs_path,&st) == 0){
@@ -542,6 +566,9 @@ bool xstat(const char *abs_path){
 }
 
 bool pathExcluded(const char *abs_path){
+    if(abs_path == NULL || *abs_path == '\0'){
+        return false;
+    }
     const char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
     if(exclude_path){
         char *exclude_path_dup = strdup(exclude_path);
@@ -558,24 +585,29 @@ bool pathExcluded(const char *abs_path){
 
 /**----------------------------------------------------------------------------------**/
 int fufs_open_impl(const char* function, ...){
-    va_list args;
-    va_start(args,function);
-
     int dirfd = -1;
     const char *path;
     int oflag;
+    int mode;
+
+    va_list args;
+    va_start(args,function);
     if(strcmp(function,"openat") == 0){
         dirfd = va_arg(args,int);
     }
-    path = va_arg(args, const char*);
+
+    path = va_arg(args, const char *);
     oflag = va_arg(args, int);
+    mode = va_arg(args, int);
     va_end(args);
 
     INITIAL_SYS(open)
-        INITIAL_SYS(openat)
-        INITIAL_SYS(open64)
+    INITIAL_SYS(openat)
+    INITIAL_SYS(open64)
 
-        if(!xstat(path) || pathExcluded(path)){
+    log_debug("incoming open request: %s %s %d %d",function, path, oflag, mode);
+
+    if(!xstat(path) || pathExcluded(path)){
             goto end;
         }else{
             char rel_path[MAX_PATH];
@@ -691,8 +723,13 @@ end:
     }
 }
 
-struct dirent_obj* fufs_opendir_impl(const char* abs_path){
+struct dirent_obj* fufs_opendir_impl(const char* function,...){
     //container layer from top to lower
+    va_list args;
+    va_start(args,function);
+    const char * abs_path = va_arg(args,const char *);
+    va_end(args);
+
     size_t num;
     char ** layers = getLayerPaths(&num);
     if(num < 1){
@@ -879,13 +916,13 @@ int fufs_link_impl(const char * function, ...){
     }
 
     INITIAL_SYS(linkat)
-    INITIAL_SYS(link)
+        INITIAL_SYS(link)
 
-    if(strcmp(function,"linkat") == 0){
-        return RETURN_SYS(linkat,(olddirfd,oldpath,newdirfd,resolved,flags))
-    }else{
-        return RETURN_SYS(link,(oldpath,resolved))
-    }
+        if(strcmp(function,"linkat") == 0){
+            return RETURN_SYS(linkat,(olddirfd,oldpath,newdirfd,resolved,flags))
+        }else{
+            return RETURN_SYS(link,(oldpath,resolved))
+        }
 
 }
 
@@ -919,13 +956,13 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-    INITIAL_SYS(symlink)
+        INITIAL_SYS(symlink)
 
-    if(strcmp(function,"symlinkat") == 0){
-        return RETURN_SYS(symlinkat,(target,newdirfd,resolved))
-    }else{
-        return RETURN_SYS(symlink,(target,resolved))
-    }
+        if(strcmp(function,"symlinkat") == 0){
+            return RETURN_SYS(symlinkat,(target,newdirfd,resolved))
+        }else{
+            return RETURN_SYS(symlink,(target,resolved))
+        }
 }
 
 int fufs_creat_impl(const char *function,...){
@@ -950,11 +987,11 @@ int fufs_creat_impl(const char *function,...){
     }
 
     INITIAL_SYS(creat64)
-    INITIAL_SYS(creat)
+        INITIAL_SYS(creat)
 
-    if(strcmp(function,"creat64") == 0){
-        return RETURN_SYS(creat64,(resolved,mode))
-    }else{
-        return RETURN_SYS(creat,(resolved,mode))
-    }
+        if(strcmp(function,"creat64") == 0){
+            return RETURN_SYS(creat64,(resolved,mode))
+        }else{
+            return RETURN_SYS(creat,(resolved,mode))
+        }
 }

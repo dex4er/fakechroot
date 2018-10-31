@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <fcntl.h>
 #include "libfakechroot.h"
+#include "unionfs.h"
 
 
 wrapper_alias(openat, int, (int dirfd, const char * pathname, int flags, ...))
@@ -47,9 +48,9 @@ wrapper_alias(openat, int, (int dirfd, const char * pathname, int flags, ...))
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths){
-      return nextcall(openat)(dirfd, rt_paths[0], flags, mode);
+      return WRAPPER_FUFS(open,openat,dirfd, rt_paths[0], flags, mode)
     }else if(r && !rt_paths){
-      return nextcall(openat)(dirfd, pathname, flags, mode);
+      return WRAPPER_FUFS(open,openat,dirfd, pathname, flags, mode)
     }else {
       errno = EACCES;
       return -1;

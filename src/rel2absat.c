@@ -100,8 +100,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
     int cwdfd = 0;
     char cwd[FAKECHROOT_PATH_MAX];
 
-    debug("rel2absatLayer(%d, \"%s\", &resolved)", dirfd, name);
-
+    debug("rel2absatLayer starts(%d, \"%s\", &resolved)", dirfd, name); 
     if (name == NULL) {
         resolved = NULL;
         goto end;
@@ -130,13 +129,13 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
                 sprintf(tmp, "%s/%s", paths[i], name);
                 struct stat st;
                 if(stat(tmp, &st) == -1){
-                    debug("rel2absLayer failed resolved: %s",tmp);
+                    debug("rel2absatLayer failed resolved: %s",tmp);
                     if(getParentWh(tmp)){
                         break;
                     }
                     continue;
                 }else{
-                    debug("rel2absLayer successfully resolved: %s",tmp);
+                    debug("rel2absatLayer successfully resolved: %s",tmp);
                     snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
                     b_resolved = true;
                     break;
@@ -175,13 +174,13 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
                 sprintf(tmp, "%s/%s", paths[i], name);
                 struct stat st;
                 if(stat(tmp, &st) == -1){
-                    debug("rel2absLayer failed resolved: %s",tmp);
+                    debug("rel2absatLayer failed resolved: %s",tmp);
                     if(getParentWh(tmp)){
                         break;
                     }
                     continue;
                 }else{
-                    debug("rel2absLayer successfully resolved: %s",tmp);
+                    debug("rel2absatLayer successfully resolved: %s",tmp);
                     snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
                     b_resolved = true;
                     break;
@@ -198,7 +197,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
     dedotdot(resolved);
 
 end:
-    debug("rel2absatLayer(%d, \"%s\", \"%s\")", dirfd, name, resolved);
+    debug("rel2absatLayer ends(%d, \"%s\", \"%s\")", dirfd, name, resolved);
     return resolved;
 
 error:
@@ -206,7 +205,7 @@ error:
         (void)close(cwdfd);
     }
     resolved = NULL;
-    debug("rel2absatLayer(%d, \"%s\", NULL)", dirfd, name);
+    debug("rel2absatLayer error(%d, \"%s\", NULL)", dirfd, name);
     return resolved;
 }
 

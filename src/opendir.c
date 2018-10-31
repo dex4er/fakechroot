@@ -25,7 +25,6 @@
 #include "unionfs.h"
 #include <dirent.h>
 
-struct dirent_obj* darr = NULL;
 wrapper(opendir, DIR*, (const char* name))
 {
     debug("opendir(\"%s\")", name);
@@ -37,10 +36,10 @@ wrapper(opendir, DIR*, (const char* name))
         darr = tmp;
         return dirp;
     }
-    /**
-    darr = fufs_opendir(name);
+    darr = WRAPPER_FUFS(opendir,opendir,name)
+   /**
     while(darr){
-        debug(darr->abs_path);
+        debug("dirents item: %s", darr->abs_path);
         darr = darr->next;
     }
     **/
