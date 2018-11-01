@@ -82,37 +82,58 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
         strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
     }
     else {
-        char ** paths;
-        size_t num;
-        paths = getLayerPaths(&num);
-        bool b_resolved = false;
-        if(num > 0){
-            for(size_t i = 0; i< num; i++){
-                char tmp[FAKECHROOT_PATH_MAX];
-                sprintf(tmp, "%s/%s", paths[i], name);
-                struct stat st;
-                if(stat(tmp, &st) == -1){
-                    debug("rel2absLayer failed resolved: %s",tmp);
-                    if(getParentWh(tmp)){
-                        break;
-                    }
-                    continue;
-                }else{
-                    debug("rel2absLayer successfully resolved: %s",tmp);
-                    snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
-                    b_resolved = true;
-                    break;
-                }
+        char tmp[FAKECHROOT_PATH_MAX];
+        sprintf(tmp,"%s/%s",cwd,name);
 
+        char rel_path[FAKECHROOT_PATH_MAX];
+        char layer_path[FAKECHROOT_PATH_MAX];
+        //test if the path exists in container layers
+        int ret = get_relative_path_layer(tmp, rel_path, layer_path);
+        bool b_resolved = false;
+        if(ret == 0){
+            //exists?
+            if(xstat(tmp)){
+                if(!getParentWh(tmp)){
+                    b_resolved = true;
+                    snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
+                }
+                goto end;
+            }else{
+                //loop to find in each layer
+                char ** paths;
+                size_t num;
+                paths = getLayerPaths(&num);
+                if(num > 0){
+                    for(size_t i = 0; i< num; i++){
+                        char tmp[FAKECHROOT_PATH_MAX];
+                        sprintf(tmp, "%s/%s", paths[i], rel_path);
+                        struct stat st;
+                        if(stat(tmp, &st) == -1){
+                            debug("rel2absLayer failed resolved: %s",tmp);
+                            if(getParentWh(tmp)){
+                                break;
+                            }
+                            continue;
+                        }else{
+                            debug("rel2absLayer successfully resolved: %s",tmp);
+                            snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
+                            b_resolved = true;
+                            break;
+                        }
+
+                    }
+                }
+                if(!b_resolved){
+                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+                }
             }
-        }
-        if(!b_resolved){
+        }else{
             snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
         }
     }
     dedotdot(resolved);
 
 end:
-    debug("rel2absLayer(\"%s\", \"%s\")", name, resolved);
+    debug("rel2absLayer ends(\"%s\", \"%s\")", name, resolved);
     return resolved;
 }

@@ -914,6 +914,7 @@ int fufs_mkdir_impl(const char* function,...){
         log_fatal("%s is not inside the container", rel_path);
         return -1;
     }
+
     const char * container_root = getenv("ContainerRoot");
     char resolved[MAX_PATH];
     if(strcmp(layer_path,container_root) != 0){
@@ -922,6 +923,9 @@ int fufs_mkdir_impl(const char* function,...){
         sprintf(resolved,"%s",abs_path);
     }
 
+    INITIAL_SYS(mkdir)
+    INITIAL_SYS(mkdirat)
+    
     if(strcmp(function,"mkdirat") == 0){
         return RETURN_SYS(mkdirat,(dirfd,resolved,mode))
     }else{
