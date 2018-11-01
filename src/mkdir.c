@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(mkdir, int, (const char *pathname, mode_t mode))
 {
@@ -34,9 +34,9 @@ wrapper(mkdir, int, (const char *pathname, mode_t mode))
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths){
-      return nextcall(mkdir)(rt_paths[0], mode);
+      return WRAPPER_FUFS(mkdir,mkdir,rt_paths[0],mode)
     }else if(r && !rt_paths){
-      return nextcall(mkdir)(pathname, mode);
+      return WRAPPER_FUFS(mkdir,mkdir,pathname,mode)
     }else {
       errno = EACCES;
       return -1;

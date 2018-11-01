@@ -24,7 +24,7 @@
 
 #define _ATFILE_SOURCE
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpath))
 {
@@ -38,9 +38,9 @@ wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpat
     char** rt_paths = NULL;
     bool r = rt_mem_check(2, rt_paths, oldpath, newpath);
     if (r && rt_paths){
-      return nextcall(symlinkat)(rt_paths[0], newdirfd, rt_paths[1]);
+      return WRAPPER_FUFS(symlink, symlinkat, rt_paths[0], newdirfd, rt_paths[1])
     }else if(r && !rt_paths){
-      return nextcall(symlinkat)(oldpath, newdirfd, newpath);
+      return WRAPPER_FUFS(symlink, symlinkat, oldpath, newdirfd, newpath)
     }else{
       errno = EACCES;
       return -1;

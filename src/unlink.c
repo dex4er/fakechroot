@@ -31,27 +31,9 @@ wrapper(unlink, int, (const char * pathname))
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths){
-        int ret = WRAPPER_FUFS(unlink,unlink,(rt_paths[0]))
-        switch(ret){
-            case 1:
-                return nextcall(unlink)(rt_paths[0]);
-            case 0:
-                return 0;
-            case -1:
-                errno = EACCES;
-                return -1;
-        }
+        return WRAPPER_FUFS(unlink,unlink,rt_paths[0])
     }else if(r && !rt_paths){
-        int ret = WRAPPER_FUFS(unlink,unlink,(pathname))
-        switch(ret){
-            case 1:
-                return nextcall(unlink)(pathname);
-            case 0:
-                return 0;
-            case -1:
-                errno = EACCES;
-                return -1;
-        }
+        return WRAPPER_FUFS(unlink,unlink,pathname)
     }else {
         errno = EACCES;
         return -1;

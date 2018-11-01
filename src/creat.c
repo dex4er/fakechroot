@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(creat, int, (const char * pathname, mode_t mode))
 {
@@ -35,9 +35,9 @@ wrapper(creat, int, (const char * pathname, mode_t mode))
     char** rt_paths = NULL;
     bool r = rt_mem_check(1, rt_paths, pathname);
     if (r && rt_paths){
-      return nextcall(creat)(rt_paths[0], mode);
+      return WRAPPER_FUFS(creat, creat, rt_paths[0], mode)
     }else if(r && !rt_paths){
-      return nextcall(creat)(pathname, mode);
+      return WRAPPER_FUFS(creat, creat, pathname, mode)
     }else {
       errno = EACCES;
       return -1;

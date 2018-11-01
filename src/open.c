@@ -45,7 +45,6 @@ wrapper_alias(open, int, (const char* pathname, int flags, ...))
     if (r && rt_paths) {
         return WRAPPER_FUFS(open,open,rt_paths[0], flags, mode)
     } else if (r && !rt_paths) {
-        debug("-------- %s %d %d",pathname,flags,mode);
         return WRAPPER_FUFS(open,open,pathname, flags, mode)
     } else {
         errno = EACCES;
