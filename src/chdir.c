@@ -57,17 +57,6 @@ wrapper(chdir, int, (const char * path))
         return -1;
     }
 
-    /**
-    const char * container_root = getenv("ContainerId");
-    if(container_root != NULL){
-        if(strstr(cwd, container_root) == cwd){
-            expand_chroot_path(path);
-        }else{
-            expand_chroot_rel_path(path);
-        }
-    }
-    **/
-
     char resolved[MAX_PATH];
     findFileInLayers(path, resolved);
     return nextcall(chdir)(resolved);

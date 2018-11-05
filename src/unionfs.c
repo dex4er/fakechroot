@@ -561,7 +561,15 @@ bool copyFile2RW(const char *abs_path, char *resolved){
         strcpy(resolved,abs_path);
         return false;
     }
-    char rel_path[MAX_PATH];
+
+    if(!is_file_type(abs_path,TYPE_FILE)){
+        strcpy(resolved,abs_path);
+        return false;
+    }
+
+    INITIAL_SYS(fopen)
+
+        char rel_path[MAX_PATH];
     char layer_path[MAX_PATH];
     int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
     const char * container_root = getenv("ContainerRoot");
@@ -573,7 +581,7 @@ bool copyFile2RW(const char *abs_path, char *resolved){
             char destpath[MAX_PATH];
             sprintf(destpath,"%s/%s", container_root, rel_path);
             FILE *src, *dest;
-            src = fopen(abs_path, "r");
+            src = real_fopen(abs_path, "r");
             if(xstat(destpath)){
                 //truncate and rewrite
                 dest = fopen(destpath, "w");
@@ -669,17 +677,17 @@ int fufs_open_impl(const char* function, ...){
     int dirfd = -1;
     const char *path;
     int oflag;
-    int mode;
+    mode_t mode;
 
     va_list args;
     va_start(args,function);
-    if(strcmp(function,"openat") == 0){
+    if(strcmp(function,"openat") == 0 || strcmp(function,"openat64") == 0){
         dirfd = va_arg(args,int);
     }
 
     path = va_arg(args, const char *);
     oflag = va_arg(args, int);
-    mode = va_arg(args, int);
+    mode = va_arg(args, mode_t);
     va_end(args);
 
     INITIAL_SYS(open)
@@ -700,7 +708,7 @@ int fufs_open_impl(const char* function, ...){
                 goto end;
             }else{
                 //copy and write
-                if(oflag == O_RDONLY){
+                if(oflag & O_RDONLY){
                     goto end;
                 }
                 char destpath[MAX_PATH];
@@ -709,12 +717,18 @@ int fufs_open_impl(const char* function, ...){
                     return -1;
                 }
                 if(strcmp(function,"openat") == 0){
-                    return RETURN_SYS(openat,(dirfd,destpath,oflag,args))
-                }else if(strcmp(function,"open") == 0){
-                    return RETURN_SYS(open,(destpath,oflag, args))
-                }else{
-                    return RETURN_SYS(open64,(destpath,oflag,args))
+                    return RETURN_SYS(openat,(dirfd,destpath,oflag,mode))
                 }
+                if(strcmp(function,"open") == 0){
+                    return RETURN_SYS(open,(destpath,oflag,mode))
+                }
+                if(strcmp(function,"openat64") == 0){
+                    return RETURN_SYS(openat64,(dirfd,destpath,oflag,mode))
+                }
+                if(strcmp(function,"open64") == 0){
+                    return RETURN_SYS(open64,(destpath,oflag,mode))
+                }
+                goto err;
             }
         }else{
             log_fatal("%s file doesn't exist in container", path);
@@ -724,12 +738,22 @@ int fufs_open_impl(const char* function, ...){
 
 end:
     if(strcmp(function,"openat") == 0){
-        return RETURN_SYS(openat,(dirfd,path,oflag,args))
-    }else if(strcmp(function,"open") == 0){
-        return RETURN_SYS(open,(path,oflag, args))
-    }else{
-        return RETURN_SYS(open64,(path,oflag,args))
+        return RETURN_SYS(openat,(dirfd,path,oflag,mode))
     }
+    if(strcmp(function,"open") == 0){
+        return RETURN_SYS(open,(path,oflag,mode))
+    }
+    if(strcmp(function,"openat64") == 0){
+        return RETURN_SYS(openat64,(dirfd, path,oflag,mode))
+    }
+    if(strcmp(function,"open64") == 0){
+        return RETURN_SYS(open64,(path,oflag,mode))
+    }
+    goto err;
+
+err:
+    errno = EACCES;
+    return -1;
 }
 
 int fufs_unlink_impl(const char* function,...){
@@ -759,37 +783,53 @@ int fufs_unlink_impl(const char* function,...){
             return -1;
         }
         const char * root_path = getenv("ContainerRoot");
-        if(strcmp(root_path, layer_path) == 0){
-            goto end;
-        }else{
-            //request path is in other layers rather than rw layer
-            char * bname = basename(rel_path);
-            char * dname = dirname(rel_path);
-            char whpath[MAX_PATH];
-            if(strcmp(dname, ".") == 0){
-                sprintf(whpath,"%s/.wh.%s",root_path,bname);
-            }else{
-                sprintf(whpath,"%s/%s",root_path,dname);
-                if(!xstat(whpath)){
-                    mkdir(whpath,0700);
+        char * bname = basename(rel_path);
+        char * dname = dirname(rel_path);
+        INITIAL_SYS(creat)
+            if(strcmp(root_path, layer_path) == 0){
+                char whpath[MAX_PATH];
+                if(strcmp(dname, ".") == 0){
+                    sprintf(whpath,"%s/.wh.%s",root_path,bname);
+                }else{
+                    sprintf(whpath,"%s/%s/.wh.%s",root_path,dname,bname);
                 }
-                sprintf(whpath,"%s/.wh.%s", whpath,bname);
+                int fd = real_creat(whpath,0644);
+                if(fd < 0){
+                    log_fatal("can't create file: %s", whpath);
+                    return -1;
+                }
+                goto end;
+            }else{
+                //request path is in other layers rather than rw layer
+
+                INITIAL_SYS(mkdir)
+                    char whpath[MAX_PATH];
+                if(strcmp(dname, ".") == 0){
+                    sprintf(whpath,"%s/.wh.%s",root_path,bname);
+                }else{
+                    sprintf(whpath,"%s/%s",root_path,dname);
+                    if(!xstat(whpath)){
+                        real_mkdir(whpath,0755);
+                    }
+                    sprintf(whpath,"%s/.wh.%s", whpath,bname);
+                }
+                int fd = real_creat(whpath, 0644);
+                if(fd < 0){
+                    log_fatal("can't create file: %s", whpath);
+                    return -1;
+                }
+                close(fd);
+                return 0;
             }
-            int fp = open(whpath,O_CREAT|O_APPEND,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            if(fp == -1){
-                log_fatal("can't create file: %s", whpath);
-                return -1;
-            }
-            close(fp);
-            return 0;
-        }
     }
 
 end:
     if(strcmp(function,"unlinkat") == 0){
-        return RETURN_SYS(unlinkat,(dirfd,abs_path,oflag))
+        INITIAL_SYS(unlinkat)
+            return RETURN_SYS(unlinkat,(dirfd,abs_path,oflag))
     }else{
-        return RETURN_SYS(unlink,(abs_path))
+        INITIAL_SYS(unlink)
+            return RETURN_SYS(unlink,(abs_path))
     }
 }
 
@@ -904,6 +944,7 @@ int fufs_mkdir_impl(const char* function,...){
         mode= va_arg(args, mode_t);
     }else{
         abs_path = va_arg(args, const char *);
+        mode = va_arg(args, mode_t);
     }
     va_end(args);
 
@@ -924,13 +965,13 @@ int fufs_mkdir_impl(const char* function,...){
     }
 
     INITIAL_SYS(mkdir)
-    INITIAL_SYS(mkdirat)
-    
-    if(strcmp(function,"mkdirat") == 0){
-        return RETURN_SYS(mkdirat,(dirfd,resolved,mode))
-    }else{
-        return RETURN_SYS(mkdir,(resolved))
-    }
+        INITIAL_SYS(mkdirat)
+
+        if(strcmp(function,"mkdirat") == 0){
+            return RETURN_SYS(mkdirat,(dirfd,resolved,mode))
+        }else{
+            return RETURN_SYS(mkdir,(resolved,mode))
+        }
 }
 
 int fufs_link_impl(const char * function, ...){
@@ -1092,21 +1133,26 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-        INITIAL_SYS(open)
+        INITIAL_SYS(creat)
 
         const char * container_root = getenv("ContainerRoot");
+
+    char * bname = basename(rel_path);
+    char * dname = dirname(rel_path);
     if(strcmp(layer_path,container_root) == 0){
+        INITIAL_SYS(rmdir)
+            char wh[MAX_PATH];
+        sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
+        real_creat(wh,0644);
         return RETURN_SYS(rmdir,(path))
     }else{
-        char * bname = basename(rel_path);
-        char * dname = dirname(rel_path);
         char parent[MAX_PATH];
         sprintf(parent,"%s/%s", container_root,dname);
-        int ret = real_mkdir(parent);
+        int ret = real_mkdir(parent, 0755);
         if(ret == 0){
             char wh[MAX_PATH];
-            sprintf(wh,".wh.%s",bname);
-            return real_open(wh,O_CREAT | O_TRUNC);
+            sprintf(wh,"%s/.wh.%s",parent,bname);
+            return real_creat(wh, 0644);
         }
     }
     errno = EACCES;
@@ -1145,9 +1191,9 @@ int fufs_rename_impl(const char* function, ...){
     }
 
     INITIAL_SYS(rename)
-    INITIAL_SYS(renameat)
+        INITIAL_SYS(renameat)
 
-    const char * container_root = getenv("ContainerRoot");
+        const char * container_root = getenv("ContainerRoot");
     if(strcmp(layer_path, container_root) == 0){
         if(strcmp(function,"renameat") == 0){
             return RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,newpath))

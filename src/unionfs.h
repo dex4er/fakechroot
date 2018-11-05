@@ -39,12 +39,13 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(opendir,DIR*,(const char* name))
     DECLARE_SYS(readdir,struct dirent*,(DIR* dirp))
     DECLARE_SYS(__xstat,int,(int ver, const char *path, struct stat *buf))
-    DECLARE_SYS(open,int,(const char *path, int oflag, ...))
-    DECLARE_SYS(openat,int,(int dirfd, const char *path, int oflag, ...))
-    DECLARE_SYS(open64,int,(const char *path, int oflag, ...))
+    DECLARE_SYS(open,int,(const char *path, int oflag, mode_t mode))
+    DECLARE_SYS(openat,int,(int dirfd, const char *path, int oflag, mode_t mode))
+    DECLARE_SYS(open64,int,(const char *path, int oflag, mode_t mode))
+    DECLARE_SYS(openat64,int,(int dirfd, const char *path, int oflag, mode_t mode))
     DECLARE_SYS(unlink,int,(const char *path))
     DECLARE_SYS(unlinkat,int,(int dirfd, const char *path, int oflag))
-    DECLARE_SYS(mkdir,int,(const char *path))
+    DECLARE_SYS(mkdir,int,(const char *path, mode_t mode))
     DECLARE_SYS(mkdirat,int,(int dirfd, const char *path, mode_t mode))
     DECLARE_SYS(chdir,int,(const char *path))
     DECLARE_SYS(linkat,int,(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags))
@@ -57,6 +58,8 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(rmdir,int,(const char *path))
     DECLARE_SYS(rename,int,(const char * oldpath, const char * newpath))
     DECLARE_SYS(renameat,int,(int olddirfd, const char * oldpath, int newdirfd,const char * newpath))
+    DECLARE_SYS(fopen,FILE*,(const char * pathname, const char * mode))
+    DECLARE_SYS(fopen64,FILE*,(const char * pathname, const char * mode))
 
     struct dirent_obj {
         struct dirent* dp;

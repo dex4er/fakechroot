@@ -78,6 +78,8 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
     getcwd_real(cwd, FAKECHROOT_PATH_MAX);
     narrow_chroot_path(cwd);
 
+    debug("rel2absLayer cwd: %s, name: %s", cwd, name);
+
     if (*name == '/') {
         strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
     }
@@ -89,6 +91,7 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
         char layer_path[FAKECHROOT_PATH_MAX];
         //test if the path exists in container layers
         int ret = get_relative_path_layer(tmp, rel_path, layer_path);
+        debug("rel2absLayer target: %s, rel_path: %s, layer_path: %s", tmp,rel_path,layer_path);
         bool b_resolved = false;
         if(ret == 0){
             //exists?
@@ -124,7 +127,8 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                     }
                 }
                 if(!b_resolved){
-                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+                    const char * container_root = getenv("ContainerRoot");
+                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",container_root,rel_path);
                 }
             }
         }else{
@@ -134,6 +138,7 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
     dedotdot(resolved);
 
 end:
+    dedotdot(resolved);
     debug("rel2absLayer ends(\"%s\", \"%s\")", name, resolved);
     return resolved;
 }

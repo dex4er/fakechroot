@@ -227,7 +227,8 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
                     }
                 }
                 if(!b_resolved){
-                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+                    const char * container_root = getenv("ContainerRoot");
+                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",container_root,rel_path);
                 }
             }
         }else{
