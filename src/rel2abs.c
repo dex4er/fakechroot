@@ -96,10 +96,7 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
         if(ret == 0){
             //exists?
             if(xstat(tmp)){
-                if(!getParentWh(tmp)){
-                    b_resolved = true;
-                    snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
-                }
+                snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
                 goto end;
             }else{
                 //loop to find in each layer

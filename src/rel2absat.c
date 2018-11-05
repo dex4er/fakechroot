@@ -130,10 +130,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
         if(ret == 0){
             //exists?
             if(xstat(tmp)){
-                if(!getParentWh(tmp)){
-                    b_resolved = true;
-                    snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
-                }
+                snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
                 goto end;
             }else{
                 //loop to find in each layer
@@ -161,7 +158,8 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
                     }
                 }
                 if(!b_resolved){
-                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+                    const char * container_root = getenv("ContainerRoot");
+                    snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",container_root,rel_path);
                 }
             }
         }else{
@@ -196,10 +194,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
         if(ret == 0){
             //exists?
             if(xstat(tmp)){
-                if(!getParentWh(tmp)){
-                    b_resolved = true;
-                    snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
-                }
+                snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
                 goto end;
             }else{
                 //loop to find in each layer
@@ -240,6 +235,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
     dedotdot(resolved);
 
 end:
+    dedotdot(resolved);
     debug("rel2absatLayer ends(%d, \"%s\", \"%s\")", dirfd, name, resolved);
     return resolved;
 

@@ -785,6 +785,12 @@ int fufs_unlink_impl(const char* function,...){
         const char * root_path = getenv("ContainerRoot");
         char * bname = basename(rel_path);
         char * dname = dirname(rel_path);
+        
+        //if remove .wh file
+        if(strncmp(bname,".wh",3) == 0){
+            goto end;
+        }
+
         INITIAL_SYS(creat)
             if(strcmp(root_path, layer_path) == 0){
                 char whpath[MAX_PATH];
