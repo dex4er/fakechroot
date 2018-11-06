@@ -112,7 +112,23 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
     }
 
     if (*name == '/') {
-        strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+        if(pathExcluded(name)){
+            strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+        }else if(pathIncluded(name)){
+            if(!findFileInLayers(name, resolved)){
+                const char * container_root = getenv("ContainerRoot");
+                sprintf(resolved,"%s%s",container_root,name);
+            }
+        }else{
+            char rel_path[MAX_PATH];
+            char layer_path[MAX_PATH];
+            int ret = get_relative_path_layer(name, rel_path, layer_path);
+            if(ret == 0){
+                strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+            }else{
+                findFileInLayers(name,resolved);
+            }
+        }
     } else if(dirfd == AT_FDCWD) {
         if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
             goto error;

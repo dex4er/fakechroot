@@ -684,6 +684,10 @@ bool pathExcluded(const char *abs_path){
     if(abs_path == NULL || *abs_path == '\0'){
         return false;
     }
+    if(*abs_path != '/'){
+        log_error("input path should be absolute path rather than relative path");
+        return false;
+    }
     const char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
     if(exclude_path){
         char *exclude_path_dup = strdup(exclude_path);
@@ -696,6 +700,29 @@ bool pathExcluded(const char *abs_path){
         }
     }
     return false;
+}
+
+bool pathIncluded(const char *abs_path){
+    if(abs_path == NULL || *abs_path == '\0'){
+        return false;
+    }
+    if(*abs_path != '/'){
+        log_error("input path should be absolute path rather than relative path");
+        return false;
+    }
+    const char *include_path= getenv("FAKECHROOT_INCLUDE_PATH");
+    if(include_path){
+        char *include_path_dup = strdup(include_path);
+        char *str_tmp = strtok(include_path_dup,":");
+        while (str_tmp){
+            if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
+                return true;
+            }
+            str_tmp = strtok(NULL,":");
+        }
+    }
+    return false;
+
 }
 
 /**----------------------------------------------------------------------------------**/

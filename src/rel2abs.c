@@ -81,7 +81,23 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
     debug("rel2absLayer cwd: %s, name: %s", cwd, name);
 
     if (*name == '/') {
-        strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+        if(pathExcluded(name)){
+            strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+        }else if(pathIncluded(name)){
+            if(!findFileInLayers(name, resolved)){
+                const char * container_root = getenv("ContainerRoot");
+                sprintf(resolved,"%s%s",container_root,name);
+            }
+        }else{
+            char rel_path[MAX_PATH];
+            char layer_path[MAX_PATH];
+            int ret = get_relative_path_layer(name, rel_path, layer_path);
+            if(ret == 0){
+                strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+            }else{
+                findFileInLayers(name,resolved);
+            }
+        }
     }
     else {
         char tmp[FAKECHROOT_PATH_MAX];
