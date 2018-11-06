@@ -78,8 +78,6 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
     getcwd_real(cwd, FAKECHROOT_PATH_MAX);
     narrow_chroot_path(cwd);
 
-    debug("rel2absLayer cwd: %s, name: %s", cwd, name);
-
     if (*name == '/') {
         if(pathExcluded(name)){
             strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
@@ -107,7 +105,6 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
         char layer_path[FAKECHROOT_PATH_MAX];
         //test if the path exists in container layers
         int ret = get_relative_path_layer(tmp, rel_path, layer_path);
-        debug("rel2absLayer target: %s, rel_path: %s, layer_path: %s", tmp,rel_path,layer_path);
         bool b_resolved = false;
         if(ret == 0){
             //exists?
@@ -123,15 +120,14 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                     for(size_t i = 0; i< num; i++){
                         char tmp[FAKECHROOT_PATH_MAX];
                         sprintf(tmp, "%s/%s", paths[i], rel_path);
-                        struct stat st;
-                        if(stat(tmp, &st) == -1){
-                            debug("rel2absLayer failed resolved: %s",tmp);
+                        if(!xstat(tmp)){
+                            //debug("rel2absLayer failed resolved: %s",tmp);
                             if(getParentWh(tmp)){
                                 break;
                             }
                             continue;
                         }else{
-                            debug("rel2absLayer successfully resolved: %s",tmp);
+                            //debug("rel2absLayer successfully resolved: %s",tmp);
                             snprintf(resolved,FAKECHROOT_PATH_MAX,"%s",tmp);
                             b_resolved = true;
                             break;

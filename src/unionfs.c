@@ -466,8 +466,9 @@ int append_to_diff(const char* content)
 
 bool is_file_type(const char* path, enum filetype t)
 {
+    INITIAL_SYS(__xstat)
     struct stat path_stat;
-    int ret = stat(path, &path_stat);
+    int ret = real___xstat(1,path, &path_stat);
     if (ret == 0) {
         switch (t) {
             case TYPE_FILE:
@@ -610,9 +611,9 @@ bool copyFile2RW(const char *abs_path, char *resolved){
 
             if(xstat(destpath)){
                 //truncate and rewrite
-                dest = fopen(destpath, "w");
+                dest = real_fopen(destpath, "w");
             }else{
-                dest = fopen(destpath, "w+");
+                dest = real_fopen(destpath, "w+");
             }
             if(src == NULL || dest == NULL){
                 log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", abs_path,src, destpath,dest);
@@ -625,6 +626,7 @@ bool copyFile2RW(const char *abs_path, char *resolved){
             }
             fclose(src);
             fclose(dest);
+            log_debug("finished copying from %s to %s",abs_path,destpath);
             strcpy(resolved,destpath);
             return true;
         }
@@ -748,8 +750,6 @@ int fufs_open_impl(const char* function, ...){
         INITIAL_SYS(open64)
         INITIAL_SYS(openat64)
 
-        log_debug("incoming open request: %s %s %d %d",function, path, oflag, mode);
-
     char *dname = strdup(path);
     if(!xstat(path) || pathExcluded(path)){
         goto end;
@@ -768,7 +768,6 @@ int fufs_open_impl(const char* function, ...){
                 }
 
                 char destpath[MAX_PATH];
-                log_debug("start copy from %s to %s", path, destpath);
                 if(!copyFile2RW(path, destpath)){
                     log_fatal("copy from %s to %s encounters error", path, destpath);
                     return -1;
