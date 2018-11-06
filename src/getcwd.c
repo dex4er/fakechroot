@@ -22,8 +22,7 @@
 
 #include <stddef.h>
 #include "libfakechroot.h"
-
-
+#include "unionfs.h"
 wrapper(getcwd, char *, (char * buf, size_t size))
 {
     char *cwd;

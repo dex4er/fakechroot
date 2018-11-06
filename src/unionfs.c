@@ -84,6 +84,22 @@ DIR* getDirentsWithName(const char* name, struct dirent_obj** darr, size_t* num,
     return dirp;
 }
 
+void getDirentsOnlyNames(const char* name, char ***names,size_t *num){
+    INITIAL_SYS(opendir)
+        INITIAL_SYS(readdir)
+
+        DIR* dirp = real_opendir(name);
+    struct dirent* entry = NULL;
+    *names = (char **)malloc(sizeof(char *)*MAX_VALUE_SIZE);
+    *num = 0;
+    while(entry = real_readdir(dirp)){
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        (*names)[*num] = strdup(entry->d_name);
+        (*num)++;
+    }
+}
 //this function will not delete the whiteout target folders/files, only hide the .wh/.op files
 struct dirent_layers_entry* getDirContent(const char* abs_path)
 {
@@ -568,6 +584,7 @@ bool copyFile2RW(const char *abs_path, char *resolved){
     }
 
     INITIAL_SYS(fopen)
+        INITIAL_SYS(mkdir)
 
         char rel_path[MAX_PATH];
     char layer_path[MAX_PATH];
@@ -582,6 +599,15 @@ bool copyFile2RW(const char *abs_path, char *resolved){
             sprintf(destpath,"%s/%s", container_root, rel_path);
             FILE *src, *dest;
             src = real_fopen(abs_path, "r");
+
+            //check if the dest path folder exists
+            char *dname = strdup(destpath);
+            dname = dirname(dname);
+            if(!xstat(dname)){
+                real_mkdir(dname,FOLDER_PERM);
+            }
+            free(dname);
+
             if(xstat(destpath)){
                 //truncate and rewrite
                 dest = fopen(destpath, "w");
@@ -693,9 +719,11 @@ int fufs_open_impl(const char* function, ...){
     INITIAL_SYS(open)
         INITIAL_SYS(openat)
         INITIAL_SYS(open64)
+        INITIAL_SYS(openat64)
 
         log_debug("incoming open request: %s %s %d %d",function, path, oflag, mode);
 
+    char *dname = strdup(path);
     if(!xstat(path) || pathExcluded(path)){
         goto end;
     }else{
@@ -711,7 +739,9 @@ int fufs_open_impl(const char* function, ...){
                 if(oflag & O_RDONLY){
                     goto end;
                 }
+
                 char destpath[MAX_PATH];
+                log_debug("start copy from %s to %s", path, destpath);
                 if(!copyFile2RW(path, destpath)){
                     log_fatal("copy from %s to %s encounters error", path, destpath);
                     return -1;
@@ -737,6 +767,11 @@ int fufs_open_impl(const char* function, ...){
     }
 
 end:
+    dname = dirname(dname);
+    if(!xstat(dname)){
+        INITIAL_SYS(mkdir)
+            real_mkdir(dname,FOLDER_PERM);
+    }
     if(strcmp(function,"openat") == 0){
         return RETURN_SYS(openat,(dirfd,path,oflag,mode))
     }
@@ -775,6 +810,38 @@ int fufs_unlink_impl(const char* function,...){
     if(!xstat(abs_path)){
         return -1;
     }else{
+        //check if deleting folder with all .wh files inside?
+        INITIAL_SYS(unlink)
+            INITIAL_SYS(unlinkat)
+
+            if(is_file_type(abs_path, TYPE_DIR)){
+                char **names;
+                size_t num;
+                getDirentsOnlyNames(abs_path, &names,&num);
+                bool is_all_wh = false;
+                for(size_t i = 0;i<num;i++){
+                    if(strncmp(names[i],".wh",3) == 0){
+                        if(i == 0){
+                            is_all_wh = true;
+                        }else{
+                            is_all_wh = is_all_wh & true;
+                        }
+                    }else{
+                        is_all_wh = false;
+                        break;
+                    }
+                }
+                if(is_all_wh){
+                    log_debug("all files in folder: %s are whiteout files, will entirely delete everything",abs_path);
+                    char tmp[MAX_PATH];
+                    for(size_t i = 0; i<num; i++){
+                        sprintf(tmp,"%s/%s",abs_path,names[i]);
+                        log_debug("all files in folder: %s are whiteout files, delete target item: %s",abs_path, tmp);
+                        real_unlink(tmp);
+                    }
+                }
+            }
+
         char rel_path[MAX_PATH];
         char layer_path[MAX_PATH];
         int ret = get_relative_path_layer(abs_path,rel_path, layer_path);
@@ -783,9 +850,10 @@ int fufs_unlink_impl(const char* function,...){
             return -1;
         }
         const char * root_path = getenv("ContainerRoot");
+
         char * bname = basename(rel_path);
         char * dname = dirname(rel_path);
-        
+
         //if remove .wh file
         if(strncmp(bname,".wh",3) == 0){
             goto end;
@@ -799,7 +867,7 @@ int fufs_unlink_impl(const char* function,...){
                 }else{
                     sprintf(whpath,"%s/%s/.wh.%s",root_path,dname,bname);
                 }
-                int fd = real_creat(whpath,0644);
+                int fd = real_creat(whpath,FILE_PERM);
                 if(fd < 0){
                     log_fatal("can't create file: %s", whpath);
                     return -1;
@@ -815,11 +883,11 @@ int fufs_unlink_impl(const char* function,...){
                 }else{
                     sprintf(whpath,"%s/%s",root_path,dname);
                     if(!xstat(whpath)){
-                        real_mkdir(whpath,0755);
+                        real_mkdir(whpath,FOLDER_PERM);
                     }
                     sprintf(whpath,"%s/.wh.%s", whpath,bname);
                 }
-                int fd = real_creat(whpath, 0644);
+                int fd = real_creat(whpath, FILE_PERM);
                 if(fd < 0){
                     log_fatal("can't create file: %s", whpath);
                     return -1;
@@ -831,11 +899,9 @@ int fufs_unlink_impl(const char* function,...){
 
 end:
     if(strcmp(function,"unlinkat") == 0){
-        INITIAL_SYS(unlinkat)
-            return RETURN_SYS(unlinkat,(dirfd,abs_path,oflag))
+        return RETURN_SYS(unlinkat,(dirfd,abs_path,oflag))
     }else{
-        INITIAL_SYS(unlink)
-            return RETURN_SYS(unlink,(abs_path))
+        return RETURN_SYS(unlink,(abs_path))
     }
 }
 
@@ -1149,16 +1215,16 @@ int fufs_rmdir_impl(const char* function, ...){
         INITIAL_SYS(rmdir)
             char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
-        real_creat(wh,0644);
+        real_creat(wh,FILE_PERM);
         return RETURN_SYS(rmdir,(path))
     }else{
         char parent[MAX_PATH];
         sprintf(parent,"%s/%s", container_root,dname);
-        int ret = real_mkdir(parent, 0755);
+        int ret = real_mkdir(parent, FOLDER_PERM);
         if(ret == 0){
             char wh[MAX_PATH];
             sprintf(wh,"%s/.wh.%s",parent,bname);
-            return real_creat(wh, 0644);
+            return real_creat(wh, FILE_PERM);
         }
     }
     errno = EACCES;

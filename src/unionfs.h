@@ -13,6 +13,8 @@
 #define MAX_VALUE_SIZE 1*1024*1024
 #define PREFIX_WH ".wh"
 #define MAX_LAYERS 128
+#define FOLDER_PERM 0775
+#define FILE_PERM 0644
 
 //macros for system calls
 #define DECLARE_SYS(FUNCTION,RETURN_TYPE,ARGS) \
@@ -79,6 +81,7 @@ struct dirent_layers_entry{
 enum hash_type{md5,sha256};
 DIR * getDirents(const char* name, struct dirent_obj** darr, size_t *num);
 DIR * getDirentsWithName(const char* name, struct dirent_obj** darr, size_t *num, char **names);
+void getDirentsOnlyNames(const char* name, char ***names,size_t *num);
 struct dirent_layers_entry* getDirContent(const char* abs_path);
 char ** getLayerPaths(size_t *num);
 void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num);
