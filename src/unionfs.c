@@ -726,22 +726,22 @@ bool resolveSymlink(const char *link, char *target){
                     for(size_t i = 0; i< num; i++){
                         char tmp[MAX_PATH];
                         if(*resolved == '/'){
-                            sprintf(tmp, "%s%s", paths[i],link);
+                            sprintf(tmp, "%s%s", paths[i],resolved);
                         }else{
-                            sprintf(tmp, "%s/%s", paths[i],link);
+                            sprintf(tmp, "%s/%s", paths[i],resolved);
                         }
                         if(!xstat(tmp)){
-                            //debug("rel2absLayer failed resolved: %s",tmp);
+                            log_debug("symlink failed resolved: %s",tmp);
                             if(getParentWh(tmp)){
                                 break;
                             }
                             continue;
                         }else{
-                            //debug("rel2absLayer successfully resolved: %s",tmp);
-                            char tmp[MAX_PATH];
-                            snprintf(tmp,MAX_PATH,"%s",tmp);
+                            log_debug("symlink successfully resolved: %s",tmp);
+                            char tmp_solved[MAX_PATH];
+                            snprintf(tmp_solved,MAX_PATH,"%s",tmp);
                             b_resolved = true;
-                            strcpy(target,tmp);
+                            strcpy(target,tmp_solved);
                             break;
                         }
 
