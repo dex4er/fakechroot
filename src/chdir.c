@@ -59,5 +59,14 @@ wrapper(chdir, int, (const char * path))
 
     char resolved[MAX_PATH];
     findFileInLayers(path, resolved);
+
+    if(is_file_type(resolved,TYPE_LINK)){
+        char link[FAKECHROOT_PATH_MAX];
+        if(resolveSymlink(resolved,link)){
+            debug("chdir %s",link);
+            return nextcall(chdir)(link);
+        }
+    }
+    debug("chdir %s",resolved);
     return nextcall(chdir)(resolved);
 }

@@ -121,7 +121,7 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
         if (transWh2path(curr->dp->d_name, PREFIX_WH, m_trans)) {
             p->wh_masked[p->wh_masked_num] = m_trans;
             p->wh_masked_num += 1;
-            log_debug("wh file %s is added to wh_map",curr->dp->d_name);
+            //log_debug("wh file %s is added to wh_map",curr->dp->d_name);
             deleteItemInChainByPointer(&darr, &curr);
             continue;
         }
@@ -466,9 +466,9 @@ int append_to_diff(const char* content)
 
 bool is_file_type(const char* path, enum filetype t)
 {
-    INITIAL_SYS(__xstat)
+    INITIAL_SYS(__lxstat)
     struct stat path_stat;
-    int ret = real___xstat(1,path, &path_stat);
+    int ret = real___lxstat(1,path, &path_stat);
     if (ret == 0) {
         switch (t) {
             case TYPE_FILE:
@@ -687,7 +687,7 @@ bool pathExcluded(const char *abs_path){
         return false;
     }
     if(*abs_path != '/'){
-        log_error("input path should be absolute path rather than relative path");
+        log_error("input path should be absolute path rather than relative path: %s",abs_path);
         return false;
     }
     const char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
@@ -702,6 +702,69 @@ bool pathExcluded(const char *abs_path){
         }
     }
     return false;
+}
+
+bool resolveSymlink(const char *link, char *target){
+    if(is_file_type(link,TYPE_LINK)){
+        INITIAL_SYS(readlink)
+        char resolved[MAX_PATH];
+        ssize_t size = real_readlink(link,resolved,MAX_PATH);
+        if(size == -1){
+            log_fatal("can't resolve link %s",link);
+            strcpy(target,link);
+            return false;
+        }else{
+            if(pathExcluded(resolved)){
+                strcpy(target,resolved);
+                return true;
+            }else{
+                char ** paths;
+                size_t num;
+                paths = getLayerPaths(&num);
+                bool b_resolved = false;
+                if(num > 0){
+                    for(size_t i = 0; i< num; i++){
+                        char tmp[MAX_PATH];
+                        if(*resolved == '/'){
+                            sprintf(tmp, "%s%s", paths[i],link);
+                        }else{
+                            sprintf(tmp, "%s/%s", paths[i],link);
+                        }
+                        if(!xstat(tmp)){
+                            //debug("rel2absLayer failed resolved: %s",tmp);
+                            if(getParentWh(tmp)){
+                                break;
+                            }
+                            continue;
+                        }else{
+                            //debug("rel2absLayer successfully resolved: %s",tmp);
+                            char tmp[MAX_PATH];
+                            snprintf(tmp,MAX_PATH,"%s",tmp);
+                            b_resolved = true;
+                            strcpy(target,tmp);
+                            break;
+                        }
+
+                    }
+                }
+                if(!b_resolved){
+                    const char * container_root = getenv("ContainerRoot");
+                    char tmp[MAX_PATH];
+                    if(*resolved == '/'){
+                        snprintf(tmp, MAX_PATH,"%s%s",container_root,resolved);
+                    }else{
+                        snprintf(tmp, MAX_PATH,"%s/%s",container_root,resolved);
+                    }
+                    strcpy(target,tmp);
+                    return false;
+                }
+                return true;
+            }
+        }
+    }else{
+        strcpy(target,link);
+        return false;
+    }
 }
 
 bool pathIncluded(const char *abs_path){
@@ -764,6 +827,10 @@ int fufs_open_impl(const char* function, ...){
             }else{
                 //copy and write
                 if(oflag & O_RDONLY){
+                    goto end;
+                }
+
+                if(is_file_type(path,TYPE_DIR)){
                     goto end;
                 }
 
@@ -956,7 +1023,7 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
     char layer_path[MAX_PATH];
     int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
     if (ret == -1) {
-        log_fatal("%s is not inside the container", rel_path);
+        log_fatal("%s is not inside the container, abs path: %s", rel_path, abs_path);
         return NULL;
     }
 

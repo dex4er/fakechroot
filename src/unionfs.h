@@ -41,6 +41,7 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(opendir,DIR*,(const char* name))
     DECLARE_SYS(readdir,struct dirent*,(DIR* dirp))
     DECLARE_SYS(__xstat,int,(int ver, const char *path, struct stat *buf))
+    DECLARE_SYS(__lxstat,int,(int ver, const char *path, struct stat *buf))
     DECLARE_SYS(open,int,(const char *path, int oflag, mode_t mode))
     DECLARE_SYS(openat,int,(int dirfd, const char *path, int oflag, mode_t mode))
     DECLARE_SYS(open64,int,(const char *path, int oflag, mode_t mode))
@@ -62,6 +63,7 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(renameat,int,(int olddirfd, const char * oldpath, int newdirfd,const char * newpath))
     DECLARE_SYS(fopen,FILE*,(const char * pathname, const char * mode))
     DECLARE_SYS(fopen64,FILE*,(const char * pathname, const char * mode))
+    DECLARE_SYS(readlink,ssize_t,(const char *path, char *buf, size_t bufsiz))
 
     struct dirent_obj {
         struct dirent* dp;
@@ -105,6 +107,7 @@ bool pathExcluded(const char *abs_path);
 bool pathIncluded(const char *abs_path);
 bool findFileInLayers(const char *file,char *resolved);
 bool copyFile2RW(const char *abs_path, char *resolved);
+bool resolveSymlink(const char *link, char *target);
 
 //fake union fs functions
 int fufs_chdir_impl(const char * function, ...);
