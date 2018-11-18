@@ -26,11 +26,12 @@
 wrapper(symlink, int, (const char * oldpath, const char * newpath))
 {
     char tmp[FAKECHROOT_PATH_MAX];
-    debug("symlink(\"%s\", \"%s\")", oldpath, newpath);
     expand_chroot_rel_path(oldpath);
     strcpy(tmp, oldpath);
     oldpath = tmp;
     expand_chroot_path(newpath);
+
+    debug("symlink(\"%s\", \"%s\")", oldpath, newpath);
 
     char** rt_paths = NULL;
     bool r = rt_mem_check(2, rt_paths, oldpath, newpath);

@@ -27,8 +27,8 @@
 
 wrapper(opendir, DIR*, (const char* name))
 {
-    debug("opendir(\"%s\")", name);
     expand_chroot_path(name);
+    debug("opendir(\"%s\")", name);
     size_t num;
     struct dirent_obj* tmp = NULL;
     DIR* dirp = getDirents(name, &tmp, &num);

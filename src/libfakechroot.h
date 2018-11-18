@@ -1,18 +1,18 @@
 /*
-    libfakechroot -- fake chroot environment
-    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
+   libfakechroot -- fake chroot environment
+   Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.  This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.  This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
-*/
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   */
 
 
 #ifndef __LIBFAKECHROOT_H
@@ -82,63 +82,97 @@
 #define MAX_CONTENT 2048
 
 #define narrow_chroot_path(path) \
-    { \
-        if ((path) != NULL && *((char *)(path)) != '\0') { \
-            const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
-            if (fakechroot_base != NULL) { \
-                char *fakechroot_ptr = strstr((path), fakechroot_base); \
-                if (fakechroot_ptr == (path)) { \
-                    const size_t fakechroot_base_len = strlen(fakechroot_base); \
-                    const size_t path_len = strlen(path); \
-                    if (path_len == fakechroot_base_len) { \
-                        ((char *)(path))[0] = '/'; \
-                        ((char *)(path))[1] = '\0'; \
-                    } \
-                    else if ( ((char *)(path))[fakechroot_base_len] == '/' ) { \
-                        memmove((void *)(path), (path) + fakechroot_base_len, 1 + path_len - fakechroot_base_len); \
-                    } \
+{ \
+    if ((path) != NULL && *((char *)(path)) != '\0') { \
+        const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
+        if (fakechroot_base != NULL) { \
+            char *fakechroot_ptr = strstr((path), fakechroot_base); \
+            if (fakechroot_ptr == (path)) { \
+                const size_t fakechroot_base_len = strlen(fakechroot_base); \
+                const size_t path_len = strlen(path); \
+                if (path_len == fakechroot_base_len) { \
+                    ((char *)(path))[0] = '/'; \
+                    ((char *)(path))[1] = '\0'; \
+                } \
+                else if ( ((char *)(path))[fakechroot_base_len] == '/' ) { \
+                    memmove((void *)(path), (path) + fakechroot_base_len, 1 + path_len - fakechroot_base_len); \
                 } \
             } \
         } \
-    }
+    } \
+}
 
 #define expand_chroot_rel_path(path) \
-    { \
-        if (!fakechroot_localdir(path)) { \
-            if ((path) != NULL && *((char *)(path)) == '/') { \
-                const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
-                if (fakechroot_base != NULL ) { \
-                    char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
-                    snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
-                    (path) = fakechroot_buf; \
-                } \
-            } \
+{ \
+    if ((path) != NULL && *((char *)(path)) == '/') { \
+        const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
+        if (fakechroot_base != NULL ) { \
+            char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
+            snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
+            (path) = fakechroot_buf; \
         } \
-    }
+    } \
+}
 
 #define expand_chroot_path(path) \
-    { \
-        if (!fakechroot_localdir(path)) { \
-            if ((path) != NULL) { \
-                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
-                rel2absLayer((path), fakechroot_abspath); \
-                (path) = fakechroot_abspath; \
-                expand_chroot_rel_path(path); \
-            } \
-        } \
-    }
+{ \
+    if ((path) != NULL) { \
+        char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
+        rel2absLayer((path), fakechroot_abspath); \
+        (path) = fakechroot_abspath; \
+        expand_chroot_rel_path(path); \
+    } \
+}
 
 #define expand_chroot_path_at(dirfd, path) \
-    { \
-        if (!fakechroot_localdir(path)) { \
-            if ((path) != NULL) { \
-                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
-                rel2absatLayer(dirfd, (path), fakechroot_abspath); \
-                (path) = fakechroot_abspath; \
-                expand_chroot_rel_path(path); \
-            } \
-        } \
-    }
+{ \
+    if ((path) != NULL) { \
+        char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
+        rel2absatLayer(dirfd, (path), fakechroot_abspath); \
+        (path) = fakechroot_abspath; \
+        expand_chroot_rel_path(path); \
+    } \
+}
+
+/**
+#define expand_chroot_rel_path(path) \
+{ \
+if (!fakechroot_localdir(path)) { \
+if ((path) != NULL && *((char *)(path)) == '/') { \
+const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
+if (fakechroot_base != NULL ) { \
+char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
+snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
+(path) = fakechroot_buf; \
+} \
+} \
+} \
+}
+
+#define expand_chroot_path(path) \
+{ \
+if (!fakechroot_localdir(path)) { \
+if ((path) != NULL) { \
+char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
+rel2absLayer((path), fakechroot_abspath); \
+(path) = fakechroot_abspath; \
+expand_chroot_rel_path(path); \
+} \
+} \
+}
+
+#define expand_chroot_path_at(dirfd, path) \
+{ \
+if (!fakechroot_localdir(path)) { \
+if ((path) != NULL) { \
+char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
+rel2absatLayer(dirfd, (path), fakechroot_abspath); \
+(path) = fakechroot_abspath; \
+expand_chroot_rel_path(path); \
+} \
+} \
+}
+ **/
 
 //declare the fakechroot_wrapper struct for the function
 #define wrapper_decl_proto(function) \
@@ -148,50 +182,50 @@
     LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
         (fakechroot_wrapperfn_t) function, \
         NULL, \
-        #function \
+#function \
     }
 
-//used to generate fakechroot function pointer
+        //used to generate fakechroot function pointer
 #define wrapper_fn_t(function, return_type, arguments) \
-    typedef return_type (*fakechroot_##function##_fn_t) arguments
+            typedef return_type (*fakechroot_##function##_fn_t) arguments
 
 #define wrapper_proto(function, return_type, arguments) \
-    extern return_type function arguments; \
-    wrapper_fn_t(function, return_type, arguments); \
-    wrapper_decl_proto(function)
+            extern return_type function arguments; \
+        wrapper_fn_t(function, return_type, arguments); \
+        wrapper_decl_proto(function)
 
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline && defined __va_arg_pack_len
 # define wrapper_fn_name(function) __##function##_alias
 # define wrapper_proto_alias(function, return_type, arguments) \
-    extern return_type __REDIRECT (wrapper_fn_name(function), arguments, function); \
-    wrapper_fn_t(function, return_type, arguments); \
-    wrapper_decl_proto(function)
+            extern return_type __REDIRECT (wrapper_fn_name(function), arguments, function); \
+        wrapper_fn_t(function, return_type, arguments); \
+        wrapper_decl_proto(function)
 #else
 # define wrapper_fn_name(function) function
 # define wrapper_proto_alias(function, return_type, arguments) \
-    wrapper_proto(function, return_type, arguments)
+            wrapper_proto(function, return_type, arguments)
 #endif
 
 #define wrapper(function, return_type, arguments) \
-    wrapper_proto(function, return_type, arguments); \
-    wrapper_decl(function); \
-    return_type function arguments
+            wrapper_proto(function, return_type, arguments); \
+        wrapper_decl(function); \
+        return_type function arguments
 
 #define wrapper_alias(function, return_type, arguments) \
-    wrapper_proto_alias(function, return_type, arguments); \
-    wrapper_decl(function); \
-    return_type wrapper_fn_name(function) arguments
+            wrapper_proto_alias(function, return_type, arguments); \
+        wrapper_decl(function); \
+        return_type wrapper_fn_name(function) arguments
 
-//fakechroot_##function##_wrapper_decl is struct of fakechroot_wrapper
-//fakechroot_loadfunc will load func based on the inputed struct
+        //fakechroot_##function##_wrapper_decl is struct of fakechroot_wrapper
+        //fakechroot_loadfunc will load func based on the inputed struct
 #define nextcall(function) \
-    ( \
-      (fakechroot_##function##_fn_t)( \
-          fakechroot_##function##_wrapper_decl.nextfunc ? \
-          fakechroot_##function##_wrapper_decl.nextfunc : \
-          fakechroot_loadfunc(&fakechroot_##function##_wrapper_decl) \
-      ) \
-    )
+            ( \
+              (fakechroot_##function##_fn_t)( \
+                  fakechroot_##function##_wrapper_decl.nextfunc ? \
+                  fakechroot_##function##_wrapper_decl.nextfunc : \
+                  fakechroot_loadfunc(&fakechroot_##function##_wrapper_decl) \
+                  ) \
+                  )
 
 
 #ifdef __GNUC__
@@ -207,13 +241,13 @@
 #endif
 
 
-typedef void (*fakechroot_wrapperfn_t)(void);
+        typedef void (*fakechroot_wrapperfn_t)(void);
 
-struct fakechroot_wrapper {
-    fakechroot_wrapperfn_t func;
-    fakechroot_wrapperfn_t nextfunc;
-    const char *name;
-};
+        struct fakechroot_wrapper {
+            fakechroot_wrapperfn_t func;
+            fakechroot_wrapperfn_t nextfunc;
+            const char *name;
+        };
 
 extern char *preserve_env_list[];
 extern const int preserve_env_list_count;
