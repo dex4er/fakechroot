@@ -137,6 +137,9 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
     return p;
 }
 
+/**
+ * code is modified as all layers except rw layers are relocated
+ */
 char ** getLayerPaths(size_t *num){
     const char * dockerbase = getenv("DockerBase");
     const char* croot = getenv("ContainerRoot");
@@ -146,8 +149,13 @@ char ** getLayerPaths(size_t *num){
     }
     if(dockerbase && strcmp(dockerbase,"TRUE") == 0){
         const char * clayers = getenv("ContainerLayers");
+        const char * base = getenv("ContainerBasePath");
         if (!clayers) {
-            log_fatal("can't get container layers info");
+            log_fatal("can't get container layers info, please set env variable 'ContainerLayers'");
+            return NULL;
+        }
+        if(!base){
+            log_fatal("can't get container base layers info, please set env variable 'ContainerBasePath'");
             return NULL;
         }
         char* ccroot = strdup(croot);
@@ -159,7 +167,11 @@ char ** getLayerPaths(size_t *num){
         str_tmp = strtok(cclayers,":");
         while (str_tmp != NULL){
             paths[*num] = (char *)malloc(MAX_PATH);
-            sprintf(paths[*num], "%s/%s", ccroot, str_tmp);
+            if(strcmp(str_tmp,"rw") == 0){
+                sprintf(paths[*num], "%s/%s", ccroot, str_tmp);
+            }else{
+                sprintf(paths[*num],"%s/%s",base, str_tmp);
+            }
             str_tmp = strtok(NULL,":");
             (*num) ++;
         }
