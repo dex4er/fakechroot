@@ -688,9 +688,7 @@ int recurMkdir(const char *path){
     }
 
     if(strcmp(path,"/") == 0){
-        log_fatal("can't make root directory");
-        errno = EACCES;
-        return -1;
+        return 0;
     }
 
     char *dname = strdup(path);
@@ -701,7 +699,7 @@ int recurMkdir(const char *path){
 
     if(!xstat(dname)){
         INITIAL_SYS(mkdir)
-            log_debug("start creating dir %s", dname);
+        log_debug("start creating dir %s", dname);
         int ret = real_mkdir(dname, FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
