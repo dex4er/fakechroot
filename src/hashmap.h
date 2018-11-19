@@ -26,6 +26,7 @@ void add_item_list(const char* key, struct list_head* phead);
 void delete_item_list(const char* key, struct list_head* phead);
 bool find_item_list(const char* key, struct list_head* phead);
 void clear_item_list(struct list_head* phead);
+bool is_empty_list(struct list_head* phead);
 
 typedef struct hmap_t{
     struct hsearch_data h_map;
@@ -39,4 +40,5 @@ int add_item_hmap(hmap_t* pmap, char* key, void* data);
 void* get_item_hmap(hmap_t* pmap, char* key);
 void delete_item_hmap(hmap_t* pmap,char* key);
 bool contain_item_hmap(hmap_t* pmap,char* key);
+bool is_empty_hmap(hmap_t* pmap);
 #endif

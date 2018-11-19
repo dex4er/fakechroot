@@ -233,6 +233,7 @@ void deleteItemInChain(struct dirent_obj** darr, size_t num)
     }
 }
 
+//delete item pointed by curr pointer, make it point to the next item
 void deleteItemInChainByPointer(struct dirent_obj** darr, struct dirent_obj** curr)
 {
     if (*darr == NULL || *curr == NULL) {
@@ -479,7 +480,7 @@ int append_to_diff(const char* content)
 bool is_file_type(const char* path, enum filetype t)
 {
     INITIAL_SYS(__lxstat)
-    struct stat path_stat;
+        struct stat path_stat;
     int ret = real___lxstat(1,path, &path_stat);
     if (ret == 0) {
         switch (t) {
@@ -600,13 +601,12 @@ bool copyFile2RW(const char *abs_path, char *resolved){
             src = real_fopen(abs_path, "r");
 
             //check if the dest path folder exists
-            char *dname = strdup(destpath);
-            dname = dirname(dname);
-            if(!xstat(dname)){
-                real_mkdir(dname,FOLDER_PERM);
+            int mk_ret = recurMkdir(destpath);
+            if(mk_ret != 0){
+                log_fatal("creating dirs of path: %s encounters failure with error %s", destpath, strerror(errno));
+                return false;
             }
-            free(dname);
-
+            
             if(xstat(destpath)){
                 //truncate and rewrite
                 dest = real_fopen(destpath, "w");
@@ -614,7 +614,7 @@ bool copyFile2RW(const char *abs_path, char *resolved){
                 dest = real_fopen(destpath, "w+");
             }
             if(src == NULL || dest == NULL){
-                log_fatal("open file encounters error, src: %s -> %s, dest: %s -> %s", abs_path,src, destpath,dest);
+                log_fatal("open file encounters error, src: %s -> %p, dest: %s -> %p", abs_path,src, destpath,dest);
                 return -1;
             }
             char ch = fgetc(src);
@@ -680,6 +680,39 @@ bool xstat(const char *abs_path){
     return false;
 }
 
+int recurMkdir(const char *path){
+    if(path == NULL || *path == '\0' || *path != '/'){
+        log_fatal("can't make dir as the input parameter is either null, empty or not absolute path, path: %s", path);
+        errno = EEXIST;
+        return -1;
+    }
+
+    if(strcmp(path,"/") == 0){
+        log_fatal("can't make root directory");
+        errno = EACCES;
+        return -1;
+    }
+
+    char *dname = strdup(path);
+    dname = dirname(dname);
+    if(!xstat(dname)){
+        recurMkdir(dname);
+    }
+
+    if(!xstat(dname)){
+        INITIAL_SYS(mkdir)
+            log_debug("start creating dir %s", dname);
+        int ret = real_mkdir(dname, FOLDER_PERM);
+        if(ret != 0){
+            log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
+            free(dname);
+            return -1;
+        }
+    }
+    free(dname);
+    return 0;
+}
+
 bool pathExcluded(const char *abs_path){
     if(abs_path == NULL || *abs_path == '\0'){
         return false;
@@ -705,7 +738,7 @@ bool pathExcluded(const char *abs_path){
 bool resolveSymlink(const char *link, char *target){
     if(is_file_type(link,TYPE_LINK)){
         INITIAL_SYS(readlink)
-        char resolved[MAX_PATH];
+            char resolved[MAX_PATH];
         ssize_t size = real_readlink(link,resolved,MAX_PATH);
         if(size == -1){
             log_fatal("can't resolve link %s",link);
@@ -811,7 +844,7 @@ int fufs_open_impl(const char* function, ...){
         INITIAL_SYS(open64)
         INITIAL_SYS(openat64)
 
-    char *dname = strdup(path);
+        char *dname = strdup(path);
     if(!xstat(path) || pathExcluded(path)){
         goto end;
     }else{
@@ -858,11 +891,16 @@ int fufs_open_impl(const char* function, ...){
     }
 
 end:
-    dname = dirname(dname);
     if(!xstat(dname)){
         INITIAL_SYS(mkdir)
-            real_mkdir(dname,FOLDER_PERM);
+        int ret = recurMkdir(dname);
+        if(ret != 0){
+            log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
+            free(dname);
+            return -1;
+        }
     }
+    free(dname);
     if(strcmp(function,"openat") == 0){
         return RETURN_SYS(openat,(dirfd,path,oflag,mode))
     }
@@ -875,7 +913,6 @@ end:
     if(strcmp(function,"open64") == 0){
         return RETURN_SYS(open64,(path,oflag,mode))
     }
-    goto err;
 
 err:
     errno = EACCES;
@@ -1032,34 +1069,54 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
 
         if(xstat(each_layer_path)){
             struct dirent_layers_entry* entry = getDirContent(each_layer_path);
+
             if (entry->data || entry->wh_masked_num > 0) {
-                if (head == NULL && tail == NULL) {
+                //intialized part for the first layer
+                if (head == NULL && tail == NULL && is_empty_hmap(wh_map) && is_empty_hmap(dirent_map)) {
                     head = tail = entry->data;
                     if(head){
                         while (tail->next != NULL) {
-                            log_debug("item added to dirent_map --%s--", tail->dp->d_name);
+                            log_debug("item added to dirent_map %s", tail->dp->d_name);
                             add_item_hmap(dirent_map, tail->dp->d_name, NULL);
                             tail = tail->next;
                         }
+                        log_debug("item added to dirent_map %s", tail->dp->d_name);
                         add_item_hmap(dirent_map, tail->dp->d_name, NULL);
                     }
                     for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map --%s--", entry->wh_masked[wh_i]);
+                        log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
                         add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
                     }
                 } else {
                     //need to merge folders files and hide wh
                     //as head and tail are not null, which means previous manipulation is produced
+                    //but head and tail may be null
                     struct dirent_obj* prew = tail;
-                    tail->next = entry->data;
-                    tail = tail->next;
+                    if(prew){
+                        //tail is not NULL, meaning that head is not NULL, head should not be reset
+                        if(entry->data){
+                            prew->next = entry->data;
+                            tail = prew->next;
+                        }else{
+                            goto ends;
+                        }
+                    }else{
+                        //tail is NULL, meaning that head may be NULL as well
+                        if(entry->data){
+                            prew = tail = entry->data;
+                            if(!head){
+                                head = prew;
+                            }
+                        }else{
+                            goto ends;
+                        }
+                    }
                     while (tail->next != NULL) {
-                        log_debug("------------------------ %d",contain_item_hmap(wh_map, tail->dp->d_name));
                         if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                            log_debug("item added to dirent_map --%s--", tail->dp->d_name);
+                            log_debug("item added to dirent_map %s", tail->dp->d_name);
                             add_item_hmap(dirent_map, tail->dp->d_name, NULL);
                         } else {
-                            log_debug("item deteled from dirent_map --%s--", tail->dp->d_name);
+                            log_debug("item deteled from dirent_map %s", tail->dp->d_name);
                             deleteItemInChainByPointer(&head, &tail);
                             if (!tail) {
                                 tail = prew;
@@ -1070,22 +1127,26 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                         tail = tail->next;
                     }
                     if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                        log_debug("item added to dirent_map --%s--", tail->dp->d_name);
+                        log_debug("item added to dirent_map %s", tail->dp->d_name);
                         add_item_hmap(dirent_map, tail->dp->d_name, NULL);
                     } else {
-                        log_debug("item deteled from dirent_map --%s--", tail->dp->d_name);
+                        log_debug("item deteled from dirent_map %s", tail->dp->d_name);
                         deleteItemInChainByPointer(&head, &tail);
                         if (!tail) {
+                            //reset tail to its previous item if tail is NULL
+                            //as next iterator may modify tail e.g tail->next = new_list
                             tail = prew;
                         }
                     }
+
+ends:
                     for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map --%s--", entry->wh_masked[wh_i]);
+                        log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
                         add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
                     }
                 }
-            }
-        }
+            } // exists data or white out files
+        } // layer path exists
 
         //find if any whiteout parent folders exists
         if(getParentWh(each_layer_path) == 1){
@@ -1298,7 +1359,7 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-        INITIAL_SYS(creat)
+    INITIAL_SYS(creat)
 
         const char * container_root = getenv("ContainerRoot");
 
@@ -1306,17 +1367,18 @@ int fufs_rmdir_impl(const char* function, ...){
     char * dname = dirname(rel_path);
     if(strcmp(layer_path,container_root) == 0){
         INITIAL_SYS(rmdir)
-            char wh[MAX_PATH];
+        char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
         real_creat(wh,FILE_PERM);
         return RETURN_SYS(rmdir,(path))
     }else{
-        char parent[MAX_PATH];
-        sprintf(parent,"%s/%s", container_root,dname);
-        int ret = real_mkdir(parent, FOLDER_PERM);
+        char new_path[MAX_PATH];
+        sprintf(new_path,"%s/%s", container_root,rel_path);
+        int ret = recurMkdir(new_path);
         if(ret == 0){
             char wh[MAX_PATH];
-            sprintf(wh,"%s/.wh.%s",parent,bname);
+            char *dname = dirname(new_path);
+            sprintf(wh,"%s/.wh.%s",dname,bname);
             return real_creat(wh, FILE_PERM);
         }
     }

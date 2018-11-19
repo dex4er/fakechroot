@@ -41,6 +41,13 @@ void clear_item_list(struct list_head* phead){
     }
 }
 
+bool is_empty_list(struct list_head* phead){
+    if(phead == NULL){
+        return true;
+    }
+    return LIST_EMPTY(&phead->head);
+}
+
 hmap_t* create_hmap(size_t h_max_size){
     hmap_t* pmap = (hmap_t*)malloc(sizeof(hmap_t));
     pmap->h_max_size = h_max_size;
@@ -107,6 +114,13 @@ bool contain_item_hmap(hmap_t* pmap, char* key){
     }else{
         return false;
     }
+}
+
+bool is_empty_hmap(hmap_t* pmap){
+    if(pmap == NULL || &pmap->head == NULL){
+        return true;
+    }
+    return is_empty_list(&pmap->head);
 }
 
 /*

@@ -108,6 +108,7 @@ bool pathIncluded(const char *abs_path);
 bool findFileInLayers(const char *file,char *resolved);
 bool copyFile2RW(const char *abs_path, char *resolved);
 bool resolveSymlink(const char *link, char *target);
+int recurMkdir(const char *path);
 
 //fake union fs functions
 int fufs_chdir_impl(const char * function, ...);
