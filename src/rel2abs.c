@@ -84,9 +84,16 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
         }else{
             if(!findFileInLayers(name, resolved)){
                 const char * container_root = getenv("ContainerRoot");
-                sprintf(resolved,"%s%s",container_root,name);
+                char rel_path[FAKECHROOT_PATH_MAX];
+                char layer_path[FAKECHROOT_PATH_MAX];
+                int ret = get_relative_path_layer(name, rel_path, layer_path);
+                if(ret == 0){
+                    sprintf(resolved,"%s/%s",container_root,rel_path);
+                }else{
+                    sprintf(resolved,"%s%s",container_root,name);
+                }
             }
-        }    
+        }
     }
     else {
         char tmp[FAKECHROOT_PATH_MAX];

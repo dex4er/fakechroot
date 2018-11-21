@@ -149,13 +149,9 @@ char ** getLayerPaths(size_t *num){
     }
     if(dockerbase && strcmp(dockerbase,"TRUE") == 0){
         const char * clayers = getenv("ContainerLayers");
-        const char * base = getenv("ContainerBasePath");
+        //const char * base = getenv("ContainerBasePath");
         if (!clayers) {
             log_fatal("can't get container layers info, please set env variable 'ContainerLayers'");
-            return NULL;
-        }
-        if(!base){
-            log_fatal("can't get container base layers info, please set env variable 'ContainerBasePath'");
             return NULL;
         }
         char* ccroot = strdup(croot);
@@ -167,11 +163,7 @@ char ** getLayerPaths(size_t *num){
         str_tmp = strtok(cclayers,":");
         while (str_tmp != NULL){
             paths[*num] = (char *)malloc(MAX_PATH);
-            if(strcmp(str_tmp,"rw") == 0){
-                sprintf(paths[*num], "%s/%s", ccroot, str_tmp);
-            }else{
-                sprintf(paths[*num],"%s/%s",base, str_tmp);
-            }
+            sprintf(paths[*num], "%s/%s", ccroot, str_tmp);
             str_tmp = strtok(NULL,":");
             (*num) ++;
         }
@@ -377,11 +369,44 @@ int get_relative_path_layer(const char *path, char * rel_path, char * layer_path
             if(ret){
                 strcpy(rel_path, path + strlen(layers[i]) + 1);
                 strcpy(layer_path, layers[i]);
-                for(size_t j =0;j<num;j++){
-                    free(layers[j]);
+                if(layers){
+                    for(size_t j =0;j<num;j++){
+                        free(layers[j]);
+                    }
                 }
                 return 0;
             }
+
+            //check multiple layers both symlink one and real one
+            char * layer_name = basename(layers[i]);
+            if(strcmp(layer_name, "rw") != 0){
+                char newlayer[MAX_PATH];
+                const char * base_path = getenv("ContainerBasePath");
+                if(!base_path){
+                    log_fatal("can't get variable 'ContainerBasePath'");
+                    return -1;
+                }
+                sprintf(newlayer, "%s/%s", base_path, layer_name);
+
+                char * ret = strstr(path, newlayer);
+                if(ret){
+                    strcpy(rel_path, path + strlen(newlayer) + 1);
+                    strcpy(layer_path, newlayer);
+                    if(layers){
+                        for(size_t j =0;j<num;j++){
+                            free(layers[j]);
+                        }
+                    }
+                    return 0;
+
+                }
+            }
+        }
+    }
+
+    if(layers){
+        for(size_t j =0;j<num;j++){
+            free(layers[j]);
         }
     }
     return -1;
@@ -606,7 +631,7 @@ bool copyFile2RW(const char *abs_path, char *resolved){
                 log_fatal("creating dirs of path: %s encounters failure with error %s", destpath, strerror(errno));
                 return false;
             }
-            
+
             if(xstat(destpath)){
                 //truncate and rewrite
                 dest = real_fopen(destpath, "w");
@@ -699,7 +724,7 @@ int recurMkdir(const char *path){
 
     if(!xstat(dname)){
         INITIAL_SYS(mkdir)
-        log_debug("start creating dir %s", dname);
+            log_debug("start creating dir %s", dname);
         int ret = real_mkdir(dname, FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
@@ -859,6 +884,10 @@ int fufs_open_impl(const char* function, ...){
                     goto end;
                 }
 
+                if(oflag == 0){
+                    goto end;
+                }
+
                 if(is_file_type(path,TYPE_DIR)){
                     goto end;
                 }
@@ -891,7 +920,7 @@ int fufs_open_impl(const char* function, ...){
 end:
     if(!xstat(dname)){
         INITIAL_SYS(mkdir)
-        int ret = recurMkdir(dname);
+            int ret = recurMkdir(dname);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
             free(dname);
@@ -1357,7 +1386,7 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-    INITIAL_SYS(creat)
+        INITIAL_SYS(creat)
 
         const char * container_root = getenv("ContainerRoot");
 
@@ -1365,7 +1394,7 @@ int fufs_rmdir_impl(const char* function, ...){
     char * dname = dirname(rel_path);
     if(strcmp(layer_path,container_root) == 0){
         INITIAL_SYS(rmdir)
-        char wh[MAX_PATH];
+            char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
         real_creat(wh,FILE_PERM);
         return RETURN_SYS(rmdir,(path))

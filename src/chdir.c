@@ -57,6 +57,10 @@ wrapper(chdir, int, (const char * path))
         return -1;
     }
 
+    if(pathExcluded(path)){
+        return nextcall(chdir)(path);
+    }
+
     char resolved[MAX_PATH];
     findFileInLayers(path, resolved);
 

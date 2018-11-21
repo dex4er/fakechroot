@@ -1,21 +1,21 @@
 /*
-    libfakechroot -- fake chroot environment
-    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
+   libfakechroot -- fake chroot environment
+   Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
-*/
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+   */
 
 
 #include <config.h>
@@ -93,6 +93,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     /* Create new envp */
     newenvp[newenvppos] = malloc(strlen("FAKECHROOT=true") + 1);
     strcpy(newenvp[newenvppos], "FAKECHROOT=true");
+    //num of newenvp
     newenvppos++;
 
     /* Preserve old environment variables if not overwritten by new */
@@ -121,7 +122,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             strcat(newenvp[newenvppos], "=");
             strcat(newenvp[newenvppos], env);
             newenvppos++;
-        skip1: ;
+skip1: ;
         }
     }
 
@@ -133,14 +134,14 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             if ((tp = strchr(tmpkey, '=')) != NULL) {
                 *tp = 0;
                 if (strcmp(tmpkey, "FAKECHROOT") == 0 ||
-                    (is_base_orig && strcmp(tmpkey, "FAKECHROOT_BASE") == 0))
+                        (is_base_orig && strcmp(tmpkey, "FAKECHROOT_BASE") == 0))
                 {
                     goto skip2;
                 }
             }
             newenvp[newenvppos] = *ep;
             newenvppos++;
-        skip2: ;
+skip2: ;
         }
     }
 
@@ -186,7 +187,12 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!') {
+        debug("************** %s %s", elfloader,elfloader_opt_argv0);
         if (!elfloader) {
+            debug("*********** %s, %s",filename,argv[0]);
+            for(unsigned int i =0; i< newenvppos;i++){
+                debug("******* %s", newenvp[i]);
+            }
             status = nextcall(execve)(filename, argv, newenvp);
             goto error;
         }
@@ -205,6 +211,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             newargv[n++] = argv0;
         }
         newargv[n] = filename;
+
 
         debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[n], newenvp[0]);
         status = nextcall(execve)(elfloader, (char * const *)newargv, newenvp);
