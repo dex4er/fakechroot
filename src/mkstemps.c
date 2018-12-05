@@ -47,9 +47,9 @@ wrapper(mkstemps, int, (char * template, int suffixlen))
 
     strlcpy(tmp, template, FAKECHROOT_PATH_MAX);
 
-    if (!fakechroot_localdir(tmp)) {
+    //if (!fakechroot_localdir(tmp)) {
         expand_chroot_path(tmpptr);
-    }
+    //}
 
     for (xxxdst = template; *xxxdst; xxxdst++);
     for (xxxdst -= 1 + suffixlen; *xxxdst == 'X'; xxxdst--, xxxlen++);
