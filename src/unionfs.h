@@ -63,6 +63,8 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(renameat,int,(int olddirfd, const char * oldpath, int newdirfd,const char * newpath))
     DECLARE_SYS(fopen,FILE*,(const char * pathname, const char * mode))
     DECLARE_SYS(fopen64,FILE*,(const char * pathname, const char * mode))
+    DECLARE_SYS(freopen,FILE*,(const char * pathname, const char * mode, FILE *stream))
+    DECLARE_SYS(freopen64,FILE*,(const char * pathname, const char * mode, FILE *stream))
     DECLARE_SYS(readlink,ssize_t,(const char *path, char *buf, size_t bufsiz))
 
     struct dirent_obj {
@@ -109,6 +111,7 @@ bool findFileInLayers(const char *file,char *resolved);
 bool copyFile2RW(const char *abs_path, char *resolved);
 bool resolveSymlink(const char *link, char *target);
 int recurMkdir(const char *path);
+bool checkExcluded(const char *abs_path);
 
 //fake union fs functions
 int fufs_chdir_impl(const char * function, ...);
@@ -122,4 +125,5 @@ int fufs_unlink_impl(const char* function,...);
 int fufs_chmod_impl(const char* function, ...);
 int fufs_rmdir_impl(const char* function, ...);
 int fufs_rename_impl(const char* function, ...);
+FILE* fufs_fopen_impl(const char * function,...);
 #endif

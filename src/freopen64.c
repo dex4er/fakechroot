@@ -25,13 +25,13 @@
 #define _LARGEFILE64_SOURCE
 #include <stdio.h>
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(freopen64, FILE *, (const char *path, const char *mode, FILE *stream))
 {
     debug("freopen64(\"%s\", \"%s\", &stream)", path, mode);
     expand_chroot_path(path);
-    return nextcall(freopen64)(path, mode, stream);
+    return WRAPPER_FUFS(fopen,freopen64,path,mode,stream)
 }
 
 #else

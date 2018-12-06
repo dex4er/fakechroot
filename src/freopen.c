@@ -22,11 +22,11 @@
 
 #include <stdio.h>
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(freopen, FILE *, (const char * path, const char * mode, FILE * stream))
 {
     debug("freopen(\"%s\", \"%s\", &stream)", path, mode);
     expand_chroot_path(path);
-    return nextcall(freopen)(path, mode, stream);
+    return WRAPPER_FUFS(fopen,freopen,path,mode,stream)
 }

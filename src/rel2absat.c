@@ -111,19 +111,23 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
         goto end;
     }
 
-    if (*name == '/') {
-        if(pathExcluded(name)){
-            strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+    //preprocess name
+    char * name_dup = strdup(name);
+    dedotdot(name_dup);
+
+    if (*name_dup == '/') {
+        if(pathExcluded(name_dup)){
+            strlcpy(resolved, name_dup, FAKECHROOT_PATH_MAX);
         }else{
-            if(!findFileInLayers(name, resolved)){
+            if(!findFileInLayers(name_dup, resolved)){
                 const char * container_root = getenv("ContainerRoot");
                 char rel_path[FAKECHROOT_PATH_MAX];
                 char layer_path[FAKECHROOT_PATH_MAX];
-                int ret = get_relative_path_layer(name, rel_path, layer_path);
+                int ret = get_relative_path_layer(name_dup, rel_path, layer_path);
                 if(ret == 0){
                     sprintf(resolved,"%s/%s",container_root,rel_path);
                 }else{
-                    sprintf(resolved,"%s%s",container_root,name);
+                    sprintf(resolved,"%s%s",container_root,name_dup);
                 }
             }
         }
@@ -134,7 +138,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
 
         /******************************************/
         char tmp[FAKECHROOT_PATH_MAX];
-        sprintf(tmp,"%s/%s",cwd,name);
+        sprintf(tmp,"%s/%s",cwd,name_dup);
 
         char rel_path[FAKECHROOT_PATH_MAX];
         char layer_path[FAKECHROOT_PATH_MAX];
@@ -176,7 +180,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
                 }
             }
         }else{
-            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name_dup);
         }
         /******************************************/
     } else {
@@ -197,7 +201,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
 
         /******************************************/
         char tmp[FAKECHROOT_PATH_MAX];
-        sprintf(tmp,"%s/%s",cwd,name);
+        sprintf(tmp,"%s/%s",cwd,name_dup);
 
         char rel_path[FAKECHROOT_PATH_MAX];
         char layer_path[FAKECHROOT_PATH_MAX];
@@ -239,7 +243,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
                 }
             }
         }else{
-            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name_dup);
         }
         /******************************************/
     }
@@ -248,7 +252,7 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
 
 end:
     dedotdot(resolved);
-    debug("rel2absatLayer ends(%d, \"%s\", \"%s\")", dirfd, name, resolved);
+    debug("rel2absatLayer ends(%d, \"%s\", \"%s\")", dirfd, name_dup, resolved);
     return resolved;
 
 error:
@@ -256,7 +260,7 @@ error:
         (void)close(cwdfd);
     }
     resolved = NULL;
-    debug("rel2absatLayer error(%d, \"%s\", NULL)", dirfd, name);
+    debug("rel2absatLayer error(%d, \"%s\", NULL)", dirfd, name_dup);
     return resolved;
 }
 

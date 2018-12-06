@@ -298,7 +298,7 @@ char* struct2hash(void* pointer, enum hash_type type)
     const char* const salts = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     //retrieve 16 unpredicable bytes form the os
-    if (getentropy(ubytes, sizeof ubytes)) {
+    if (getentropy(ubytes, 16)) {
         log_fatal("can't retrieve random bytes from os");
         return NULL;
     }
@@ -758,6 +758,26 @@ bool pathExcluded(const char *abs_path){
     return false;
 }
 
+bool checkExcluded(const char *abs_path){
+    if(abs_path == NULL || *abs_path == '\0'){
+        return false;
+    }
+    if(*abs_path != '/'){
+        log_error("input path should be absolute path rather than relative path: %s",abs_path);
+        return false;
+    }
+    const char * exclude_path = "";
+    char *exclude_path_dup = strdup(exclude_path);
+    char *str_tmp = strtok(exclude_path_dup,":");
+    while (str_tmp){
+        if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
+            return true;
+        }
+        str_tmp = strtok(NULL,":");
+    }
+    return false;
+}
+
 bool resolveSymlink(const char *link, char *target){
     if(is_file_type(link,TYPE_LINK)){
         INITIAL_SYS(readlink)
@@ -868,7 +888,7 @@ int fufs_open_impl(const char* function, ...){
         INITIAL_SYS(openat64)
 
         char *dname = strdup(path);
-    if(!xstat(path) || pathExcluded(path)){
+    if(!xstat(path) || pathExcluded(path) || checkExcluded(path)){
         goto end;
     }else{
         char rel_path[MAX_PATH];
@@ -946,6 +966,96 @@ err:
     return -1;
 }
 
+FILE* fufs_fopen_impl(const char * function, ...){
+    const char *path;
+    const char *mode;
+    FILE *stream;
+
+    va_list args;
+    va_start(args,function);
+    path = va_arg(args, const char *);
+    mode = va_arg(args, const char *);
+
+    if(strcmp(function,"freopen") == 0 || strcmp(function,"freopen64") == 0){
+        stream= va_arg(args,FILE *);
+    }
+    va_end(args);
+
+    INITIAL_SYS(fopen)
+        INITIAL_SYS(fopen64)
+        INITIAL_SYS(freopen)
+        INITIAL_SYS(freopen64)
+
+        if(!xstat(path) || pathExcluded(path) || checkExcluded(path)){
+            goto end;
+        }else{
+            char rel_path[MAX_PATH];
+            char layer_path[MAX_PATH];
+            int ret = get_relative_path_layer(path, rel_path, layer_path);
+            if(ret == 0){
+                const char * container_root = getenv("ContainerRoot");
+                if(strcmp(layer_path,container_root) == 0){
+                    goto end;
+                }else{
+                    //copy and write
+                    if(strncmp(mode,"r",1) == 0){
+                        goto end;
+                    }
+
+                    char destpath[MAX_PATH];
+                    if(!copyFile2RW(path, destpath)){
+                        log_fatal("copy from %s to %s encounters error", path, destpath);
+                        return NULL;
+                    }
+                    if(strcmp(function,"fopen") == 0){
+                        return RETURN_SYS(fopen,(destpath,mode))
+                    }
+                    if(strcmp(function,"fopen64") == 0){
+                        return RETURN_SYS(fopen64,(destpath,mode))
+                    }
+                    if(strcmp(function,"freopen") == 0){
+                        return RETURN_SYS(freopen,(destpath,mode,stream))
+                    }
+                    if(strcmp(function,"freopen64") == 0){
+                        return RETURN_SYS(freopen64,(destpath,mode,stream))
+                    }
+                    goto err;
+                }
+            }else{
+                log_fatal("%s file doesn't exist in container", path);
+                return NULL;
+            }
+
+        }
+
+end:
+    if(!xstat(path)){
+        INITIAL_SYS(mkdir)
+            int ret = recurMkdir(path);
+        if(ret != 0){
+            log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
+            return NULL;
+        }
+    }
+
+    if(strcmp(function,"fopen") == 0){
+        return RETURN_SYS(fopen,(path,mode))
+    }
+    if(strcmp(function,"fopen64") == 0){
+        return RETURN_SYS(fopen64,(path,mode))
+    }
+    if(strcmp(function,"freopen") == 0){
+        return RETURN_SYS(freopen,(path,mode,stream))
+    }
+    if(strcmp(function,"freopen64") == 0){
+        return RETURN_SYS(freopen64,(path,mode,stream))
+    }
+
+err:
+    errno = EACCES;
+    return NULL;
+}
+
 int fufs_unlink_impl(const char* function,...){
     va_list args;
     va_start(args,function);
@@ -964,6 +1074,8 @@ int fufs_unlink_impl(const char* function,...){
 
     if(!xstat(abs_path)){
         return -1;
+    }else if(pathExcluded(abs_path)){
+        return 0;
     }else{
         //check if deleting folder with all .wh files inside?
         INITIAL_SYS(unlink)

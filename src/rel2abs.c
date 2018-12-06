@@ -66,6 +66,7 @@ end:
 LOCAL char * rel2absLayer(const char * name, char * resolved){
     char cwd[FAKECHROOT_PATH_MAX];
 
+    //debug("rel2absLayer starts(\"%s\", &resolved)", name);
     if (name == NULL){
         resolved = NULL;
         goto end;
@@ -78,26 +79,30 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
     getcwd_real(cwd, FAKECHROOT_PATH_MAX);
     narrow_chroot_path(cwd);
 
-    if (*name == '/') {
-        if(pathExcluded(name)){
-            strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
+    //preprocess name
+    char * name_dup = strdup(name);
+    dedotdot(name_dup);
+
+    if (*name_dup == '/') {
+        if(pathExcluded(name_dup)){
+            strlcpy(resolved, name_dup, FAKECHROOT_PATH_MAX);
         }else{
-            if(!findFileInLayers(name, resolved)){
+            if(!findFileInLayers(name_dup, resolved)){
                 const char * container_root = getenv("ContainerRoot");
                 char rel_path[FAKECHROOT_PATH_MAX];
                 char layer_path[FAKECHROOT_PATH_MAX];
-                int ret = get_relative_path_layer(name, rel_path, layer_path);
+                int ret = get_relative_path_layer(name_dup, rel_path, layer_path);
                 if(ret == 0){
                     sprintf(resolved,"%s/%s",container_root,rel_path);
                 }else{
-                    sprintf(resolved,"%s%s",container_root,name);
+                    sprintf(resolved,"%s%s",container_root,name_dup);
                 }
             }
         }
     }
     else {
         char tmp[FAKECHROOT_PATH_MAX];
-        sprintf(tmp,"%s/%s",cwd,name);
+        sprintf(tmp,"%s/%s",cwd,name_dup);
 
         char rel_path[FAKECHROOT_PATH_MAX];
         char layer_path[FAKECHROOT_PATH_MAX];
@@ -139,13 +144,13 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                 }
             }
         }else{
-            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name);
+            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s/%s",cwd,name_dup);
         }
     }
     dedotdot(resolved);
 
 end:
     dedotdot(resolved);
-    debug("rel2absLayer ends(\"%s\", \"%s\")", name, resolved);
+    debug("rel2absLayer ends(\"%s\", \"%s\")", name_dup, resolved);
     return resolved;
 }
