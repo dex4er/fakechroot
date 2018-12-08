@@ -185,6 +185,7 @@ skip2: ;
         return -1;
     }
 
+    //hashbang here may be ELF
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!') {
         if (!elfloader) {

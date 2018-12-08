@@ -504,6 +504,7 @@ int append_to_diff(const char* content)
 
 bool is_file_type(const char* path, enum filetype t)
 {
+    log_debug("********* is_file_type %s",path);
     INITIAL_SYS(__lxstat)
         struct stat path_stat;
     int ret = real___lxstat(1,path, &path_stat);
@@ -559,7 +560,7 @@ bool findFileInLayers(const char *file,char *resolved){
                         strcpy(resolved,tmp);
                         return true;
                     }
-                    if(strcmp(layer_path, layers[i])){
+                    if(strcmp(layer_path, layers[i]) == 0){
                         strcpy(resolved,file);
                         return false;
                     }

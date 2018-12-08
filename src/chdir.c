@@ -24,6 +24,7 @@
 #include "libfakechroot.h"
 #include "getcwd_real.h"
 #include "unionfs.h"
+#include "rel2abs.h"
 
 
 /**
@@ -52,17 +53,8 @@
 
 wrapper(chdir, int, (const char * path))
 {
-    char cwd[FAKECHROOT_PATH_MAX];
-    if(getcwd_real(cwd,FAKECHROOT_PATH_MAX) == NULL){
-        return -1;
-    }
-
-    if(pathExcluded(path)){
-        return nextcall(chdir)(path);
-    }
-
     char resolved[MAX_PATH];
-    findFileInLayers(path, resolved);
+    rel2absLayer(path, resolved);
 
     if(is_file_type(resolved,TYPE_LINK)){
         char link[FAKECHROOT_PATH_MAX];
