@@ -111,6 +111,7 @@ bool findFileInLayers(const char *file,char *resolved);
 bool copyFile2RW(const char *abs_path, char *resolved);
 bool resolveSymlink(const char *link, char *target);
 int recurMkdir(const char *path);
+int recurMkdirMode(const char *path, mode_t mode);
 bool checkExcluded(const char *abs_path);
 
 //fake union fs functions

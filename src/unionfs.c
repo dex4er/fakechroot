@@ -504,7 +504,6 @@ int append_to_diff(const char* content)
 
 bool is_file_type(const char* path, enum filetype t)
 {
-    log_debug("********* is_file_type %s",path);
     INITIAL_SYS(__lxstat)
         struct stat path_stat;
     int ret = real___lxstat(1,path, &path_stat);
@@ -727,6 +726,37 @@ int recurMkdir(const char *path){
         INITIAL_SYS(mkdir)
             log_debug("start creating dir %s", dname);
         int ret = real_mkdir(dname, FOLDER_PERM);
+        if(ret != 0){
+            log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
+            free(dname);
+            return -1;
+        }
+    }
+    free(dname);
+    return 0;
+}
+
+int recurMkdirMode(const char *path, mode_t mode){
+    if(path == NULL || *path == '\0' || *path != '/'){
+        log_fatal("can't make dir as the input parameter is either null, empty or not absolute path, path: %s", path);
+        errno = EEXIST;
+        return -1;
+    }
+
+    if(strcmp(path,"/") == 0){
+        return 0;
+    }
+
+    char *dname = strdup(path);
+    dname = dirname(dname);
+    if(!xstat(dname)){
+        recurMkdir(dname);
+    }
+
+    if(!xstat(dname)){
+        INITIAL_SYS(mkdir)
+            log_debug("start creating dir %s", dname);
+        int ret = real_mkdir(dname, mode);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
             free(dname);
@@ -1330,6 +1360,10 @@ int fufs_mkdir_impl(const char* function,...){
         sprintf(resolved,"%s",abs_path);
     }
 
+    dedotdot(resolved);
+    return recurMkdirMode(resolved, mode);
+
+    /**
     INITIAL_SYS(mkdir)
         INITIAL_SYS(mkdirat)
 
@@ -1338,6 +1372,7 @@ int fufs_mkdir_impl(const char* function,...){
         }else{
             return RETURN_SYS(mkdir,(resolved,mode))
         }
+        **/
 }
 
 int fufs_link_impl(const char * function, ...){
