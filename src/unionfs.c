@@ -154,12 +154,14 @@ char ** getLayerPaths(size_t *num){
             log_fatal("can't get container layers info, please set env variable 'ContainerLayers'");
             return NULL;
         }
-        char* ccroot = strdup(croot);
-        ccroot = dirname(ccroot);
+        char ccroot[MAX_PATH];
+        strcpy(ccroot, croot);
+        dirname(ccroot);
         *num = 0;
         char *str_tmp;
         char **paths = (char**)malloc(sizeof(char*) * MAX_LAYERS);
-        char *cclayers = strdup(clayers);
+        char cclayers[MAX_PATH];
+        strcpy(cclayers, clayers);
         str_tmp = strtok(cclayers,":");
         while (str_tmp != NULL){
             paths[*num] = (char *)malloc(MAX_PATH);
@@ -716,8 +718,9 @@ int recurMkdir(const char *path){
         return 0;
     }
 
-    char *dname = strdup(path);
-    dname = dirname(dname);
+    char dname[MAX_PATH];
+    strcpy(dname, path);
+    dirname(dname);
     if(!xstat(dname)){
         recurMkdir(dname);
     }
@@ -728,14 +731,13 @@ int recurMkdir(const char *path){
         int ret = real_mkdir(dname, FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
-            free(dname);
             return -1;
         }
     }
-    free(dname);
     return 0;
 }
 
+//path should be the folder name
 int recurMkdirMode(const char *path, mode_t mode){
     if(path == NULL || *path == '\0' || *path != '/'){
         log_fatal("can't make dir as the input parameter is either null, empty or not absolute path, path: %s", path);
@@ -747,23 +749,22 @@ int recurMkdirMode(const char *path, mode_t mode){
         return 0;
     }
 
-    char *dname = strdup(path);
-    dname = dirname(dname);
-    if(!xstat(dname)){
-        recurMkdir(dname);
+    if(!xstat(path)){
+        char dname[MAX_PATH];
+        strcpy(dname, path);
+        dirname(dname);
+        recurMkdirMode(dname, mode);
     }
 
-    if(!xstat(dname)){
+    if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            log_debug("start creating dir %s", dname);
-        int ret = real_mkdir(dname, mode);
+            log_debug("start creating dir %s", path);
+        int ret = real_mkdir(path, mode);
         if(ret != 0){
-            log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
-            free(dname);
+            log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
             return -1;
         }
     }
-    free(dname);
     return 0;
 }
 
@@ -776,35 +777,28 @@ bool pathExcluded(const char *abs_path){
         return false;
     }
     const char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
+    const char *ex_exclude_path = getenv("FAKECHROOT_EXCLUDE_EXCEPTION_PATH");
     if(exclude_path){
-        char *exclude_path_dup = strdup(exclude_path);
+        char exclude_path_dup[MAX_PATH];
+        strcpy(exclude_path_dup, exclude_path);
         char *str_tmp = strtok(exclude_path_dup,":");
         while (str_tmp){
             if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
+                if(ex_exclude_path){
+                    char ex_exclude_path_dup[MAX_PATH];
+                    strcpy(ex_exclude_path_dup, ex_exclude_path);
+                    char *ex_str_tmp = strtok(ex_exclude_path_dup, ":");
+                    while(ex_str_tmp){
+                        if(strncmp(ex_str_tmp, abs_path, strlen(ex_str_tmp)) == 0){
+                            return false;
+                        }
+                        ex_str_tmp = strtok(NULL,":");
+                    }
+                }
                 return true;
             }
             str_tmp = strtok(NULL,":");
         }
-    }
-    return false;
-}
-
-bool checkExcluded(const char *abs_path){
-    if(abs_path == NULL || *abs_path == '\0'){
-        return false;
-    }
-    if(*abs_path != '/'){
-        log_error("input path should be absolute path rather than relative path: %s",abs_path);
-        return false;
-    }
-    const char * exclude_path = "";
-    char *exclude_path_dup = strdup(exclude_path);
-    char *str_tmp = strtok(exclude_path_dup,":");
-    while (str_tmp){
-        if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
-            return true;
-        }
-        str_tmp = strtok(NULL,":");
     }
     return false;
 }
@@ -819,6 +813,7 @@ bool resolveSymlink(const char *link, char *target){
             strcpy(target,link);
             return false;
         }else{
+            resolved[size] = '\0';
             if(pathExcluded(resolved)){
                 strcpy(target,resolved);
                 return true;
@@ -828,8 +823,9 @@ bool resolveSymlink(const char *link, char *target){
                 paths = getLayerPaths(&num);
                 bool b_resolved = false;
                 if(num > 0){
+                    char tmp[MAX_PATH];
                     for(size_t i = 0; i< num; i++){
-                        char tmp[MAX_PATH];
+                        memset(tmp,'\0',MAX_PATH);
                         if(*resolved == '/'){
                             sprintf(tmp, "%s%s", paths[i],resolved);
                         }else{
@@ -882,7 +878,8 @@ bool pathIncluded(const char *abs_path){
     }
     const char *include_path= getenv("FAKECHROOT_INCLUDE_PATH");
     if(include_path){
-        char *include_path_dup = strdup(include_path);
+        char include_path_dup[MAX_PATH];
+        strcpy(include_path_dup, include_path);
         char *str_tmp = strtok(include_path_dup,":");
         while (str_tmp){
             if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
@@ -918,67 +915,88 @@ int fufs_open_impl(const char* function, ...){
         INITIAL_SYS(open64)
         INITIAL_SYS(openat64)
 
-        char *dname = strdup(path);
-    if(!xstat(path) || pathExcluded(path) || checkExcluded(path)){
-        goto end;
-    }else{
-        char rel_path[MAX_PATH];
-        char layer_path[MAX_PATH];
-        int ret = get_relative_path_layer(path, rel_path, layer_path);
-        if(ret == 0){
-            const char * container_root = getenv("ContainerRoot");
-            if(strcmp(layer_path,container_root) == 0){
-                goto end;
-            }else{
-                //copy and write
-                if(oflag & O_RDONLY){
-                    goto end;
-                }
-
-                if(oflag == 0){
-                    goto end;
-                }
-
-                if(is_file_type(path,TYPE_DIR)){
-                    goto end;
-                }
-
-                char destpath[MAX_PATH];
-                if(!copyFile2RW(path, destpath)){
-                    log_fatal("copy from %s to %s encounters error", path, destpath);
-                    return -1;
-                }
-                if(strcmp(function,"openat") == 0){
-                    return RETURN_SYS(openat,(dirfd,destpath,oflag,mode))
-                }
-                if(strcmp(function,"open") == 0){
-                    return RETURN_SYS(open,(destpath,oflag,mode))
-                }
-                if(strcmp(function,"openat64") == 0){
-                    return RETURN_SYS(openat64,(dirfd,destpath,oflag,mode))
-                }
-                if(strcmp(function,"open64") == 0){
-                    return RETURN_SYS(open64,(destpath,oflag,mode))
-                }
-                goto err;
+        if(!xstat(path) || pathExcluded(path)){
+            if(oflag & O_DIRECTORY){
+                goto end_folder;
             }
+            goto end_file;
         }else{
-            log_fatal("%s file doesn't exist in container", path);
+            char rel_path[MAX_PATH];
+            char layer_path[MAX_PATH];
+            int ret = get_relative_path_layer(path, rel_path, layer_path);
+            if(ret == 0){
+                const char * container_root = getenv("ContainerRoot");
+                if(strcmp(layer_path,container_root) == 0){
+                    if(oflag & O_DIRECTORY){
+                        goto end_folder;
+                    }
+                    goto end_file;
+                }else{
+                    if(is_file_type(path,TYPE_DIR) || oflag & O_DIRECTORY){
+                        goto end_folder;
+                    }
+
+                    if(oflag & O_RDONLY){
+                        goto end_file;
+                    }
+
+                    if(oflag == 0){
+                        goto end_file;
+                    }
+
+                    //copy and write
+                    char destpath[MAX_PATH];
+                    if(!copyFile2RW(path, destpath)){
+                        log_fatal("copy from %s to %s encounters error", path, destpath);
+                        return -1;
+                    }
+                    if(strcmp(function,"openat") == 0){
+                        return RETURN_SYS(openat,(dirfd,destpath,oflag,mode))
+                    }
+                    if(strcmp(function,"open") == 0){
+                        return RETURN_SYS(open,(destpath,oflag,mode))
+                    }
+                    if(strcmp(function,"openat64") == 0){
+                        return RETURN_SYS(openat64,(dirfd,destpath,oflag,mode))
+                    }
+                    if(strcmp(function,"open64") == 0){
+                        return RETURN_SYS(open64,(destpath,oflag,mode))
+                    }
+                    goto err;
+                }
+            }else{
+                log_fatal("%s file doesn't exist in container", path);
+                return -1;
+            }
+        }
+
+end_folder:
+    if(!xstat(path)){
+        INITIAL_SYS(mkdir)
+            int ret = recurMkdirMode(path,FOLDER_PERM);
+        if(ret != 0){
+            log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
             return -1;
         }
     }
+    goto end;
 
-end:
-    if(!xstat(dname)){
+
+end_file:
+    if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            int ret = recurMkdir(dname);
+            char dname[MAX_PATH];
+        strcpy(dname,path);
+        dirname(dname);
+        int ret = recurMkdirMode(dname,FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", dname, strerror(errno));
-            free(dname);
             return -1;
         }
     }
-    free(dname);
+    goto end;
+
+end:
     if(strcmp(function,"openat") == 0){
         return RETURN_SYS(openat,(dirfd,path,oflag,mode))
     }
@@ -1017,7 +1035,7 @@ FILE* fufs_fopen_impl(const char * function, ...){
         INITIAL_SYS(freopen)
         INITIAL_SYS(freopen64)
 
-        if(!xstat(path) || pathExcluded(path) || checkExcluded(path)){
+        if(!xstat(path) || pathExcluded(path)){
             goto end;
         }else{
             char rel_path[MAX_PATH];
@@ -1150,7 +1168,9 @@ int fufs_unlink_impl(const char* function,...){
         const char * root_path = getenv("ContainerRoot");
 
         char * bname = basename(rel_path);
-        char * dname = dirname(rel_path);
+        char dname[MAX_PATH];
+        strcpy(dname, rel_path);
+        dirname(dname);
 
         //if remove .wh file
         if(strncmp(bname,".wh",3) == 0){
@@ -1174,14 +1194,13 @@ int fufs_unlink_impl(const char* function,...){
             }else{
                 //request path is in other layers rather than rw layer
 
-                INITIAL_SYS(mkdir)
-                    char whpath[MAX_PATH];
+                char whpath[MAX_PATH];
                 if(strcmp(dname, ".") == 0){
                     sprintf(whpath,"%s/.wh.%s",root_path,bname);
                 }else{
                     sprintf(whpath,"%s/%s",root_path,dname);
                     if(!xstat(whpath)){
-                        real_mkdir(whpath,FOLDER_PERM);
+                        recurMkdirMode(whpath,FOLDER_PERM);
                     }
                     sprintf(whpath,"%s/.wh.%s", whpath,bname);
                 }
@@ -1364,15 +1383,15 @@ int fufs_mkdir_impl(const char* function,...){
     return recurMkdirMode(resolved, mode);
 
     /**
-    INITIAL_SYS(mkdir)
-        INITIAL_SYS(mkdirat)
+      INITIAL_SYS(mkdir)
+      INITIAL_SYS(mkdirat)
 
-        if(strcmp(function,"mkdirat") == 0){
-            return RETURN_SYS(mkdirat,(dirfd,resolved,mode))
-        }else{
-            return RETURN_SYS(mkdir,(resolved,mode))
-        }
-        **/
+      if(strcmp(function,"mkdirat") == 0){
+      return RETURN_SYS(mkdirat,(dirfd,resolved,mode))
+      }else{
+      return RETURN_SYS(mkdir,(resolved,mode))
+      }
+     **/
 }
 
 int fufs_link_impl(const char * function, ...){
@@ -1534,26 +1553,30 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-        INITIAL_SYS(creat)
+    INITIAL_SYS(creat)
 
-        const char * container_root = getenv("ContainerRoot");
+    const char * container_root = getenv("ContainerRoot");
 
     char * bname = basename(rel_path);
-    char * dname = dirname(rel_path);
+    char dname[MAX_PATH];
+    strcpy(dname, rel_path);
+    dirname(dname);
     if(strcmp(layer_path,container_root) == 0){
         INITIAL_SYS(rmdir)
-            char wh[MAX_PATH];
+        char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
         real_creat(wh,FILE_PERM);
         return RETURN_SYS(rmdir,(path))
     }else{
         char new_path[MAX_PATH];
         sprintf(new_path,"%s/%s", container_root,rel_path);
-        int ret = recurMkdir(new_path);
+        int ret = recurMkdirMode(new_path,FOLDER_PERM);
         if(ret == 0){
             char wh[MAX_PATH];
-            char *dname = dirname(new_path);
-            sprintf(wh,"%s/.wh.%s",dname,bname);
+            char n_dname[MAX_PATH];
+            strcpy(n_dname, new_path);
+            dirname(n_dname);
+            sprintf(wh,"%s/.wh.%s",n_dname,bname);
             return real_creat(wh, FILE_PERM);
         }
     }
