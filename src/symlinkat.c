@@ -28,12 +28,16 @@
 
 wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpath))
 {
-    char tmp[FAKECHROOT_PATH_MAX];
-    debug("symlinkat(\"%s\", %d, \"%s\")", oldpath, newdirfd, newpath);
-    expand_chroot_rel_path(oldpath);
-    strcpy(tmp, oldpath);
-    oldpath = tmp;
+    //char tmp[FAKECHROOT_PATH_MAX];
+    //expand_chroot_rel_path(oldpath);
+    //strcpy(tmp, oldpath);
+    //oldpath = tmp;
+    if(!pathExcluded(oldpath)){
+        expand_chroot_path(oldpath);
+    }
     expand_chroot_path_at(newdirfd, newpath);
+
+    debug("symlinkat(\"%s\", %d, \"%s\")", oldpath, newdirfd, newpath);
 
     char** rt_paths = NULL;
     bool r = rt_mem_check(2, rt_paths, oldpath, newpath);

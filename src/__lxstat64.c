@@ -41,7 +41,7 @@ wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))
 
     if (filename && !fakechroot_localdir(filename)) {
         char abs_filename[FAKECHROOT_PATH_MAX];
-        rel2abs(filename, abs_filename);
+        rel2absLayer(filename, abs_filename);
         filename = abs_filename;
     }
 
@@ -59,7 +59,8 @@ LOCAL int __lxstat64_rel(int ver, const char * filename, struct stat64 * buf)
 
     debug("__lxstat64_rel(%d, \"%s\", &buf)", ver, filename);
     orig_filename = filename;
-    expand_chroot_rel_path(filename);
+    expand_chroot_path(filename);
+    //expand_chroot_rel_path(filename);
     retval = nextcall(__lxstat64)(ver, filename, buf);
     /* deal with http://bugs.debian.org/561991 */
     if ((retval == 0) && (buf->st_mode & S_IFMT) == S_IFLNK)
