@@ -777,27 +777,47 @@ bool pathExcluded(const char *abs_path){
         return false;
     }
     const char *exclude_path = getenv("FAKECHROOT_EXCLUDE_PATH");
-    const char *ex_exclude_path = getenv("FAKECHROOT_EXCLUDE_EXCEPTION_PATH");
     if(exclude_path){
         char exclude_path_dup[MAX_PATH];
         strcpy(exclude_path_dup, exclude_path);
         char *str_tmp = strtok(exclude_path_dup,":");
         while (str_tmp){
             if(strncmp(str_tmp, abs_path,strlen(str_tmp)) == 0){
-                if(ex_exclude_path){
-                    char ex_exclude_path_dup[MAX_PATH];
-                    strcpy(ex_exclude_path_dup, ex_exclude_path);
-                    char *ex_str_tmp = strtok(ex_exclude_path_dup, ":");
-                    while(ex_str_tmp){
-                        if(strncmp(ex_str_tmp, abs_path, strlen(ex_str_tmp)) == 0){
-                            return false;
-                        }
-                        ex_str_tmp = strtok(NULL,":");
-                    }
-                }
                 return true;
             }
             str_tmp = strtok(NULL,":");
+        }
+    }
+    return false;
+}
+
+bool procExcluded(const char *abs_path, char *resolved){
+    if(abs_path == NULL || *abs_path == '\0'){
+        return false;
+    }
+    if(*abs_path != '/'){
+        log_error("input path should be absolute path rather than relative path: %s",abs_path);
+        return false;
+    }
+    const char *ex_exclude_path = getenv("FAKECHROOT_EXCLUDE_PROC_PATH");
+    if(ex_exclude_path){
+        if(strncmp("/proc",abs_path, strlen("/proc")) == 0){
+            //get current self link name
+            char ex_exclude_path_dup[MAX_PATH];
+            strcpy(ex_exclude_path_dup, ex_exclude_path);
+            char *ex_str_tmp = strtok(ex_exclude_path_dup, ":");
+            while(ex_str_tmp){
+                char ex_exclude_full_path[MAX_PATH];
+                //this one should be /proc/xxxx/fd
+                sprintf(ex_exclude_full_path,"/proc/self/%s", ex_str_tmp);
+                log_debug("proc exclued check: target %s -> input %s", ex_exclude_full_path, abs_path);
+                if(strncmp(ex_exclude_full_path, abs_path, strlen(ex_exclude_full_path)) == 0){
+                    log_debug("/proc/self excluded path %s", abs_path);
+                    sprintf(resolved,"/proc/self/%s",ex_str_tmp);
+                    return true;
+                }
+                ex_str_tmp = strtok(NULL,":");
+            }
         }
     }
     return false;
@@ -1469,9 +1489,9 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-    INITIAL_SYS(symlink)
+        INITIAL_SYS(symlink)
 
-    char dir[MAX_PATH];
+        char dir[MAX_PATH];
     strcpy(dir, target);
     dirname(dir);
     //parent folder does not exist
@@ -1561,9 +1581,9 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-    INITIAL_SYS(creat)
+        INITIAL_SYS(creat)
 
-    const char * container_root = getenv("ContainerRoot");
+        const char * container_root = getenv("ContainerRoot");
 
     char * bname = basename(rel_path);
     char dname[MAX_PATH];
@@ -1571,7 +1591,7 @@ int fufs_rmdir_impl(const char* function, ...){
     dirname(dname);
     if(strcmp(layer_path,container_root) == 0){
         INITIAL_SYS(rmdir)
-        char wh[MAX_PATH];
+            char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
         real_creat(wh,FILE_PERM);
         return RETURN_SYS(rmdir,(path))
@@ -1624,9 +1644,9 @@ int fufs_rename_impl(const char* function, ...){
     }
 
     INITIAL_SYS(rename)
-    INITIAL_SYS(renameat)
+        INITIAL_SYS(renameat)
 
-    const char * container_root = getenv("ContainerRoot");
+        const char * container_root = getenv("ContainerRoot");
     if(strcmp(layer_path, container_root) == 0){
         if(strcmp(function,"renameat") == 0){
             return RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,newpath))
@@ -1639,15 +1659,15 @@ int fufs_rename_impl(const char* function, ...){
         //if oldpath does not exist in rw folder, then we have to remove it(file/folder)
         if(strcmp(function,"renameat") == 0){
             int ret = RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,dest))
-            if(ret == 0){
-                remove(oldpath);
-            }
+                if(ret == 0){
+                    remove(oldpath);
+                }
             return ret;
         }else{
             int ret = RETURN_SYS(rename,(oldpath,dest))
-            if(ret == 0){
-                remove(oldpath);
-            }
+                if(ret == 0){
+                    remove(oldpath);
+                }
             return ret;
         }
     }

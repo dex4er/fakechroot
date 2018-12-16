@@ -106,6 +106,7 @@ bool transWh2path(const char *name, const char *pre, char *tname);
 int getParentWh(const char *abs_path);
 bool xstat(const char *abs_path);
 bool pathExcluded(const char *abs_path);
+bool procExcluded(const char *abs_path, char *resolved);
 bool pathIncluded(const char *abs_path);
 bool findFileInLayers(const char *file,char *resolved);
 bool copyFile2RW(const char *abs_path, char *resolved);

@@ -84,7 +84,11 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
     dedotdot(name_dup);
 
     if (*name_dup == '/') {
-        if(pathExcluded(name_dup)){
+        char proc_tmp[FAKECHROOT_PATH_MAX];
+        if(procExcluded(name_dup, proc_tmp)){
+            const char * container_root = getenv("ContainerRoot");
+            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s%s",container_root,proc_tmp);
+        }else if(pathExcluded(name_dup)){
             strlcpy(resolved, name_dup, FAKECHROOT_PATH_MAX);
         }else{
             if(!findFileInLayers(name_dup, resolved)){
@@ -99,8 +103,7 @@ LOCAL char * rel2absLayer(const char * name, char * resolved){
                 }
             }
         }
-    }
-    else {
+    }else {
         char tmp[FAKECHROOT_PATH_MAX];
         sprintf(tmp,"%s/%s",cwd,name_dup);
 
