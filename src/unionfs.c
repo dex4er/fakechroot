@@ -1469,13 +1469,21 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-        INITIAL_SYS(symlink)
+    INITIAL_SYS(symlink)
 
-        if(strcmp(function,"symlinkat") == 0){
-            return RETURN_SYS(symlinkat,(target,newdirfd,resolved))
-        }else{
-            return RETURN_SYS(symlink,(target,resolved))
-        }
+    char dir[MAX_PATH];
+    strcpy(dir, target);
+    dirname(dir);
+    //parent folder does not exist
+    if(!xstat(dir)){
+        recurMkdirMode(dir, FOLDER_PERM);
+    }
+
+    if(strcmp(function,"symlinkat") == 0){
+        return RETURN_SYS(symlinkat,(target,newdirfd,resolved))
+    }else{
+        return RETURN_SYS(symlink,(target,resolved))
+    }
 }
 
 int fufs_creat_impl(const char *function,...){
@@ -1616,9 +1624,9 @@ int fufs_rename_impl(const char* function, ...){
     }
 
     INITIAL_SYS(rename)
-        INITIAL_SYS(renameat)
+    INITIAL_SYS(renameat)
 
-        const char * container_root = getenv("ContainerRoot");
+    const char * container_root = getenv("ContainerRoot");
     if(strcmp(layer_path, container_root) == 0){
         if(strcmp(function,"renameat") == 0){
             return RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,newpath))
@@ -1628,10 +1636,19 @@ int fufs_rename_impl(const char* function, ...){
     }else{
         char dest[MAX_PATH];
         sprintf(dest,"%s/%s",container_root,rel_path);
+        //if oldpath does not exist in rw folder, then we have to remove it(file/folder)
         if(strcmp(function,"renameat") == 0){
-            return RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,dest))
+            int ret = RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,dest))
+            if(ret == 0){
+                remove(oldpath);
+            }
+            return ret;
         }else{
-            return RETURN_SYS(rename,(oldpath,dest))
+            int ret = RETURN_SYS(rename,(oldpath,dest))
+            if(ret == 0){
+                remove(oldpath);
+            }
+            return ret;
         }
     }
 
