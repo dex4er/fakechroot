@@ -105,6 +105,7 @@ bool is_file_type(const char *path,enum filetype t);
 bool transWh2path(const char *name, const char *pre, char *tname);
 int getParentWh(const char *abs_path);
 bool xstat(const char *abs_path);
+bool lxstat(const char *abs_path);
 bool pathExcluded(const char *abs_path);
 bool procExcluded(const char *abs_path, char *resolved);
 bool pathIncluded(const char *abs_path);

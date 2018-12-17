@@ -116,7 +116,11 @@ LOCAL char * rel2absatLayer(int dirfd, const char * name, char * resolved)
     dedotdot(name_dup);
 
     if (*name_dup == '/') {
-        if(pathExcluded(name_dup)){
+        char proc_tmp[FAKECHROOT_PATH_MAX];
+        if(procExcluded(name_dup, proc_tmp)){
+            const char * container_root = getenv("ContainerRoot");
+            snprintf(resolved, FAKECHROOT_PATH_MAX,"%s%s",container_root,proc_tmp);
+        }else if(pathExcluded(name_dup)){
             strlcpy(resolved, name_dup, FAKECHROOT_PATH_MAX);
         }else{
             if(!findFileInLayers(name_dup, resolved)){

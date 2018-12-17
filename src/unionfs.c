@@ -707,6 +707,18 @@ bool xstat(const char *abs_path){
     return false;
 }
 
+bool lxstat(const char *abs_path){
+    if(abs_path == NULL || *abs_path == '\0'){
+        return false;
+    }
+    INITIAL_SYS(__lxstat)
+    struct stat st;
+    if(real___lxstat(1, abs_path, &st) == 0){
+        return true;
+    }
+    return false;
+}
+
 int recurMkdir(const char *path){
     if(path == NULL || *path == '\0' || *path != '/'){
         log_fatal("can't make dir as the input parameter is either null, empty or not absolute path, path: %s", path);
@@ -1141,7 +1153,7 @@ int fufs_unlink_impl(const char* function,...){
     }
     va_end(args);
 
-    if(!xstat(abs_path)){
+    if(!lxstat(abs_path)){
         return -1;
     }else if(pathExcluded(abs_path)){
         return 0;
