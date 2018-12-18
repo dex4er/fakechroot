@@ -32,9 +32,7 @@ wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpat
     //expand_chroot_rel_path(oldpath);
     //strcpy(tmp, oldpath);
     //oldpath = tmp;
-    if(!pathExcluded(oldpath)){
-        expand_chroot_path(oldpath);
-    }
+    expand_chroot_path(oldpath);
     expand_chroot_path_at(newdirfd, newpath);
 
     debug("symlinkat(\"%s\", %d, \"%s\")", oldpath, newdirfd, newpath);

@@ -1485,6 +1485,7 @@ int fufs_symlink_impl(const char *function, ...){
     }
     va_end(args);
 
+    //check the linkpath whether locating inside rw folder
     char rel_path[MAX_PATH];
     char layer_path[MAX_PATH];
     int ret = get_relative_path_layer(linkpath,rel_path,layer_path);
@@ -1501,10 +1502,10 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-        INITIAL_SYS(symlink)
+    INITIAL_SYS(symlink)
 
-        char dir[MAX_PATH];
-    strcpy(dir, target);
+    char dir[MAX_PATH];
+    strcpy(dir, resolved);
     dirname(dir);
     //parent folder does not exist
     if(!xstat(dir)){
