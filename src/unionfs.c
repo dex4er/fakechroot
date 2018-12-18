@@ -1544,13 +1544,21 @@ int fufs_creat_impl(const char *function,...){
     }
 
     INITIAL_SYS(creat64)
-        INITIAL_SYS(creat)
+    INITIAL_SYS(creat)
 
-        if(strcmp(function,"creat64") == 0){
-            return RETURN_SYS(creat64,(resolved,mode))
-        }else{
-            return RETURN_SYS(creat,(resolved,mode))
-        }
+    //create parent folder
+    char dir[MAX_PATH];
+    strcpy(dir, resolved);
+    dirname(dir);
+    if(!xstat(dir)){
+        recurMkdirMode(dir,FOLDER_PERM);
+    }
+
+    if(strcmp(function,"creat64") == 0){
+         return RETURN_SYS(creat64,(resolved,mode))
+    }else{
+         return RETURN_SYS(creat,(resolved,mode))
+    }
 }
 
 int fufs_chmod_impl(const char* function, ...){
