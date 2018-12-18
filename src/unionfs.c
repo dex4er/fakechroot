@@ -35,6 +35,7 @@ DIR* getDirents(const char* name, struct dirent_obj** darr, size_t* num)
             sprintf(tmp->abs_path,"%s/%s",name,entry->d_name);
         }
         dedotdot(tmp->abs_path);
+        sprintf(tmp->d_name,"%s",entry->d_name);
         if (*darr == NULL) {
             *darr = curr = tmp;
         } else {
@@ -73,6 +74,7 @@ DIR* getDirentsWithName(const char* name, struct dirent_obj** darr, size_t* num,
             sprintf(tmp->abs_path,"%s/%s",name,entry->d_name);
         }
         dedotdot(tmp->abs_path);
+        sprintf(tmp->d_name,"%s",entry->d_name);
         if (*darr == NULL) {
             *darr = curr = tmp;
         } else {
@@ -117,11 +119,11 @@ struct dirent_layers_entry* getDirContent(const char* abs_path)
     while (curr) {
         char* m_trans = (char*)malloc(sizeof(char) * MAX_PATH);
         char abs_item_path[MAX_PATH];
-        sprintf(abs_item_path, "%s/%s", abs_path, curr->dp->d_name);
-        if (transWh2path(curr->dp->d_name, PREFIX_WH, m_trans)) {
+        sprintf(abs_item_path, "%s/%s", abs_path, curr->d_name);
+        if (transWh2path(curr->d_name, PREFIX_WH, m_trans)) {
             p->wh_masked[p->wh_masked_num] = m_trans;
             p->wh_masked_num += 1;
-            //log_debug("wh file %s is added to wh_map",curr->dp->d_name);
+            //log_debug("wh file %s is added to wh_map",curr->d_name);
             deleteItemInChainByPointer(&darr, &curr);
             continue;
         }
@@ -182,8 +184,8 @@ void filterMemDirents(const char* name, struct dirent_obj* darr, size_t num)
     size_t* key_lengths = (size_t*)malloc(sizeof(size_t) * num);
     for (int i = 0; i < num; i++) {
         keys[i] = (char*)malloc(sizeof(char) * MAX_PATH);
-        strcpy(keys[i], curr->dp->d_name);
-        key_lengths[i] = strlen(curr->dp->d_name);
+        strcpy(keys[i], curr->d_name);
+        key_lengths[i] = strlen(curr->d_name);
         curr = curr->next;
     }
     char** values = (char**)malloc(sizeof(char*) * num);
@@ -1297,12 +1299,12 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                     head = tail = entry->data;
                     if(head){
                         while (tail->next != NULL) {
-                            log_debug("item added to dirent_map %s", tail->dp->d_name);
-                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                            log_debug("item added to dirent_map %s", tail->d_name);
+                            add_item_hmap(dirent_map, tail->d_name, NULL);
                             tail = tail->next;
                         }
-                        log_debug("item added to dirent_map %s", tail->dp->d_name);
-                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                        log_debug("item added to dirent_map %s", tail->d_name);
+                        add_item_hmap(dirent_map, tail->d_name, NULL);
                     }
                     for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
                         log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
@@ -1333,11 +1335,11 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                         }
                     }
                     while (tail->next != NULL) {
-                        if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                            log_debug("item added to dirent_map %s", tail->dp->d_name);
-                            add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                        if (!contain_item_hmap(dirent_map, tail->d_name) && !contain_item_hmap(wh_map, tail->d_name)) {
+                            log_debug("item added to dirent_map %s", tail->d_name);
+                            add_item_hmap(dirent_map, tail->d_name, NULL);
                         } else {
-                            log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+                            log_debug("item deteled from dirent_map %s", tail->d_name);
                             deleteItemInChainByPointer(&head, &tail);
                             if (!tail) {
                                 tail = prew;
@@ -1347,11 +1349,11 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                         prew = tail;
                         tail = tail->next;
                     }
-                    if (!contain_item_hmap(dirent_map, tail->dp->d_name) && !contain_item_hmap(wh_map, tail->dp->d_name)) {
-                        log_debug("item added to dirent_map %s", tail->dp->d_name);
-                        add_item_hmap(dirent_map, tail->dp->d_name, NULL);
+                    if (!contain_item_hmap(dirent_map, tail->d_name) && !contain_item_hmap(wh_map, tail->d_name)) {
+                        log_debug("item added to dirent_map %s", tail->d_name);
+                        add_item_hmap(dirent_map, tail->d_name, NULL);
                     } else {
-                        log_debug("item deteled from dirent_map %s", tail->dp->d_name);
+                        log_debug("item deteled from dirent_map %s", tail->d_name);
                         deleteItemInChainByPointer(&head, &tail);
                         if (!tail) {
                             //reset tail to its previous item if tail is NULL

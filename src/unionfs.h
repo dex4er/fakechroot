@@ -10,6 +10,7 @@
 
 #define MAX_PATH 1024
 #define MAX_ITEMS 1024
+#define MAX_FILENAME 256
 #define MAX_VALUE_SIZE 1*1024*1024
 #define PREFIX_WH ".wh"
 #define MAX_LAYERS 128
@@ -69,6 +70,7 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
 
     struct dirent_obj {
         struct dirent* dp;
+        char d_name[MAX_FILENAME];
         char abs_path[MAX_PATH];
         struct dirent_obj* next;
     };
