@@ -189,9 +189,6 @@ skip2: ;
     /* No hashbang in argv */
     if (hashbang[0] != '#' || hashbang[1] != '!') {
         if (!elfloader) {
-            for(unsigned int i =0; i< newenvppos;i++){
-                debug("no external elfloader: newenvp %s", newenvp[i]);
-            }
             status = nextcall(execve)(filename, argv, newenvp);
             goto error;
         }
@@ -212,9 +209,6 @@ skip2: ;
         newargv[n] = filename;
 
         debug("nextcall(execve)(\"%s\", {\"%s\", \"%s\", ...}, {\"%s\", ...})", elfloader, newargv[0], newargv[n], newenvp[0]);
-        for(unsigned int i =0; i< newenvppos; i++){
-            debug("calling with elfloader: newenvp %s", newenvp[i]);
-        }
         status = nextcall(execve)(elfloader, (char * const *)newargv, newenvp);
         goto error;
     }

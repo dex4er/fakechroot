@@ -22,6 +22,8 @@
 
 #include "libfakechroot.h"
 #include "unionfs.h"
+#include "getcwd_real.h"
+#include "dedotdot.h"
 
 wrapper(symlink, int, (const char * oldpath, const char * newpath))
 {
@@ -29,17 +31,29 @@ wrapper(symlink, int, (const char * oldpath, const char * newpath))
     //expand_chroot_rel_path(oldpath);
     //strcpy(tmp, oldpath);
     //oldpath = tmp;
-    expand_chroot_path(oldpath);
-    expand_chroot_path(newpath);
+    if(*oldpath == '/'){
+        expand_chroot_path(oldpath);
+    }
 
-    debug("symlink(\"%s\", \"%s\")", oldpath, newpath);
+    char new_resolved[MAX_PATH];
+    if(*newpath == '/'){
+        expand_chroot_path(newpath);
+        strcpy(new_resolved, newpath);
+    }else{
+        char cwd[MAX_PATH];
+        getcwd_real(cwd,MAX_PATH);
+        sprintf(new_resolved, "%s/%s", cwd, newpath);
+    }
+    dedotdot(new_resolved);
+
+    debug("symlink oldpath: %s, newpath: %s", oldpath, new_resolved);
 
     char** rt_paths = NULL;
-    bool r = rt_mem_check(2, rt_paths, oldpath, newpath);
+    bool r = rt_mem_check(2, rt_paths, oldpath, new_resolved);
     if (r && rt_paths){
       return WRAPPER_FUFS(symlink, symlink, rt_paths[0], rt_paths[1])
     }else if(r && !rt_paths){
-      return WRAPPER_FUFS(symlink, symlink, oldpath, newpath)
+      return WRAPPER_FUFS(symlink, symlink, oldpath, new_resolved)
     }else{
       errno = EACCES;
       return -1;

@@ -109,7 +109,6 @@ int getParentWh(const char *abs_path);
 bool xstat(const char *abs_path);
 bool lxstat(const char *abs_path);
 bool pathExcluded(const char *abs_path);
-bool procExcluded(const char *abs_path, char *resolved);
 bool pathIncluded(const char *abs_path);
 bool findFileInLayers(const char *file,char *resolved);
 bool copyFile2RW(const char *abs_path, char *resolved);

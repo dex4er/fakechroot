@@ -714,7 +714,7 @@ bool lxstat(const char *abs_path){
         return false;
     }
     INITIAL_SYS(__lxstat)
-    struct stat st;
+        struct stat st;
     if(real___lxstat(1, abs_path, &st) == 0){
         return true;
     }
@@ -805,43 +805,11 @@ bool pathExcluded(const char *abs_path){
     return false;
 }
 
-bool procExcluded(const char *abs_path, char *resolved){
-    if(abs_path == NULL || *abs_path == '\0'){
-        return false;
-    }
-    if(*abs_path != '/'){
-        log_error("input path should be absolute path rather than relative path: %s",abs_path);
-        return false;
-    }
-    const char *ex_exclude_path = getenv("FAKECHROOT_EXCLUDE_PROC_PATH");
-    if(ex_exclude_path){
-        if(strncmp("/proc",abs_path, strlen("/proc")) == 0){
-            //get current self link name
-            char ex_exclude_path_dup[MAX_PATH];
-            strcpy(ex_exclude_path_dup, ex_exclude_path);
-            char *ex_str_tmp = strtok(ex_exclude_path_dup, ":");
-            while(ex_str_tmp){
-                char ex_exclude_full_path[MAX_PATH];
-                //this one should be /proc/xxxx/fd
-                sprintf(ex_exclude_full_path,"/proc/self/%s", ex_str_tmp);
-                log_debug("proc exclued check: target %s -> input %s", ex_exclude_full_path, abs_path);
-                if(strncmp(ex_exclude_full_path, abs_path, strlen(ex_exclude_full_path)) == 0){
-                    log_debug("/proc/self excluded path %s", abs_path);
-                    sprintf(resolved,"/proc/self/%s",ex_str_tmp);
-                    return true;
-                }
-                ex_str_tmp = strtok(NULL,":");
-            }
-        }
-    }
-    return false;
-}
-
 bool resolveSymlink(const char *link, char *target){
     if(is_file_type(link,TYPE_LINK)){
         INITIAL_SYS(readlink)
             char resolved[MAX_PATH];
-        ssize_t size = real_readlink(link,resolved,MAX_PATH);
+        ssize_t size = real_readlink(link,resolved,MAX_PATH - 1);
         if(size == -1){
             log_fatal("can't resolve link %s",link);
             strcpy(target,link);
@@ -1488,6 +1456,7 @@ int fufs_symlink_impl(const char *function, ...){
     va_end(args);
 
     //check the linkpath whether locating inside rw folder
+    char resolved[MAX_PATH];
     char rel_path[MAX_PATH];
     char layer_path[MAX_PATH];
     int ret = get_relative_path_layer(linkpath,rel_path,layer_path);
@@ -1496,7 +1465,6 @@ int fufs_symlink_impl(const char *function, ...){
         return -1;
     }
     const char * container_root = getenv("ContainerRoot");
-    char resolved[MAX_PATH];
     if(strcmp(layer_path,container_root) != 0){
         sprintf(resolved,"%s/%s",container_root,rel_path);
     }else{
@@ -1504,9 +1472,9 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-    INITIAL_SYS(symlink)
+        INITIAL_SYS(symlink)
 
-    char dir[MAX_PATH];
+        char dir[MAX_PATH];
     strcpy(dir, resolved);
     dirname(dir);
     //parent folder does not exist
@@ -1544,10 +1512,10 @@ int fufs_creat_impl(const char *function,...){
     }
 
     INITIAL_SYS(creat64)
-    INITIAL_SYS(creat)
+        INITIAL_SYS(creat)
 
-    //create parent folder
-    char dir[MAX_PATH];
+        //create parent folder
+        char dir[MAX_PATH];
     strcpy(dir, resolved);
     dirname(dir);
     if(!xstat(dir)){
@@ -1555,9 +1523,9 @@ int fufs_creat_impl(const char *function,...){
     }
 
     if(strcmp(function,"creat64") == 0){
-         return RETURN_SYS(creat64,(resolved,mode))
+        return RETURN_SYS(creat64,(resolved,mode))
     }else{
-         return RETURN_SYS(creat,(resolved,mode))
+        return RETURN_SYS(creat,(resolved,mode))
     }
 }
 
@@ -1617,6 +1585,34 @@ int fufs_rmdir_impl(const char* function, ...){
             char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
         real_creat(wh,FILE_PERM);
+        if(xstat(path) && is_file_type(path, TYPE_DIR)){
+            INITIAL_SYS(unlink)
+                char **names;
+            size_t num;
+            getDirentsOnlyNames(path, &names,&num);
+            bool is_all_wh = false;
+            for(size_t i = 0;i<num;i++){
+                if(strncmp(names[i],".wh",3) == 0){
+                    if(i == 0){
+                        is_all_wh = true;
+                    }else{
+                        is_all_wh = is_all_wh & true;
+                    }
+                }else{
+                    is_all_wh = false;
+                    break;
+                }
+            }
+            if(is_all_wh){
+                log_debug("all files in folder: %s are whiteout files, will entirely delete everything",path);
+                char tmp[MAX_PATH];
+                for(size_t i = 0; i<num; i++){
+                    sprintf(tmp,"%s/%s",path,names[i]);
+                    log_debug("all files in folder: %s are whiteout files, delete target item: %s",path, tmp);
+                    real_unlink(tmp);
+                }
+            }
+        }
         return RETURN_SYS(rmdir,(path))
     }else{
         char new_path[MAX_PATH];

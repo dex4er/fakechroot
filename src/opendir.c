@@ -29,6 +29,10 @@ wrapper(opendir, DIR*, (const char* name))
 {
     expand_chroot_path(name);
     debug("opendir(\"%s\")", name);
+    if(!xstat(name) || !is_file_type(name,TYPE_DIR)){
+        errno = ENOENT;
+        return NULL;
+    }
     size_t num;
     struct dirent_obj* tmp = NULL;
     DIR* dirp = getDirents(name, &tmp, &num);
