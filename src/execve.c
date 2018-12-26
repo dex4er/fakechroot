@@ -220,9 +220,6 @@ exe_excute:
             if(strncmp(tvar,"Container",strlen("Container")) == 0){
                 continue;
             }
-            if(strncmp(tvar,"HOME",strlen("HOME")) == 0){
-                continue;
-            }
             if(strncmp(tvar,"PWD",strlen("PWD")) == 0){
                 continue;
             }

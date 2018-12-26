@@ -33,6 +33,10 @@ wrapper(symlink, int, (const char * oldpath, const char * newpath))
     //oldpath = tmp;
     if(*oldpath != '/'){
         expand_chroot_path(oldpath);
+        //naroow
+    }else{
+        //narrow
+        ;
     }
 
     char new_resolved[MAX_PATH];
