@@ -24,7 +24,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #ifdef HAVE_ALLOCA_H
-# include <alloca.h>
+#include <alloca.h>
 #endif
 #include <stdlib.h>
 #include <fcntl.h>
@@ -33,6 +33,7 @@
 #include "open.h"
 #include "setenv.h"
 #include "readlink.h"
+#include "unionfs.h"
 
 wrapper(execve, int, (const char * filename, char * const argv [], char * const envp []))
 {
@@ -169,13 +170,84 @@ skip2: ;
     }
 
     /* Check hashbang */
+    //make filename drop const
+    char orig_filename[FAKECHROOT_PATH_MAX];
+    strcpy(orig_filename, filename);
+
     expand_chroot_path(filename);
     strcpy(tmp, filename);
     filename = tmp;
 
+    //when the target does not exist
     if ((file = nextcall(open)(filename, O_RDONLY)) == -1) {
+        //get exposed exe
+        const char * exe = getenv("ContainerJailedEXE");
+        if(exe){
+            char exe_dup[FAKECHROOT_PATH_MAX];
+            strcpy(exe_dup, exe);
+            char *str_tmp = strtok(exe_dup,":");
+            while (str_tmp != NULL){
+                if(strcmp(orig_filename, str_tmp) == 0){
+                    goto exe_excute;
+                }
+                str_tmp = strtok(NULL,":");
+            }
+        }
+
+        debug("could not find executable program with name: %s", orig_filename);
+exe_err:
         __set_errno(ENOENT);
         return -1;
+
+exe_excute:
+        debug("try to execute exposed program %s from host", orig_filename);
+        int menvppos = 0;
+        char ** menvp = malloc(sizeof(char *)*newenvppos);
+        if(!menvp){
+            goto exe_err;
+        }
+        char ** mep;
+        for(mep = newenvp; *mep != NULL; mep++){
+            char tvar[1024];
+            strncpy(tvar, *mep, 1024);
+            tvar[1023] = '\0';
+            if(strncmp(tvar,"LD_PRELOAD",strlen("LD_PRELOAD")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"FAKECHROOT",strlen("FAKECHROOT")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"Container",strlen("Container")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"HOME",strlen("HOME")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"PWD",strlen("PWD")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"LD_LIBRARY_LPMX",strlen("LD_LIBRARY_LPMX")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"SHELL",strlen("SHELL")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"__",strlen("__")) == 0){
+                continue;
+            }
+            if(strncmp(tvar,"MEMCACHED_PID",strlen("MEMCACHED_PID")) == 0){
+                continue;
+            }
+
+            debug("env var %s will be added",*mep);
+            menvp[menvppos] = *mep;
+            menvppos++;
+        }
+        menvp[menvppos] = NULL;
+        INITIAL_SYS(execve)
+        status = real_execve(orig_filename, (char * const *)argv, menvp);
+        free(menvp);
+        goto error;
     }
 
     i = read(file, hashbang, FAKECHROOT_PATH_MAX-2);

@@ -56,7 +56,7 @@ wrapper(chdir, int, (const char * path))
     char resolved[MAX_PATH];
     rel2absLayer(path, resolved);
 
-    if(is_file_type(resolved,TYPE_LINK)){
+    if(xstat(path) && is_file_type(resolved,TYPE_LINK)){
         char link[FAKECHROOT_PATH_MAX];
         if(resolveSymlink(resolved,link)){
             debug("chdir %s",link);

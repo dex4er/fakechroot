@@ -66,7 +66,7 @@ end:
 LOCAL char * rel2absLayer(const char * name, char * resolved){
     char cwd[FAKECHROOT_PATH_MAX];
 
-    //debug("rel2absLayer starts(\"%s\", &resolved)", name);
+    debug("rel2absLayer starts(\"%s\", &resolved)", name);
     if (name == NULL){
         resolved = NULL;
         goto end;

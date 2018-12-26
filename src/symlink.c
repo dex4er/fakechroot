@@ -31,7 +31,7 @@ wrapper(symlink, int, (const char * oldpath, const char * newpath))
     //expand_chroot_rel_path(oldpath);
     //strcpy(tmp, oldpath);
     //oldpath = tmp;
-    if(*oldpath == '/'){
+    if(*oldpath != '/'){
         expand_chroot_path(oldpath);
     }
 

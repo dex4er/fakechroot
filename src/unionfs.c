@@ -506,6 +506,7 @@ int append_to_diff(const char* content)
     return 0;
 }
 
+//TYPE_LINK here is symlink
 bool is_file_type(const char* path, enum filetype t)
 {
     INITIAL_SYS(__lxstat)
@@ -601,6 +602,7 @@ bool findFileInLayers(const char *file,char *resolved){
     return false;
 }
 
+//copy file to rw layers
 bool copyFile2RW(const char *abs_path, char *resolved){
     if(!xstat(abs_path)){
         strcpy(resolved,abs_path);
@@ -613,9 +615,9 @@ bool copyFile2RW(const char *abs_path, char *resolved){
     }
 
     INITIAL_SYS(fopen)
-        INITIAL_SYS(mkdir)
+    INITIAL_SYS(mkdir)
 
-        char rel_path[MAX_PATH];
+    char rel_path[MAX_PATH];
     char layer_path[MAX_PATH];
     int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
     const char * container_root = getenv("ContainerRoot");
@@ -919,9 +921,18 @@ int fufs_open_impl(const char* function, ...){
 
         if(!xstat(path) || pathExcluded(path)){
             if(oflag & O_DIRECTORY){
-                goto end_folder;
+                if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
+                    goto end_folder;
+                }else{
+                    goto end;
+                }
             }
-            goto end_file;
+
+            if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
+                goto end_file;
+            }else{
+                goto end;
+            }
         }else{
             char rel_path[MAX_PATH];
             char layer_path[MAX_PATH];
@@ -975,7 +986,7 @@ int fufs_open_impl(const char* function, ...){
 end_folder:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            int ret = recurMkdirMode(path,FOLDER_PERM);
+        int ret = recurMkdirMode(path,FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
             return -1;
@@ -987,7 +998,7 @@ end_folder:
 end_file:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            char dname[MAX_PATH];
+        char dname[MAX_PATH];
         strcpy(dname,path);
         dirname(dname);
         int ret = recurMkdirMode(dname,FOLDER_PERM);
@@ -1179,6 +1190,7 @@ int fufs_unlink_impl(const char* function,...){
             goto end;
         }
 
+
         INITIAL_SYS(creat)
             if(strcmp(root_path, layer_path) == 0){
                 char whpath[MAX_PATH];
@@ -1187,15 +1199,17 @@ int fufs_unlink_impl(const char* function,...){
                 }else{
                     sprintf(whpath,"%s/%s/.wh.%s",root_path,dname,bname);
                 }
-                int fd = real_creat(whpath,FILE_PERM);
-                if(fd < 0){
-                    log_fatal("can't create file: %s", whpath);
-                    return -1;
+                if(!xstat(whpath)){
+                    int fd = real_creat(whpath,FILE_PERM);
+                    if(fd < 0){
+                        log_fatal("can't create file: %s with error: %s", whpath, strerror(errno));
+                        return -1;
+                    }
+                    close(fd);
                 }
                 goto end;
             }else{
                 //request path is in other layers rather than rw layer
-
                 char whpath[MAX_PATH];
                 if(strcmp(dname, ".") == 0){
                     sprintf(whpath,"%s/.wh.%s",root_path,bname);
@@ -1345,6 +1359,14 @@ ends:
         }
     }
 
+    //clean resource
+    if(dirent_map){
+        destroy_hmap(dirent_map);
+    }
+    if(wh_map){
+        destroy_hmap(wh_map);
+    }
+
     return head;
 }
 
@@ -1472,9 +1494,9 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-        INITIAL_SYS(symlink)
+    INITIAL_SYS(symlink)
 
-        char dir[MAX_PATH];
+    char dir[MAX_PATH];
     strcpy(dir, resolved);
     dirname(dir);
     //parent folder does not exist
@@ -1572,9 +1594,9 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-        INITIAL_SYS(creat)
+    INITIAL_SYS(creat)
 
-        const char * container_root = getenv("ContainerRoot");
+    const char * container_root = getenv("ContainerRoot");
 
     char * bname = basename(rel_path);
     char dname[MAX_PATH];
@@ -1582,9 +1604,22 @@ int fufs_rmdir_impl(const char* function, ...){
     dirname(dname);
     if(strcmp(layer_path,container_root) == 0){
         INITIAL_SYS(rmdir)
-            char wh[MAX_PATH];
+        char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
-        real_creat(wh,FILE_PERM);
+        
+        char wh_dname[MAX_PATH];
+        strcpy(wh_dname, wh);
+        dirname(wh_dname);
+        if(!xstat(wh_dname)){
+            recurMkdirMode(wh_dname,FOLDER_PERM);
+        }
+
+        int fd = real_creat(wh,FILE_PERM);
+        if(fd < 0){
+            log_fatal("can't create file: %s with error: %s", wh, strerror(errno));
+            return -1;
+        }
+        close(fd);
         if(xstat(path) && is_file_type(path, TYPE_DIR)){
             INITIAL_SYS(unlink)
                 char **names;
@@ -1624,7 +1659,13 @@ int fufs_rmdir_impl(const char* function, ...){
             strcpy(n_dname, new_path);
             dirname(n_dname);
             sprintf(wh,"%s/.wh.%s",n_dname,bname);
-            return real_creat(wh, FILE_PERM);
+            int fd = real_creat(wh, FILE_PERM);
+            if(fd < 0){
+                log_fatal("can't create file: %s with error: %s", wh, strerror(errno));
+                return -1;
+            }
+            close(fd);
+            return 0;
         }
     }
     errno = EACCES;
@@ -1647,50 +1688,49 @@ int fufs_rename_impl(const char* function, ...){
     }
     va_end(args);
 
-    char rel_path[MAX_PATH];
-    char layer_path[MAX_PATH];
-    int ret = get_relative_path_layer(oldpath, rel_path, layer_path);
-    if(ret != 0){
+    const char * container_root = getenv("ContainerRoot");
+    char old_rel_path[MAX_PATH];
+    char old_layer_path[MAX_PATH];
+    int old_ret = get_relative_path_layer(oldpath, old_rel_path, old_layer_path);
+    if(old_ret != 0 && strncmp(oldpath,"/tmp",strlen("/tmp")) != 0){
         log_fatal("request path is not in container, path: %s", oldpath);
         return -1;
     }
-    memset(rel_path,0,sizeof(rel_path));
-    memset(layer_path,0,sizeof(layer_path));
-    ret = get_relative_path_layer(newpath, rel_path, layer_path);
-    if(ret != 0){
+    char old_resolved[MAX_PATH];
+    strcpy(old_resolved, oldpath);
+    if(old_ret == 0 && strcmp(old_layer_path,container_root) != 0){
+        memset(old_resolved, 0, MAX_PATH);
+        copyFile2RW(oldpath, old_resolved);
+        unlink(oldpath);
+    }
+
+    char new_rel_path[MAX_PATH];
+    char new_layer_path[MAX_PATH];
+    int new_ret = get_relative_path_layer(newpath, new_rel_path, new_layer_path);
+    if(new_ret != 0 && strncmp(newpath, "/tmp", strlen("/tmp")) != 0){
         log_fatal("request path is not in container, path: %s", newpath);
         return -1;
     }
 
     INITIAL_SYS(rename)
-        INITIAL_SYS(renameat)
-
-        const char * container_root = getenv("ContainerRoot");
-    if(strcmp(layer_path, container_root) == 0){
-        if(strcmp(function,"renameat") == 0){
-            return RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,newpath))
+    INITIAL_SYS(renameat)
+        if(strcmp(new_layer_path, container_root) == 0){
+            if(strcmp(function,"renameat") == 0){
+                return RETURN_SYS(renameat,(olddirfd,old_resolved,newdirfd,newpath))
+            }else{
+                return RETURN_SYS(rename,(old_resolved,newpath))
+            }
         }else{
-            return RETURN_SYS(rename,(oldpath,newpath))
+            //newpath is not in rw folder, replacing it by force and delete original one
+            char new_resolved[MAX_PATH];
+            sprintf(new_resolved,"%s/%s",container_root,new_rel_path);
+            unlink(newpath);
+            if(strcmp(function,"renameat") == 0){
+                return RETURN_SYS(renameat,(olddirfd,old_resolved,newdirfd,new_resolved))
+            }else{
+                return RETURN_SYS(rename,(old_resolved,new_resolved))
+            }
         }
-    }else{
-        char dest[MAX_PATH];
-        sprintf(dest,"%s/%s",container_root,rel_path);
-        //if oldpath does not exist in rw folder, then we have to remove it(file/folder)
-        if(strcmp(function,"renameat") == 0){
-            int ret = RETURN_SYS(renameat,(olddirfd,oldpath,newdirfd,dest))
-                if(ret == 0){
-                    remove(oldpath);
-                }
-            return ret;
-        }else{
-            int ret = RETURN_SYS(rename,(oldpath,dest))
-                if(ret == 0){
-                    remove(oldpath);
-                }
-            return ret;
-        }
-    }
-
     errno = EACCES;
     return -1;
 }

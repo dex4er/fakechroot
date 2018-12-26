@@ -21,7 +21,7 @@
 #include <config.h>
 
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(rmdir, int, (const char * pathname))
 {
@@ -31,9 +31,9 @@ wrapper(rmdir, int, (const char * pathname))
     char** rt_paths = NULL;
     bool r = rt_mem_check(2, rt_paths, pathname);
     if (r && rt_paths){
-      return nextcall(rmdir)(rt_paths[0]);
+      return WRAPPER_FUFS(rmdir,rmdir,rt_paths[0])
     }else if(r && !rt_paths){
-      return nextcall(rmdir)(pathname);
+      return WRAPPER_FUFS(rmdir,rmdir,pathname)
     }else{
       errno = EACCES;
       return -1;

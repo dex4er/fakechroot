@@ -67,6 +67,7 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(freopen,FILE*,(const char * pathname, const char * mode, FILE *stream))
     DECLARE_SYS(freopen64,FILE*,(const char * pathname, const char * mode, FILE *stream))
     DECLARE_SYS(readlink,ssize_t,(const char *path, char *buf, size_t bufsiz))
+    DECLARE_SYS(execve,int,(const char *filename, char *const argv[], char *const envp[]))
 
     struct dirent_obj {
         struct dirent* dp;
