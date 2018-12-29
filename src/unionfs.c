@@ -986,7 +986,7 @@ int fufs_open_impl(const char* function, ...){
 end_folder:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            int ret = recurMkdirMode(path,FOLDER_PERM);
+        int ret = recurMkdirMode(path,FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
             return -1;
@@ -998,7 +998,7 @@ end_folder:
 end_file:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-        char dname[MAX_PATH];
+            char dname[MAX_PATH];
         strcpy(dname,path);
         dirname(dname);
         int ret = recurMkdirMode(dname,FOLDER_PERM);
@@ -1134,15 +1134,16 @@ int fufs_unlink_impl(const char* function,...){
     }
     va_end(args);
 
-    if(!lxstat(abs_path)){
-        return -1;
-    }else if(pathExcluded(abs_path)){
-        return 0;
-    }else{
-        //check if deleting folder with all .wh files inside?
-        INITIAL_SYS(unlink)
-            INITIAL_SYS(unlinkat)
+    INITIAL_SYS(unlink)
+        INITIAL_SYS(unlinkat)
 
+        if(!lxstat(abs_path)){
+            errno = ENOENT;
+            return -1;
+        }else if(pathExcluded(abs_path)){
+            goto end;
+        }else{
+            //check if deleting folder with all .wh files inside?
             if(is_file_type(abs_path, TYPE_DIR)){
                 char **names;
                 size_t num;
@@ -1171,64 +1172,64 @@ int fufs_unlink_impl(const char* function,...){
                 }
             }
 
-        char rel_path[MAX_PATH];
-        char layer_path[MAX_PATH];
-        int ret = get_relative_path_layer(abs_path,rel_path, layer_path);
-        if(ret == -1){
-            log_fatal("request path is not in container, path: %s", abs_path);
-            return -1;
-        }
-        const char * root_path = getenv("ContainerRoot");
+            char rel_path[MAX_PATH];
+            char layer_path[MAX_PATH];
+            int ret = get_relative_path_layer(abs_path,rel_path, layer_path);
+            if(ret == -1){
+                log_fatal("request path is not in container, path: %s", abs_path);
+                return -1;
+            }
+            const char * root_path = getenv("ContainerRoot");
 
-        char * bname = basename(rel_path);
-        char dname[MAX_PATH];
-        strcpy(dname, rel_path);
-        dirname(dname);
+            char * bname = basename(rel_path);
+            char dname[MAX_PATH];
+            strcpy(dname, rel_path);
+            dirname(dname);
 
-        //if remove .wh file
-        if(strncmp(bname,".wh",3) == 0){
-            goto end;
-        }
+            //if remove .wh file
+            if(strncmp(bname,".wh",3) == 0){
+                goto end;
+            }
 
 
-        INITIAL_SYS(creat)
-            if(strcmp(root_path, layer_path) == 0){
-                char whpath[MAX_PATH];
-                if(strcmp(dname, ".") == 0){
-                    sprintf(whpath,"%s/.wh.%s",root_path,bname);
+            INITIAL_SYS(creat)
+                if(strcmp(root_path, layer_path) == 0){
+                    char whpath[MAX_PATH];
+                    if(strcmp(dname, ".") == 0){
+                        sprintf(whpath,"%s/.wh.%s",root_path,bname);
+                    }else{
+                        sprintf(whpath,"%s/%s/.wh.%s",root_path,dname,bname);
+                    }
+                    if(!xstat(whpath)){
+                        int fd = real_creat(whpath,FILE_PERM);
+                        if(fd < 0){
+                            log_fatal("%s can't create file: %s with error: %s", function, whpath, strerror(errno));
+                            return -1;
+                        }
+                        close(fd);
+                    }
+                    goto end;
                 }else{
-                    sprintf(whpath,"%s/%s/.wh.%s",root_path,dname,bname);
-                }
-                if(!xstat(whpath)){
-                    int fd = real_creat(whpath,FILE_PERM);
+                    //request path is in other layers rather than rw layer
+                    char whpath[MAX_PATH];
+                    if(strcmp(dname, ".") == 0){
+                        sprintf(whpath,"%s/.wh.%s",root_path,bname);
+                    }else{
+                        sprintf(whpath,"%s/%s",root_path,dname);
+                        if(!xstat(whpath)){
+                            recurMkdirMode(whpath,FOLDER_PERM);
+                        }
+                        sprintf(whpath,"%s/.wh.%s", whpath,bname);
+                    }
+                    int fd = real_creat(whpath, FILE_PERM);
                     if(fd < 0){
-                        log_fatal("%s can't create file: %s with error: %s", function, whpath, strerror(errno));
+                        log_fatal("%s can't create file: %s", function, whpath);
                         return -1;
                     }
                     close(fd);
+                    goto end;
                 }
-                goto end;
-            }else{
-                //request path is in other layers rather than rw layer
-                char whpath[MAX_PATH];
-                if(strcmp(dname, ".") == 0){
-                    sprintf(whpath,"%s/.wh.%s",root_path,bname);
-                }else{
-                    sprintf(whpath,"%s/%s",root_path,dname);
-                    if(!xstat(whpath)){
-                        recurMkdirMode(whpath,FOLDER_PERM);
-                    }
-                    sprintf(whpath,"%s/.wh.%s", whpath,bname);
-                }
-                int fd = real_creat(whpath, FILE_PERM);
-                if(fd < 0){
-                    log_fatal("%s can't create file: %s", function, whpath);
-                    return -1;
-                }
-                close(fd);
-                goto end;
-            }
-    }
+        }
 
 end:
     if(strcmp(function,"unlinkat") == 0){
