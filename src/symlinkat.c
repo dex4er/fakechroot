@@ -25,6 +25,8 @@
 #define _ATFILE_SOURCE
 #include "libfakechroot.h"
 #include "unionfs.h"
+#include "dedotdot.h"
+#include "getcwd_real.h"
 
 wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpath))
 {
@@ -32,17 +34,42 @@ wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpat
     //expand_chroot_rel_path(oldpath);
     //strcpy(tmp, oldpath);
     //oldpath = tmp;
-    expand_chroot_path(oldpath);
-    expand_chroot_path_at(newdirfd, newpath);
 
-    debug("symlinkat(\"%s\", %d, \"%s\")", oldpath, newdirfd, newpath);
+    char old_resolved[MAX_PATH];
+    if(*oldpath == '/'){
+        expand_chroot_path(oldpath);
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        int ret = get_relative_path_layer(oldpath, rel_path, layer_path);
+        if(ret == 0){
+            sprintf(old_resolved, "/%s", rel_path);
+        }else{
+            strcpy(old_resolved, oldpath);
+        }
+    }else{
+        strcpy(old_resolved, oldpath);
+    }
+    dedotdot(old_resolved);
+
+    char new_resolved[MAX_PATH];
+    if(*newpath == '/'){
+        expand_chroot_path(newpath);
+        strcpy(new_resolved, newpath);
+    }else{
+        char cwd[MAX_PATH];
+        getcwd_real(cwd,MAX_PATH);
+        sprintf(new_resolved, "%s/%s", cwd, newpath);
+    }
+    dedotdot(new_resolved);
+
+    debug("symlinkat oldpath: %s, newpath: %s, newdirfd: %d", old_resolved, new_resolved, newdirfd);
 
     char** rt_paths = NULL;
-    bool r = rt_mem_check(2, rt_paths, oldpath, newpath);
+    bool r = rt_mem_check(2, rt_paths, old_resolved, new_resolved);
     if (r && rt_paths){
       return WRAPPER_FUFS(symlink, symlinkat, rt_paths[0], newdirfd, rt_paths[1])
     }else if(r && !rt_paths){
-      return WRAPPER_FUFS(symlink, symlinkat, oldpath, newdirfd, newpath)
+      return WRAPPER_FUFS(symlink, symlinkat, old_resolved, newdirfd, new_resolved)
     }else{
       errno = EACCES;
       return -1;

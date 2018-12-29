@@ -615,9 +615,9 @@ bool copyFile2RW(const char *abs_path, char *resolved){
     }
 
     INITIAL_SYS(fopen)
-    INITIAL_SYS(mkdir)
+        INITIAL_SYS(mkdir)
 
-    char rel_path[MAX_PATH];
+        char rel_path[MAX_PATH];
     char layer_path[MAX_PATH];
     int ret = get_relative_path_layer(abs_path, rel_path, layer_path);
     const char * container_root = getenv("ContainerRoot");
@@ -921,18 +921,9 @@ int fufs_open_impl(const char* function, ...){
 
         if(!xstat(path) || pathExcluded(path)){
             if(oflag & O_DIRECTORY){
-                if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
-                    goto end_folder;
-                }else{
-                    goto end;
-                }
+                goto end_folder;
             }
-
-            if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
-                goto end_file;
-            }else{
-                goto end;
-            }
+            goto end_file;
         }else{
             char rel_path[MAX_PATH];
             char layer_path[MAX_PATH];
@@ -986,7 +977,7 @@ int fufs_open_impl(const char* function, ...){
 end_folder:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-        int ret = recurMkdirMode(path,FOLDER_PERM);
+            int ret = recurMkdirMode(path,FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
             return -1;
@@ -1202,7 +1193,7 @@ int fufs_unlink_impl(const char* function,...){
                 if(!xstat(whpath)){
                     int fd = real_creat(whpath,FILE_PERM);
                     if(fd < 0){
-                        log_fatal("can't create file: %s with error: %s", whpath, strerror(errno));
+                        log_fatal("%s can't create file: %s with error: %s", function, whpath, strerror(errno));
                         return -1;
                     }
                     close(fd);
@@ -1222,11 +1213,11 @@ int fufs_unlink_impl(const char* function,...){
                 }
                 int fd = real_creat(whpath, FILE_PERM);
                 if(fd < 0){
-                    log_fatal("can't create file: %s", whpath);
+                    log_fatal("%s can't create file: %s", function, whpath);
                     return -1;
                 }
                 close(fd);
-                return 0;
+                goto end;
             }
     }
 
@@ -1451,15 +1442,20 @@ int fufs_link_impl(const char * function, ...){
         sprintf(resolved,"%s",newpath);
     }
 
+    if(lxstat(resolved)){
+        INITIAL_SYS(unlink)
+            real_unlink(resolved);
+    }
+
     INITIAL_SYS(linkat)
         INITIAL_SYS(link)
+
 
         if(strcmp(function,"linkat") == 0){
             return RETURN_SYS(linkat,(olddirfd,oldpath,newdirfd,resolved,flags))
         }else{
             return RETURN_SYS(link,(oldpath,resolved))
         }
-
 }
 
 int fufs_symlink_impl(const char *function, ...){
@@ -1494,9 +1490,9 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-    INITIAL_SYS(symlink)
+        INITIAL_SYS(symlink)
 
-    char dir[MAX_PATH];
+        char dir[MAX_PATH];
     strcpy(dir, resolved);
     dirname(dir);
     //parent folder does not exist
@@ -1594,9 +1590,9 @@ int fufs_rmdir_impl(const char* function, ...){
     }
 
     INITIAL_SYS(mkdir)
-    INITIAL_SYS(creat)
+        INITIAL_SYS(creat)
 
-    const char * container_root = getenv("ContainerRoot");
+        const char * container_root = getenv("ContainerRoot");
 
     char * bname = basename(rel_path);
     char dname[MAX_PATH];
@@ -1604,9 +1600,9 @@ int fufs_rmdir_impl(const char* function, ...){
     dirname(dname);
     if(strcmp(layer_path,container_root) == 0){
         INITIAL_SYS(rmdir)
-        char wh[MAX_PATH];
+            char wh[MAX_PATH];
         sprintf(wh,"%s/%s/.wh.%s",container_root,dname,bname);
-        
+
         char wh_dname[MAX_PATH];
         strcpy(wh_dname, wh);
         dirname(wh_dname);
@@ -1616,7 +1612,7 @@ int fufs_rmdir_impl(const char* function, ...){
 
         int fd = real_creat(wh,FILE_PERM);
         if(fd < 0){
-            log_fatal("can't create file: %s with error: %s", wh, strerror(errno));
+            log_fatal("%s can't create file: %s with error: %s", function, wh, strerror(errno));
             return -1;
         }
         close(fd);
@@ -1661,7 +1657,7 @@ int fufs_rmdir_impl(const char* function, ...){
             sprintf(wh,"%s/.wh.%s",n_dname,bname);
             int fd = real_creat(wh, FILE_PERM);
             if(fd < 0){
-                log_fatal("can't create file: %s with error: %s", wh, strerror(errno));
+                log_fatal("%s can't create file: %s with error: %s", function, wh, strerror(errno));
                 return -1;
             }
             close(fd);
@@ -1713,7 +1709,7 @@ int fufs_rename_impl(const char* function, ...){
     }
 
     INITIAL_SYS(rename)
-    INITIAL_SYS(renameat)
+        INITIAL_SYS(renameat)
         if(strcmp(new_layer_path, container_root) == 0){
             if(strcmp(function,"renameat") == 0){
                 return RETURN_SYS(renameat,(olddirfd,old_resolved,newdirfd,newpath))

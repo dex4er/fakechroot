@@ -31,13 +31,21 @@ wrapper(symlink, int, (const char * oldpath, const char * newpath))
     //expand_chroot_rel_path(oldpath);
     //strcpy(tmp, oldpath);
     //oldpath = tmp;
-    if(*oldpath != '/'){
+    char old_resolved[MAX_PATH];
+    if(*oldpath == '/'){
         expand_chroot_path(oldpath);
-        //naroow
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        int ret = get_relative_path_layer(oldpath, rel_path, layer_path);
+        if(ret == 0){
+            sprintf(old_resolved, "/%s", rel_path);
+        }else{
+            strcpy(old_resolved, oldpath);
+        }
     }else{
-        //narrow
-        ;
+        strcpy(old_resolved, oldpath);
     }
+    dedotdot(old_resolved);
 
     char new_resolved[MAX_PATH];
     if(*newpath == '/'){
@@ -50,14 +58,14 @@ wrapper(symlink, int, (const char * oldpath, const char * newpath))
     }
     dedotdot(new_resolved);
 
-    debug("symlink oldpath: %s, newpath: %s", oldpath, new_resolved);
+    debug("symlink oldpath: %s, newpath: %s", old_resolved, new_resolved);
 
     char** rt_paths = NULL;
-    bool r = rt_mem_check(2, rt_paths, oldpath, new_resolved);
+    bool r = rt_mem_check(2, rt_paths, old_resolved, new_resolved);
     if (r && rt_paths){
       return WRAPPER_FUFS(symlink, symlink, rt_paths[0], rt_paths[1])
     }else if(r && !rt_paths){
-      return WRAPPER_FUFS(symlink, symlink, oldpath, new_resolved)
+      return WRAPPER_FUFS(symlink, symlink, old_resolved, new_resolved)
     }else{
       errno = EACCES;
       return -1;
