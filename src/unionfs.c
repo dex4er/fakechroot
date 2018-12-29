@@ -932,9 +932,18 @@ int fufs_open_impl(const char* function, ...){
                 const char * container_root = getenv("ContainerRoot");
                 if(strcmp(layer_path,container_root) == 0){
                     if(oflag & O_DIRECTORY){
-                        goto end_folder;
+                        if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
+                            goto end_folder;
+                        }else{
+                            goto end;
+                        }
                     }
-                    goto end_file;
+
+                    if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
+                        goto end_file;
+                    }else{
+                        goto end;
+                    }
                 }else{
                     if(is_file_type(path,TYPE_DIR) || oflag & O_DIRECTORY){
                         goto end_folder;
