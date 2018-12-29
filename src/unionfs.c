@@ -919,12 +919,14 @@ int fufs_open_impl(const char* function, ...){
         INITIAL_SYS(open64)
         INITIAL_SYS(openat64)
 
+        //not exists or excluded directly calling real open
         if(!xstat(path) || pathExcluded(path)){
             if(oflag & O_DIRECTORY){
                 goto end_folder;
             }
             goto end_file;
         }else{
+            //if it exists, then copy and write
             char rel_path[MAX_PATH];
             char layer_path[MAX_PATH];
             int ret = get_relative_path_layer(path, rel_path, layer_path);
@@ -932,27 +934,15 @@ int fufs_open_impl(const char* function, ...){
                 const char * container_root = getenv("ContainerRoot");
                 if(strcmp(layer_path,container_root) == 0){
                     if(oflag & O_DIRECTORY){
-                        if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
-                            goto end_folder;
-                        }else{
-                            goto end;
-                        }
+                        goto end_folder;
                     }
-
-                    if(oflag & O_CREAT || oflag & O_WRONLY || oflag & O_RDWR){
-                        goto end_file;
-                    }else{
-                        goto end;
-                    }
+                    goto end_file;
                 }else{
-                    if(is_file_type(path,TYPE_DIR) || oflag & O_DIRECTORY){
+                    if(oflag & O_DIRECTORY || (xstat(path) && is_file_type(path,TYPE_DIR))){
                         goto end_folder;
                     }
 
-                    if(oflag & O_RDONLY){
-                        goto end_file;
-                    }
-
+                    //read only
                     if(oflag == 0){
                         goto end_file;
                     }
@@ -998,7 +988,7 @@ end_folder:
 end_file:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            char dname[MAX_PATH];
+        char dname[MAX_PATH];
         strcpy(dname,path);
         dirname(dname);
         int ret = recurMkdirMode(dname,FOLDER_PERM);
@@ -1227,7 +1217,8 @@ int fufs_unlink_impl(const char* function,...){
                         return -1;
                     }
                     close(fd);
-                    goto end;
+                    //do not goto end, it will remove the real one in other layers.
+                    return 0;
                 }
         }
 
