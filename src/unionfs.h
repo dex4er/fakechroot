@@ -112,6 +112,7 @@ bool lxstat(const char *abs_path);
 bool pathExcluded(const char *abs_path);
 bool pathIncluded(const char *abs_path);
 bool findFileInLayers(const char *file,char *resolved);
+bool findFileInLayersSkip(const char *file, char *resolved, size_t skip);
 bool copyFile2RW(const char *abs_path, char *resolved);
 bool resolveSymlink(const char *link, char *target);
 int recurMkdir(const char *path);

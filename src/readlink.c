@@ -52,7 +52,8 @@ wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK
         }
     }
 
-    if ((linksize = nextcall(readlink)(path, tmp, MAX_PATH-1)) == -1) {
+    INITIAL_SYS(readlink)
+    if((linksize - real_readlink(path, tmp, MAX_PATH - 1)) == -1){
         return -1;
     }
     tmp[linksize] = '\0';

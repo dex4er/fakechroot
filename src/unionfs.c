@@ -602,6 +602,64 @@ bool findFileInLayers(const char *file,char *resolved){
     return false;
 }
 
+bool findFileInLayersSkip(const char *file, char *resolved, size_t skip){
+    size_t num;
+    char ** layers = getLayerPaths(&num);
+    if(num > 0 && num > skip && skip > 0){
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        if(*file == '/'){
+            int ret = get_relative_path_layer(file, rel_path, layer_path);
+            if(ret == 0){
+                for(size_t i = skip; i<num; i++){
+                    char tmp[MAX_PATH];
+                    sprintf(tmp,"%s/%s", layers[i],rel_path);
+                    if(getParentWh(tmp)){
+                        strcpy(resolved,file);
+                        return false;
+                    }
+                    if(xstat(tmp)){
+                        strcpy(resolved,tmp);
+                        return true;
+                    }
+                    if(strcmp(layer_path, layers[i]) == 0){
+                        strcpy(resolved,file);
+                        return false;
+                    }
+                }
+            }else{
+                for(size_t i = skip; i<num; i++){
+                    char tmp[MAX_PATH];
+                    sprintf(tmp,"%s%s",layers[i],file);
+                    if(getParentWh(tmp)){
+                        strcpy(resolved,file);
+                        return false;
+                    }
+                    if(xstat(tmp)){
+                        strcpy(resolved,tmp);
+                        return true;
+                    }
+                }
+            }
+        }else{
+            for(size_t i = skip; i<num; i++){
+                char tmp[MAX_PATH];
+                sprintf(tmp,"%s/%s",layers[i],file);
+                if(getParentWh(tmp)){
+                    strcpy(resolved,file);
+                    return false;
+                }
+                if(xstat(tmp)){
+                    strcpy(resolved,tmp);
+                    return true;
+                }
+            }
+        }
+    }
+    strcpy(resolved,file);
+    return false;
+}
+
 //copy file to rw layers
 bool copyFile2RW(const char *abs_path, char *resolved){
     if(!xstat(abs_path)){
@@ -976,7 +1034,7 @@ int fufs_open_impl(const char* function, ...){
 end_folder:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-        int ret = recurMkdirMode(path,FOLDER_PERM);
+            int ret = recurMkdirMode(path,FOLDER_PERM);
         if(ret != 0){
             log_fatal("creating dirs %s encounters failure with error %s", path, strerror(errno));
             return -1;
@@ -988,7 +1046,7 @@ end_folder:
 end_file:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-        char dname[MAX_PATH];
+            char dname[MAX_PATH];
         strcpy(dname,path);
         dirname(dname);
         int ret = recurMkdirMode(dname,FOLDER_PERM);
@@ -1184,6 +1242,12 @@ int fufs_unlink_impl(const char* function,...){
 
             INITIAL_SYS(creat)
                 if(strcmp(root_path, layer_path) == 0){
+                    //if file does not exist in other lyaers, then we directly delete them
+                    char layers_resolved[MAX_PATH];
+                    if(!findFileInLayersSkip(abs_path, layers_resolved, 1)){
+                        goto end;
+                    }
+
                     char whpath[MAX_PATH];
                     if(strcmp(dname, ".") == 0){
                         sprintf(whpath,"%s/.wh.%s",root_path,bname);
@@ -1273,15 +1337,15 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                     head = tail = entry->data;
                     if(head){
                         while (tail->next != NULL) {
-                            log_debug("item added to dirent_map %s", tail->d_name);
+                            //log_debug("item added to dirent_map %s", tail->d_name);
                             add_item_hmap(dirent_map, tail->d_name, NULL);
                             tail = tail->next;
                         }
-                        log_debug("item added to dirent_map %s", tail->d_name);
+                        //log_debug("item added to dirent_map %s", tail->d_name);
                         add_item_hmap(dirent_map, tail->d_name, NULL);
                     }
                     for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
+                        //log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
                         add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
                     }
                 } else {
@@ -1310,10 +1374,10 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                     }
                     while (tail->next != NULL) {
                         if (!contain_item_hmap(dirent_map, tail->d_name) && !contain_item_hmap(wh_map, tail->d_name)) {
-                            log_debug("item added to dirent_map %s", tail->d_name);
+                            //log_debug("item added to dirent_map %s", tail->d_name);
                             add_item_hmap(dirent_map, tail->d_name, NULL);
                         } else {
-                            log_debug("item deteled from dirent_map %s", tail->d_name);
+                            //log_debug("item deteled from dirent_map %s", tail->d_name);
                             deleteItemInChainByPointer(&head, &tail);
                             if (!tail) {
                                 tail = prew;
@@ -1324,10 +1388,10 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
                         tail = tail->next;
                     }
                     if (!contain_item_hmap(dirent_map, tail->d_name) && !contain_item_hmap(wh_map, tail->d_name)) {
-                        log_debug("item added to dirent_map %s", tail->d_name);
+                        //log_debug("item added to dirent_map %s", tail->d_name);
                         add_item_hmap(dirent_map, tail->d_name, NULL);
                     } else {
-                        log_debug("item deteled from dirent_map %s", tail->d_name);
+                        //log_debug("item deteled from dirent_map %s", tail->d_name);
                         deleteItemInChainByPointer(&head, &tail);
                         if (!tail) {
                             //reset tail to its previous item if tail is NULL
@@ -1338,7 +1402,7 @@ struct dirent_obj* fufs_opendir_impl(const char* function,...){
 
 ends:
                     for (size_t wh_i = 0; wh_i < entry->wh_masked_num; wh_i++) {
-                        log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
+                        //log_debug("item added to wh_map %s", entry->wh_masked[wh_i]);
                         add_item_hmap(wh_map, entry->wh_masked[wh_i], NULL);
                     }
                 }
