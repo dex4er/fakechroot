@@ -1762,7 +1762,18 @@ int fufs_rename_impl(const char* function, ...){
     if(old_ret == 0 && strcmp(old_layer_path,container_root) != 0){
         memset(old_resolved, 0, MAX_PATH);
         copyFile2RW(oldpath, old_resolved);
-        unlink(oldpath);
+        //fake deleting oldpath
+        char * bname = basename(old_resolved);
+        char whpath[MAX_PATH];
+        sprintf(whpath, "%s/%s/.wh.%s", container_root, old_rel_path, bname);
+        if(!xstat(whpath)){
+            int fd = real_creat(whpath,FILE_PERM);
+            if(fd < 0){
+                log_fatal("%s can't create file: %s with error: %s", function, whpath, strerror(errno));
+                return -1;
+            }
+            close(fd);
+        }
     }
 
     char new_rel_path[MAX_PATH];
