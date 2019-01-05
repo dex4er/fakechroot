@@ -42,7 +42,7 @@ wrapper(readlinkat, ssize_t, (int dirfd, const char * path, char * buf, size_t b
         strcpy(proc_exclude_path_dup, proc_exclude_path);
         char *proc_tmp = strtok(proc_exclude_path_dup,":");
         while(proc_tmp != NULL){
-            if(strncpy(proc_tmp,path,strlen(proc_tmp)) == 0){
+            if(strncmp(proc_tmp,path,strlen(proc_tmp)) == 0){
                 linksize = 1;
                 strcpy(buf,"/");
                 return linksize;

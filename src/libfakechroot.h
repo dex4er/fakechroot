@@ -120,7 +120,6 @@
         char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
         rel2absLayer((path), fakechroot_abspath); \
         (path) = fakechroot_abspath; \
-        expand_chroot_rel_path(path); \
     } \
 }
 
@@ -130,7 +129,6 @@
         char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
         rel2absatLayer(dirfd, (path), fakechroot_abspath); \
         (path) = fakechroot_abspath; \
-        expand_chroot_rel_path(path); \
     } \
 }
 

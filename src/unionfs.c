@@ -371,7 +371,11 @@ int get_relative_path_layer(const char *path, char * rel_path, char * layer_path
         for(size_t i = 0; i<num; i++){
             char * ret = strstr(path, layers[i]);
             if(ret){
-                strcpy(rel_path, path + strlen(layers[i]) + 1);
+                if(strlen(path) > strlen(layers[i])){
+                    strcpy(rel_path, path + strlen(layers[i]) + 1);
+                }else{
+                    strcpy(rel_path,".");
+                }
                 strcpy(layer_path, layers[i]);
                 if(layers){
                     for(size_t j =0;j<num;j++){
@@ -381,7 +385,7 @@ int get_relative_path_layer(const char *path, char * rel_path, char * layer_path
                 return 0;
             }
 
-            //check multiple layers both symlink one and real one
+            //check other layers rather than rw one
             char * layer_name = basename(layers[i]);
             if(strcmp(layer_name, "rw") != 0){
                 char newlayer[MAX_PATH];
@@ -394,7 +398,11 @@ int get_relative_path_layer(const char *path, char * rel_path, char * layer_path
 
                 char * ret = strstr(path, newlayer);
                 if(ret){
-                    strcpy(rel_path, path + strlen(newlayer) + 1);
+                    if(strlen(path) > strlen(newlayer)){
+                        strcpy(rel_path, path + strlen(newlayer) + 1);
+                    }else{
+                        strcpy(rel_path,".");
+                    }
                     strcpy(layer_path, newlayer);
                     if(layers){
                         for(size_t j =0;j<num;j++){
@@ -555,7 +563,11 @@ bool findFileInLayers(const char *file,char *resolved){
             if(ret == 0){
                 for(size_t i = 0; i<num; i++){
                     char tmp[MAX_PATH];
-                    sprintf(tmp,"%s/%s", layers[i],rel_path);
+                    if(strcmp(rel_path, ".") == 0){
+                        strcpy(tmp, layers[i]);
+                    }else{
+                        sprintf(tmp,"%s/%s", layers[i],rel_path);
+                    }
                     if(getParentWh(tmp)){
                         strcpy(resolved,file);
                         return false;
@@ -1046,7 +1058,7 @@ end_folder:
 end_file:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-            char dname[MAX_PATH];
+        char dname[MAX_PATH];
         strcpy(dname,path);
         dirname(dname);
         int ret = recurMkdirMode(dname,FOLDER_PERM);
@@ -1065,7 +1077,7 @@ end:
         return RETURN_SYS(open,(path,oflag,mode))
     }
     if(strcmp(function,"openat64") == 0){
-        return RETURN_SYS(openat64,(dirfd, path,oflag,mode))
+        return RETURN_SYS(openat64,(dirfd,path,oflag,mode))
     }
     if(strcmp(function,"open64") == 0){
         return RETURN_SYS(open64,(path,oflag,mode))
