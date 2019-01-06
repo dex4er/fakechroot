@@ -124,8 +124,7 @@ void mem_priv_check_v(int n, ...){
 
         if(!mem_check_v(containerid, pinfo.pname, n, paths)){
             for(int i=0;i<n;i++){
-                sprintf(buff,paths[i]);
-                sprintf(buff+strlen(buff),";");
+                sprintf(buff+strlen(buff),"%s;",paths[i]);
             }
             log_fatal("[Program: %s] in [Container: %s] with [RootDir: %s] on [Paths: %s] is not allowed!", pinfo.pname,containerid,containerroot, buff);
             exit(EXIT_FAILURE);
@@ -256,20 +255,6 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
                 }
 
                 //nix = NULL not settings for program in allow_list
-                //test
-                char buff[PATH_DATA_SIZE];
-                for(int i=0; i<n; i++){
-                    sprintf(buff,paths[i]);
-                    sprintf(buff+strlen(buff),";");
-                }
-                sprintf(buff+strlen(buff),"-->");
-                for(int i=0; i<n; i++){
-                    sprintf(buff+strlen(buff), rt_paths[i]);
-                    sprintf(buff+strlen(buff),";");
-                }
-                log_debug("nix = NULL, %s b_rt: %d b_mt: %d", buff,b_rt,b_mt);
-                //test
-                //
                 //nix = NULL ends
             }else{
                 if(v_all){
@@ -309,21 +294,6 @@ bool rt_mem_con_check(const char* container, const char* conRoot, const char* pn
                         }
                     }
                 }
-
-                //test
-                char buff[PATH_DATA_SIZE];
-                for(int i=0; i<n; i++){
-                    sprintf(buff,paths[i]);
-                    sprintf(buff+strlen(buff),";");
-                }
-                sprintf(buff+strlen(buff),"-->");
-                for(int i=0; i<n; i++){
-                    sprintf(buff+strlen(buff), rt_paths[i]);
-                    sprintf(buff+strlen(buff),";");
-                }
-                log_debug("nix != NULL, %s b_rt: %d b_mt %d", buff,b_rt,b_mt);
-                //test
-
             }
         } //map value ends
     }
@@ -373,8 +343,7 @@ bool rt_mem_check(int n, char** rt_paths, ...){
 
         if(!rt_mem_con_check(containerid, containerroot, pinfo.pname, n, paths, rt_paths)){
             for(int i=0;i<n;i++){
-                sprintf(buff,paths[i]);
-                sprintf(buff+strlen(buff),";");
+                sprintf(buff+strlen(buff),"%s;",paths[i]);
             }
             log_fatal("[Program: %s] in [Container: %s] with [RootDir: %s] on [Paths: %s] is not allowed!", pinfo.pname,containerid,containerroot, buff);
             return false;

@@ -625,7 +625,11 @@ bool findFileInLayersSkip(const char *file, char *resolved, size_t skip){
             if(ret == 0){
                 for(size_t i = skip; i<num; i++){
                     char tmp[MAX_PATH];
-                    sprintf(tmp,"%s/%s", layers[i],rel_path);
+                    if (strcmp(rel_path,".") == 0) {
+                        strcpy(tmp, layers[i]);
+                    } else {
+                        sprintf(tmp,"%s/%s", layers[i],rel_path);
+                    }
                     if(getParentWh(tmp)){
                         strcpy(resolved,file);
                         return false;
