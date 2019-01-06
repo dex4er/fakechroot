@@ -97,7 +97,7 @@ void deleteItemInChainByPointer(struct dirent_obj** darr, struct dirent_obj** cu
 void addItemToHead(struct dirent_obj** darr, struct dirent* item);
 struct dirent * popItemFromHead(struct dirent_obj ** darr);
 void clearItems(struct dirent_obj** darr);
-char *struct2hash(void* pointer,enum hash_type type);
+//char *struct2hash(void* pointer,enum hash_type type);
 int get_abs_path(const char * path, char * abs_path, bool force);
 int get_relative_path(const char * path, char * rel_path);
 int get_abs_path_base(const char *base, const char *path, char * abs_path, bool force);

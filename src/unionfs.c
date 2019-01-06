@@ -292,6 +292,7 @@ void clearItems(struct dirent_obj** darr)
     darr = NULL;
 }
 
+/**
 char* struct2hash(void* pointer, enum hash_type type)
 {
     if (!pointer) {
@@ -341,6 +342,7 @@ char* struct2hash(void* pointer, enum hash_type type)
     }
     return NULL;
 }
+**/
 
 int get_relative_path(const char* path, char* rel_path)
 {

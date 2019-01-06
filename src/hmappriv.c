@@ -43,7 +43,9 @@ void get_process_info(struct ProcessInfo* pinfo){
     if(fp == NULL){
         log_fatal("can't open /proc/%d/status",pinfo->pid);
     }
-    fscanf(fp,"Name:%s",pinfo->pname);
+    if(!fscanf(fp,"Name:%s",pinfo->pname)){
+        log_fatal("can't read info from file: /proc/%d/status",pinfo->pid);
+    }
     fclose(fp);
 }
 
