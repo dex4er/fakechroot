@@ -293,56 +293,56 @@ void clearItems(struct dirent_obj** darr)
 }
 
 /**
-char* struct2hash(void* pointer, enum hash_type type)
-{
-    if (!pointer) {
-        return NULL;
-    }
-    unsigned char ubytes[16];
-    char salt[20];
-    const char* const salts = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  char* struct2hash(void* pointer, enum hash_type type)
+  {
+  if (!pointer) {
+  return NULL;
+  }
+  unsigned char ubytes[16];
+  char salt[20];
+  const char* const salts = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    //retrieve 16 unpredicable bytes form the os
-    if (getentropy(ubytes, 16)) {
-        log_fatal("can't retrieve random bytes from os");
-        return NULL;
-    }
-    salt[0] = '$';
-    if (type == md5) {
-        salt[1] = '1';
-    } else if (type == sha256) {
-        salt[1] = '5';
-    } else {
-        log_fatal("hash type error, it should be either 'md5' or 'sha256'");
-        return NULL;
-    }
-    salt[2] = '$';
-    for (int i = 0; i < 16; i++) {
-        salt[3 + i] = salts[ubytes[i] & 0x3f];
-    }
-    salt[19] = '\0';
-
-    char* hash = crypt((char*)pointer, salt);
-    if (!hash || hash[0] == '*') {
-        log_fatal("can't hash the struct");
-        return NULL;
-    }
-    if (type == md5) {
-        log_debug("md5 %s", hash);
-        char* value = (char*)malloc(sizeof(char) * 23);
-        strcpy(value, hash + 12);
-        return value;
-    } else if (type == sha256) {
-        log_debug("sha256 %s", hash);
-        char* value = (char*)malloc(sizeof(char) * 44);
-        strcpy(value, hash + 20);
-        return value;
-    } else {
-        return NULL;
-    }
-    return NULL;
+//retrieve 16 unpredicable bytes form the os
+if (getentropy(ubytes, 16)) {
+log_fatal("can't retrieve random bytes from os");
+return NULL;
 }
-**/
+salt[0] = '$';
+if (type == md5) {
+salt[1] = '1';
+} else if (type == sha256) {
+salt[1] = '5';
+} else {
+log_fatal("hash type error, it should be either 'md5' or 'sha256'");
+return NULL;
+}
+salt[2] = '$';
+for (int i = 0; i < 16; i++) {
+salt[3 + i] = salts[ubytes[i] & 0x3f];
+}
+salt[19] = '\0';
+
+char* hash = crypt((char*)pointer, salt);
+if (!hash || hash[0] == '*') {
+log_fatal("can't hash the struct");
+return NULL;
+}
+if (type == md5) {
+log_debug("md5 %s", hash);
+char* value = (char*)malloc(sizeof(char) * 23);
+strcpy(value, hash + 12);
+return value;
+} else if (type == sha256) {
+log_debug("sha256 %s", hash);
+char* value = (char*)malloc(sizeof(char) * 44);
+strcpy(value, hash + 20);
+return value;
+} else {
+return NULL;
+}
+return NULL;
+}
+ **/
 
 int get_relative_path(const char* path, char* rel_path)
 {
@@ -470,6 +470,26 @@ int get_abs_path_base(const char *base, const char *path, char * abs_path, bool 
         log_fatal("base should not be NULL");
         return -1;
     }
+}
+
+int narrow_path(const char *path, char *resolved){
+    if(path && *path == '/'){
+        char rel_path[MAX_PATH];
+        char layer_path[MAX_PATH];
+        int ret = get_relative_path_layer(path, rel_path, layer_path);
+        if(ret == 0){
+            if(strcmp(rel_path, ".") == 0){
+                strcpy(resolved,"/");
+            }else{
+                sprintf(resolved,"/%s",rel_path);
+            }
+            return 0;
+        }
+        strcpy(resolved, path);
+        return 0;
+    }
+    strcpy(resolved, path);
+    return -1;
 }
 
 int get_relative_path_base(const char *base, const char *path, char * rel_path){
@@ -1064,7 +1084,7 @@ end_folder:
 end_file:
     if(!xstat(path)){
         INITIAL_SYS(mkdir)
-        char dname[MAX_PATH];
+            char dname[MAX_PATH];
         strcpy(dname,path);
         dirname(dname);
         int ret = recurMkdirMode(dname,FOLDER_PERM);
@@ -1632,9 +1652,20 @@ int fufs_creat_impl(const char *function,...){
 
 int fufs_chmod_impl(const char* function, ...){
     va_list args;
+    int fd;
+    int flag;
+    mode_t mode;
+    const char *path;
     va_start(args, function);
-    const char * path = va_arg(args,const char *);
-    mode_t mode = va_arg(args, mode_t);
+    if(strcmp(function,"fchmodat") == 0){
+        fd = va_arg(args, int);
+        path = va_arg(args, const char *);
+        mode = va_arg(args, mode_t);
+        flag = va_arg(args, int);
+    }else{
+        path = va_arg(args,const char *);
+        mode = va_arg(args, mode_t);
+    }
     va_end(args);
 
     char rel_path[MAX_PATH];
@@ -1644,17 +1675,30 @@ int fufs_chmod_impl(const char* function, ...){
         errno = EACCES;
         return -1;
     }
+
     INITIAL_SYS(chmod)
-        const char * container_root = getenv("ContainerRoot");
+        INITIAL_SYS(lchmod)
+        INITIAL_SYS(fchmodat)
+
+        char resolved[MAX_PATH];
+    const char * container_root = getenv("ContainerRoot");
     if(strcmp(layer_path,container_root) == 0){
-        return RETURN_SYS(chmod,(path, mode))
+        strcpy(resolved, path);
     }else{
-        char destpath[MAX_PATH];
-        if(!copyFile2RW(path, destpath)){
-            log_fatal("copy from %s to %s encounters error", path, destpath);
+        if(!copyFile2RW(path, resolved)){
+            log_fatal("copy from %s to %s encounters error", path, resolved);
             return -1;
         }
-        return RETURN_SYS(chmod,(destpath, mode))
+    }
+
+    if(strcmp(function, "chmod") == 0){
+        return RETURN_SYS(chmod,(resolved, mode))
+    }
+    if(strcmp(function, "lchmod") == 0){
+        return RETURN_SYS(lchmod,(resolved, mode))
+    }
+    if(strcmp(function, "fchmodat") == 0){
+        return RETURN_SYS(fchmodat,(fd, resolved, mode, flag))
     }
 }
 

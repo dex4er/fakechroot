@@ -24,6 +24,8 @@
 #include <stddef.h>
 #include "libfakechroot.h"
 #include "unionfs.h"
+#include "dedotdot.h"
+#include <libgen.h>
 
 wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK_TYPE_ARG3(bufsiz)))
 {
@@ -53,40 +55,46 @@ wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK
     }
 
     INITIAL_SYS(readlink)
-    if((linksize = real_readlink(path, tmp, MAX_PATH - 1)) == -1){
-        return -1;
-    }
+        if((linksize = real_readlink(path, tmp, MAX_PATH - 1)) == -1){
+            return -1;
+        }
     tmp[linksize] = '\0';
 
-    char resolved[MAX_PATH];
-    if(pathExcluded(tmp)){
-        strncpy(buf, tmp, linksize);
-    }else if(findFileInLayers(tmp,resolved)){
-        linksize = strlen(resolved);
-        if(linksize > bufsiz){
-            linksize = bufsiz;
-        }
-        strncpy(buf,resolved,linksize);
-    }else{
-        const char *container_root = getenv("ContainerRoot");
-        char resolved_tmp[MAX_PATH];
-        if(container_root){
-            if(*tmp == '/'){
-                sprintf(resolved_tmp, "%s%s",container_root, tmp);
-            }else{
-                sprintf(resolved_tmp,"%s/%s", container_root, tmp);
-            }
-            linksize = strlen(resolved_tmp);
+    if(*tmp == '/'){
+        char resolved[MAX_PATH];
+        if(pathExcluded(tmp)){
+            strncpy(buf, tmp, linksize);
+        }else if(findFileInLayers(tmp,resolved)){
+            char resolved_narrow[MAX_PATH];
+            narrow_path(resolved, resolved_narrow);
+            linksize = strlen(resolved_narrow);
             if(linksize > bufsiz){
                 linksize = bufsiz;
             }
-            strncpy(buf, resolved_tmp, linksize);
+            strncpy(buf,resolved_narrow,linksize);
         }else{
-            errno = ENOENT;
-            return -1;
+            const char *container_root = getenv("ContainerRoot");
+            char resolved_tmp[MAX_PATH];
+            char resolved_narrow[MAX_PATH];
+            if(container_root){
+                if(*tmp == '/'){
+                    sprintf(resolved_tmp, "%s%s",container_root, tmp);
+                }
+                narrow_path(resolved_tmp, resolved_narrow);
+                linksize = strlen(resolved_narrow);
+                if(linksize > bufsiz){
+                    linksize = bufsiz;
+                }
+                strncpy(buf, resolved_narrow, linksize);
+            }else{
+                errno = ENOENT;
+                return -1;
+            }
         }
+        buf[linksize] = '\0';
+    }else{
+        strcpy(buf, tmp);
     }
-    buf[linksize] = '\0';
 
     debug("readlink resolved: %s", buf);
     return linksize;

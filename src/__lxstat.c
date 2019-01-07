@@ -32,6 +32,7 @@
 
 #include "libfakechroot.h"
 #include "readlink.h"
+#include "unionfs.h"
 
 
 wrapper(__lxstat, int, (int ver, const char * filename, struct stat * buf))

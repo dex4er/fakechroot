@@ -59,6 +59,8 @@ enum filetype{TYPE_FILE,TYPE_DIR,TYPE_LINK,TYPE_SOCK};
     DECLARE_SYS(creat64,int,(const char *path, mode_t mode))
     DECLARE_SYS(creat,int,(const char *path, mode_t mode))
     DECLARE_SYS(chmod,int,(const char *path, mode_t mode))
+    DECLARE_SYS(lchmod,int,(const char *path, mode_t mode))
+    DECLARE_SYS(fchmodat,int,(int fd, const char *path, mode_t mode, int flag))
     DECLARE_SYS(rmdir,int,(const char *path))
     DECLARE_SYS(rename,int,(const char * oldpath, const char * newpath))
     DECLARE_SYS(renameat,int,(int olddirfd, const char * oldpath, int newdirfd,const char * newpath))
@@ -103,6 +105,7 @@ int get_relative_path(const char * path, char * rel_path);
 int get_abs_path_base(const char *base, const char *path, char * abs_path, bool force);
 int get_relative_path_base(const char *base, const char *path, char * rel_path);
 int get_relative_path_layer(const char *path, char * rel_path, char * layer_path);
+int narrow_path(const char *path, char *resolved);
 int append_to_diff(const char* content);
 bool is_file_type(const char *path,enum filetype t);
 bool transWh2path(const char *name, const char *pre, char *tname);

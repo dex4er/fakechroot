@@ -25,13 +25,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
-
+#include "unionfs.h"
 
 wrapper(lchmod, int, (const char * path, mode_t mode))
 {
     debug("lchmod(\"%s\", 0%o)", path, mode);
     expand_chroot_path(path);
-    return nextcall(lchmod)(path, mode);
+    return WRAPPER_FUFS(chmod, lchmod, path, mode)
 }
 
 #else

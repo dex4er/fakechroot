@@ -27,6 +27,8 @@
 #include <stddef.h>
 #include "libfakechroot.h"
 #include "unionfs.h"
+#include <libgen.h>
+#include "dedotdot.h"
 
 wrapper(readlinkat, ssize_t, (int dirfd, const char * path, char * buf, size_t bufsiz))
 {
@@ -56,35 +58,43 @@ wrapper(readlinkat, ssize_t, (int dirfd, const char * path, char * buf, size_t b
     }
     tmp[linksize] = '\0';
 
-    char resolved[MAX_PATH];
-    if(pathExcluded(tmp)){
-        strncpy(buf, tmp, linksize);
-    }else if(findFileInLayers(tmp,resolved)){
-        linksize = strlen(resolved);
-        if(linksize > bufsiz){
-            linksize = bufsiz;
-        }
-        strncpy(buf,resolved,linksize);
-    }else{
-        const char *container_root = getenv("ContainerRoot");
-        char resolved_tmp[MAX_PATH];
-        if(container_root){
-            if(*tmp == '/'){
-                sprintf(resolved_tmp, "%s%s",container_root, tmp);
-            }else{
-                sprintf(resolved_tmp,"%s/%s", container_root, tmp);
-            }
-            linksize = strlen(resolved_tmp);
+    if(*tmp == '/'){
+        char resolved[MAX_PATH];
+        if(pathExcluded(tmp)){
+            strncpy(buf, tmp, linksize);
+        }else if(findFileInLayers(tmp,resolved)){
+            char resolved_narrow[MAX_PATH];
+            narrow_path(resolved, resolved_narrow);
+            linksize = strlen(resolved_narrow);
             if(linksize > bufsiz){
                 linksize = bufsiz;
             }
-            strncpy(buf, resolved_tmp, linksize);
+            strncpy(buf,resolved_narrow,linksize);
         }else{
-            errno = ENOENT;
-            return -1;
+            const char *container_root = getenv("ContainerRoot");
+            char resolved_tmp[MAX_PATH];
+            char resolved_narrow[MAX_PATH];
+            if(container_root){
+                if(*tmp == '/'){
+                    sprintf(resolved_tmp, "%s%s",container_root, tmp);
+                }
+                narrow_path(resolved_tmp, resolved_narrow);
+                linksize = strlen(resolved_narrow);
+                if(linksize > bufsiz){
+                    linksize = bufsiz;
+                }
+                strncpy(buf, resolved_narrow, linksize);
+            }else{
+                errno = ENOENT;
+                return -1;
+            }
         }
+        buf[linksize] = '\0';
+    }else{
+        strcpy(buf, tmp);
     }
-    buf[linksize] = '\0';
+
+    debug("readlinkat resolved: %s", buf);
     return linksize;
 }
 /**

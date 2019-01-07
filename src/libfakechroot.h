@@ -105,7 +105,7 @@
 #define expand_chroot_rel_path(path) \
 { \
     if ((path) != NULL && *((char *)(path)) == '/') { \
-        const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
+        const char *fakechroot_base = getenv("ContainerRoot"); \
         if (fakechroot_base != NULL ) { \
             char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
             snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
@@ -131,46 +131,6 @@
         (path) = fakechroot_abspath; \
     } \
 }
-
-/**
-#define expand_chroot_rel_path(path) \
-{ \
-if (!fakechroot_localdir(path)) { \
-if ((path) != NULL && *((char *)(path)) == '/') { \
-const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
-if (fakechroot_base != NULL ) { \
-char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
-snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
-(path) = fakechroot_buf; \
-} \
-} \
-} \
-}
-
-#define expand_chroot_path(path) \
-{ \
-if (!fakechroot_localdir(path)) { \
-if ((path) != NULL) { \
-char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
-rel2absLayer((path), fakechroot_abspath); \
-(path) = fakechroot_abspath; \
-expand_chroot_rel_path(path); \
-} \
-} \
-}
-
-#define expand_chroot_path_at(dirfd, path) \
-{ \
-if (!fakechroot_localdir(path)) { \
-if ((path) != NULL) { \
-char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
-rel2absatLayer(dirfd, (path), fakechroot_abspath); \
-(path) = fakechroot_abspath; \
-expand_chroot_rel_path(path); \
-} \
-} \
-}
- **/
 
 //declare the fakechroot_wrapper struct for the function
 #define wrapper_decl_proto(function) \
