@@ -1593,9 +1593,9 @@ int fufs_symlink_impl(const char *function, ...){
     }
 
     INITIAL_SYS(symlinkat)
-        INITIAL_SYS(symlink)
+    INITIAL_SYS(symlink)
 
-        char dir[MAX_PATH];
+    char dir[MAX_PATH];
     strcpy(dir, resolved);
     dirname(dir);
     //parent folder does not exist
@@ -1677,10 +1677,10 @@ int fufs_chmod_impl(const char* function, ...){
     }
 
     INITIAL_SYS(chmod)
-        INITIAL_SYS(lchmod)
-        INITIAL_SYS(fchmodat)
+    INITIAL_SYS(lchmod)
+    INITIAL_SYS(fchmodat)
 
-        char resolved[MAX_PATH];
+    char resolved[MAX_PATH];
     const char * container_root = getenv("ContainerRoot");
     if(strcmp(layer_path,container_root) == 0){
         strcpy(resolved, path);
