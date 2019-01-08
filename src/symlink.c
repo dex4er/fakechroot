@@ -38,10 +38,20 @@ wrapper(symlink, int, (const char * oldpath, const char * newpath))
         char layer_path[MAX_PATH];
         int ret = get_relative_path_layer(oldpath, rel_path, layer_path);
         if(ret == 0){
-            strcpy(old_resolved, oldpath);
+            char abs_oldpath[MAX_PATH];
+            sprintf(abs_oldpath,"/%s", rel_path);
+            if(!lxstat(abs_oldpath)){
+                strcpy(old_resolved, abs_oldpath);
+            }else{
+                strcpy(old_resolved, oldpath);
+            }
         }else{
-            const char * container_root = getenv("ContainerRoot");
-            sprintf(old_resolved, "%s%s", container_root, oldpath);
+            if(!lxstat(oldpath)){
+                strcpy(old_resolved, oldpath);
+            }else{
+                const char * container_root = getenv("ContainerRoot");
+                sprintf(old_resolved, "%s%s", container_root, oldpath);
+            }
         }
     }else{
         strcpy(old_resolved, oldpath);
