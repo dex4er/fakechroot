@@ -50,7 +50,7 @@ wrapper(chroot, int, (const char * path))
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
     int status;
     size_t len;
-    char cwd[FAKECHROOT_PATH_MAX];
+    char cwd[FAKECHROOT_PATH_MAX - 1];
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
     struct STAT_T sb;
 
@@ -66,7 +66,7 @@ wrapper(chroot, int, (const char * path))
         return -1;
     }
 
-    if (getcwd_real(cwd, FAKECHROOT_PATH_MAX) == NULL) {
+    if (getcwd_real(cwd, FAKECHROOT_PATH_MAX - 1) == NULL) {
         __set_errno(EIO);
         return -1;
     }

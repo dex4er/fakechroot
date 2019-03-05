@@ -39,7 +39,7 @@
 LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
 {
     int cwdfd = 0;
-    char cwd[FAKECHROOT_PATH_MAX];
+    char cwd[FAKECHROOT_PATH_MAX - 1];
 
     debug("rel2absat(%d, \"%s\", &resolved)", dirfd, name);
 
@@ -56,7 +56,7 @@ LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
     if (*name == '/') {
         strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
     } else if(dirfd == AT_FDCWD) {
-        if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
+        if (! getcwd(cwd, FAKECHROOT_PATH_MAX - 1)) {
             goto error;
         }
         snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
@@ -68,7 +68,7 @@ LOCAL char * rel2absat(int dirfd, const char * name, char * resolved)
         if (fchdir(dirfd) == -1) {
             goto error;
         }
-        if (! getcwd(cwd, FAKECHROOT_PATH_MAX)) {
+        if (! getcwd(cwd, FAKECHROOT_PATH_MAX - 1)) {
             goto error;
         }
         if (fchdir(cwdfd) == -1) {

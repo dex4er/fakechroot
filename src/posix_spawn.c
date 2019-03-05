@@ -69,7 +69,7 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
 
     debug("posix_spawn(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp ? envp[0] : "(null)");
 
-    strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
+    strncpy(argv0, filename, FAKECHROOT_PATH_MAX - 1);
 
     /* Substitute command only if FAKECHROOT_CMD_ORIG is not set. Unset variable if it is empty. */
     cmdorig = getenv("FAKECHROOT_CMD_ORIG");

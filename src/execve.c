@@ -65,7 +65,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
 
     debug("execve(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp ? envp[0] : "(null)");
 
-    strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
+    strncpy(argv0, filename, FAKECHROOT_PATH_MAX - 1);
 
     /* Substitute command only if FAKECHROOT_CMD_ORIG is not set. Unset variable if it is empty. */
     cmdorig = getenv("FAKECHROOT_CMD_ORIG");
