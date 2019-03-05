@@ -28,6 +28,8 @@
 
 wrapper(inotify_add_watch, int, (int fd, const char * pathname, uint32_t mask))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("inotify_add_watch(%d, \"%s\", %d)", fd, pathname, mask);
     expand_chroot_path(pathname);
     return nextcall(inotify_add_watch)(fd, pathname, mask);

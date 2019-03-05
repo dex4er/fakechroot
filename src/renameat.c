@@ -28,6 +28,8 @@
 
 wrapper(renameat, int, (int olddirfd, const char * oldpath, int newdirfd, const char * newpath))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     char tmp[FAKECHROOT_PATH_MAX];
     debug("renameat(%d, \"%s\", %d, \"%s\")", olddirfd, oldpath, newdirfd, newpath);
     expand_chroot_path_at(olddirfd, oldpath);

@@ -30,6 +30,8 @@
 
 wrapper(fchownat, int, (int dirfd, const char * path, uid_t owner, gid_t group, int flag))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("fchownat(%d, \"%s\", %d, %d, %d)", dirfd, path, owner, group, flag);
     expand_chroot_path_at(dirfd, path);
     return nextcall(fchownat)(dirfd, path, owner, group, flag);

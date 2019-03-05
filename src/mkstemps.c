@@ -37,6 +37,8 @@ wrapper(mkstemps, int, (char * template, int suffixlen))
     char *xxxsrc, *xxxdst;
     int xxxlen = 0;
     int fd;
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("mkstemps(\"%s\", %d)", template, suffixlen);
 

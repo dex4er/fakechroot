@@ -47,7 +47,10 @@ wrapper(lstat, int, (int ver, const char * filename, struct stat * buf))
 /* Prevent looping with realpath() */
 LOCAL int lstat_rel(const char * file_name, struct stat * buf)
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX], tmp[FAKECHROOT_PATH_MAX];
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+    char *fakechroot_path;
+    char tmp[FAKECHROOT_PATH_MAX];
     int retval;
     READLINK_TYPE_RETURN status;
     const char *orig;

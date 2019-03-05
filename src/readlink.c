@@ -27,8 +27,12 @@
 
 wrapper(readlink, READLINK_TYPE_RETURN, (const char * path, char * buf, READLINK_TYPE_ARG3(bufsiz)))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     int linksize;
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
+
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("readlink(\"%s\", &buf, %zd)", path, bufsiz);

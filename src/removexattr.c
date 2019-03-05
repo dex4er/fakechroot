@@ -27,6 +27,8 @@
 
 wrapper(removexattr, int, (const char * path, const char * name))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("removexattr(\"%s\", \"%s\")", path, name);
     expand_chroot_path(path);
     return nextcall(removexattr)(path, name);

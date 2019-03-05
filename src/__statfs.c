@@ -28,6 +28,8 @@
 
 wrapper(__statfs, int, (const char * path, struct statfs * buf))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("__statfs(\"%s\", &buf)", path);
     expand_chroot_path(path);
     return nextcall(__statfs)(path, buf);

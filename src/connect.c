@@ -44,6 +44,8 @@
 
 wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     struct sockaddr_un *addr_un = (struct sockaddr_un *)SOCKADDR_UN(addr);
     char tmp[FAKECHROOT_PATH_MAX];
 

@@ -108,7 +108,6 @@
             if ((path) != NULL && *((char *)(path)) == '/') { \
                 const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
                 if (fakechroot_base != NULL ) { \
-                    char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
                     snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
                     (path) = fakechroot_buf; \
                 } \
@@ -120,7 +119,6 @@
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL) { \
-                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
                 rel2abs((path), fakechroot_abspath); \
                 (path) = fakechroot_abspath; \
                 expand_chroot_rel_path(path); \
@@ -132,7 +130,6 @@
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL) { \
-                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
                 rel2absat(dirfd, (path), fakechroot_abspath); \
                 (path) = fakechroot_abspath; \
                 expand_chroot_rel_path(path); \

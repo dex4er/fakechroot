@@ -25,6 +25,8 @@
 
 wrapper(tmpnam, char *, (char * s))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     char *ptr, *ptr2;
 
     debug("tmpnam(&s)");

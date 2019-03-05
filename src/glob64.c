@@ -29,6 +29,8 @@
 
 wrapper(glob64, int, (const char * pattern, int flags, int (* errfunc) (const char *, int), glob64_t * pglob))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     int rc, i;
 
     debug("glob64(\"%s\", %d, &errfunc, &pglob)", pattern, flags);

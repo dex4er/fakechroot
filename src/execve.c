@@ -37,12 +37,14 @@
 
 wrapper(execve, int, (const char * filename, char * const argv [], char * const envp []))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     int status;
     int file;
     int is_base_orig = 0;
     char hashbang[FAKECHROOT_PATH_MAX];
     size_t argv_max = 1024;
-    const char **newargv = alloca(argv_max * sizeof (const char *));
     char **newenvp, **ep;
     char *key, *env;
     char tmpkey[1024], *tp;
@@ -57,9 +59,10 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     size_t sizeenvp;
     char c;
 
+    const char **newargv = alloca(argv_max * sizeof (const char *));
+
     char *elfloader = getenv("FAKECHROOT_ELFLOADER");
     char *elfloader_opt_argv0 = getenv("FAKECHROOT_ELFLOADER_OPT_ARGV0");
-
     if (elfloader && !*elfloader) elfloader = NULL;
     if (elfloader_opt_argv0 && !*elfloader_opt_argv0) elfloader_opt_argv0 = NULL;
 

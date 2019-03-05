@@ -29,6 +29,8 @@
 
 wrapper(statfs64, int, (const char * path, struct statfs64 * buf))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("statfs64(\"%s\", &buf)", path);
     expand_chroot_path(path);
     return nextcall(statfs64)(path, buf);

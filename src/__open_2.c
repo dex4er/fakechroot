@@ -28,6 +28,8 @@
 /* Internal libc function */
 wrapper(__open_2, int, (const char * pathname, int flags))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("__open_2(\"%s\", %d)", pathname, flags);
     expand_chroot_path(pathname);
     return nextcall(__open_2)(pathname, flags);

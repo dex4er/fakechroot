@@ -28,6 +28,8 @@
 
 wrapper(statvfs, int, (const char * path, struct statvfs * buf))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("statvfs(\"%s\", &buf)", path);
     expand_chroot_path(path);
     return nextcall(statvfs)(path, buf);

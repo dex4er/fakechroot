@@ -29,6 +29,8 @@
 
 wrapper(scandir64, int, (const char * dir, struct dirent64 *** namelist, SCANDIR64_TYPE_ARG3(filter), SCANDIR64_TYPE_ARG4(compar)))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("scandir64(\"%s\", &namelist, &filter, &compar)", dir);
     expand_chroot_path(dir);
     return nextcall(scandir64)(dir, namelist, filter, compar);

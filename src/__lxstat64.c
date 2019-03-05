@@ -52,6 +52,9 @@ wrapper(__lxstat64, int, (int ver, const char * filename, struct stat64 * buf))
 /* Prevent looping with realpath() */
 LOCAL int __lxstat64_rel(int ver, const char * filename, struct stat64 * buf)
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     char tmp[FAKECHROOT_PATH_MAX];
     int retval;
     READLINK_TYPE_RETURN linksize;

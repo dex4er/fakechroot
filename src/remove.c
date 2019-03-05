@@ -25,6 +25,8 @@
 
 wrapper(remove, int, (const char * pathname))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("remove(\"%s\")", pathname);
     expand_chroot_path(pathname);
     return nextcall(remove)(pathname);

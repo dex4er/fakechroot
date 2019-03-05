@@ -33,6 +33,8 @@ wrapper(readlinkat, ssize_t, (int dirfd, const char * path, char * buf, size_t b
     int linksize;
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("readlinkat(%d, \"%s\", &buf, %zd)", dirfd, path, bufsiz);
     expand_chroot_path_at(dirfd, path);

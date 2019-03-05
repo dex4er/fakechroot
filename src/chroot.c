@@ -46,13 +46,17 @@
 
 wrapper(chroot, int, (const char * path))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     char *ld_library_path, *separator, *new_ld_library_path;
-    const char *fakechroot_base = getenv("FAKECHROOT_BASE");
     int status;
     size_t len;
     char cwd[FAKECHROOT_PATH_MAX - 1];
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
     struct STAT_T sb;
+
+    const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("chroot(\"%s\")", path);
 

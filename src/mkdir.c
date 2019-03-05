@@ -27,6 +27,8 @@
 
 wrapper(mkdir, int, (const char *pathname, mode_t mode))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("mkdir(\"%s\", 0%o)", pathname, mode);
     expand_chroot_path(pathname);
     return nextcall(mkdir)(pathname, mode);

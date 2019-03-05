@@ -30,6 +30,9 @@
 /* Internal libc function */
 wrapper(__open, int, (const char * pathname, int flags, ...))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     int mode = 0;
 
     va_list arg;

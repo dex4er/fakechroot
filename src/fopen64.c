@@ -29,6 +29,8 @@
 
 wrapper(fopen64, FILE *, (const char * path, const char * mode))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("fopen64(\"%s\", \"%s\")", path, mode);
     expand_chroot_path(path);
     return nextcall(fopen64)(path, mode);

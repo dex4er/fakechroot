@@ -27,7 +27,11 @@
 
 wrapper(chdir, int, (const char * path))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     char cwd[FAKECHROOT_PATH_MAX];
+
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("chdir(\"%s\")", path);

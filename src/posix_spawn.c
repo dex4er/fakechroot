@@ -36,11 +36,14 @@
 #include "readlink.h"
 
 
-wrapper(posix_spawn, int, (pid_t* pid, const char * filename, 
+wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
         const posix_spawn_file_actions_t* file_actions,
         const posix_spawnattr_t* attrp, char* const argv[],
         char * const envp []))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     int status;
     int file;
     int is_base_orig = 0;
