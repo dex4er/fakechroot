@@ -1,3 +1,5 @@
+# THANKS
+
 The fakechroot project was started as dirty hack because I've got an access
 to some system without root privileges. I really wanted to install additional
 software and I imagined that no access to the root account should be no
