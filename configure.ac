@@ -253,6 +253,7 @@ AC_CHECK_FUNCS(m4_normalize([
     removexattr
     rename
     renameat
+    renameat2
     revoke
     rmdir
     scandir

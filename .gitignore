@@ -69,6 +69,7 @@ GTAGS
 
 # Editors
 *~
+*.orig
 /.autotools
 /.cproject
 /.project

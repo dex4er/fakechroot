@@ -136,6 +136,7 @@ libfakechroot_la_SOURCES = \
     removexattr.c \
     rename.c \
     renameat.c \
+    renameat2.c \
     revoke.c \
     rmdir.c \
     rpl_lstat.c \

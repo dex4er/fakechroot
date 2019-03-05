@@ -3,6 +3,8 @@
 UNRELEASED
 
 * The `fts64_*` functions were added: glibc supports them since 2.23.
+* The `renameat2`(2) function were added: glibc supports it since 2.28
+  and `mv` command from coreutils 8.30 uses it.
 * The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
   shell.
 
