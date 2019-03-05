@@ -79,6 +79,13 @@ if [ "$fakechroot_paths" = "no" ]; then
     fakechroot_paths=
 fi
 
+if command -v which >/dev/null; then
+    fakechroot_echo=`which echo`
+    fakechroot_echo=${fakechroot_echo:-@ECHO@}
+else
+    fakechroot_echo=@ECHO@
+fi
+
 
 # Get options
 fakechroot_getopttest=`getopt --version`
@@ -148,7 +155,7 @@ fi
 
 # Autodetect if dynamic linker supports --argv0 option
 if [ -n "$FAKECHROOT_ELFLOADER" ]; then
-    fakechroot_detect=`$FAKECHROOT_ELFLOADER --argv0 echo @ECHO@ yes 2>&1`
+    fakechroot_detect=`$FAKECHROOT_ELFLOADER --argv0 echo $fakechroot_echo yes 2>&1`
     if [ "$fakechroot_detect" = yes ]; then
         FAKECHROOT_ELFLOADER_OPT_ARGV0="--argv0"
         export FAKECHROOT_ELFLOADER_OPT_ARGV0
@@ -160,7 +167,7 @@ fi
 fakechroot_paths="$fakechroot_paths${LD_LIBRARY_PATH:+${fakechroot_paths:+:}$LD_LIBRARY_PATH}"
 fakechroot_lib="$fakechroot_lib${LD_PRELOAD:+ $LD_PRELOAD}"
 
-fakechroot_detect=`LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" FAKECHROOT_DETECT=1 @ECHO@ 2>&1`
+fakechroot_detect=`LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" FAKECHROOT_DETECT=1 $fakechroot_echo 2>&1`
 case "$fakechroot_detect" in
     fakechroot*)
         fakechroot_libfound=yes

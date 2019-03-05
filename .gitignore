@@ -70,6 +70,7 @@ GTAGS
 # Editors
 *~
 *.orig
+.vstags
 /.autotools
 /.cproject
 /.project
