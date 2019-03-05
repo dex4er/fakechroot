@@ -53,7 +53,7 @@ tarball=`test -d "$DEBOOTSTRAP_CACHE" && cd "$DEBOOTSTRAP_CACHE"; pwd`/$vendor-$
 
 debootstrap_opts="--arch=$arch ${variant:+--variant=$variant}"
 if [ ! -f $tarball ]; then
-    FAKECHROOT=true fakeroot $DEBOOTSTRAP --download-only --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
+    FAKECHROOT=true fakeroot $DEBOOTSTRAP --make-tarball=$tarball --include=build-essential,devscripts,fakeroot,gnupg $debootstrap_opts $release $destdir "$@"
 fi
 
 rm -rf $destdir
