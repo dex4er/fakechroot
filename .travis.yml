@@ -35,8 +35,8 @@ env:
 
   matrix:
     - TRAVIS_CC=colorgcc EXTRA_CFLAGS='-Wall -Werror'
-    - TRAVIS_CC=clang EXTRA_CFLAGS='-Wall -Werror'
-    - TRAVIS_CC=clang EXTRA_CFLAGS='-std=c11 -Wall -Werror'
+    - TRAVIS_CC=clang EXTRA_CFLAGS='-Wall -Werror' CFLAGS='-g -O0'
+    - TRAVIS_CC=clang EXTRA_CFLAGS='-std=c11 -Wall -Werror' CFLAGS='-g -O0'
 
 cache:
   directories:
