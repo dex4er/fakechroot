@@ -11,6 +11,7 @@ UNRELEASED
   shell.
 * The `chroot`(8) wrapper allows to chroot into root directory.
 * The `ldd`(1) wrapper doesn't lose a leading slash in absolute paths.
+* The `fakechroot`(1) command unsets `CDPATH` environment variable.
 * Can be compiled with gcc 7.1 `-Wformat-truncation`.
 * Can be compiled with clang 5.0 `-O2`.
 

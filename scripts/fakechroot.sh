@@ -67,6 +67,10 @@ if [ "$FAKECHROOT" = "true" ]; then
 fi
 
 
+# fakechroot doesn't work with CDPATH correctly
+unset CDPATH
+
+
 # Default settings
 fakechroot_lib=libfakechroot.so
 fakechroot_paths=@libpath@
