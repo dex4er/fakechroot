@@ -58,7 +58,7 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
 
         if (af_unix_path != NULL) {
             char tmp[FAKECHROOT_PATH_MAX];
-            tmp[af_unix_path_max] = 0;
+            tmp[af_unix_path_max + 1] = '\0';
             snprintf(tmp, af_unix_path_max + 1, "%s/%s", af_unix_path, path);
             path = tmp;
         }
