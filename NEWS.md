@@ -10,6 +10,7 @@ UNRELEASED
 * The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
   shell.
 * Can be compiled with gcc 7.1 `-Wformat-truncation`.
+* Can be compiled with clang 5.0 `-O2`.
 
 ## Version 2.19
 

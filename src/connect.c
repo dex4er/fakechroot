@@ -45,6 +45,7 @@
 wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
 {
     struct sockaddr_un *addr_un = (struct sockaddr_un *)SOCKADDR_UN(addr);
+    char tmp[FAKECHROOT_PATH_MAX];
 
     debug("connect(%d, &addr, %d)", sockfd, addrlen);
 
@@ -57,7 +58,6 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
         char *path = addr_un->sun_path;
 
         if (af_unix_path != NULL) {
-            char tmp[FAKECHROOT_PATH_MAX];
             tmp[af_unix_path_max + 1] = '\0';
             snprintf(tmp, af_unix_path_max + 1, "%s/%s", af_unix_path, path);
             path = tmp;
