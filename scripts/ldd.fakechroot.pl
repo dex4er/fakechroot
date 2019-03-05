@@ -59,7 +59,7 @@ sub ldso {
 
     push @Libs, $lib;
     if (-f $path) {
-        $path =~ s{^\Q$Base/\E}{} if $Base;
+        $path =~ s{^\Q$Base/\E}{/} if $Base;
         $Libs{$lib} = $path;
         objdump($path);
     }
