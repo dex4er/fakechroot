@@ -9,6 +9,7 @@ UNRELEASED
   and `mv` command from coreutils 8.30 uses it.
 * The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
   shell.
+* The `chroot`(8) wrapper allows to chroot into root directory.
 * Can be compiled with gcc 7.1 `-Wformat-truncation`.
 * Can be compiled with clang 5.0 `-O2`.
 
