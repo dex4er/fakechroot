@@ -9,12 +9,12 @@ libjemalloc=`
     done
     echo no
 `
-test $libjemalloc = "no" && skip_all 'jemalloc library is missing (sudo apt-get install libjemalloc1)'
+test $libjemalloc = "no" && skip_all 'jemalloc library is missing (sudo apt-get install libjemalloc-dev)'
 
 prepare 1
 
 t=`$srcdir/fakechroot.sh $testtree sh -c 'LD_PRELOAD="$LD_PRELOAD '$libjemalloc'" cat /CHROOT' 2>&1`
 test "$t" = "testtree-jemalloc" || not
-ok "fakechroot LD_PRELOAD=libjemalloc.so.1 cat:" $t
+ok "fakechroot LD_PRELOAD=$libjemalloc cat:" $t
 
 cleanup
