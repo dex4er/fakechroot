@@ -58,7 +58,6 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
     char substfilename[FAKECHROOT_PATH_MAX];
     char newfilename[FAKECHROOT_PATH_MAX];
     char argv0[FAKECHROOT_PATH_MAX];
-    char *ptr;
     unsigned int i, j, n, newenvppos;
     unsigned int do_cmd_subst = 0;
     size_t sizeenvp;
@@ -227,7 +226,7 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
             hashbang[i] = 0;
             if (i > j) {
                 if (n == 0) {
-                    ptr = &hashbang[j];
+                    const char *ptr = &hashbang[j];
                     expand_chroot_path(ptr);
                     strcpy(newfilename, ptr);
                 }

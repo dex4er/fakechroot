@@ -53,7 +53,6 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
     char substfilename[FAKECHROOT_PATH_MAX];
     char newfilename[FAKECHROOT_PATH_MAX];
     char argv0[FAKECHROOT_PATH_MAX];
-    char *ptr;
     unsigned int i, j, n, newenvppos;
     unsigned int do_cmd_subst = 0;
     size_t sizeenvp;
@@ -223,7 +222,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
             hashbang[i] = 0;
             if (i > j) {
                 if (n == 0) {
-                    ptr = &hashbang[j];
+                    const char *ptr = &hashbang[j];
                     expand_chroot_path(ptr);
                     strcpy(newfilename, ptr);
                 }

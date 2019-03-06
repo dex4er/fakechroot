@@ -57,7 +57,7 @@ wrapper(connect, int, (int sockfd, CONNECT_TYPE_ARG2(addr), socklen_t addrlen))
 
         const char *af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH");
         const int af_unix_path_max = sizeof(addr_un->sun_path);
-        char *path = addr_un->sun_path;
+        const char *path = addr_un->sun_path;
 
         if (af_unix_path != NULL) {
             tmp[af_unix_path_max + 1] = '\0';
