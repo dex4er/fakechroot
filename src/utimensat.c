@@ -23,6 +23,7 @@
 #ifdef HAVE_UTIMENSAT
 
 #define _ATFILE_SOURCE
+#define _POSIX_C_SOURCE 200809L
 #include <sys/time.h>
 #include "libfakechroot.h"
 

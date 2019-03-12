@@ -23,6 +23,7 @@
 #ifdef HAVE_FCHMODAT
 
 #define _ATFILE_SOURCE
+#define _POSIX_C_SOURCE 200809L
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
