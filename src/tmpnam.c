@@ -22,12 +22,16 @@
 
 #include "libfakechroot.h"
 
+#define _XOPEN_SOURCE 500
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
+
 
 wrapper(tmpnam, char *, (char * s))
 {
     char fakechroot_abspath[FAKECHROOT_PATH_MAX];
     char fakechroot_buf[FAKECHROOT_PATH_MAX];
-    char *ptr;
+    char *ptr, *ptr2;
 
     debug("tmpnam(&s)");
     if (s != NULL) {
@@ -38,5 +42,9 @@ wrapper(tmpnam, char *, (char * s))
 
     expand_chroot_path(ptr);
 
-    return strdup(ptr);
+    ptr2 = malloc(strlen(ptr));
+    if (ptr2 == NULL) return NULL;
+
+    strcpy(ptr2, ptr);
+    return ptr2;
 }
