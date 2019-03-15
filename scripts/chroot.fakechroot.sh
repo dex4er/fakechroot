@@ -87,7 +87,13 @@ if [ -d "$fakechroot_chroot_newroot" ]; then
     fi
     fakechroot_chroot_paths_ldsoconf="${fakechroot_chroot_paths_ldsoconf#:}"
 
-    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
+    # append newroot to /lib/systemd because systemctl uses runpath
+    fakechroot_chroot_paths_libsystemd=""
+    if [ -d "$fakechroot_chroot_newroot/lib/systemd" ]; then
+        fakechroot_chroot_paths_libsystemd="$fakechroot_chroot_newroot/lib/systemd"
+    fi
+
+    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${fakechroot_chroot_paths_libsystemd:+:$fakechroot_chroot_paths_libsystemd}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
     fakechroot_chroot_paths="${fakechroot_chroot_paths#:}"
 fi
 

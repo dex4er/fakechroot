@@ -10,6 +10,8 @@ UNRELEASED
 * The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
   shell.
 * The `chroot`(8) wrapper allows to chroot into root directory.
+* The `chroot`(8) wrapper appends `/lib/systemd` directory from new root
+  because `systemctl`(8) command uses runpath.
 * The `ldd`(1) wrapper doesn't lose a leading slash in absolute paths.
 * The `fakechroot`(1) command unsets `CDPATH` environment variable.
 * Can be compiled with gcc 7.1 `-Wformat-truncation`.
