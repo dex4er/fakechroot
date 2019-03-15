@@ -13,7 +13,9 @@ UNRELEASED
 * The `chroot`(8) wrapper appends `/lib/systemd` directory from new root
   because `systemctl`(8) command uses runpath.
 * The `ldd`(1) wrapper doesn't lose a leading slash in absolute paths.
-* The `fakechroot`(1) command unsets `CDPATH` environment variable.
+* The `fakechroot`(1) command unsets `CDPATH` environment variable and swaps
+  `libfakeroot` and `libfakechroot` in `LD_PRELOAD` environment variable if
+  needed.
 * Can be compiled with gcc 7.1 `-Wformat-truncation`.
 * Can be compiled with clang 5.0 `-O2`.
 

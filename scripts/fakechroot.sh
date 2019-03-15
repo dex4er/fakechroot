@@ -167,9 +167,31 @@ if [ -n "$FAKECHROOT_ELFLOADER" ]; then
 fi
 
 
+# Swap libfakechroot and libfakeroot in LD_PRELOAD if needed
+# libfakeroot must come first
+# an alternate fakeroot library may be given
+# in the FAKEROOT_ALT_LIB environment variable
+if [ -n "$FAKEROOT_ALT_LIB" ]; then
+    lib_libfakeroot="$FAKEROOT_ALT_LIB"
+else
+    lib_libfakeroot="libfakeroot-sysv.so"
+fi
+
+for preload in $(echo "$LD_PRELOAD" | tr ':' ' '); do
+    case "$preload" in
+        "$lib_libfakeroot")
+            lib_libfakeroot_to_preload="$preload"
+            ;;
+        *)
+            lib_to_preload="${lib_to_preload:+${lib_to_preload}:}$preload"
+            ;;
+    esac
+done
+
+
 # Make sure the preload is available
 fakechroot_paths="$fakechroot_paths${LD_LIBRARY_PATH:+${fakechroot_paths:+:}$LD_LIBRARY_PATH}"
-fakechroot_lib="$fakechroot_lib${LD_PRELOAD:+ $LD_PRELOAD}"
+fakechroot_lib="${lib_libfakeroot_to_preload:+${lib_libfakeroot_to_preload}:}$fakechroot_lib${lib_to_preload:+:$lib_to_preload}"
 
 fakechroot_detect=`LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" FAKECHROOT_DETECT=1 $fakechroot_echo 2>&1`
 case "$fakechroot_detect" in
