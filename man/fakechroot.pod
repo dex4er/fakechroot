@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="fakechroot" --center=" " --date="17 Nov 2016"
+# pod2man --section=1 --release="fakechroot" --center=" " --date="15 Mar 2019"
 #
 
 =head1 NAME
@@ -277,7 +277,7 @@ C</sbin/insserv=/bin/true>
 
 =item *
 
-C</sbin/ldconfig=/bin/ldconfig>
+C</sbin/ldconfig=/bin/true>
 
 =item *
 
