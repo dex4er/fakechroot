@@ -10,8 +10,10 @@ UNRELEASED
 * The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
   shell.
 * The `chroot`(8) wrapper allows to chroot into root directory.
-* The `chroot`(8) wrapper appends `/lib/systemd` directory from new root
-  because `systemctl`(8) command uses runpath.
+* The `chroot`(8) wrapper appends directories from
+  `FAKECHROOT_EXTRA_LIBRARY_PATH` environment variable because some commands
+  use runpath. The default value is `/lib/systemd:/usr/lib/man-db` for
+  `systemctl`(1) and `man`(1) commands.
 * The `ldd`(1) wrapper doesn't lose a leading slash in absolute paths.
 * The `fakechroot`(1) command unsets `CDPATH` environment variable and swaps
   `libfakeroot` and `libfakechroot` in `LD_PRELOAD` environment variable if

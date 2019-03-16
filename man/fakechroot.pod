@@ -298,6 +298,17 @@ environment variable is not set.
 
 This list has to contain at most 100 elements.
 
+=item B<FAKECHROOT_EXTRA_LIBRARY_PATH>
+
+The list of extra directories in fake chroot environment that are added to
+C<LD_LIBRARY_PATH> variable. The directories might be used by some important
+commands which use libraries placed in the I<runpath>. In that case dynamic
+linker can't find correct directory in a fake chroot environment without the
+extra library path.
+
+The default value is C</lib/systemd:/usr/lib/man-db> for systemctl(1) and
+man(1) commands.
+
 =item B<FAKECHROOT_VERSION>
 
 The version number of the current fakechroot library.

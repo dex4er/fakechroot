@@ -87,13 +87,25 @@ if [ -d "$fakechroot_chroot_newroot" ]; then
     fi
     fakechroot_chroot_paths_ldsoconf="${fakechroot_chroot_paths_ldsoconf#:}"
 
-    # append newroot to /lib/systemd because systemctl uses runpath
-    fakechroot_chroot_paths_libsystemd=""
-    if [ -d "$fakechroot_chroot_newroot/lib/systemd" ]; then
-        fakechroot_chroot_paths_libsystemd="$fakechroot_chroot_newroot/lib/systemd"
-    fi
+    # append newroot to extra directories because some important commands use runpath
+    fakechroot_chroot_paths_extra=""
+    for fakechroot_chroot_d in /lib/systemd /usr/lib/man-db; do
+        if [ -d "$fakechroot_chroot_newroot$fakechroot_chroot_d" ]; then
+            fakechroot_chroot_paths_extra="${fakechroot_chroot_paths_extra:+:$fakechroot_chroot_paths_extra}$fakechroot_chroot_newroot$fakechroot_chroot_d"
+        fi
+    done
 
-    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${fakechroot_chroot_paths_libsystemd:+:$fakechroot_chroot_paths_libsystemd}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
+    # append newroot to /usr/lib/man-db because mandb uses runpath
+    fakechroot_chroot_IFS_bak="$IFS" IFS=:
+    fakechroot_chroot_paths_extra=""
+    for fakechroot_chroot_d in ${FAKECHROOT_EXTRA_LIBRARY_PATH:-/lib/systemd:/usr/lib/man-db}; do
+        if [ -d "$fakechroot_chroot_newroot$fakechroot_chroot_d" ]; then
+            fakechroot_chroot_paths_extra="$fakechroot_chroot_paths_extra${fakechroot_chroot_paths_extra:+:}$fakechroot_chroot_newroot$fakechroot_chroot_d"
+        fi
+    done
+    IFS="$fakechroot_chroot_IFS_bak"
+
+    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${fakechroot_chroot_paths_extra:+:$fakechroot_chroot_paths_extra}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
     fakechroot_chroot_paths="${fakechroot_chroot_paths#:}"
 fi
 
