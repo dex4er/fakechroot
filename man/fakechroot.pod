@@ -90,7 +90,7 @@ at all.
 
 Specify an alternative wrapper library. The default is F<libfakechroot.so>
 
-=item B<-h>
+=item B<-h>|B<--help>
 
 Display help.
 
@@ -109,7 +109,7 @@ Try this setting if you noticed following errors:
  $ fakechroot /usr/sbin/chroot /tmp/centos4 /bin/true
  Segmentation fault
 
-=item B<-v>
+=item B<-v>|B<--version>
 
 Display version.
 
