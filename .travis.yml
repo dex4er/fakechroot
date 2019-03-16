@@ -11,6 +11,7 @@ addons:
       - automake
       - colorgcc
       - debootstrap
+      - fakeroot
       - libjemalloc1
       - libtool
       - lsb-release
