@@ -19,7 +19,7 @@ UNRELEASED
   `libfakeroot` and `libfakechroot` in `LD_PRELOAD` environment variable if
   needed.
 * Can be compiled with gcc 7.1 `-Wformat-truncation`.
-* Can be compiled with clang 5.0 `-O2`.
+* Can be compiled with clang 5.0 `-O2` and `-std=c11`.
 
 ## Version 2.19
 
