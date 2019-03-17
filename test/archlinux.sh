@@ -46,8 +46,9 @@ fi
 url=$mirror/iso/$release/archlinux-bootstrap-$release-$arch.tar.gz
 tarball=`test -d "$ARCHLINUX_CACHE" && cd "$ARCHLINUX_CACHE"; pwd`/`basename $url`
 
-if ! [ -f $tarball ]; then
-    wget -O "$tarball" $url
+if ! [ -f "$tarball" ]; then
+    wget -O "$tarball.part" $url
+    mv -f "$tarball.part" "$tarball"
 fi
 
 export FAKECHROOT_AF_UNIX_PATH=/tmp
