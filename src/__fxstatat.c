@@ -34,6 +34,8 @@
 
 wrapper(__fxstatat, int, (int ver, int dirfd, const char * pathname, struct stat * buf, int flags))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("__fxstatat(%d, %d, \"%s\", &buf, %d)", ver, dirfd, pathname, flags);
     expand_chroot_path_at(dirfd, pathname);
     return nextcall(__fxstatat)(ver, dirfd, pathname, buf, flags);

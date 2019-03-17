@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010-2015, 2019 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -108,7 +108,6 @@
             if ((path) != NULL && *((char *)(path)) == '/') { \
                 const char *fakechroot_base = getenv("FAKECHROOT_BASE"); \
                 if (fakechroot_base != NULL ) { \
-                    char fakechroot_buf[FAKECHROOT_PATH_MAX]; \
                     snprintf(fakechroot_buf, FAKECHROOT_PATH_MAX, "%s%s", fakechroot_base, (path)); \
                     (path) = fakechroot_buf; \
                 } \
@@ -120,7 +119,6 @@
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL) { \
-                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
                 rel2abs((path), fakechroot_abspath); \
                 (path) = fakechroot_abspath; \
                 expand_chroot_rel_path(path); \
@@ -132,7 +130,6 @@
     { \
         if (!fakechroot_localdir(path)) { \
             if ((path) != NULL) { \
-                char fakechroot_abspath[FAKECHROOT_PATH_MAX]; \
                 rel2absat(dirfd, (path), fakechroot_abspath); \
                 (path) = fakechroot_abspath; \
                 expand_chroot_rel_path(path); \

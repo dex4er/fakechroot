@@ -25,6 +25,8 @@
 
 wrapper(link, int, (const char *oldpath, const char *newpath))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     char tmp[FAKECHROOT_PATH_MAX];
     debug("link(\"%s\", \"%s\")", oldpath, newpath);
     expand_chroot_path(oldpath);

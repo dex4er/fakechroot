@@ -26,6 +26,8 @@
 
 wrapper(freopen, FILE *, (const char * path, const char * mode, FILE * stream))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("freopen(\"%s\", \"%s\", &stream)", path, mode);
     expand_chroot_path(path);
     return nextcall(freopen)(path, mode, stream);

@@ -28,6 +28,8 @@
 
 wrapper(opendir, DIR *, (const char * name))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("opendir(\"%s\")", name);
     expand_chroot_path(name);
     return nextcall(opendir)(name);

@@ -35,7 +35,10 @@
 
 wrapper(lstat64, int, (const char * file_name, struct stat64 * buf))
 {
-    char *fakechroot_path, fakechroot_buf[FAKECHROOT_PATH_MAX], tmp[FAKECHROOT_PATH_MAX];
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+    char *fakechroot_path;
+    char tmp[FAKECHROOT_PATH_MAX];
     char resolved[FAKECHROOT_PATH_MAX];
     int retval;
     READLINK_TYPE_RETURN status;

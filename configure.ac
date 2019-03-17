@@ -1,5 +1,5 @@
 AC_PREREQ(2.64)
-AC_INIT([fakechroot], [2.19], [dexter@debian.org], [fakechroot], [https://github.com/dex4er/fakechroot])
+AC_INIT([fakechroot], [2.20], [dexter@debian.org], [fakechroot], [https://github.com/dex4er/fakechroot])
 
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -190,6 +190,7 @@ AC_CHECK_FUNCS(m4_normalize([
     fts_children
     fts_open
     fts_read
+    fts64_open
     ftw
     ftw64
     futimesat
@@ -252,6 +253,7 @@ AC_CHECK_FUNCS(m4_normalize([
     removexattr
     rename
     renameat
+    renameat2
     revoke
     rmdir
     scandir
@@ -315,11 +317,19 @@ m4_foreach_w([function], [getpeername getsockname],
 
 ACX_CHECK_FUNC_ARGTYPES([fts_open],
     [], [sys/types.h sys/stat.h fts.h],
-    [[FTS *], [char * const *_], [int], [int (*_)(const FTSENT **, const FTSENT **)]],
-    [[FTS *]],
+    [[FTSOBJ *], [char * const *_], [int], [int (*_)(const FTSENTRY **, const FTSENTRY **)]],
+    [[FTSOBJ *]],
     [[char * const *_]],
     [[int _]],
-    [[int (*_)(const FTSENT * const *, const FTSENT * const *)], [int (*_)(const FTSENT **, const FTSENT **)]])
+    [[int (*_)(const FTSENTRY * const *, const FTSENTRY * const *)], [int (*_)(const FTSENTRY **, const FTSENTRY **)]])
+
+ACX_CHECK_FUNC_ARGTYPES([fts64_open],
+    [], [sys/types.h sys/stat.h fts.h],
+    [[FTSOBJ *], [char * const *_], [int], [int (*_)(const FTSENTRY **, const FTSENTRY **)]],
+    [[FTSOBJ *]],
+    [[char * const *_]],
+    [[int _]],
+    [[int (*_)(const FTSENTRY * const *, const FTSENTRY * const *)], [int (*_)(const FTSENTRY **, const FTSENTRY **)]])
 
 ACX_CHECK_FUNC_ARGTYPES([readlink],
     [

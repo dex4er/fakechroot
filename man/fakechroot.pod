@@ -1,4 +1,4 @@
-# pod2man --section=1 --release="fakechroot" --center=" " --date="17 Nov 2016"
+# pod2man --section=1 --release="fakechroot" --center=" " --date="16 Mar 2019"
 #
 
 =head1 NAME
@@ -46,29 +46,24 @@ common user's account.
 
 =over
 
-=item B<-l> I<library>|B<--lib> I<library>
+=item B<-b>|B<--bindir> I<directory>
 
-Specify an alternative wrapper library. The default is F<libfakechroot.so>
+Specify a directory which contains the replacement executables
+shipped with fakechroot.
+Those are script files with the extension C<.fakechroot>.
+By default they are distributed over the
+C<bin> and C<sbin> directories in fakechroot's install prefix,
+but sometimes a fixed location at build time is not feasible.
+
+=item B<-c>|B<--config-dir> I<directory>
+
+Specify a directory which contains additional configuration for fakechroot. The
+default directory are C<$HOME/.fakechroot> and C</etc/fakechroot>.
 
 =item B<-d> I<ldso>|B<--elfloader> I<ldso>
 
 Specify an alternative dynamic linker. This dynamic linker will be invoked
 directly.
-
-=item B<-s>|B<--use-system-libs>
-
-Use system libraries before chroot's libraries. This might be a workaround if
-system dynamic linker cannot load F<libc.so> from fake chroot.
-
-Try this setting if you noticed following errors:
-
- $ fakechroot /usr/sbin/chroot /tmp/sarge /bin/true
- /bin/true: relocation error: /srv/sarge/lib/tls/libc.so.6: symbol _dl
- _starting_up, version GLIBC_PRIVATE not defined in file ld-linux.so.2
-  with link time reference
-
- $ fakechroot /usr/sbin/chroot /tmp/centos4 /bin/true
- Segmentation fault
 
 =item B<-e>|B<--environment> I<type>
 
@@ -91,32 +86,37 @@ C<default.env>.
 The special environment B<none> means that no environment settings are loaded
 at all.
 
-=item B<-c>|B<--config-dir> I<directory>
+=item B<-l> I<library>|B<--lib> I<library>
 
-Specify a directory which contains additional configuration for fakechroot. The
-default directory are C<$HOME/.fakechroot> and C</etc/fakechroot>.
+Specify an alternative wrapper library. The default is F<libfakechroot.so>
 
-=item B<-b>|B<--bindir> I<directory>
+=item B<-h>|B<--help>
 
-Specify a directory which contains the replacement executables
-shipped with fakechroot.
-Those are script files with the extension C<.fakechroot>.
-By default they are distributed over the
-C<bin> and C<sbin> directories in fakechroot's install prefix,
-but sometimes a fixed location at build time is not feasible.
+Display help.
+
+=item B<-s>|B<--use-system-libs>
+
+Use system libraries before chroot's libraries. This might be a workaround if
+system dynamic linker cannot load F<libc.so> from fake chroot.
+
+Try this setting if you noticed following errors:
+
+ $ fakechroot /usr/sbin/chroot /tmp/sarge /bin/true
+ /bin/true: relocation error: /srv/sarge/lib/tls/libc.so.6: symbol _dl
+ _starting_up, version GLIBC_PRIVATE not defined in file ld-linux.so.2
+  with link time reference
+
+ $ fakechroot /usr/sbin/chroot /tmp/centos4 /bin/true
+ Segmentation fault
+
+=item B<-v>|B<--version>
+
+Display version.
 
 =item [B<-->] I<command>
 
 Any command you want to be run as fakechroot. Use 'B<-->' if in the command
 you have other options that may confuse fakechroot's option parsing.
-
-=item B<-h>
-
-Display help.
-
-=item B<-v>
-
-Display version.
 
 =back
 
@@ -195,51 +195,15 @@ The shared library containing the wrapper functions.
 
 The value is true for fake chroot environment.
 
-=item B<FAKECHROOT_VERSION>
-
-The version number of the current fakechroot library.
-
-=item B<FAKECHROOT_BASE>
-
-The root directory of fake chroot environment.
-
-=item B<FAKECHROOT_DETECT>
-
-If this variable is set then C<fakechroot I<version>> string is printed to
-standard output and the current process is terminated with status taken from
-this variable. It can be a method to check if fakechroot is preloaded
-correctly.
-
-  $ case "`FAKECHROOT_DETECT=1 /bin/echo`" in fakechroot*) echo LOADED;; esac
-
-=item B<FAKECHROOT_DEBUG>
-
-The fakechroot library will dump some debugging info if this variable is set.
-
 =item B<FAKECHROOT_AF_UNIX_PATH>
 
 The root directory for unix sockets. The default value is the same as
 C<FAKECHROOT_BASE> and it can be set separately if the C<FAKECHROOT_BASE> is
 too long and the unix socket path could exceed the limit of B<108> bytes.
 
-=item B<FAKECHROOT_EXCLUDE_PATH>
+=item B<FAKECHROOT_BASE>
 
-The list of directories which are excluded from being chrooted. The elements
-of list are separated with colon.
-
-The F</dev>, F</proc> and F</sys> directories are excluded by default if this
-environment variable is not set.
-
-This list has to contain at most 100 elements.
-
-=item B<FAKECHROOT_ELFLOADER>
-
-A path to another dynamic linker (i.e. F</lib/ld-linux.so.2> for i386
-architecture, F</lib64/ld-linux-x86-64.so.2> for x86_64 architecture).
-
-This dynamic linker will be invoked directly. The dynamic linker don't allow
-to change C<argv[0]> besides the file name of the executable file, so some
-application won't work correctly, i.e. busybox(1).
+The root directory of fake chroot environment.
 
 =item B<FAKECHROOT_CMD_SUBST>
 
@@ -277,7 +241,7 @@ C</sbin/insserv=/bin/true>
 
 =item *
 
-C</sbin/ldconfig=/bin/ldconfig>
+C</sbin/ldconfig=/bin/true>
 
 =item *
 
@@ -301,6 +265,53 @@ to make debootstrap(8) working correctly.
 
 To prevent some looping, the command substitution is done only if
 C<FAKECHROOT_CMD_ORIG> variable is not set currently.
+
+=item B<FAKECHROOT_DEBUG>
+
+The fakechroot library will dump some debugging info if this variable is set.
+
+=item B<FAKECHROOT_DETECT>
+
+If this variable is set then C<fakechroot I<version>> string is printed to
+standard output and the current process is terminated with status taken from
+this variable. It can be a method to check if fakechroot is preloaded
+correctly.
+
+  $ case "`FAKECHROOT_DETECT=1 /bin/echo`" in fakechroot*) echo LOADED;; esac
+
+=item B<FAKECHROOT_ELFLOADER>
+
+A path to another dynamic linker (i.e. F</lib/ld-linux.so.2> for i386
+architecture, F</lib64/ld-linux-x86-64.so.2> for x86_64 architecture).
+
+This dynamic linker will be invoked directly. The dynamic linker don't allow
+to change C<argv[0]> besides the file name of the executable file, so some
+application won't work correctly, i.e. busybox(1).
+
+=item B<FAKECHROOT_EXCLUDE_PATH>
+
+The list of directories which are excluded from being chrooted. The elements
+of list are separated with colon.
+
+The F</dev>, F</proc> and F</sys> directories are excluded by default if this
+environment variable is not set.
+
+This list has to contain at most 100 elements.
+
+=item B<FAKECHROOT_EXTRA_LIBRARY_PATH>
+
+The list of extra directories in fake chroot environment that are added to
+C<LD_LIBRARY_PATH> variable. The directories might be used by some important
+commands which use libraries placed in the I<runpath>. In that case dynamic
+linker can't find correct directory in a fake chroot environment without the
+extra library path.
+
+The default value is C</lib/systemd:/usr/lib/man-db> for systemctl(1) and
+man(1) commands.
+
+=item B<FAKECHROOT_VERSION>
+
+The version number of the current fakechroot library.
 
 =item B<LD_LIBRARY_PATH>, B<LD_PRELOAD>
 
@@ -390,7 +401,7 @@ L<https://github.com/fakechroot/fakechroot/issues>
 
 =head1 AUTHORS
 
-Copyright (c) 2003-2016 Piotr Roszatycki <dexter@debian.org>
+Copyright (c) 2003-2017, 2019 Piotr Roszatycki <dexter@debian.org>
 
 Copyright (c) 2007 Mark Eichin <eichin@metacarta.com>
 

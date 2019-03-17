@@ -87,18 +87,68 @@ if [ -d "$fakechroot_chroot_newroot" ]; then
     fi
     fakechroot_chroot_paths_ldsoconf="${fakechroot_chroot_paths_ldsoconf#:}"
 
-    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
+    # append newroot to extra directories because some important commands use runpath
+    fakechroot_chroot_paths_extra=""
+    for fakechroot_chroot_d in /lib/systemd /usr/lib/man-db; do
+        if [ -d "$fakechroot_chroot_newroot$fakechroot_chroot_d" ]; then
+            fakechroot_chroot_paths_extra="${fakechroot_chroot_paths_extra:+:$fakechroot_chroot_paths_extra}$fakechroot_chroot_newroot$fakechroot_chroot_d"
+        fi
+    done
+
+    # append newroot to /usr/lib/man-db because mandb uses runpath
+    fakechroot_chroot_IFS_bak="$IFS" IFS=:
+    fakechroot_chroot_paths_extra=""
+    for fakechroot_chroot_d in ${FAKECHROOT_EXTRA_LIBRARY_PATH:-/lib/systemd:/usr/lib/man-db}; do
+        if [ -d "$fakechroot_chroot_newroot$fakechroot_chroot_d" ]; then
+            fakechroot_chroot_paths_extra="$fakechroot_chroot_paths_extra${fakechroot_chroot_paths_extra:+:}$fakechroot_chroot_newroot$fakechroot_chroot_d"
+        fi
+    done
+    IFS="$fakechroot_chroot_IFS_bak"
+
+    fakechroot_chroot_paths="$fakechroot_chroot_paths${fakechroot_chroot_paths_ldsoconf:+:$fakechroot_chroot_paths_ldsoconf}${fakechroot_chroot_paths_extra:+:$fakechroot_chroot_paths_extra}${FAKECHROOT_LDLIBPATH:+:$FAKECHROOT_LDLIBPATH}"
     fakechroot_chroot_paths="${fakechroot_chroot_paths#:}"
 fi
 
-# call real chroot
-if [ -n "$fakechroot_chroot_newroot" ] && ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null && [ $fakechroot_chroot_n -le $# ]; then
-    # shell with arrays and built-in expr
-    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
-        "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "${fakechroot_chroot_newroot#$FAKECHROOT_BASE_ORIG}" "${@:$(($fakechroot_chroot_n + 1))}"
-    exit $?
+# correct newroot if we chroot into the root
+if [ -n "$FAKECHROOT_BASE_ORIG" -a "$fakechroot_chroot_newroot" = "$FAKECHROOT_BASE_ORIG" ]; then
+    fakechroot_chroot_final_newroot="/"
 else
-    # POSIX shell
+    fakechroot_chroot_final_newroot="${fakechroot_chroot_newroot#$FAKECHROOT_BASE_ORIG}"
+fi
+
+# call real chroot
+if [ -n "$fakechroot_chroot_newroot" ] && [ $fakechroot_chroot_n -le $# ]; then
+    if ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null; then
+        # shell with arrays and built-in expr
+        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+            "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "$fakechroot_chroot_final_newroot" "${@:$(($fakechroot_chroot_n + 1))}"
+        exit $?
+    else
+        # POSIX shell
+        fakechroot_chroot_args=$#
+        for fakechroot_chroot_i in `@SEQ@ 1 $fakechroot_chroot_args`; do
+            if [ $fakechroot_chroot_i = $fakechroot_chroot_n ]; then
+                fakechroot_chroot_arg="$fakechroot_chroot_final_newroot"
+                eval fakechroot_chroot_arg_$fakechroot_chroot_i=\"\$fakechroot_chroot_arg\"
+            else
+                eval fakechroot_chroot_arg_$fakechroot_chroot_i=\"\$1\"
+            fi
+            shift
+        done
+
+        set --
+
+        for fakechroot_chroot_i in `@SEQ@ 1 $fakechroot_chroot_args`; do
+            eval fakechroot_chroot_arg=\"\$fakechroot_chroot_arg_$fakechroot_chroot_i\"
+            set -- "$@" "$fakechroot_chroot_arg"
+        done
+
+        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+            "$fakechroot_chroot_chroot" "$@"
+        exit $?
+    fi
+else
+    # original arguments
     env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
         "$fakechroot_chroot_chroot" "$@"
     exit $?

@@ -28,6 +28,8 @@
 
 wrapper(linkat, int, (int olddirfd, const char * oldpath, int newdirfd, const char * newpath, int flags))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     char tmp[FAKECHROOT_PATH_MAX];
     debug("linkat(%d, \"%s\", %d, \"%s\", %d)", olddirfd, oldpath, newdirfd, newpath, flags);
     expand_chroot_path_at(olddirfd, oldpath);

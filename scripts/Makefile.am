@@ -23,6 +23,7 @@ do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]LDCONFIG[@],$(LDCONFIG),g' \
                -e 's,[@]LDD[@],$(LDD),g' \
                -e 's,[@]PERL[@],$(PERL),g' \
+               -e 's,[@]SEQ[@],$(SEQ),g' \
                -e 's,[@]SHELL[@],$(SHELL),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 

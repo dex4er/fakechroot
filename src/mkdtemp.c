@@ -32,6 +32,8 @@
 
 wrapper(mkdtemp, char *, (char * template))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr = tmp;
     char *xxxsrc, *xxxdst;
     int xxxlen = 0;

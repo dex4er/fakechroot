@@ -26,6 +26,7 @@
 
 wrapper(glob, int, (const char * pattern, int flags, int (* errfunc) (const char *, int), glob_t * pglob))
 {
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     int rc, i;
 
     debug("glob(\"%s\", %d, &errfunc, &pglob)", pattern, flags);

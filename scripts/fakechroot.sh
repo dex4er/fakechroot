@@ -67,6 +67,10 @@ if [ "$FAKECHROOT" = "true" ]; then
 fi
 
 
+# fakechroot doesn't work with CDPATH correctly
+unset CDPATH
+
+
 # Default settings
 fakechroot_lib=libfakechroot.so
 fakechroot_paths=@libpath@
@@ -77,6 +81,13 @@ fakechroot_bindir=
 
 if [ "$fakechroot_paths" = "no" ]; then
     fakechroot_paths=
+fi
+
+if command -v which >/dev/null; then
+    fakechroot_echo=`which echo`
+    fakechroot_echo=${fakechroot_echo:-@ECHO@}
+else
+    fakechroot_echo=@ECHO@
 fi
 
 
@@ -148,7 +159,7 @@ fi
 
 # Autodetect if dynamic linker supports --argv0 option
 if [ -n "$FAKECHROOT_ELFLOADER" ]; then
-    fakechroot_detect=`$FAKECHROOT_ELFLOADER --argv0 echo @ECHO@ yes 2>&1`
+    fakechroot_detect=`$FAKECHROOT_ELFLOADER --argv0 echo $fakechroot_echo yes 2>&1`
     if [ "$fakechroot_detect" = yes ]; then
         FAKECHROOT_ELFLOADER_OPT_ARGV0="--argv0"
         export FAKECHROOT_ELFLOADER_OPT_ARGV0
@@ -156,11 +167,33 @@ if [ -n "$FAKECHROOT_ELFLOADER" ]; then
 fi
 
 
+# Swap libfakechroot and libfakeroot in LD_PRELOAD if needed
+# libfakeroot must come first
+# an alternate fakeroot library may be given
+# in the FAKEROOT_ALT_LIB environment variable
+if [ -n "$FAKEROOT_ALT_LIB" ]; then
+    lib_libfakeroot="$FAKEROOT_ALT_LIB"
+else
+    lib_libfakeroot="libfakeroot-sysv.so"
+fi
+
+for preload in $(echo "$LD_PRELOAD" | tr ':' ' '); do
+    case "$preload" in
+        "$lib_libfakeroot")
+            lib_libfakeroot_to_preload="$preload"
+            ;;
+        *)
+            lib_to_preload="${lib_to_preload:+${lib_to_preload}:}$preload"
+            ;;
+    esac
+done
+
+
 # Make sure the preload is available
 fakechroot_paths="$fakechroot_paths${LD_LIBRARY_PATH:+${fakechroot_paths:+:}$LD_LIBRARY_PATH}"
-fakechroot_lib="$fakechroot_lib${LD_PRELOAD:+ $LD_PRELOAD}"
+fakechroot_lib="${lib_libfakeroot_to_preload:+${lib_libfakeroot_to_preload}:}$fakechroot_lib${lib_to_preload:+:$lib_to_preload}"
 
-fakechroot_detect=`LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" FAKECHROOT_DETECT=1 @ECHO@ 2>&1`
+fakechroot_detect=`LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" FAKECHROOT_DETECT=1 $fakechroot_echo 2>&1`
 case "$fakechroot_detect" in
     fakechroot*)
         fakechroot_libfound=yes
@@ -217,12 +250,13 @@ if [ -z "$*" ]; then
     LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" ${SHELL:-/bin/sh}
     exit $?
 else
-    if [ -n "$fakechroot_cmd" ] && ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null && [ $# -gt 0 ]; then
-        # shell with arrays and built-in expr
-        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "${@:2}"
+    if [ -n "$fakechroot_cmd" ]; then
+        # Call substituted command
+        shift
+        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "$@"
         exit $?
     else
-        # POSIX shell
+        # Call original command
         LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$@"
         exit $?
     fi

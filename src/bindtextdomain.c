@@ -27,6 +27,8 @@
 
 wrapper(bindtextdomain, char *, (const char * domainname, const char * dirname))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("bindtextdomain(\"%s\", \"%s\")", domainname, dirname);
     expand_chroot_path(dirname);
     return nextcall(bindtextdomain)(domainname, dirname);

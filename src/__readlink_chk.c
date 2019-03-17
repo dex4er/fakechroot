@@ -30,8 +30,12 @@
 
 wrapper(__readlink_chk, ssize_t, (const char * path, char * buf, size_t bufsiz, size_t buflen))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     int linksize;
     char tmp[FAKECHROOT_PATH_MAX], *tmpptr;
+
     const char *fakechroot_base = getenv("FAKECHROOT_BASE");
 
     debug("__readlink_chk(\"%s\", &buf, %zd, %zd)", path, bufsiz, buflen);

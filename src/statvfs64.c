@@ -29,6 +29,8 @@
 
 wrapper(statvfs64, int, (const char * path, struct statvfs64 * buf))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("statvfs64(\"%s\", &buf)", path);
     expand_chroot_path(path);
     return nextcall(statvfs64)(path, buf);

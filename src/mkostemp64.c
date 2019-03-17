@@ -36,6 +36,8 @@ wrapper(mkostemp64, int, (char * template, int flags))
     char *xxxsrc, *xxxdst;
     int xxxlen = 0;
     int fd;
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
 
     debug("mkostemp64(\"%s\", %d)", template, flags);
 

@@ -44,7 +44,10 @@
 
 wrapper(bind, int, (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     struct sockaddr_un *addr_un = (struct sockaddr_un *)SOCKADDR_UN(addr);
+    char tmp[FAKECHROOT_PATH_MAX];
 
     debug("bind(%d, &addr, &addrlen)", sockfd);
 
@@ -54,19 +57,18 @@ wrapper(bind, int, (int sockfd, BIND_TYPE_ARG2(addr), socklen_t addrlen))
 
         const char *af_unix_path = getenv("FAKECHROOT_AF_UNIX_PATH");
         const int af_unix_path_max = sizeof(addr_un->sun_path);
-        char *path = addr_un->sun_path;
+        const char *path = addr_un->sun_path;
 
         if (af_unix_path != NULL) {
-            char tmp[FAKECHROOT_PATH_MAX];
-            tmp[af_unix_path_max] = '\0';
-            snprintf(tmp, af_unix_path_max, "%s/%s", af_unix_path, path);
+            tmp[af_unix_path_max + 1] = '\0';
+            snprintf(tmp, af_unix_path_max + 1, "%s/%s", af_unix_path, path);
             path = tmp;
         }
         else {
             expand_chroot_path(path);
         }
 
-        if (strlen(path) >= sizeof(addr_un->sun_path)) {
+        if (strlen(path) >= af_unix_path_max) {
             __set_errno(ENAMETOOLONG);
             return -1;
         }

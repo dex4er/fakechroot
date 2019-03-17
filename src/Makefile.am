@@ -62,6 +62,7 @@ libfakechroot_la_SOURCES = \
     freopen.c \
     freopen64.c \
     fts.c \
+    fts64.c \
     ftw.c \
     ftw64.c \
     futimesat.c \
@@ -135,6 +136,7 @@ libfakechroot_la_SOURCES = \
     removexattr.c \
     rename.c \
     renameat.c \
+    renameat2.c \
     revoke.c \
     rmdir.c \
     rpl_lstat.c \

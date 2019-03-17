@@ -36,11 +36,14 @@
 #include "readlink.h"
 
 
-wrapper(posix_spawn, int, (pid_t* pid, const char * filename, 
+wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
         const posix_spawn_file_actions_t* file_actions,
         const posix_spawnattr_t* attrp, char* const argv[],
         char * const envp []))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
     int status;
     int file;
     int is_base_orig = 0;
@@ -55,7 +58,6 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
     char substfilename[FAKECHROOT_PATH_MAX];
     char newfilename[FAKECHROOT_PATH_MAX];
     char argv0[FAKECHROOT_PATH_MAX];
-    char *ptr;
     unsigned int i, j, n, newenvppos;
     unsigned int do_cmd_subst = 0;
     size_t sizeenvp;
@@ -69,7 +71,7 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
 
     debug("posix_spawn(\"%s\", {\"%s\", ...}, {\"%s\", ...})", filename, argv[0], envp ? envp[0] : "(null)");
 
-    strncpy(argv0, filename, FAKECHROOT_PATH_MAX);
+    strncpy(argv0, filename, FAKECHROOT_PATH_MAX - 1);
 
     /* Substitute command only if FAKECHROOT_CMD_ORIG is not set. Unset variable if it is empty. */
     cmdorig = getenv("FAKECHROOT_CMD_ORIG");
@@ -224,7 +226,7 @@ wrapper(posix_spawn, int, (pid_t* pid, const char * filename,
             hashbang[i] = 0;
             if (i > j) {
                 if (n == 0) {
-                    ptr = &hashbang[j];
+                    const char *ptr = &hashbang[j];
                     expand_chroot_path(ptr);
                     strcpy(newfilename, ptr);
                 }

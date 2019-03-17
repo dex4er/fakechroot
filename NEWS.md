@@ -1,3 +1,26 @@
+# NEWS
+
+## Version 2.20
+
+17 Mar 2019
+
+* The `fts64_*` functions were added: glibc supports them since 2.23.
+* The `renameat2`(2) function were added: glibc supports it since 2.28
+  and `mv` command from coreutils 8.30 uses it.
+* The `chroot`(8) wrapper and `fakechroot`(1) command can work with POSIX
+  shell.
+* The `chroot`(8) wrapper allows to chroot into root directory.
+* The `chroot`(8) wrapper appends directories from
+  `FAKECHROOT_EXTRA_LIBRARY_PATH` environment variable because some commands
+  use runpath. The default value is `/lib/systemd:/usr/lib/man-db` for
+  `systemctl`(1) and `man`(1) commands.
+* The `ldd`(1) wrapper doesn't lose a leading slash in absolute paths.
+* The `fakechroot`(1) command unsets `CDPATH` environment variable and swaps
+  `libfakeroot` and `libfakechroot` in `LD_PRELOAD` environment variable if
+  needed.
+* Can be compiled with gcc 7.1 `-Wformat-truncation`.
+* Can be compiled with clang 5.0 `-O2` and `-std=c11`.
+
 ## Version 2.19
 
 20 Nov 2016

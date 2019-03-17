@@ -29,6 +29,8 @@
 
 wrapper(llistxattr, ssize_t, (const char *path, char *list, size_t size))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("llistxattr(\"%s\", &list, %zd)", path, list);
     expand_chroot_path(path);
     return nextcall(llistxattr)(path, list, size);

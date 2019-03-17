@@ -32,10 +32,13 @@
 
 #include <config.h>
 
+#if !defined FTS64_C__ || (defined FTS64_C__ && HAVE_FTS64_OPEN)
+
 #define _ATFILE_SOURCE
 #define _BSD_SOURCE
 #define _XOPEN_SOURCE 500
 #define _DEFAULT_SOURCE
+#define _LARGEFILE64_SOURCE
 #include <sys/param.h>
 #include <sys/stat.h>
 
@@ -80,16 +83,34 @@
 # endif
 #endif
 
-static FTSENT   *fts_alloc(FTS *, char *, size_t);
-static FTSENT   *fts_build(FTS *, int);
-static void      fts_lfree(FTSENT *);
-static void      fts_load(FTS *, FTSENT *);
+/* Support for the LFS API version.  */
+#ifndef FTS_OPEN
+/* functions */
+# define FTS_OPEN fts_open
+# define FTS_CLOSE fts_close
+# define FTS_READ fts_read
+# define FTS_SET fts_set
+# define FTS_CHILDREN fts_children
+/* types */
+# define FTSOBJ FTS
+# define _FTSENT _ftsent
+# define FTSENTRY FTSENT
+# define INO_T ino_t
+# define STAT stat
+# define FSTAT fstat
+# define LSTAT lstat
+#endif
+
+static FTSENTRY   *fts_alloc(FTSOBJ *, char *, size_t);
+static FTSENTRY   *fts_build(FTSOBJ *, int);
+static void      fts_lfree(FTSENTRY *);
+static void      fts_load(FTSOBJ *, FTSENTRY *);
 static size_t    fts_maxarglen(char * const *);
-static void      fts_padjust(FTS *, FTSENT *);
-static int       fts_palloc(FTS *, size_t);
-static FTSENT   *fts_sort(FTS *, FTSENT *, int);
-static u_short   fts_stat(FTS *, FTSENT *, int);
-static int       fts_safe_changedir(FTS *, FTSENT *, int, char *);
+static void      fts_padjust(FTSOBJ *, FTSENTRY *);
+static int       fts_palloc(FTSOBJ *, size_t);
+static FTSENTRY   *fts_sort(FTSOBJ *, FTSENTRY *, int);
+static u_short   fts_stat(FTSOBJ *, FTSENTRY *, int);
+static int       fts_safe_changedir(FTSOBJ *, FTSENTRY *, int, char *);
 
 #define ISDOT(a)        (a[0] == '.' && (!a[1] || (a[1] == '.' && !a[2])))
 
@@ -104,14 +125,14 @@ static int       fts_safe_changedir(FTS *, FTSENT *, int, char *);
 #define BNAMES          2               /* fts_children, names only */
 #define BREAD           3               /* fts_read */
 
-FTS *
-fts_open(char * const *argv, int options,
+FTSOBJ *
+FTS_OPEN(char * const *argv, int options,
     FTS_OPEN_TYPE_ARG3(compar))
 {
-        FTS *sp;
-        FTSENT *p, *root;
+        FTSOBJ *sp;
+        FTSENTRY *p, *root;
         int nitems;
-        FTSENT *parent, *tmp = NULL;
+        FTSENTRY *parent, *tmp = NULL;
         size_t len;
 
         debug("fts_open({\"%s\", ...}, %d, &compar)", **argv, options);
@@ -123,7 +144,7 @@ fts_open(char * const *argv, int options,
         }
 
         /* Allocate/initialize the stream */
-        if ((sp = calloc(1, sizeof(FTS))) == NULL)
+        if ((sp = calloc(1, sizeof(FTSOBJ))) == NULL)
                 return (NULL);
         sp->fts_compar = (void *)compar;
         sp->fts_options = options;
@@ -216,7 +237,7 @@ mem1:   free(sp);
 }
 
 static void
-fts_load(FTS *sp, FTSENT *p)
+fts_load(FTSOBJ *sp, FTSENTRY *p)
 {
         size_t len;
         char *cp;
@@ -240,9 +261,9 @@ fts_load(FTS *sp, FTSENT *p)
 }
 
 int
-fts_close(FTS *sp)
+FTS_CLOSE(FTSOBJ *sp)
 {
-        FTSENT *freep, *p;
+        FTSENTRY *freep, *p;
         int rfd, error = 0;
 
         debug("fts_close(&sp)");
@@ -292,10 +313,10 @@ fts_close(FTS *sp)
         (p->fts_path[p->fts_pathlen - 1] == '/'                         \
             ? p->fts_pathlen - 1 : p->fts_pathlen)
 
-FTSENT *
-fts_read(FTS *sp)
+FTSENTRY *
+FTS_READ(FTSOBJ *sp)
 {
-        FTSENT *p, *tmp;
+        FTSENTRY *p, *tmp;
         int instr;
         char *t;
         int saved_errno;
@@ -490,7 +511,7 @@ name:           t = sp->fts_path + NAPPEND(p->fts_parent);
  */
 /* ARGSUSED */
 int
-fts_set(FTS *sp, FTSENT *p, int instr)
+FTS_SET(FTSOBJ *sp, FTSENTRY *p, int instr)
 {
         debug("fts_set(&sp, &p, %d)", instr);
         if (instr && instr != FTS_AGAIN && instr != FTS_FOLLOW &&
@@ -502,10 +523,10 @@ fts_set(FTS *sp, FTSENT *p, int instr)
         return (0);
 }
 
-FTSENT *
-fts_children(FTS *sp, int instr)
+FTSENTRY *
+FTS_CHILDREN(FTSOBJ *sp, int instr)
 {
-        FTSENT *p;
+        FTSENTRY *p;
         int fd;
 
         debug("fts_children(&sp, %d)", instr);
@@ -586,12 +607,12 @@ fts_children(FTS *sp, int instr)
  * directories and for any files after the subdirectories in the directory have
  * been found, cutting the stat calls by about 2/3.
  */
-static FTSENT *
-fts_build(FTS *sp, int type)
+static FTSENTRY *
+fts_build(FTSOBJ *sp, int type)
 {
         struct dirent *dp;
-        FTSENT *p, *head;
-        FTSENT *cur, *tail;
+        FTSENTRY *p, *head;
+        FTSENTRY *cur, *tail;
         DIR *dirp;
         void *oldaddr;
         size_t len, maxlen;
@@ -834,12 +855,12 @@ mem1:                           saved_errno = errno;
 }
 
 static u_short
-fts_stat(FTS *sp, FTSENT *p, int follow)
+fts_stat(FTSOBJ *sp, FTSENTRY *p, int follow)
 {
-        FTSENT *t;
+        FTSENTRY *t;
         dev_t dev;
-        ino_t ino;
-        struct stat *sbp, sb;
+        INO_T ino;
+        struct STAT *sbp, sb;
         int saved_errno;
 
         /* If user needs stat info, stat buffer already allocated. */
@@ -851,18 +872,18 @@ fts_stat(FTS *sp, FTSENT *p, int follow)
          * fail, set the errno from the stat call.
          */
         if (ISSET(FTS_LOGICAL) || follow) {
-                if (stat(p->fts_accpath, sbp)) {
+                if (STAT(p->fts_accpath, sbp)) {
                         saved_errno = errno;
-                        if (!lstat(p->fts_accpath, sbp)) {
+                        if (!LSTAT(p->fts_accpath, sbp)) {
                                 errno = 0;
                                 return (FTS_SLNONE);
                         }
                         p->fts_errno = saved_errno;
                         goto err;
                 }
-        } else if (lstat(p->fts_accpath, sbp)) {
+        } else if (LSTAT(p->fts_accpath, sbp)) {
                 p->fts_errno = errno;
-err:            memset(sbp, 0, sizeof(struct stat));
+err:            memset(sbp, 0, sizeof(struct STAT));
                 return (FTS_NS);
         }
 
@@ -902,10 +923,10 @@ err:            memset(sbp, 0, sizeof(struct stat));
         return (FTS_DEFAULT);
 }
 
-static FTSENT *
-fts_sort(FTS *sp, FTSENT *head, int nitems)
+static FTSENTRY *
+fts_sort(FTSOBJ *sp, FTSENTRY *head, int nitems)
 {
-        FTSENT **ap, *p;
+        FTSENTRY **ap, *p;
 
         /*
          * Construct an array of pointers to the structures and call qsort(3).
@@ -915,11 +936,11 @@ fts_sort(FTS *sp, FTSENT *head, int nitems)
          * 40 so don't realloc one entry at a time.
          */
         if (nitems > sp->fts_nitems) {
-                struct _ftsent **a;
+                struct _FTSENT **a;
 
                 sp->fts_nitems = nitems + 40;
                 if ((a = realloc(sp->fts_array,
-                    sp->fts_nitems * sizeof(FTSENT *))) == NULL) {
+                    sp->fts_nitems * sizeof(FTSENTRY *))) == NULL) {
                         if (sp->fts_array)
                                 free(sp->fts_array);
                         sp->fts_array = NULL;
@@ -930,33 +951,33 @@ fts_sort(FTS *sp, FTSENT *head, int nitems)
         }
         for (ap = sp->fts_array, p = head; p; p = p->fts_link)
                 *ap++ = p;
-        qsort((void *)sp->fts_array, nitems, sizeof(FTSENT *), (void *)sp->fts_compar);
+        qsort((void *)sp->fts_array, nitems, sizeof(FTSENTRY *), (void *)sp->fts_compar);
         for (head = *(ap = sp->fts_array); --nitems; ++ap)
                 ap[0]->fts_link = ap[1];
         ap[0]->fts_link = NULL;
         return (head);
 }
 
-static FTSENT *
-fts_alloc(FTS *sp, char *name, size_t namelen)
+static FTSENTRY *
+fts_alloc(FTSOBJ *sp, char *name, size_t namelen)
 {
-        FTSENT *p;
+        FTSENTRY *p;
         size_t len;
 
 #ifdef HAVE_STRUCT__FTSENT_FTS_NAME_TYPE_CHAR_P
         struct ftsent_withstat {
-                FTSENT  ent;
+                FTSENTRY  ent;
                 struct  stat statbuf;
         };
 
         /*
          * The file name is a variable length array and no stat structure is
-         * necessary if the user has set the nostat bit.  Allocate the FTSENT
+         * necessary if the user has set the nostat bit.  Allocate the FTSENTRY
          * structure, the file name and the stat structure in one chunk, but
          * be careful that the stat structure is reasonably aligned.
          */
         if (ISSET(FTS_NOSTAT))
-                len = sizeof(FTSENT) + namelen + 1;
+                len = sizeof(FTSENTRY) + namelen + 1;
         else
                 len = sizeof(struct ftsent_withstat) + namelen + 1;
 
@@ -985,15 +1006,15 @@ fts_alloc(FTS *sp, char *name, size_t namelen)
 #else
         /*
          * The file name is a variable length array and no stat structure is
-         * necessary if the user has set the nostat bit.  Allocate the FTSENT
+         * necessary if the user has set the nostat bit.  Allocate the FTSENTRY
          * structure, the file name and the stat structure in one chunk, but
          * be careful that the stat structure is reasonably aligned.  Since the
          * fts_name field is declared to be of size 1, the fts_name pointer is
          * namelen + 2 before the first possible address of the stat structure.
          */
-        len = sizeof(FTSENT) + namelen;
+        len = sizeof(FTSENTRY) + namelen;
         if (!ISSET(FTS_NOSTAT))
-                len += sizeof(struct stat) + ALIGNBYTES;
+                len += sizeof(struct STAT) + ALIGNBYTES;
         if ((p = malloc(len)) == NULL)
                 return (NULL);
 
@@ -1002,7 +1023,7 @@ fts_alloc(FTS *sp, char *name, size_t namelen)
         p->fts_namelen = namelen;
         p->fts_instr = FTS_NOINSTR;
         if (!ISSET(FTS_NOSTAT))
-                p->fts_statp = (struct stat *)ALIGN(p->fts_name + namelen + 2);
+                p->fts_statp = (struct STAT *)ALIGN(p->fts_name + namelen + 2);
         memcpy(p->fts_name, name, namelen);
 #endif
 
@@ -1010,9 +1031,9 @@ fts_alloc(FTS *sp, char *name, size_t namelen)
 }
 
 static void
-fts_lfree(FTSENT *head)
+fts_lfree(FTSENTRY *head)
 {
-        FTSENT *p;
+        FTSENTRY *p;
 
         /* Free a linked list of structures. */
         while ((p = head)) {
@@ -1028,7 +1049,7 @@ fts_lfree(FTSENT *head)
  * plus 256 bytes so don't realloc the path 2 bytes at a time.
  */
 static int
-fts_palloc(FTS *sp, size_t more)
+fts_palloc(FTSOBJ *sp, size_t more)
 {
         char *p;
 
@@ -1060,9 +1081,9 @@ fts_palloc(FTS *sp, size_t more)
  * already returned.
  */
 static void
-fts_padjust(FTS *sp, FTSENT *head)
+fts_padjust(FTSOBJ *sp, FTSENTRY *head)
 {
-        FTSENT *p;
+        FTSENTRY *p;
         char *addr = sp->fts_path;
 
 #define ADJUST(p) {                                                     \
@@ -1100,17 +1121,17 @@ fts_maxarglen(char * const *argv)
  * Assumes p->fts_dev and p->fts_ino are filled in.
  */
 static int
-fts_safe_changedir(FTS *sp, FTSENT *p, int fd, char *path)
+fts_safe_changedir(FTSOBJ *sp, FTSENTRY *p, int fd, char *path)
 {
         int ret, oerrno, newfd;
-        struct stat sb;
+        struct STAT sb;
 
         newfd = fd;
         if (ISSET(FTS_NOCHDIR))
                 return (0);
         if (fd < 0 && (newfd = open(path, O_RDONLY, 0)) < 0)
                 return (-1);
-        if (fstat(newfd, &sb)) {
+        if (FSTAT(newfd, &sb)) {
                 ret = -1;
                 goto bail;
         }
@@ -1127,3 +1148,7 @@ bail:
         errno = oerrno;
         return (ret);
 }
+
+#else
+typedef int empty_translation_unit;
+#endif

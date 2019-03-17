@@ -23,12 +23,15 @@
 #ifdef HAVE_UTIMENSAT
 
 #define _ATFILE_SOURCE
+#define _POSIX_C_SOURCE 200809L
 #include <sys/time.h>
 #include "libfakechroot.h"
 
 
 wrapper(utimensat, int, (int dirfd, const char * pathname, const struct timespec times [2], int flags))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("utimeat(%d, \"%s\", &buf, %d)", dirfd, pathname, flags);
     expand_chroot_path_at(dirfd, pathname);
     return nextcall(utimensat)(dirfd, pathname, times, flags);

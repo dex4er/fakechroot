@@ -29,6 +29,8 @@
 
 wrapper(futimesat, int, (int fd, const char * filename, const struct timeval tv [2]))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("futimesat(%d, \"%s\", &tv)", fd, filename);
     expand_chroot_path(filename);
     return nextcall(futimesat)(fd, filename, tv);

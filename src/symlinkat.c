@@ -28,6 +28,8 @@
 
 wrapper(symlinkat, int, (const char * oldpath, int newdirfd, const char * newpath))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     char tmp[FAKECHROOT_PATH_MAX];
     debug("symlinkat(\"%s\", %d, \"%s\")", oldpath, newdirfd, newpath);
     expand_chroot_rel_path(oldpath);

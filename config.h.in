@@ -35,6 +35,18 @@
 /* FAKECHROOT */
 #undef FAKECHROOT
 
+/* Define to the type of arg 1 for `fts64_open'. */
+#undef FTS64_OPEN_TYPE_ARG1
+
+/* Define to the type of arg 2 for `fts64_open'. */
+#undef FTS64_OPEN_TYPE_ARG2
+
+/* Define to the type of arg 3 for `fts64_open'. */
+#undef FTS64_OPEN_TYPE_ARG3
+
+/* Define to the type of return value for `fts64_open'. */
+#undef FTS64_OPEN_TYPE_RETURN
+
 /* Define to the type of arg 1 for `fts_open'. */
 #undef FTS_OPEN_TYPE_ARG1
 
@@ -231,6 +243,18 @@
 /* Define to 1 if you have the `fstat64' function. */
 #undef HAVE_FSTAT64
 
+/* Define to 1 if you have the `fts64_open' function. */
+#undef HAVE_FTS64_OPEN
+
+/* Define to 1 if the type of arg 1 for `fts64_open' is `char * const *_' */
+#undef HAVE_FTS64_OPEN_TYPE_ARG1_CHAR_P_CONST_P_
+
+/* Define to 1 if the type of arg 2 for `fts64_open' is `int _' */
+#undef HAVE_FTS64_OPEN_TYPE_ARG2_INT__
+
+/* Define to 1 if the type of return value for `fts64_open' is `FTSOBJ *' */
+#undef HAVE_FTS64_OPEN_TYPE_RETURN_FTSOBJ_P
+
 /* Define to 1 if you have the `fts_children' function. */
 #undef HAVE_FTS_CHILDREN
 
@@ -246,8 +270,8 @@
 /* Define to 1 if the type of arg 2 for `fts_open' is `int _' */
 #undef HAVE_FTS_OPEN_TYPE_ARG2_INT__
 
-/* Define to 1 if the type of return value for `fts_open' is `FTS *' */
-#undef HAVE_FTS_OPEN_TYPE_RETURN_FTS_P
+/* Define to 1 if the type of return value for `fts_open' is `FTSOBJ *' */
+#undef HAVE_FTS_OPEN_TYPE_RETURN_FTSOBJ_P
 
 /* Define to 1 if you have the `fts_read' function. */
 #undef HAVE_FTS_READ
@@ -525,6 +549,9 @@
 
 /* Define to 1 if you have the `renameat' function. */
 #undef HAVE_RENAMEAT
+
+/* Define to 1 if you have the `renameat2' function. */
+#undef HAVE_RENAMEAT2
 
 /* Define to 1 if you have the `revoke' function. */
 #undef HAVE_REVOKE

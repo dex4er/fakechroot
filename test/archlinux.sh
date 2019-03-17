@@ -25,7 +25,7 @@ die () {
 command -v fakeroot >/dev/null 2>&1 || die 'fakeroot command is missing (sudo apt-get install fakeroot)'
 
 mirror=${MIRROR:-http://mirrors.kernel.org/archlinux}
-release=${RELEASE:-2015.10.01}
+release=${RELEASE:-2019.04.01}
 arch=${ARCH:-`uname -m`}
 
 case $arch in
@@ -46,8 +46,9 @@ fi
 url=$mirror/iso/$release/archlinux-bootstrap-$release-$arch.tar.gz
 tarball=`test -d "$ARCHLINUX_CACHE" && cd "$ARCHLINUX_CACHE"; pwd`/`basename $url`
 
-if ! [ -f $tarball ]; then
-    wget -O "$tarball" $url
+if ! [ -f "$tarball" ]; then
+    wget -O "$tarball.part" $url
+    mv -f "$tarball.part" "$tarball"
 fi
 
 export FAKECHROOT_AF_UNIX_PATH=/tmp
@@ -76,14 +77,14 @@ run_root pacman -Sy
 mkdir -p "$destdir/tmp/hello"
 cat > "$destdir/tmp/hello/PKGBUILD" << 'END'
 pkgname=hello
-pkgver=2.9
+pkgver=2.10
 pkgrel=1
 pkgdesc="GNU Hello"
 arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/hello/"
 license=('GPL')
 source=(http://ftp.gnu.org/gnu/hello/hello-${pkgver}.tar.gz)
-md5sums=('67607d2616a0faaf5bc94c59dca7c3cb')
+md5sums=('6cd0ffea3884a4e79330338dcc2987d6')
 
 
 build() {

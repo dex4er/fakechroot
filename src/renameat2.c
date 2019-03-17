@@ -20,34 +20,23 @@
 
 #include <config.h>
 
-#ifdef HAVE_OPENAT
+#ifdef HAVE_RENAMEAT2
 
 #define _ATFILE_SOURCE
-#include <stdarg.h>
-#include <stddef.h>
-#include <fcntl.h>
 #include "libfakechroot.h"
 
 
-wrapper_alias(openat, int, (int dirfd, const char * pathname, int flags, ...))
+wrapper(renameat2, int, (int olddirfd, const char * oldpath, int newdirfd, const char * newpath, unsigned int flags))
 {
     char fakechroot_abspath[FAKECHROOT_PATH_MAX];
     char fakechroot_buf[FAKECHROOT_PATH_MAX];
-
-    int mode = 0;
-
-    va_list arg;
-    va_start(arg, flags);
-
-    debug("openat(%d, \"%s\", %d, ...)", dirfd, pathname, flags);
-    expand_chroot_path_at(dirfd, pathname);
-
-    if (flags & O_CREAT) {
-        mode = va_arg(arg, int);
-        va_end(arg);
-    }
-
-    return nextcall(openat)(dirfd, pathname, flags, mode);
+    char tmp[FAKECHROOT_PATH_MAX];
+    debug("renameat2(%d, \"%s\", %d, \"%s\", %d)", olddirfd, oldpath, newdirfd, newpath, flags);
+    expand_chroot_path_at(olddirfd, oldpath);
+    strcpy(tmp, oldpath);
+    oldpath = tmp;
+    expand_chroot_path_at(newdirfd, newpath);
+    return nextcall(renameat2)(olddirfd, oldpath, newdirfd, newpath, flags);
 }
 
 #else

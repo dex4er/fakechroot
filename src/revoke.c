@@ -27,6 +27,8 @@
 
 wrapper(revoke, int, (const char * file))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("revoke(\"%s\")", file);
     expand_chroot_path(file);
     return nextcall(revoke)(file);

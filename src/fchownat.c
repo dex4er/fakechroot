@@ -23,6 +23,7 @@
 #ifdef HAVE_FCHOWNAT
 
 #define _ATFILE_SOURCE
+#define _POSIX_C_SOURCE 200809L
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "libfakechroot.h"
@@ -30,6 +31,8 @@
 
 wrapper(fchownat, int, (int dirfd, const char * path, uid_t owner, gid_t group, int flag))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("fchownat(%d, \"%s\", %d, %d, %d)", dirfd, path, owner, group, flag);
     expand_chroot_path_at(dirfd, path);
     return nextcall(fchownat)(dirfd, path, owner, group, flag);

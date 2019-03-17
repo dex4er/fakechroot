@@ -32,7 +32,7 @@
 
 LOCAL char * rel2abs(const char * name, char * resolved)
 {
-    char cwd[FAKECHROOT_PATH_MAX];
+    char cwd[FAKECHROOT_PATH_MAX - 1];
 
     debug("rel2abs(\"%s\", &resolved)", name);
 
@@ -46,7 +46,7 @@ LOCAL char * rel2abs(const char * name, char * resolved)
         goto end;
     }
 
-    getcwd_real(cwd, FAKECHROOT_PATH_MAX);
+    getcwd_real(cwd, FAKECHROOT_PATH_MAX - 1);
     narrow_chroot_path(cwd);
 
     if (*name == '/') {
