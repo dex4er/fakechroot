@@ -2,7 +2,7 @@
 
 ## Version 2.20
 
-UNRELEASED
+17 Mar 2019
 
 * The `fts64_*` functions were added: glibc supports them since 2.23.
 * The `renameat2`(2) function were added: glibc supports it since 2.28
