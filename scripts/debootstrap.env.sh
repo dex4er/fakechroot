@@ -8,13 +8,15 @@ fi
 
 # Set a list of command substitutions needed by debootstrap
 fakechroot_debootstrap_env_cmd_subst="/bin/mount=/bin/true
-/sbin/devfs=/bin/true
-/sbin/insserv=/bin/true
-/sbin/ldconfig=/bin/true
-/usr/bin/ischroot=/bin/true
-/usr/bin/ldd=${fakechroot_bindir:-@bindir@}/ldd.fakechroot
-/usr/bin/mkfifo=/bin/true
-/usr/sbin/chroot=${fakechroot_bindir:-@sbindir@}/chroot.fakechroot
+@CHROOT@=${fakechroot_bindir:-@sbindir@}/chroot.fakechroot
+@DEVFS@=/bin/true
+@INSSERV@=/bin/true
+@ISCHROOT@=/bin/true
+@LDCONFIG@=/bin/true
+@LDD@=${fakechroot_bindir:-@bindir@}/ldd.fakechroot
+@MKFIFO@=/bin/true
+@SYSTEMCTL@=/bin/true
+@SYSTEMD_MACHINE_ID_SETUP@=/bin/true
 /var/lib/dpkg/info/freebsd-utils.postinst=/bin/true
 /var/lib/dpkg/info/kbdcontrol.postinst=/bin/true"
 
