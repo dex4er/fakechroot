@@ -391,5 +391,8 @@ AC_CONFIG_FILES(m4_normalize([
 ACX_PROG_PROVE_OPT([--failures])
 ACX_PROG_PROVE_OPT([--exec /bin/sh])
 
+# Silence warning: ar: 'u' modifier ignored since 'D' is the default
+AC_SUBST(AR_FLAGS, [cr])
+
 # Generate output
 AC_OUTPUT
