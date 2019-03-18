@@ -1,5 +1,11 @@
 # NEWS
 
+## Version 2.20.1
+
+UNRELEASED
+
+* Fixed problem when tests couldn't be started with root user and glibc 2.28.
+
 ## Version 2.20
 
 17 Mar 2019
