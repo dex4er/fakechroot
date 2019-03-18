@@ -8,7 +8,7 @@ arch=`dpkg --print-architecture`
 
 prepare 5
 
-for v in `seq 5 9`; do
+for v in `seq 5 12`; do
 
     JAVA_HOME=/usr/lib/jvm/java-$v-openjdk-$arch
 
