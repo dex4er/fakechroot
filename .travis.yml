@@ -38,7 +38,6 @@ env:
     - TRAVIS_CC=colorgcc EXTRA_CFLAGS='-Wall -Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-Wall -Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-std=c11 -Wall -Werror'
-    - TRAVIS_CC=clang EXTRA_CFLAGS='-flto -Wall -Werror' EXTRA_LDFLAGS='-flto'
 
 cache:
   directories:
