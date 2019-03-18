@@ -5,6 +5,7 @@
 UNRELEASED
 
 * Fixed problem when tests couldn't be started with root user and glibc 2.28.
+* Fixed problem with too verbose test for debootstrap.
 * Better support for link-time optimizer. Run
   `./configure EXTRA_CFLAGS='-Wall -flto' EXTRA_LDFLAGS='-flto' AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib`
   to use it.
