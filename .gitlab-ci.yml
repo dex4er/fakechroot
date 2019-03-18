@@ -51,15 +51,7 @@ test:sid:gcc:lto:
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
     RANLIB: gcc-ranlib
 
-test:sid:clang:7:
-  <<: *test_template
-  image: debian:sid
-  variables:
-    CC: clang-7
-    EXTRA_CFLAGS: -Wall -Werror
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
-
-test:sid:clang:8:
+test:sid:clang:
   <<: *test_template
   image: debian:sid
   variables:
@@ -67,7 +59,7 @@ test:sid:clang:8:
     EXTRA_CFLAGS: -Wall -Werror
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
-test:sid:clang:8:c11:
+test:sid:clang:c11:
   <<: *test_template
   image: debian:sid
   variables:
@@ -75,7 +67,7 @@ test:sid:clang:8:c11:
     EXTRA_CFLAGS: -Wall -Werror -std=c11
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
-test:sid:clang:8:c17:
+test:sid:clang:c17:
   <<: *test_template
   image: debian:sid
   variables:
@@ -83,7 +75,7 @@ test:sid:clang:8:c17:
     EXTRA_CFLAGS: -Wall -Werror -std=c17
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
-test:sid:clang:8:lto:
+test:sid:clang:lto:
   <<: *test_template
   image: debian:sid
   variables:
