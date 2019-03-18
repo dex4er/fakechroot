@@ -14,6 +14,13 @@ AC_ARG_VAR([V], [Verbose output])
 AC_ARG_VAR([EXTRA_CFLAGS], [Extra C compiler flags])
 AC_ARG_VAR([EXTRA_LDFLAGS], [Extra linker flags])
 
+# C toolchain
+AM_PROG_AR
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_PROG_LN_S
+AM_PROG_LIBTOOL
+AM_PROG_NM
 LT_INIT
 
 AC_CANONICAL_HOST
@@ -34,14 +41,9 @@ AS_IF([test "x$with_libpath" = x],
 AC_SUBST(libpath, $with_libpath)
 
 # Checks for programs.
-AC_PROG_MAKE_SET
-AM_PROG_LIBTOOL
-AC_PROG_CC
-AC_PROG_LN_S
 AC_CHECK_PROGS([POD2MAN], [pod2man])
 AC_CHECK_PROGS([PROVE], [prove])
 AC_CHECK_PROGS([SEQ], [seq gseq])
-AC_PATH_PROG([AR], [ar], [/usr/bin/ar], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
 AC_PATH_PROG([DEBOOTSTRAP], [debootstrap], [/usr/sbin/debootstrap], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
 AC_PATH_PROG([ECHO], [echo], [/bin/echo], [/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
@@ -51,9 +53,7 @@ AC_PATH_PROG([ISCHROOT], [ischroot], [/usr/bin/ischroot], [/usr/bin:/bin:/sbin:/
 AC_PATH_PROG([LDCONFIG], [ldconfig], [/sbin/chroot], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
 AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([LS], [ls], [/bin/ls], [/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([NM], [nm], [/usr/bin/ar], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([PERL], [perl], [/usr/bin/perl], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([RANLIB], [ranlib], [/usr/bin/ranlib], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([SH], [sh], [/bin/sh], [/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([SHELL], [bash dash sh], [/bin/sh], [/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 

@@ -5,6 +5,9 @@
 UNRELEASED
 
 * Fixed problem when tests couldn't be started with root user and glibc 2.28.
+* Better support for link-time optimizer. Run
+  `./configure EXTRA_CFLAGS='-Wall -flto' EXTRA_LDFLAGS='-flto' AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib`
+  to use it.
 
 ## Version 2.20
 
