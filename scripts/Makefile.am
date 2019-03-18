@@ -29,7 +29,6 @@ do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]SEQ[@],$(SEQ),g' \
                -e 's,[@]SHELL[@],$(SHELL),g' \
                -e 's,[@]SYSTEMCTL[@],$(SYSTEMCTL),g' \
-               -e 's,[@]SYSTEMD_MACHINE_ID_SETUP[@],$(SYSTEMD_MACHINE_ID_SETUP),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 
 chroot.env: $(srcdir)/chroot.env.sh

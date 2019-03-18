@@ -16,7 +16,6 @@ fakechroot_debootstrap_env_cmd_subst="/bin/mount=/bin/true
 @LDD@=${fakechroot_bindir:-@bindir@}/ldd.fakechroot
 @MKFIFO@=/bin/true
 @SYSTEMCTL@=/bin/true
-@SYSTEMD_MACHINE_ID_SETUP@=/bin/true
 /var/lib/dpkg/info/freebsd-utils.postinst=/bin/true
 /var/lib/dpkg/info/kbdcontrol.postinst=/bin/true
 /var/lib/dpkg/info/systemd.postinst=/bin/true"
