@@ -1,7 +1,7 @@
 before_script:
   - apt-get update
   - apt-get dist-upgrade -y
-  - apt-get install --no-install-recommends -y build-essential $CC debootstrap fakeroot libjemalloc-dev $LLD lsb-release $OPENJDK_PACKAGES
+  - apt-get install --no-install-recommends -y autoconf automake build-essential $CC debootstrap fakeroot libjemalloc-dev libtool $LLD lsb-release $OPENJDK_PACKAGES
 
 .test_template: &test_template
   script:
