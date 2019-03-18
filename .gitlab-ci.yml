@@ -1,0 +1,88 @@
+before_script:
+  - apt-get update
+  - apt-get dist-upgrade -y
+  - apt-get install --no-install-recommends -y build-essential $CC debootstrap fakeroot libjemalloc-dev $LLD lsb-release $OPENJDK_PACKAGES
+
+.test_template: &test_template
+  script:
+    - ./autogen.sh
+    - ./configure
+    - make
+    - make test
+
+test:stretch:
+  <<: *test_template
+  image: debian:stretch
+  variables:
+    EXTRA_CFLAGS: -Wall -Werror
+    OPENJDK_PACKAGES: openjdk-8-jdk
+    TEST_DEBOOTSTRAP: "true"
+
+test:buster:
+  <<: *test_template
+  image: debian:buster
+  variables:
+    EXTRA_CFLAGS: -Wall -Werror
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk
+    TEST_DEBOOTSTRAP: "true"
+
+test:sid:gcc:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    EXTRA_CFLAGS: -Wall -Werror
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+
+test:sid:gcc:lto:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    AR: gcc-ar
+    EXTRA_CFLAGS: -Wall -Werror -flto
+    NM: gcc-nm
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    RANLIB: gcc-ranlib
+
+test:sid:clang:7:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    CC: clang-7
+    EXTRA_CFLAGS: -Wall -Werror
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+
+test:sid:clang:8:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    CC: clang-8
+    EXTRA_CFLAGS: -Wall -Werror
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+
+test:sid:clang:8:c11:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    CC: clang-8
+    EXTRA_CFLAGS: -Wall -Werror -std=c11
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+
+test:sid:clang:8:c17:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    CC: clang-8
+    EXTRA_CFLAGS: -Wall -Werror -std=c17
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+
+test:sid:clang:8:lto:
+  <<: *test_template
+  image: debian:sid
+  variables:
+    AR: gcc-ar
+    CC: clang-8
+    EXTRA_CFLAGS: -Wall -Werror -flto -fuse-ld=lld-8 -Wno-unused-command-line-argumen
+    LLD: lld-8
+    NM: gcc-nm
+    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    RANLIB: gcc-ranlib
