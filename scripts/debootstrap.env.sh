@@ -31,13 +31,11 @@ export FAKECHROOT_EXCLUDE_PATH
 FAKECHROOT_AF_UNIX_PATH=/tmp
 export FAKECHROOT_AF_UNIX_PATH
 
-# Set the LD_LIBRARY_PATH based on host's /etc/ld.so.conf.d/*
+# Set the LD_LIBRARY_PATH based on host's /etc/ld.so.conf.d/* and some extra
 fakechroot_debootstrap_env_paths=`
     cat /etc/ld.so.conf /etc/ld.so.conf.d/* 2>/dev/null | grep ^/ | while read fakechroot_debootstrap_env_d; do
         printf '%s:' "$fakechroot_debootstrap_env_d"
     done
-`
-if [ -n "$fakechroot_debootstrap_env_paths" ]; then
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${fakechroot_debootstrap_env_paths%:}"
-    export LD_LIBRARY_PATH
-fi
+`${FAKECHROOT_EXTRA_LIBRARY_PATH:-/lib/systemd:/usr/lib/man-db}
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${fakechroot_debootstrap_env_paths%:}"
+export LD_LIBRARY_PATH
