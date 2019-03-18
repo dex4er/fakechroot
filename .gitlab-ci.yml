@@ -10,6 +10,14 @@ before_script:
     - make V=1
     - make test
 
+test:jessie:
+  <<: *test_template
+  image: debian:jessie
+  variables:
+    EXTRA_CFLAGS: -Wall -Werror
+    OPENJDK_PACKAGES: openjdk-7-jdk
+    TEST_DEBOOTSTRAP: "true"
+
 test:stretch:
   <<: *test_template
   image: debian:stretch
