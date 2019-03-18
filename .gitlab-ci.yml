@@ -7,7 +7,7 @@ before_script:
   script:
     - ./autogen.sh
     - ./configure
-    - make
+    - make V=1
     - make test
 
 test:stretch:

@@ -25,7 +25,7 @@ before_script:
 script:
   - ./autogen.sh
   - ./configure CC=$TRAVIS_CC
-  - make
+  - make V=1
   - make test
 
 env:
