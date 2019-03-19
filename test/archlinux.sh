@@ -7,6 +7,10 @@
 srcdir=${srcdir:-.}
 abs_srcdir=${abs_srcdir:-`cd "$srcdir" 2>/dev/null && pwd -P`}
 
+top_srcdir=${top_srcdir:-..}
+
+. $top_srcdir/config.sh
+
 test -d "$abs_srcdir/bin" && export PATH="$abs_srcdir/bin:$PATH"
 
 run () {
@@ -25,8 +29,18 @@ die () {
 command -v fakeroot >/dev/null 2>&1 || die 'fakeroot command is missing (sudo apt-get install fakeroot)'
 
 mirror=${MIRROR:-http://mirrors.kernel.org/archlinux}
-release=${RELEASE:-2019.04.01}
+release=$RELEASE
 arch=${ARCH:-`uname -m`}
+
+if [ -z "$release" ]; then
+    release=`curl -s -L $mirror/iso/latest/sha1sums.txt | $AWK '{print $2}' | grep ^archlinux-bootstrap- | sort -r | $SED -n 1p | $SED -e 's/^archlinux-bootstrap-//' -e 's/-.*//'`
+    case "$release" in
+        [0-9][0-9][0-9][0-9].[0-9][0-9].[0-9][0-9])
+            :;;
+        *)
+            die 'cannot detect latest version of Arch Linux'
+    esac
+fi
 
 case $arch in
     i?86) arch=i386;;
@@ -57,6 +71,8 @@ if ! command -v chroot >/dev/null 2>&1; then
     PATH=$PATH:/usr/sbin:/sbin
     export PATH
 fi
+
+echo "Unpacking `basename $tarball`..."
 
 rm -rf "$destdir"
 
@@ -97,7 +113,7 @@ check() {
   cd ${srcdir}/${pkgname}-${pkgver}
   make check
 }
-  
+
 package() {
   cd ${srcdir}/${pkgname}-${pkgver}
   make DESTDIR=${pkgdir} install
