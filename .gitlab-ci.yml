@@ -1,8 +1,3 @@
-before_script:
-  - apt-get update
-  - apt-get dist-upgrade -y
-  - apt-get install --no-install-recommends -y autoconf automake build-essential $CC debootstrap fakeroot libjemalloc-dev libtool $LLD lsb-release $OPENJDK_PACKAGES
-
 .test_template: &test_template
   script:
     - ./autogen.sh
@@ -10,8 +5,15 @@ before_script:
     - make V=1
     - make test
 
-test:jessie:
+.test_template_debian: &test_template_debian
   <<: *test_template
+  before_script:
+    - apt-get update
+    - apt-get dist-upgrade -y
+    - apt-get install --no-install-recommends -y autoconf automake build-essential $CC debootstrap fakeroot libjemalloc-dev libtool $LLD lsb-release $OPENJDK_PACKAGES
+
+test:jessie:
+  <<: *test_template_debian
   image: debian:jessie
   variables:
     EXTRA_CFLAGS: -Wall -Werror
@@ -19,7 +21,7 @@ test:jessie:
     TEST_DEBOOTSTRAP: "true"
 
 test:stretch:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:stretch
   variables:
     EXTRA_CFLAGS: -Wall -Werror
@@ -27,7 +29,7 @@ test:stretch:
     TEST_DEBOOTSTRAP: "true"
 
 test:buster:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:buster
   variables:
     EXTRA_CFLAGS: -Wall -Werror
@@ -35,14 +37,14 @@ test:buster:
     TEST_DEBOOTSTRAP: "true"
 
 test:sid:gcc:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:sid
   variables:
     EXTRA_CFLAGS: -Wall -Werror
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
 test:sid:gcc:lto:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:sid
   variables:
     AR: gcc-ar
@@ -52,7 +54,7 @@ test:sid:gcc:lto:
     RANLIB: gcc-ranlib
 
 test:sid:clang:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:sid
   variables:
     CC: clang-8
@@ -60,7 +62,7 @@ test:sid:clang:
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
 test:sid:clang:c11:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:sid
   variables:
     CC: clang-8
@@ -68,7 +70,7 @@ test:sid:clang:c11:
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
 test:sid:clang:c17:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:sid
   variables:
     CC: clang-8
@@ -76,7 +78,7 @@ test:sid:clang:c17:
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
 
 test:sid:clang:lto:
-  <<: *test_template
+  <<: *test_template_debian
   image: debian:sid
   variables:
     AR: gcc-ar
@@ -86,3 +88,22 @@ test:sid:clang:lto:
     NM: gcc-nm
     OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
     RANLIB: gcc-ranlib
+
+test:fedora:rawhide:
+  <<: *test_template
+  image: fedora:rawhide
+  before_script:
+    - dnf -y upgrade
+    - dnf -y install @development-tools autoconf automake fakeroot file libtool perl-Test-Harness redhat-rpm-config
+  variables:
+    CFLAGS: -O2 -g -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
+
+test:archlinux:
+  <<: *test_template
+  image: archlinux/base
+  before_script:
+    - pacman -Sy
+    - pacman -S --noconfirm autoconf automake fakeroot file gcc grep libtool make wget
+  variables:
+    PROVE: /usr/bin/core_perl/prove
+    # TEST_ARCHLINUX: "true" # release 2019.03.01 is broken
