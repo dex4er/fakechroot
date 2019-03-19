@@ -6,6 +6,8 @@ UNRELEASED
 
 * Fixed problem when tests couldn't be started with root user and glibc 2.28.
 * Fixed problem with too verbose test for `debootstrap`(8) command.
+* Fixed problem with tests for `fts_*` functions when started on `btrfs`
+  filesystem.
 * The `debootstrap`(8) command honors `FAKECHROOT_EXTRA_LIBRARY_PATH`
   environment variable too.
 * Workaround has been added for `systemd` package installed by
