@@ -11,7 +11,7 @@ sysconf_DATA = chroot.env debootstrap.env rinse.env
 EXTRA_DIST = $(src_wrappers) $(src_envs) $(example_scripts)
 CLEANFILES = $(bin_SCRIPTS) $(sbin_SCRIPTS) $(sysconf_DATA)
 
-do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
+do_subst = $(SED) -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]libpath[@],$(libpath),g' \
                -e 's,[@]sbindir[@],$(sbindir),g' \
                -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
