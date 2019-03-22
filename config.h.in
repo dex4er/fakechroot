@@ -12,6 +12,12 @@
 /* Define to the type of return value for `bind'. */
 #undef BIND_TYPE_RETURN
 
+/* BIN_LS */
+#undef BIN_LS
+
+/* BIN_SH */
+#undef BIN_SH
+
 /* Define to the type of arg 1 for `connect'. */
 #undef CONNECT_TYPE_ARG1
 

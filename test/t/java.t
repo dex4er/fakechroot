@@ -6,9 +6,9 @@ srcdir=${srcdir:-.}
 command -v dpkg >/dev/null 2>&1 || skip_all 'dpkg command is missing'
 arch=`dpkg --print-architecture`
 
-prepare 5
+prepare 8
 
-for v in `seq 5 9`; do
+for v in `seq 5 12`; do
 
     JAVA_HOME=/usr/lib/jvm/java-$v-openjdk-$arch
 

@@ -11,20 +11,24 @@ sysconf_DATA = chroot.env debootstrap.env rinse.env
 EXTRA_DIST = $(src_wrappers) $(src_envs) $(example_scripts)
 CLEANFILES = $(bin_SCRIPTS) $(sbin_SCRIPTS) $(sysconf_DATA)
 
-do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
+do_subst = $(SED) -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]libpath[@],$(libpath),g' \
                -e 's,[@]sbindir[@],$(sbindir),g' \
                -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
                -e 's,[@]CHROOT[@],$(CHROOT),g' \
+               -e 's,[@]DEVFS[@],$(DEVFS),g' \
                -e 's,[@]ECHO[@],$(ECHO),g' \
                -e 's,[@]ENV[@],$(ENV),g' \
                -e 's,[@]EGREP[@],$(EGREP),g' \
+               -e 's,[@]INSSERV[@],$(INSSERV),g' \
                -e 's,[@]ISCHROOT[@],$(ISCHROOT),g' \
                -e 's,[@]LDCONFIG[@],$(LDCONFIG),g' \
                -e 's,[@]LDD[@],$(LDD),g' \
+               -e 's,[@]MKFIFO[@],$(MKFIFO),g' \
                -e 's,[@]PERL[@],$(PERL),g' \
                -e 's,[@]SEQ[@],$(SEQ),g' \
                -e 's,[@]SHELL[@],$(SHELL),g' \
+               -e 's,[@]SYSTEMCTL[@],$(SYSTEMCTL),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 
 chroot.env: $(srcdir)/chroot.env.sh

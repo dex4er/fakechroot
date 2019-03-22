@@ -60,7 +60,7 @@ rm -rf $destdir
 
 ls -l $tarball
 
-fakechroot fakeroot bash -x $DEBOOTSTRAP --unpack-tarball="$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
+fakechroot fakeroot $DEBOOTSTRAP --unpack-tarball="$tarball" $debootstrap_opts $release $destdir || cat $destdir/debootstrap/debootstrap.log
 
 unset CC CFLAGS LDFLAGS EXTRA_CFLAGS EXTRA_LDFLAGS V
 

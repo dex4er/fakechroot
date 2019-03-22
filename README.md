@@ -5,7 +5,8 @@
 <!-- markdownlint-disable MD013 -->
 **Home** | [Download](https://github.com/fakechroot/fakechroot/wiki/Download) | [Documentation](https://github.com/fakechroot/fakechroot/blob/master/man/fakechroot.pod) | [ChangeLog](https://github.com/fakechroot/fakechroot/blob/master/NEWS.md) | [Development](https://github.com/fakechroot/fakechroot/wiki/Development) | [ToDo](https://github.com/fakechroot/fakechroot/wiki/Todo) | [Links](https://github.com/fakechroot/fakechroot/wiki/Links)
 
-[![Build Status](https://travis-ci.org/dex4er/fakechroot.png?branch=master)](https://travis-ci.org/dex4er/fakechroot)
+[![Travis CI](https://travis-ci.org/dex4er/fakechroot.png?branch=master)](https://travis-ci.org/dex4er/fakechroot)
+[![Salsa GitLab CI](https://salsa.debian.org/dexter/fakechroot/badges/master/pipeline.svg)](https://salsa.debian.org/dexter/fakechroot/commits/master)
 <!-- markdownlint-enable MD013 -->
 
 ## What is it

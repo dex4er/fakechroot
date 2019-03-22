@@ -78,6 +78,7 @@ for p in \
     '/usr/bin/touch' \
     '/usr/bin/tr' \
     '/usr/sbin/chroot' \
+    '/usr/sbin/readlink' \
     '/usr/local/bin/bash' \
     '/usr/local/bin/gseq' \
     '/usr/local/bin/ltrace' \
@@ -105,6 +106,7 @@ for p in \
     'libacl.so.*' \
     'libattr.so.*' \
     'libc.so.*' \
+    'libcap.so.*' \
     'libcrypt.so.*' \
     'libdl.so.*' \
     'libedit.so.*' \
@@ -113,8 +115,10 @@ for p in \
     'libgcc_s.so.*' \
     'libm.so.*' \
     'libncurses.so.*' \
-    'libpcre.so.*' \
+    'libncursesw.so.*' \
+    'libpcre*.so.*' \
     'libpthread.so.*' \
+    'libreadline.so.*' \
     'librt.so.*' \
     'libselinux.so.*' \
     'libstdc++.so.*' \

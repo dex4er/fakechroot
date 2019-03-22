@@ -88,14 +88,6 @@ if [ -d "$fakechroot_chroot_newroot" ]; then
     fakechroot_chroot_paths_ldsoconf="${fakechroot_chroot_paths_ldsoconf#:}"
 
     # append newroot to extra directories because some important commands use runpath
-    fakechroot_chroot_paths_extra=""
-    for fakechroot_chroot_d in /lib/systemd /usr/lib/man-db; do
-        if [ -d "$fakechroot_chroot_newroot$fakechroot_chroot_d" ]; then
-            fakechroot_chroot_paths_extra="${fakechroot_chroot_paths_extra:+:$fakechroot_chroot_paths_extra}$fakechroot_chroot_newroot$fakechroot_chroot_d"
-        fi
-    done
-
-    # append newroot to /usr/lib/man-db because mandb uses runpath
     fakechroot_chroot_IFS_bak="$IFS" IFS=:
     fakechroot_chroot_paths_extra=""
     for fakechroot_chroot_d in ${FAKECHROOT_EXTRA_LIBRARY_PATH:-/lib/systemd:/usr/lib/man-db}; do

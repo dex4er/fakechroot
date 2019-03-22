@@ -8,15 +8,17 @@ fi
 
 # Set a list of command substitutions needed by debootstrap
 fakechroot_debootstrap_env_cmd_subst="/bin/mount=/bin/true
-/sbin/devfs=/bin/true
-/sbin/insserv=/bin/true
-/sbin/ldconfig=/bin/true
-/usr/bin/ischroot=/bin/true
-/usr/bin/ldd=${fakechroot_bindir:-@bindir@}/ldd.fakechroot
-/usr/bin/mkfifo=/bin/true
-/usr/sbin/chroot=${fakechroot_bindir:-@sbindir@}/chroot.fakechroot
+@CHROOT@=${fakechroot_bindir:-@sbindir@}/chroot.fakechroot
+@DEVFS@=/bin/true
+@INSSERV@=/bin/true
+@ISCHROOT@=/bin/true
+@LDCONFIG@=/bin/true
+@LDD@=${fakechroot_bindir:-@bindir@}/ldd.fakechroot
+@MKFIFO@=/bin/true
+@SYSTEMCTL@=/bin/true
 /var/lib/dpkg/info/freebsd-utils.postinst=/bin/true
-/var/lib/dpkg/info/kbdcontrol.postinst=/bin/true"
+/var/lib/dpkg/info/kbdcontrol.postinst=/bin/true
+/var/lib/dpkg/info/systemd.postinst=/bin/true"
 
 FAKECHROOT_CMD_SUBST="${FAKECHROOT_CMD_SUBST:+$FAKECHROOT_CMD_SUBST:}`echo \"$fakechroot_debootstrap_env_cmd_subst\" | tr '\012' ':'`"
 export FAKECHROOT_CMD_SUBST
@@ -29,13 +31,11 @@ export FAKECHROOT_EXCLUDE_PATH
 FAKECHROOT_AF_UNIX_PATH=/tmp
 export FAKECHROOT_AF_UNIX_PATH
 
-# Set the LD_LIBRARY_PATH based on host's /etc/ld.so.conf.d/*
+# Set the LD_LIBRARY_PATH based on host's /etc/ld.so.conf.d/* and some extra
 fakechroot_debootstrap_env_paths=`
     cat /etc/ld.so.conf /etc/ld.so.conf.d/* 2>/dev/null | grep ^/ | while read fakechroot_debootstrap_env_d; do
         printf '%s:' "$fakechroot_debootstrap_env_d"
     done
-`
-if [ -n "$fakechroot_debootstrap_env_paths" ]; then
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${fakechroot_debootstrap_env_paths%:}"
-    export LD_LIBRARY_PATH
-fi
+`${FAKECHROOT_EXTRA_LIBRARY_PATH:-/lib/systemd:/usr/lib/man-db}
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${fakechroot_debootstrap_env_paths%:}"
+export LD_LIBRARY_PATH

@@ -170,13 +170,14 @@ CTAGS = ctags
 CSCOPE = cscope
 DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
-	$(srcdir)/config.sh.in $(top_srcdir)/build-aux/compile \
+	$(srcdir)/config.sh.in $(top_srcdir)/build-aux/ar-lib \
+	$(top_srcdir)/build-aux/compile \
 	$(top_srcdir)/build-aux/config.guess \
 	$(top_srcdir)/build-aux/config.sub \
 	$(top_srcdir)/build-aux/install-sh \
 	$(top_srcdir)/build-aux/ltmain.sh \
-	$(top_srcdir)/build-aux/missing COPYING build-aux/compile \
-	build-aux/config.guess build-aux/config.sub \
+	$(top_srcdir)/build-aux/missing COPYING build-aux/ar-lib \
+	build-aux/compile build-aux/config.guess build-aux/config.sub \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -225,6 +226,7 @@ ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
+AR_FLAGS = @AR_FLAGS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -240,6 +242,7 @@ CYGPATH_W = @CYGPATH_W@
 DEBOOTSTRAP = @DEBOOTSTRAP@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DEVFS = @DEVFS@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
@@ -256,6 +259,7 @@ FAKEROOT = @FAKEROOT@
 FGREP = @FGREP@
 GREP = @GREP@
 HAVE_VISIBILITY = @HAVE_VISIBILITY@
+INSSERV = @INSSERV@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -271,12 +275,14 @@ LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
+LS = @LS@
 LTLIBOBJS = @LTLIBOBJS@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
+MKFIFO = @MKFIFO@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -301,8 +307,10 @@ RANLIB = @RANLIB@
 SED = @SED@
 SEQ = @SEQ@
 SET_MAKE = @SET_MAKE@
+SH = @SH@
 SHELL = @SHELL@
 STRIP = @STRIP@
+SYSTEMCTL = @SYSTEMCTL@
 V = @V@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@

@@ -3,7 +3,7 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
-prepare 40
+prepare 36
 
 for chroot in chroot fakechroot; do
 
@@ -26,7 +26,7 @@ for chroot in chroot fakechroot; do
 
         done
 
-        for option in 32 255; do
+        for option in 32; do
 
             mkdir -p $testtree/$chroot-$option-dir/a/b/c
             echo "something" > $testtree/$chroot-$option-dir/a/b/c/d

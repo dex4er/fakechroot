@@ -1,5 +1,5 @@
 AC_PREREQ(2.64)
-AC_INIT([fakechroot], [2.20], [dexter@debian.org], [fakechroot], [https://github.com/dex4er/fakechroot])
+AC_INIT([fakechroot], [2.20.1], [dexter@debian.org], [fakechroot], [https://github.com/dex4er/fakechroot])
 
 AC_CONFIG_SRCDIR([src/libfakechroot.c])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -14,6 +14,13 @@ AC_ARG_VAR([V], [Verbose output])
 AC_ARG_VAR([EXTRA_CFLAGS], [Extra C compiler flags])
 AC_ARG_VAR([EXTRA_LDFLAGS], [Extra linker flags])
 
+# C toolchain
+AM_PROG_AR
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_PROG_LN_S
+AM_PROG_LIBTOOL
+AM_PROG_NM
 LT_INIT
 
 AC_CANONICAL_HOST
@@ -33,27 +40,31 @@ AS_IF([test "x$with_libpath" = x],
     [AC_MSG_FAILURE([invalid libpath specified])])
 AC_SUBST(libpath, $with_libpath)
 
+# Checks for programs.
+AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+AC_PATH_PROG([DEBOOTSTRAP], [debootstrap], [/usr/sbin/debootstrap], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+AC_PATH_PROG([DEVFS], [devfs], [/sbin/devfs], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+AC_PATH_PROG([ECHO], [echo], [/bin/echo], [/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([ENV], [env], [/usr/bin/env], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([FAKEROOT], [fakeroot], [/usr/bin/fakeroot], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([INSSERV], [insserv], [/sbin/insserv], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+AC_PATH_PROG([ISCHROOT], [ischroot], [/usr/bin/ischroot], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([LDCONFIG], [ldconfig], [/sbin/chroot], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([LS], [ls], [/bin/ls], [/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([MKFIFO], [mkfifo], [/usr/bin/mkfifo], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([PERL], [perl], [/usr/bin/perl], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/bin/core_perl:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([POD2MAN], [pod2man], [], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/bin/core_perl:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([PROVE], [prove], [], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/bin/core_perl:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([SEQ], [seq gseq], [], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([SH], [sh], [/bin/sh], [/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([SHELL], [bash dash sh], [/bin/sh], [/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([SYSTEMCTL], [systemctl], [/sbin/systemctl], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+
 # Additional C macros
 AC_DEFINE([FAKECHROOT], [PACKAGE_VERSION], [FAKECHROOT])
-
-# Checks for programs.
-AC_PROG_MAKE_SET
-AM_PROG_LIBTOOL
-AC_PROG_CC
-AC_PROG_LN_S
-AC_CHECK_PROGS([POD2MAN], [pod2man])
-AC_CHECK_PROGS([PROVE], [prove])
-AC_CHECK_PROGS([SEQ], [seq gseq])
-AC_PATH_PROG([CHROOT], [chroot], [/usr/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([DEBOOTSTRAP], [debootstrap], [/usr/sbin/debootstrap], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([ECHO], [echo], [/bin/echo], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([ENV], [env], [/usr/bin/env], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([FAKEROOT], [fakeroot], [/usr/bin/fakeroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([ISCHROOT], [ischroot], [/usr/bin/ischroot], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([LDCONFIG], [ldconfig], [/sbin/chroot], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([PERL], [perl], [/usr/bin/perl], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
-AC_PATH_PROG([SHELL], [bash dash sh], [/bin/sh], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_DEFINE_UNQUOTED([BIN_LS], ["$ac_cv_path_LS"], [BIN_LS])
+AC_DEFINE_UNQUOTED([BIN_SH], ["$ac_cv_path_SH"], [BIN_SH])
 
 # Checks for compiler features
 ACX_CHECK_C_ALIGNOF
@@ -388,6 +399,9 @@ AC_CONFIG_FILES(m4_normalize([
 # prove --failures --exec /bin/sh
 ACX_PROG_PROVE_OPT([--failures])
 ACX_PROG_PROVE_OPT([--exec /bin/sh])
+
+# Silence warning: ar: 'u' modifier ignored since 'D' is the default
+AC_SUBST(AR_FLAGS, [cr])
 
 # Generate output
 AC_OUTPUT

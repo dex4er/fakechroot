@@ -1,5 +1,21 @@
 # NEWS
 
+## Version 2.20.1
+
+22 Mar 2019
+
+* Fixed problem when tests couldn't be started with root user and glibc 2.28.
+* Fixed problem with too verbose test for `debootstrap`(8) command.
+* Fixed problem with tests for `fts_*` functions when started on `btrfs`
+  filesystem.
+* The `debootstrap`(8) command honors `FAKECHROOT_EXTRA_LIBRARY_PATH`
+  environment variable too.
+* Workaround has been added for `systemd` package installed by
+  `debootstrap`(8) command.
+* Better support for link-time optimizer. Run
+  `./configure EXTRA_CFLAGS='-Wall -flto' EXTRA_LDFLAGS='-flto' AR=gcc-ar NM=gcc-nm RANLIB=gcc-ranlib`
+  to use it.
+
 ## Version 2.20
 
 17 Mar 2019

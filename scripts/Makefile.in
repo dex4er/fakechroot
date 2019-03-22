@@ -169,6 +169,7 @@ ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
+AR_FLAGS = @AR_FLAGS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -184,6 +185,7 @@ CYGPATH_W = @CYGPATH_W@
 DEBOOTSTRAP = @DEBOOTSTRAP@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DEVFS = @DEVFS@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
@@ -200,6 +202,7 @@ FAKEROOT = @FAKEROOT@
 FGREP = @FGREP@
 GREP = @GREP@
 HAVE_VISIBILITY = @HAVE_VISIBILITY@
+INSSERV = @INSSERV@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -215,12 +218,14 @@ LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
+LS = @LS@
 LTLIBOBJS = @LTLIBOBJS@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
+MKFIFO = @MKFIFO@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -245,8 +250,10 @@ RANLIB = @RANLIB@
 SED = @SED@
 SEQ = @SEQ@
 SET_MAKE = @SET_MAKE@
+SH = @SH@
 SHELL = @SHELL@
 STRIP = @STRIP@
+SYSTEMCTL = @SYSTEMCTL@
 V = @V@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
@@ -311,20 +318,24 @@ sbin_SCRIPTS = chroot.fakechroot
 sysconf_DATA = chroot.env debootstrap.env rinse.env
 EXTRA_DIST = $(src_wrappers) $(src_envs) $(example_scripts)
 CLEANFILES = $(bin_SCRIPTS) $(sbin_SCRIPTS) $(sysconf_DATA)
-do_subst = sed -e 's,[@]bindir[@],$(bindir),g' \
+do_subst = $(SED) -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]libpath[@],$(libpath),g' \
                -e 's,[@]sbindir[@],$(sbindir),g' \
                -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
                -e 's,[@]CHROOT[@],$(CHROOT),g' \
+               -e 's,[@]DEVFS[@],$(DEVFS),g' \
                -e 's,[@]ECHO[@],$(ECHO),g' \
                -e 's,[@]ENV[@],$(ENV),g' \
                -e 's,[@]EGREP[@],$(EGREP),g' \
+               -e 's,[@]INSSERV[@],$(INSSERV),g' \
                -e 's,[@]ISCHROOT[@],$(ISCHROOT),g' \
                -e 's,[@]LDCONFIG[@],$(LDCONFIG),g' \
                -e 's,[@]LDD[@],$(LDD),g' \
+               -e 's,[@]MKFIFO[@],$(MKFIFO),g' \
                -e 's,[@]PERL[@],$(PERL),g' \
                -e 's,[@]SEQ[@],$(SEQ),g' \
                -e 's,[@]SHELL[@],$(SHELL),g' \
+               -e 's,[@]SYSTEMCTL[@],$(SYSTEMCTL),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 
 all: all-am
