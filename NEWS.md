@@ -2,7 +2,7 @@
 
 ## Version 2.20.1
 
-UNRELEASED
+22 Mar 2019
 
 * Fixed problem when tests couldn't be started with root user and glibc 2.28.
 * Fixed problem with too verbose test for `debootstrap`(8) command.
