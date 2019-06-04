@@ -253,7 +253,11 @@ else
     if [ -n "$fakechroot_cmd" ]; then
         # Call substituted command
         shift
-        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "$@"
+        if [ -n "$fakechroot_cmd_wrapper" ]; then
+            FAKECHROOT_LD_LIBRARY_PATH="$fakechroot_paths" FAKECHROOT_LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "$@"
+        else
+            LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "$@"
+        fi
         exit $?
     else
         # Call original command

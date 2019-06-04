@@ -39,9 +39,13 @@ fakechroot_chroot_chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
 
 fakechroot_chroot_base="$FAKECHROOT_BASE_ORIG"
 
+# preserves LD_LIBRARY_PATH & LD_PRELOAD if the script is not invoked by `fakechroot'
+[ -z "$FAKECHROOT_LD_LIBRARY_PATH" ] && FAKECHROOT_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+[ -z "$FAKECHROOT_LD_PRELOAD" ] && FAKECHROOT_LD_PRELOAD="$LD_PRELOAD"
+
 # records the content of LD_LIBRARY_PATH at first chroot invocation
-if [ -z "$fakechroot_chroot_base" -a -n "$LD_LIBRARY_PATH" ]; then
-    FAKECHROOT_LDLIBPATH="$LD_LIBRARY_PATH"
+if [ -z "$fakechroot_chroot_base" -a -n "$FAKECHROOT_LD_LIBRARY_PATH" ]; then
+    FAKECHROOT_LDLIBPATH="$FAKECHROOT_LD_LIBRARY_PATH"
     export FAKECHROOT_LDLIBPATH
 fi
 
@@ -112,7 +116,7 @@ fi
 if [ -n "$fakechroot_chroot_newroot" ] && [ $fakechroot_chroot_n -le $# ]; then
     if ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null; then
         # shell with arrays and built-in expr
-        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_PRELOAD="$FAKECHROOT_LD_PRELOAD" LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
             "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "$fakechroot_chroot_final_newroot" "${@:$(($fakechroot_chroot_n + 1))}"
         exit $?
     else
@@ -135,13 +139,13 @@ if [ -n "$fakechroot_chroot_newroot" ] && [ $fakechroot_chroot_n -le $# ]; then
             set -- "$@" "$fakechroot_chroot_arg"
         done
 
-        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_PRELOAD="$FAKECHROOT_LD_PRELOAD" LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
             "$fakechroot_chroot_chroot" "$@"
         exit $?
     fi
 else
     # original arguments
-    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_PRELOAD="$FAKECHROOT_LD_PRELOAD" LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
         "$fakechroot_chroot_chroot" "$@"
     exit $?
 fi
