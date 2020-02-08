@@ -1,4 +1,4 @@
-sudo: false
+dist: bionic
 
 language: c
 
@@ -15,8 +15,8 @@ addons:
       - libjemalloc1
       - libtool
       - lsb-release
-      - openjdk-6-jdk
-      - openjdk-7-jdk
+      - openjdk-8-jdk-headless
+      - openjdk-11-jdk-headless
 
 before_script:
   - lsb_release -a
