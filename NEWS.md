@@ -1,5 +1,11 @@
 # NEWS
 
+## Version 2.20.2
+
+XX Xxx XXXX
+
+* UNRELEASED
+
 ## Version 2.20.1
 
 22 Mar 2019
