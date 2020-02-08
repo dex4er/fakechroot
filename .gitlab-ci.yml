@@ -16,7 +16,8 @@ test:jessie:
   <<: *test_template_debian
   image: debian:jessie
   variables:
-    EXTRA_CFLAGS: -Wall -Werror
+    EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
     OPENJDK_PACKAGES: openjdk-7-jdk
     TEST_DEBOOTSTRAP: "true"
 
@@ -24,7 +25,8 @@ test:stretch:
   <<: *test_template_debian
   image: debian:stretch
   variables:
-    EXTRA_CFLAGS: -Wall -Werror
+    EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
     OPENJDK_PACKAGES: openjdk-8-jdk
     TEST_DEBOOTSTRAP: "true"
 
@@ -32,25 +34,28 @@ test:buster:
   <<: *test_template_debian
   image: debian:buster
   variables:
-    EXTRA_CFLAGS: -Wall -Werror
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk
+    EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
+    OPENJDK_PACKAGES: openjdk-11-jdk
     TEST_DEBOOTSTRAP: "true"
 
 test:sid:gcc:
   <<: *test_template_debian
   image: debian:sid
   variables:
-    EXTRA_CFLAGS: -Wall -Werror
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
+    OPENJDK_PACKAGES: openjdk-13-jdk
 
 test:sid:gcc:lto:
   <<: *test_template_debian
   image: debian:sid
   variables:
     AR: gcc-ar
-    EXTRA_CFLAGS: -Wall -Werror -flto
+    EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always -flto
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
     NM: gcc-nm
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    OPENJDK_PACKAGES: openjdk-13-jdk
     RANLIB: gcc-ranlib
 
 test:sid:clang:
@@ -59,7 +64,7 @@ test:sid:clang:
   variables:
     CC: clang-8
     EXTRA_CFLAGS: -Wall -Werror
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    OPENJDK_PACKAGES: openjdk-13-jdk
 
 test:sid:clang:c11:
   <<: *test_template_debian
@@ -67,7 +72,7 @@ test:sid:clang:c11:
   variables:
     CC: clang-8
     EXTRA_CFLAGS: -Wall -Werror -std=c11
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    OPENJDK_PACKAGES: openjdk-13-jdk
 
 test:sid:clang:c17:
   <<: *test_template_debian
@@ -75,7 +80,7 @@ test:sid:clang:c17:
   variables:
     CC: clang-8
     EXTRA_CFLAGS: -Wall -Werror -std=c17
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    OPENJDK_PACKAGES: openjdk-13-jdk
 
 test:sid:clang:lto:
   <<: *test_template_debian
@@ -86,7 +91,7 @@ test:sid:clang:lto:
     EXTRA_CFLAGS: -Wall -Werror -flto -fuse-ld=lld-8 -Wno-unused-command-line-argument
     LLD: lld-8
     NM: gcc-nm
-    OPENJDK_PACKAGES: openjdk-8-jdk openjdk-11-jdk openjdk-12-jdk
+    OPENJDK_PACKAGES: openjdk-13-jdk
     RANLIB: gcc-ranlib
 
 test:fedora:rawhide:
@@ -96,7 +101,8 @@ test:fedora:rawhide:
     - dnf -y upgrade
     - dnf -y install @development-tools autoconf automake fakeroot file libtool perl-Test-Harness redhat-rpm-config
   variables:
-    CFLAGS: -O2 -g -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
+    CFLAGS: -O2 -g -pipe -Wall -Werror=format-security -fdiagnostics-color=always -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -m64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
 
 test:archlinux:
   <<: *test_template
@@ -105,5 +111,7 @@ test:archlinux:
     - pacman -Sy
     - pacman -S --noconfirm autoconf automake fakeroot file gcc grep libtool make wget
   variables:
+    EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always -std=c11
+    GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
     PROVE: /usr/bin/core_perl/prove
-    # TEST_ARCHLINUX: "true" # release 2019.03.01 is broken
+    TEST_ARCHLINUX: "true"
