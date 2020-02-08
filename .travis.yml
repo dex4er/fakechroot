@@ -9,9 +9,9 @@ addons:
   apt:
     packages:
       - automake
-      - colorgcc
       - debootstrap
       - fakeroot
+      - gcc-8
       - libjemalloc1
       - libtool
       - lsb-release
@@ -31,11 +31,13 @@ script:
 env:
 
   global:
+    - GCC_COLORS=error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
     - TEST_DEBOOTSTRAP=1
     - TEST_DEBOOTSTRAP_CACHE=cache
 
   matrix:
-    - TRAVIS_CC=colorgcc EXTRA_CFLAGS='-Wall -Werror'
+    - TRAVIS_CC=gcc EXTRA_CFLAGS='-Wall -Werror -fdiagnostics-color=always'
+    - TRAVIS_CC=gcc-8 EXTRA_CFLAGS='-Wall -Werror -fdiagnostics-color=always'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-Wall -Werror'
     - TRAVIS_CC=clang EXTRA_CFLAGS='-std=c11 -Wall -Werror'
 
