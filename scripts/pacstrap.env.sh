@@ -10,6 +10,7 @@ fi
 fakechroot_pacstrap_env_cmd_subst="@MOUNT@=/bin/true
 @UMOUNT@=/bin/true
 @CHROOT@=${fakechroot_bindir:-@sbindir@}/chroot.fakechroot
+@UNSHARE@=${fakechroot_bindir:-@bindir@}/unshare.fakechroot
 @LDCONFIG@=/bin/true
 @LDD@=${fakechroot_bindir:-@bindir@}/ldd.fakechroot"
 
