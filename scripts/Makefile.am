@@ -1,12 +1,12 @@
 sysconfdir = @sysconfdir@/@PACKAGE@
 
 src_wrappers = chroot.fakechroot.sh env.fakechroot.sh fakechroot.sh ldd.fakechroot.pl
-src_envs = chroot.env.sh debootstrap.env.sh rinse.env.sh
+src_envs = chroot.env.sh debootstrap.env.sh pacstrap.env.sh rinse.env.sh
 example_scripts = relocatesymlinks.sh restoremode.sh savemode.sh
 
 bin_SCRIPTS = env.fakechroot fakechroot ldd.fakechroot
 sbin_SCRIPTS = chroot.fakechroot
-sysconf_DATA = chroot.env debootstrap.env rinse.env
+sysconf_DATA = chroot.env debootstrap.env pacstrap.env rinse.env
 
 EXTRA_DIST = $(src_wrappers) $(src_envs) $(example_scripts)
 CLEANFILES = $(bin_SCRIPTS) $(sbin_SCRIPTS) $(sysconf_DATA)
@@ -25,10 +25,12 @@ do_subst = $(SED) -e 's,[@]bindir[@],$(bindir),g' \
                -e 's,[@]LDCONFIG[@],$(LDCONFIG),g' \
                -e 's,[@]LDD[@],$(LDD),g' \
                -e 's,[@]MKFIFO[@],$(MKFIFO),g' \
+               -e 's,[@]MOUNT[@],$(MOUNT),g' \
                -e 's,[@]PERL[@],$(PERL),g' \
                -e 's,[@]SEQ[@],$(SEQ),g' \
                -e 's,[@]SHELL[@],$(SHELL),g' \
                -e 's,[@]SYSTEMCTL[@],$(SYSTEMCTL),g' \
+               -e 's,[@]UMOUNT[@],$(UMOUNT),g' \
                -e 's,[@]VERSION[@],$(VERSION),g'
 
 chroot.env: $(srcdir)/chroot.env.sh
@@ -41,6 +43,10 @@ chroot.fakechroot: $(srcdir)/chroot.fakechroot.sh
 
 debootstrap.env: $(srcdir)/debootstrap.env.sh
 	$(do_subst) < $(srcdir)/debootstrap.env.sh > $@
+	chmod +x $@
+
+pacstrap.env: $(srcdir)/pacstrap.env.sh
+	$(do_subst) < $(srcdir)/pacstrap.env.sh > $@
 	chmod +x $@
 
 env.fakechroot: $(srcdir)/env.fakechroot.sh

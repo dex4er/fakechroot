@@ -52,6 +52,7 @@ AC_PATH_PROG([ISCHROOT], [ischroot], [/usr/bin/ischroot], [/usr/bin:/bin:/sbin:/
 AC_PATH_PROG([LDCONFIG], [ldconfig], [/sbin/chroot], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
 AC_PATH_PROG([LDD], [ldd], [/usr/bin/ldd], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([LS], [ls], [/bin/ls], [/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
+AC_PATH_PROG([MOUNT], [mount], [/bin/mount], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
 AC_PATH_PROG([MKFIFO], [mkfifo], [/usr/bin/mkfifo], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([PERL], [perl], [/usr/bin/perl], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/bin/core_perl:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([POD2MAN], [pod2man], [], [/usr/bin:/bin:/usr/sbin:/sbin:/usr/bin/core_perl:/usr/local/bin:/usr/local/sbin:$PATH])
@@ -60,6 +61,7 @@ AC_PATH_PROG([SEQ], [seq gseq], [], [/usr/bin:/bin:/sbin:/usr/sbin:/usr/local/bi
 AC_PATH_PROG([SH], [sh], [/bin/sh], [/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([SHELL], [bash dash sh], [/bin/sh], [/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin:$PATH])
 AC_PATH_PROG([SYSTEMCTL], [systemctl], [/sbin/systemctl], [/sbin:/usr/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
+AC_PATH_PROG([UMOUNT], [umount], [/bin/umount], [/usr/sbin:/sbin:/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:$PATH])
 
 # Additional C macros
 AC_DEFINE([FAKECHROOT], [PACKAGE_VERSION], [FAKECHROOT])
