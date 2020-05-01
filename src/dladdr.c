@@ -36,11 +36,13 @@ wrapper(dladdr, int, (const void * addr, Dl_info * info))
 
     ret = nextcall(dladdr)(addr, info);
 
-    if (info->dli_fname) {
-        narrow_chroot_path(info->dli_fname);
-    }
-    if (info->dli_sname) {
-        narrow_chroot_path(info->dli_sname);
+    if (ret != 0) {
+        if (info->dli_fname) {
+            narrow_chroot_path(info->dli_fname);
+        }
+        if (info->dli_sname) {
+            narrow_chroot_path(info->dli_sname);
+        }
     }
 
     return ret;
