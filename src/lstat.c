@@ -28,19 +28,20 @@
 #include "lstat.h"
 
 
-wrapper(lstat, int, (int ver, const char * filename, struct stat * buf))
+wrapper(lstat, int, (const char * filename, struct stat * buf))
 {
-    debug("lstat(%d, \"%s\", &buf)", ver, filename);
+    char abs_filename[FAKECHROOT_PATH_MAX];
+
+    debug("lstat(\"%s\", &buf)", filename);
 
     if (!fakechroot_localdir(filename)) {
         if (filename != NULL) {
-            char abs_filename[FAKECHROOT_PATH_MAX];
             rel2abs(filename, abs_filename);
             filename = abs_filename;
         }
     }
 
-    return lstat_rel(ver, filename, buf);
+    return lstat_rel(filename, buf);
 }
 
 
