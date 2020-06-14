@@ -24,6 +24,7 @@ my $Cwd = `pwd`;
 chomp $Cwd;
 
 my $Base = defined $ENV{FAKECHROOT_BASE_ORIG} ? $ENV{FAKECHROOT_BASE_ORIG} : '';
+my $ExcludedPaths = join("|", map("^$_.*", split(/:/, $ENV{FAKECHROOT_EXCLUDE_PATH}||'')));
 
 sub ldso {
     my ($lib) = @_;
@@ -70,7 +71,7 @@ sub objdump {
     my (@files) = @_;
 
     foreach my $file (@files) {
-        $file = $file =~ m{^/} ? "$Base$file" : "$Cwd/$file";
+        $file = (($file =~ m{^/} && $file !~ /$ExcludedPaths/)) ? "$Base$file" : "$Cwd/$file";
 
         local *PIPE;
         open PIPE, "objdump -p '$file' 2>/dev/null |";
@@ -182,7 +183,7 @@ MAIN: {
             print "$file:\n";
         }
 
-        my $file_in_chroot = $file =~ m{^/} ? "$Base$file" : "$file";
+        my $file_in_chroot = (($file =~ m{^/} && $file !~ /$ExcludedPaths/)) ? "$Base$file" : "$file";
 
         if (not -f $file_in_chroot) {
             print STDERR "fakeldd: $file: No such file or directory\n";
