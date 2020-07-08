@@ -75,6 +75,17 @@ wrapper(chroot, int, (const char * path))
         return -1;
     }
 
+    if (strcmp(path, ".") == 0) {
+        unsetenv("FAKECHROOT_BASE");
+        unsetenv("LD_LIBRARY_PATH");
+        ld_library_path = getenv("FAKECHROOT_LDLIBPATH");
+        if (ld_library_path) {
+            setenv("LD_LIBRARY_PATH", ld_library_path, 1);
+        }
+        chdir(fakechroot_base);
+        return 0;
+    }
+
     if (fakechroot_base != NULL && strstr(cwd, fakechroot_base) == cwd) {
         expand_chroot_path(path);
         strlcpy(tmp, path, FAKECHROOT_PATH_MAX);
