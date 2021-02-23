@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#if defined(HAVE_MKNODAT) && !defined(HAVE___XMKNODAT)
+#if defined(HAVE_MKNODAT) && (!defined(HAVE___XMKNODAT) || NEW_GLIBC)
 
 #define _ATFILE_SOURCE
 #include <sys/stat.h>

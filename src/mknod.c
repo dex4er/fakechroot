@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifndef HAVE___XMKNOD
+#if !defined(HAVE___XMKNOD) || NEW_GLIBC
 
 #include <sys/stat.h>
 #include "libfakechroot.h"

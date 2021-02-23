@@ -24,7 +24,7 @@
 #include <config.h>
 #include "libfakechroot.h"
 
-#ifndef HAVE___LXSTAT
+#if !defined(HAVE___LXSTAT) || NEW_GLIBC
 
 wrapper_proto(lstat, int, (const char *, struct stat *));
 
