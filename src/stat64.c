@@ -34,6 +34,8 @@
 
 wrapper(stat64, int, (const char * file_name, struct stat64 * buf))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("stat64(\"%s\", &buf)", file_name);
     expand_chroot_path(file_name);
     return nextcall(stat64)(file_name, buf);

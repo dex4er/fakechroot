@@ -28,9 +28,11 @@
 #include "lstat.h"
 
 
-wrapper(lstat, int, (int ver, const char * filename, struct stat * buf))
+wrapper(lstat, int, (const char * filename, struct stat * buf))
 {
-    debug("lstat(%d, \"%s\", &buf)", ver, filename);
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+    debug("lstat(\"%s\", &buf)", filename);
 
     if (!fakechroot_localdir(filename)) {
         if (filename != NULL) {
@@ -40,7 +42,7 @@ wrapper(lstat, int, (int ver, const char * filename, struct stat * buf))
         }
     }
 
-    return lstat_rel(ver, filename, buf);
+    return lstat_rel(filename, buf);
 }
 
 
