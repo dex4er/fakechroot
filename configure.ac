@@ -75,6 +75,26 @@ ACX_CHECK_C_ATTRIBUTE_VISIBILITY
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
 
+AH_TEMPLATE([NEW_GLIBC], [glibc >= 2.33])
+AC_MSG_CHECKING([for glibc 2.33+])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+       #include <sys/stat.h>
+  ]], [[
+#ifdef __GLIBC__
+#if !__GLIBC_PREREQ(2,33)
+#error glibc<2.33
+#endif
+#else
+#error not glibc
+#endif
+  ]])],[
+   AC_DEFINE(NEW_GLIBC,1)
+   AC_MSG_RESULT([yes])
+  ],[
+   AC_DEFINE(NEW_GLIBC,0)
+   AC_MSG_RESULT([no])
+  ])
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC

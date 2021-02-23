@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifndef HAVE___XSTAT
+#if !defined(HAVE___XSTAT) || NEW_GLIBC
 
 #define _BSD_SOURCE
 #define _DEFAULT_SOURCE

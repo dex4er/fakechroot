@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifndef HAVE___LXSTAT
+#if !defined(HAVE___LXSTAT) || NEW_GLIBC
 
 #include <sys/stat.h>
 #include <unistd.h>
