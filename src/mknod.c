@@ -28,6 +28,8 @@
 
 wrapper(mknod, int, (const char * pathname, mode_t mode, dev_t dev))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("mknod(\"%s\", 0%o, %ld)", pathname, mode, dev);
     expand_chroot_path(pathname);
     return nextcall(mknod)(pathname, mode, dev);
