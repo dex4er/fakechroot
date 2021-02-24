@@ -198,6 +198,8 @@ AC_CHECK_FUNCS(m4_normalize([
     freopen64
     fstat
     fstat64
+    fstatat
+    fstatat64
     fts_children
     fts_open
     fts_read
