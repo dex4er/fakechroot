@@ -109,9 +109,9 @@ test:archlinux:
   image: archlinux/base
   before_script:
     - pacman -Sy
-    - pacman -S --noconfirm autoconf automake fakeroot file gcc grep libtool make wget
+    - pacman -S --noconfirm autoconf automake fakeroot file gcc glibc grep libtool make wget
   variables:
     EXTRA_CFLAGS: -Wall -Werror -fdiagnostics-color=always -std=c11
     GCC_COLORS: error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01
     PROVE: /usr/bin/core_perl/prove
-    # TEST_ARCHLINUX: "true" # release 2020.02.01 is broken
+    TEST_ARCHLINUX: "true"

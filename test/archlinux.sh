@@ -79,7 +79,7 @@ rm -rf "$destdir"
 ls -l "$tarball"
 
 mkdir -p "$destdir"
-tar zx --strip-components=1 --directory="$destdir" -f $tarball
+fakeroot tar zx --strip-components=1 --directory="$destdir" -f $tarball
 
 rm -f "$destdir/etc/mtab"
 echo "rootfs / rootfs rw 0 0" > "$destdir/etc/mtab"
@@ -88,7 +88,8 @@ sed -ni '/^[ \t]*CheckSpace/ !p' "$destdir/etc/pacman.conf"
 sed -i "s/^[ \t]*SigLevel[ \t].*/SigLevel = Never/" "$destdir/etc/pacman.conf"
 echo "Server = $mirror/\$repo/os/$arch" >> "$destdir/etc/pacman.d/mirrorlist"
 
-run_root pacman -Sy
+# Don't use fakechroot here yet - glibc may be out of date
+fakeroot pacman -Sy --noconfirm --root "$destdir" glibc
 
 mkdir -p "$destdir/tmp/hello"
 cat > "$destdir/tmp/hello/PKGBUILD" << 'END'

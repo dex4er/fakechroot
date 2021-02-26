@@ -61,6 +61,8 @@ libfakechroot_la_SOURCES = \
     fopen64.c \
     freopen.c \
     freopen64.c \
+    fstatat.c \
+    fstatat64.c \
     fts.c \
     fts64.c \
     ftw.c \
