@@ -14,7 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: ./configure
+      run: |
+        for t in autogen.sh configure
+        do sh "$t"
+        done
     - name: make
       run: make
     - name: make check
