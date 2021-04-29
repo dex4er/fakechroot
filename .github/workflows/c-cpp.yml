@@ -24,3 +24,9 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+      continue-on-error: true
+    - name: upload test log
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        name: test-log
+        path: test/test-suite.log
