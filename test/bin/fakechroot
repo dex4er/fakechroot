@@ -1,7 +1,7 @@
 #!/bin/sh
 
 pwd=`dirname $0`
-abs_top_srcdir=${abs_top_srcdir:-`cd "$pwd/../.." 2>/dev/null && pwd -P`}
+abs_top_srcdir=${abs_top_srcdir:-`cd "../.." 2>/dev/null && pwd -P`}
 
 PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 export PATH
