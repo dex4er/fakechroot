@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ fix-dist-check ]
   pull_request:
     branches: [ master ]
 
