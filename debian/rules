@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+
+DEB_HOST_MULTIARCH := $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    PARALLEL := $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    PROVEFLAGS += -j$(PARALLEL)
+endif
+
+%:
+	dh $@ --parallel --with autoreconf
+
+override_dh_auto_configure:
+	dh_auto_configure -- --enable-dependency-tracking --with-libpath=no V=1 EXTRA_CFLAGS='-Wall' PROVEFLAGS="$(PROVEFLAGS)" \
+	    ac_cv_path_CHROOT=/usr/sbin/chroot \
+	    ac_cv_path_DEBOOTSTRAP=/usr/sbin/debootstrap \
+	    ac_cv_path_ECHO=/bin/echo \
+	    ac_cv_path_ENV=/usr/bin/env \
+	    ac_cv_path_FAKEROOT=/usr/bin/fakeroot \
+	    ac_cv_path_ISCHROOT=/usr/bin/ischroot \
+	    ac_cv_path_LDCONFIG=/sbin/ldconfig \
+	    ac_cv_path_LDD=/usr/bin/ldd \
+	    ac_cv_path_PERL=/usr/bin/perl \
+	    ac_cv_path_SHELL=/bin/bash
+
+override_dh_auto_install-arch:
+	dh_auto_install --parallel
+	echo /usr/lib/$(DEB_HOST_MULTIARCH)/fakechroot > debian/libfakechroot/etc/ld.so.conf.d/fakechroot-$(DEB_HOST_MULTIARCH).conf

@@ -1,0 +1,40 @@
+Source: fakechroot
+Maintainer: Piotr Roszatycki <dexter@debian.org>
+Section: utils
+Priority: optional
+Build-Depends:
+  debhelper (>= 9.20141010),
+  dh-autoreconf,
+  dpkg-dev (>= 1.17.14),
+  libjemalloc1 <!nocheck>
+Standards-Version: 3.9.8
+Homepage: https://github.com/dex4er/fakechroot
+VCS-Git: https://anonscm.debian.org/git/collab-maint/fakechroot.git
+VCS-Browser: https://anonscm.debian.org/git/collab-maint/fakechroot.git
+
+Package: fakechroot
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         libfakechroot (>= ${source:Version}),
+         libfakechroot (<< ${source:Version}.1~)
+Description: gives a fake chroot environment - utilities
+ The fakechroot preloads a library which overrides libc functions, so
+ it is possible to use root-specific tools without root privileges.
+ .
+ In fake chroot you can install i.e. Debian bootstrap, create developer's
+ environment and build packages inside chroot'ed system using standard
+ non-root user account.
+
+Package: libfakechroot
+Section: libs
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Multi-Arch: same
+Description: gives a fake chroot environment - runtime
+ This package provides a library which overrides libc functions, so
+ it is possible to use root-specific tools without root privileges.
+ .
+ In fake chroot you can install i.e. Debian bootstrap, create developer's
+ environment and build packages inside chroot'ed system using standard
+ non-root user account.

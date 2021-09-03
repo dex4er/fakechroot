@@ -1,0 +1,2 @@
+version=3
+https://github.com/dex4er/fakechroot/releases /dex4er/fakechroot/archive/([0-9a-z.-]*)\.tar\.gz
