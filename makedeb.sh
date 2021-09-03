@@ -2,7 +2,7 @@
 
 set -e
 
-#./makedist.sh
+./makedist.sh
 
 PACKAGE_VERSION=$(sed -nr "s/PACKAGE_VERSION='(.*)'/\1/p" configure)
 
