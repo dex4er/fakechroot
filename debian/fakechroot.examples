@@ -1,0 +1,6 @@
+scripts/relocatesymlinks.sh
+scripts/restoremode.sh
+scripts/savemode.sh
+test/archlinux.sh
+test/debootstrap.sh
+test/testtree.sh

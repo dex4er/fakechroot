@@ -1,0 +1,24 @@
+Format: 3.0 (quilt)
+Source: fakechroot
+Binary: fakechroot, libfakechroot
+Architecture: any all
+Version: @PACKAGE_VERSION@
+Maintainer: Piotr Roszatycki <dexter@debian.org>
+Homepage: https://github.com/dex4er/fakechroot
+Standards-Version: 3.9.8
+Vcs-Browser: https://anonscm.debian.org/git/collab-maint/fakechroot.git
+Vcs-Git: https://anonscm.debian.org/git/collab-maint/fakechroot.git
+Build-Depends: debhelper (>= 9.20141010), dh-autoreconf, dpkg-dev (>= 1.17.14), libjemalloc1 <!nocheck>
+Package-List:
+ fakechroot deb utils optional arch=all
+ libfakechroot deb libs optional arch=any
+Checksums-Sha1:
+ @FAKECHROOT_ORIG_SHA1@ @FAKECHROOT_ORIG_SIZE@ @FAKECHROOT_ORIG@
+ @FAKECHROOT_DEBIAN_SHA1@ @FAKECHROOT_DEBIAN_SIZE@ @FAKECHROOT_DEBIAN@
+Checksums-Sha256:
+ @FAKECHROOT_ORIG_SHA256@ @FAKECHROOT_ORIG_SIZE@ @FAKECHROOT_ORIG@
+ @FAKECHROOT_DEBIAN_SHA256@ @FAKECHROOT_DEBIAN_SIZE@ @FAKECHROOT_DEBIAN@
+Files:
+ @FAKECHROOT_ORIG_MD5@ @FAKECHROOT_ORIG_SIZE@ @FAKECHROOT_ORIG@
+ @FAKECHROOT_DEBIAN_MD5@ @FAKECHROOT_DEBIAN_SIZE@ @FAKECHROOT_DEBIAN@
+
