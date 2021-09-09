@@ -14,6 +14,7 @@ check_PROGRAMS = \
     test-mkstemps \
     test-mktemp \
     test-opendir \
+    test-passwd \
     test-popen \
     test-posix_spawn \
     test-posix_spawnp \
