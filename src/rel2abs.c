@@ -46,13 +46,13 @@ LOCAL char * rel2abs(const char * name, char * resolved)
         goto end;
     }
 
-    getcwd_real(cwd, FAKECHROOT_PATH_MAX - 1);
-    narrow_chroot_path(cwd);
-
     if (*name == '/') {
         strlcpy(resolved, name, FAKECHROOT_PATH_MAX);
     }
     else {
+        getcwd_real(cwd, FAKECHROOT_PATH_MAX - 1);
+        narrow_chroot_path(cwd);
+
         snprintf(resolved, FAKECHROOT_PATH_MAX, "%s/%s", cwd, name);
     }
 
