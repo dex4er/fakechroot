@@ -9,6 +9,7 @@ TESTS = \
     t/cmd-subst.t \
     t/cp.t \
     t/dedotdot.t \
+    t/dladdr.t \
     t/execlp.t \
     t/execve-elfloader.t \
     t/execve-null-envp.t \
