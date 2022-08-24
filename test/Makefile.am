@@ -22,6 +22,7 @@ TESTS = \
     t/mkstemps.t \
     t/mktemp.t \
     t/opendir.t \
+    t/passwd.t \
     t/popen.t \
     t/posix_spawn.t \
     t/posix_spawnp.t \

@@ -120,6 +120,7 @@ libfakechroot_la_SOURCES = \
     openat64.c \
     opendir.c \
     opendir.h \
+    passwd.c \
     pathconf.c \
     popen.c \
     posix_spawn.c \
