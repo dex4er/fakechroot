@@ -3,6 +3,7 @@ check_PROGRAMS = \
     test-chroot \
     test-clearenv \
     test-dedotdot \
+    test-dladdr \
     test-execlp \
     test-execve-null-envp \
     test-fts \
