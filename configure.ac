@@ -158,11 +158,13 @@ ACX_CHECK_FTS_NAME_TYPE
 # Checks for library functions.
 AC_CHECK_FUNCS(m4_normalize([
     __chk_fail
+    __fstatat64_time64
     __fxstat64
     __fxstatat
     __fxstatat64
     __getcwd_chk
     __getwd_chk
+    __lstat64_time64
     __lxstat
     __lxstat64
     __open
@@ -175,7 +177,11 @@ AC_CHECK_FUNCS(m4_normalize([
     __realpath_chk
     __readlink_chk
     __readlinkat_chk
+    __stat64_time64
     __statfs
+    __utime64
+    __utimensat64
+    __utimes64
     __xmknod
     __xmknodat
     __xstat
