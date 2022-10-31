@@ -29,6 +29,7 @@ TESTS = \
     t/pwd.t \
     t/readlink.t \
     t/realpath.t \
+    t/rm.t \
     t/socket-af_unix.t \
     t/statfs.t \
     t/statvfs.t \
