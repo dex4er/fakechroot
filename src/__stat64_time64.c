@@ -1,6 +1,6 @@
 /*
     libfakechroot -- fake chroot environment
-    Copyright (c) 2010, 2013 Piotr Roszatycki <dexter@debian.org>
+    Copyright (c) 2010-2015 Piotr Roszatycki <dexter@debian.org>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -20,20 +20,26 @@
 
 #include <config.h>
 
-#if defined(HAVE_MKNODAT) && (!defined(HAVE___XMKNODAT) || NEW_GLIBC)
+#ifdef HAVE___STAT64_TIME64
 
-#define _ATFILE_SOURCE
+#define _BSD_SOURCE
+#define _LARGEFILE64_SOURCE
+#define _DEFAULT_SOURCE
 #include <sys/stat.h>
+#include <limits.h>
+#include <stdlib.h>
+
 #include "libfakechroot.h"
 
+struct __stat64_t64;
 
-wrapper(mknodat, int, (int dirfd, const char * pathname, mode_t mode, dev_t dev))
+wrapper(__stat64_time64, int, (const char * file_name, struct __stat64_t64 * buf))
 {
     char fakechroot_abspath[FAKECHROOT_PATH_MAX];
     char fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("mknodat(%d, \"%s\", 0%o, %ld)", dirfd, pathname, mode, dev);
-    expand_chroot_path_at(dirfd, pathname);
-    return nextcall(mknodat)(dirfd, pathname, mode, dev);
+    debug("__stat64_time64(\"%s\", &buf)", file_name);
+    expand_chroot_path(file_name);
+    return nextcall(__stat64_time64)(file_name, buf);
 }
 
 #else

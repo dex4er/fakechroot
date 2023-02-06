@@ -75,6 +75,26 @@ ACX_CHECK_C_ATTRIBUTE_VISIBILITY
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlsym])
 
+AH_TEMPLATE([NEW_GLIBC], [glibc >= 2.33])
+AC_MSG_CHECKING([for glibc 2.33+])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+       #include <sys/stat.h>
+  ]], [[
+#ifdef __GLIBC__
+#if !__GLIBC_PREREQ(2,33)
+#error glibc<2.33
+#endif
+#else
+#error not glibc
+#endif
+  ]])],[
+   AC_DEFINE(NEW_GLIBC,1)
+   AC_MSG_RESULT([yes])
+  ],[
+   AC_DEFINE(NEW_GLIBC,0)
+   AC_MSG_RESULT([no])
+  ])
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -138,11 +158,13 @@ ACX_CHECK_FTS_NAME_TYPE
 # Checks for library functions.
 AC_CHECK_FUNCS(m4_normalize([
     __chk_fail
+    __fstatat64_time64
     __fxstat64
     __fxstatat
     __fxstatat64
     __getcwd_chk
     __getwd_chk
+    __lstat64_time64
     __lxstat
     __lxstat64
     __open
@@ -155,7 +177,11 @@ AC_CHECK_FUNCS(m4_normalize([
     __realpath_chk
     __readlink_chk
     __readlinkat_chk
+    __stat64_time64
     __statfs
+    __utime64
+    __utimensat64
+    __utimes64
     __xmknod
     __xmknodat
     __xstat
@@ -198,6 +224,8 @@ AC_CHECK_FUNCS(m4_normalize([
     freopen64
     fstat
     fstat64
+    fstatat
+    fstatat64
     fts_children
     fts_open
     fts_read

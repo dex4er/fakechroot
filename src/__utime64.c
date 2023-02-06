@@ -20,20 +20,20 @@
 
 #include <config.h>
 
-#if defined(HAVE_MKNODAT) && (!defined(HAVE___XMKNODAT) || NEW_GLIBC)
+#ifdef HAVE___UTIME64
 
 #define _ATFILE_SOURCE
-#include <sys/stat.h>
+#define _POSIX_C_SOURCE 200809L
+#include <utime.h>
 #include "libfakechroot.h"
 
-
-wrapper(mknodat, int, (int dirfd, const char * pathname, mode_t mode, dev_t dev))
+wrapper(__utime64, int, (const char * filename, const struct utimbuf * buf))
 {
     char fakechroot_abspath[FAKECHROOT_PATH_MAX];
     char fakechroot_buf[FAKECHROOT_PATH_MAX];
-    debug("mknodat(%d, \"%s\", 0%o, %ld)", dirfd, pathname, mode, dev);
-    expand_chroot_path_at(dirfd, pathname);
-    return nextcall(mknodat)(dirfd, pathname, mode, dev);
+    debug("__utime64(\"%s\", &buf)", filename);
+    expand_chroot_path(filename);
+    return nextcall(__utime64)(filename, buf);
 }
 
 #else

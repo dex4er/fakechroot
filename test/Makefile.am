@@ -9,6 +9,7 @@ TESTS = \
     t/cmd-subst.t \
     t/cp.t \
     t/dedotdot.t \
+    t/dladdr.t \
     t/execlp.t \
     t/execve-elfloader.t \
     t/execve-null-envp.t \
@@ -18,15 +19,18 @@ TESTS = \
     t/host.t \
     t/java.t \
     t/jemalloc.t \
+    t/ldd_interp.t \
     t/mkstemps.t \
     t/mktemp.t \
     t/opendir.t \
+    t/passwd.t \
     t/popen.t \
     t/posix_spawn.t \
     t/posix_spawnp.t \
     t/pwd.t \
     t/readlink.t \
     t/realpath.t \
+    t/rm.t \
     t/socket-af_unix.t \
     t/statfs.t \
     t/statvfs.t \

@@ -22,12 +22,37 @@
 
 #ifdef HAVE_LCKPWDF
 
+#include <unistd.h>
+#include <fcntl.h>
 #include "libfakechroot.h"
+#include "open.h"
 
 
 wrapper(lckpwdf, int, (void))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
+
+    int file;
     debug("lckpwdf()");
+    // lckpwdf will create an empty /etc/.pwd.lock
+    // if that file doesn't exist yet, we create it here as well
+    char* pwdlockfile = "/etc/.pwd.lock";
+    expand_chroot_path(pwdlockfile);
+
+    if ((file = nextcall(open)(pwdlockfile, O_RDONLY)) == 0) {
+        // if the file already exists, don't touch it
+        close(file);
+        return 0;
+    }
+
+    if ((file = nextcall(open)(pwdlockfile, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) == -1) {
+        // we ignore any errors (maybe /etc doesn't exist or we don't have the
+        // necessary permissions)
+        return 0;
+    }
+    // the file remains empty
+    close(file);
     return 0;
 }
 

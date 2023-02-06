@@ -1,9 +1,11 @@
 pkglib_LTLIBRARIES = libfakechroot.la
 libfakechroot_la_SOURCES = \
+    __fstatat64_time64.c \
     __fxstatat.c \
     __fxstatat64.c \
     __getcwd_chk.c \
     __getwd_chk.c \
+    __lstat64_time64.c \
     __lxstat.c \
     __lxstat64.c \
     __lxstat64.h \
@@ -18,7 +20,11 @@ libfakechroot_la_SOURCES = \
     __readlinkat_chk.c \
     __realpath_chk.c \
     __realpath_chk.h \
+    __stat64_time64.c \
     __statfs.c \
+    __utime64.c \
+    __utimensat64.c \
+    __utimes64.c \
     __xmknod.c \
     __xmknodat.c \
     __xstat.c \
@@ -61,6 +67,8 @@ libfakechroot_la_SOURCES = \
     fopen64.c \
     freopen.c \
     freopen64.c \
+    fstatat.c \
+    fstatat64.c \
     fts.c \
     fts64.c \
     ftw.c \
@@ -118,6 +126,7 @@ libfakechroot_la_SOURCES = \
     openat64.c \
     opendir.c \
     opendir.h \
+    passwd.c \
     pathconf.c \
     popen.c \
     posix_spawn.c \

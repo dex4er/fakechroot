@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifndef HAVE___XSTAT
+#if !defined(HAVE___XSTAT) || NEW_GLIBC
 
 #define _BSD_SOURCE
 #define _DEFAULT_SOURCE
@@ -33,6 +33,8 @@
 
 wrapper(stat, int, (const char * file_name, struct stat * buf))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("stat(\"%s\", &buf)", file_name);
     expand_chroot_path(file_name);
     return nextcall(stat)(file_name, buf);
