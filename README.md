@@ -11,7 +11,7 @@
 
 ## What is it
 
-fakechroot runs a command in an environment were is additional possibility to
+fakechroot runs a command in an environment where it is additionally possible to
 use `chroot`(8) command without root privileges.  This is useful for allowing
 users to create own chrooted environment with possibility to install another
 packages without need for root privileges.
