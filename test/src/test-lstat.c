@@ -1,7 +1,9 @@
 #define _BSD_SOURCE
 #define _DEFAULT_SOURCE
+
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,6 +22,19 @@ int main (int argc, char *argv[]) {
     if (lstat(argv[1], &stab)) {
         perror("lstat");
         exit(1);
+    }
+
+#ifdef HAVE_LUTIMES
+    struct timeval tv[2];
+    if (lutimes(argv[1], tv)) {
+        perror("lutimes");
+        exit(1);
+    }
+#endif
+
+    if ((stab.st_mode & S_IFMT) == S_IFREG) {
+        printf("regular file size: %d\n", (int)stab.st_size);
+        return 0;
     }
 
     if ((stab.st_mode & S_IFMT) != S_IFLNK) {

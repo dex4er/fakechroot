@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#ifndef HAVE___XMKNOD
+#if !defined(HAVE___XMKNOD) || NEW_GLIBC
 
 #include <sys/stat.h>
 #include "libfakechroot.h"
@@ -28,6 +28,8 @@
 
 wrapper(mknod, int, (const char * pathname, mode_t mode, dev_t dev))
 {
+    char fakechroot_abspath[FAKECHROOT_PATH_MAX];
+    char fakechroot_buf[FAKECHROOT_PATH_MAX];
     debug("mknod(\"%s\", 0%o, %ld)", pathname, mode, dev);
     expand_chroot_path(pathname);
     return nextcall(mknod)(pathname, mode, dev);

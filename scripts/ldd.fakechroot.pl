@@ -124,6 +124,38 @@ sub objdump {
     }
 }
 
+# mips64el, ppc64el and s390x do not list the linker itself
+# if it's missing, obtain it from the .interp section
+#
+# mips64el: /lib64/ld.so.1
+# ppc64el: /lib64/ld64.so.2
+# s390x: /lib/ld64.so.1
+sub elfinterp {
+    my $file = shift;
+    my $res = '';
+    local *PIPE;
+    open PIPE, "objdump -sj .interp '$file' 2>/dev/null |";
+    while (my $line = <PIPE>) {
+        if ( $line !~ /^ [a-f0-9]+ ([a-f0-9][a-f0-9][a-f0-9 ]{6} [a-f0-9 ]{8} [a-f0-9 ]{8} [a-f0-9 ]{8})  /) {
+            next;
+        }
+        $line = $1;
+        $line =~ s/ //g;
+        $line =~ s/(..)/chr(hex($1))/eg;
+        $res .= $line;
+    }
+    close PIPE;
+
+    # remove trailing NUL byte
+    $res =~ s/\000$//;
+
+    # only add if it is missing
+    if ( $res && !exists $Libs{$res} ) {
+        push @Libs, $res;
+        $Libs{$res} = '';
+    }
+}
+
 
 sub load_ldsoconf {
     my ($file) = @_;
@@ -191,6 +223,7 @@ MAIN: {
         }
 
         objdump($file);
+        elfinterp($file_in_chroot);
 
         if ($Dynamic == 0) {
             print "\tnot a dynamic executable\n";

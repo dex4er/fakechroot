@@ -32,6 +32,10 @@ do
     mkdir -p $destdir/$d
 done
 
+echo "user:x:1337:1337:user:/home/user:/bin/bash" > $destdir/etc/passwd
+echo "root:x:0:" > $destdir/etc/group
+echo "user:x:1337:" >> $destdir/etc/group
+
 for d in \
     /dev \
     /proc
@@ -64,6 +68,7 @@ for p in \
     '/usr/bin/dirname' \
     '/usr/bin/env' \
     '/usr/bin/find' \
+    '/usr/bin/getent' \
     '/usr/bin/id' \
     '/usr/bin/ischroot' \
     '/usr/bin/less' \
@@ -116,6 +121,7 @@ for p in \
     'libm.so.*' \
     'libncurses.so.*' \
     'libncursesw.so.*' \
+    'libnss_*.so.*' \
     'libpcre*.so.*' \
     'libpthread.so.*' \
     'libreadline.so.*' \

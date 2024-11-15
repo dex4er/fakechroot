@@ -3,12 +3,12 @@
 srcdir=${srcdir:-.}
 . $srcdir/common.inc.sh
 
-prepare 16
+prepare 24
 
 . $srcdir/touch.inc.sh
 
 if [ -z "$touch" ]; then
-    skip 16 "touch not found"
+    skip 24 "touch not found"
 else
 
     for chroot in chroot fakechroot; do
@@ -26,6 +26,19 @@ else
             sleep 1
 
             t=`$srcdir/$chroot.sh $testtree $touch -r /tmp/$chroot-touch.txt /tmp/$chroot-touch2.txt 2>&1`
+            test "$t" = "" || not
+            ok "$chroot touch -r" $t
+            test -f $testtree/tmp/$chroot-touch2.txt || not
+            ok "$chroot $chroot-touch2.txt exists"
+            test $testtree/tmp/$chroot-touch2.txt -nt $testtree/tmp/$chroot-touch.txt && not
+            ok "$chroot $chroot-touch2.txt is not newer than touch.txt"
+            test $testtree/tmp/$chroot-touch2.txt -ot $testtree/tmp/$chroot-touch.txt && not
+            ok "$chroot $chroot-touch2.txt is not older than $chroot-touch.txt"
+
+            sleep 1
+
+            # with --no-dereference, on 32bit, touch will use __lstat64_time64
+            t=`$srcdir/$chroot.sh $testtree $touch -h -r /tmp/$chroot-touch.txt /tmp/$chroot-touch2.txt 2>&1`
             test "$t" = "" || not
             ok "$chroot touch -r" $t
             test -f $testtree/tmp/$chroot-touch2.txt || not

@@ -185,7 +185,7 @@ int rpl_lstat (const char *, struct stat *);
 # define NFTW_NEW_NAME __new_nftw
 # define INO_T ino_t
 # define STAT stat
-# ifdef _LIBC
+# if defined(_LIBC) && !NEW_GLIBC
 #  define LXSTAT __lxstat
 #  define XSTAT __xstat
 #  define FXSTATAT __fxstatat

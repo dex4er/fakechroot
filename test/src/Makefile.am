@@ -3,6 +3,7 @@ check_PROGRAMS = \
     test-chroot \
     test-clearenv \
     test-dedotdot \
+    test-dladdr \
     test-execlp \
     test-execve-null-envp \
     test-fts \
@@ -14,6 +15,7 @@ check_PROGRAMS = \
     test-mkstemps \
     test-mktemp \
     test-opendir \
+    test-passwd \
     test-popen \
     test-posix_spawn \
     test-posix_spawnp \

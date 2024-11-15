@@ -42,7 +42,7 @@ wrapper(tmpnam, char *, (char * s))
 
     expand_chroot_path(ptr);
 
-    ptr2 = malloc(strlen(ptr));
+    ptr2 = malloc(strlen(ptr) + 1);
     if (ptr2 == NULL) return NULL;
 
     strcpy(ptr2, ptr);

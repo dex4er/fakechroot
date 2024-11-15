@@ -6,7 +6,7 @@ srcdir=${srcdir:-.}
 readlink=`command -v readlink 2>/dev/null`
 readlink=${readlink:-/bin/readlink}
 
-prepare 18
+prepare 19
 
 for chroot in chroot fakechroot; do
 
@@ -54,6 +54,10 @@ for chroot in chroot fakechroot; do
         ss=`echo "$t" | grep '^stat size: ' | sed 's/.*: //'`
         test -n "$rs" -a "$rs" = "$ss" || not
         ok "$chroot abs-symlink readlink size [" $rs "] = stat size [" $ss "]"
+
+        t=`$srcdir/$chroot.sh $testtree /bin/test-lstat /$chroot-file 2>&1`
+        test "$t" = "regular file size: 10" || not
+        ok "$chroot-file is of size 10"
 
     fi
 

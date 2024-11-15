@@ -26,6 +26,7 @@
 #define _FORTIFY_SOURCE 2
 #include <stddef.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "libfakechroot.h"
 
 
@@ -42,7 +43,12 @@ wrapper(__readlinkat_chk, ssize_t, (int dirfd, const char * path, char * buf, si
     debug("__readlinkat_chk(%d, \"%s\", &buf, %zd, %zd)", dirfd, path, bufsiz, buflen);
     expand_chroot_path_at(dirfd, path);
 
-    if ((linksize = nextcall(__readlinkat_chk)(dirfd, path, tmp, FAKECHROOT_PATH_MAX-1, buflen)) == -1) {
+    if (__builtin_expect(!!(bufsiz > buflen), 0)) {
+      printf("readlinkat: prevented write past end of buffer\n");
+      exit(-1);
+    }
+
+    if ((linksize = nextcall(__readlinkat_chk)(dirfd, path, tmp, FAKECHROOT_PATH_MAX-1, FAKECHROOT_PATH_MAX-1)) == -1) {
         return -1;
     }
     tmp[linksize] = '\0';
