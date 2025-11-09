@@ -253,7 +253,7 @@ wrapper(execve, int, (const char * filename, char * const argv [], char * const 
         n = argv_max - j - 1;
     }
     newargv[n+j] = 0;
-    for (i = n; i >= j; i--) {
+    for (i = (n+j)-1; i >= j; i--) {
         newargv[i] = newargv[i-j];
     }
     n = 0;
