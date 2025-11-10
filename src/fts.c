@@ -135,7 +135,7 @@ FTS_OPEN(char * const *argv, int options,
         FTSENTRY *parent, *tmp = NULL;
         size_t len;
 
-        debug("fts_open({\"%s\", ...}, %d, &compar)", **argv, options);
+        debug("fts_open({\"%s\", ...}, %d, &compar)", argv[0], options);
 
         /* Options check. */
         if (options & ~FTS_OPTIONMASK) {
