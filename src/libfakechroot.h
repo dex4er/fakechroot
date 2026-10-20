@@ -143,7 +143,6 @@
 
 #define wrapper_decl(function) \
     LOCAL struct fakechroot_wrapper fakechroot_##function##_wrapper_decl SECTION_DATA_FAKECHROOT = { \
-        (fakechroot_wrapperfn_t) function, \
         NULL, \
         #function \
     }
@@ -204,7 +203,6 @@
 typedef void (*fakechroot_wrapperfn_t)(void);
 
 struct fakechroot_wrapper {
-    fakechroot_wrapperfn_t func;
     fakechroot_wrapperfn_t nextfunc;
     const char *name;
 };
