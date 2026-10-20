@@ -866,10 +866,7 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
 /* Entry points.  */
 
 int
-FTW_NAME (path, func, descriptors)
-     const char *path;
-     FTW_FUNC_T func;
-     int descriptors;
+FTW_NAME (const char *path, FTW_FUNC_T func, int descriptors)
 {
   debug(FTW_NAME_STRING "(\"%s\", &func, %d)", path, descriptors);
   return ftw_startup (path, 0, func, descriptors, 0);
@@ -878,11 +875,7 @@ FTW_NAME (path, func, descriptors)
 #if ((!defined(__FTW64_C) && HAVE_NFTW) || (defined(__FTW64_C) && HAVE_NFTW64))
 #ifndef _LIBC
 int
-NFTW_NAME (path, func, descriptors, flags)
-     const char *path;
-     NFTW_FUNC_T func;
-     int descriptors;
-     int flags;
+NFTW_NAME (const char *path, NFTW_FUNC_T func, int descriptors, int flags)
 {
   debug(NFTW_NAME_STRING "(\"%s\", &func, %d, %d)", path, descriptors, flags);
   return ftw_startup (path, 1, func, descriptors, flags);
@@ -894,11 +887,8 @@ NFTW_NAME (path, func, descriptors, flags)
 int NFTW_NEW_NAME (const char *, NFTW_FUNC_T, int, int);
 
 int
-NFTW_NEW_NAME (path, func, descriptors, flags)
-     const char *path;
-     NFTW_FUNC_T func;
-     int descriptors;
-     int flags;
+NFTW_NEW_NAME (const char *path, NFTW_FUNC_T func, int descriptors,
+               int flags)
 {
   debug(NFTW_NEW_NAME_STRING "(\"%s\", &func, %d, %d)", path, descriptors, flags);
   if (flags
@@ -920,11 +910,8 @@ int NFTW_OLD_NAME (const char *, NFTW_FUNC_T, int, int);
 
 int
 attribute_compat_text_section
-NFTW_OLD_NAME (path, func, descriptors, flags)
-     const char *path;
-     NFTW_FUNC_T func;
-     int descriptors;
-     int flags;
+NFTW_OLD_NAME (const char *path, NFTW_FUNC_T func, int descriptors,
+               int flags)
 {
   debug(NFTW_OLD_NAME_STRING "(\"%s\", &func, %d, %d)", path, descriptors, flags);
   flags &= (FTW_PHYS | FTW_MOUNT | FTW_CHDIR | FTW_DEPTH);
